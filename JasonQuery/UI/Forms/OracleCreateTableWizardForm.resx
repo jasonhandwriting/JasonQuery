@@ -1,0 +1,1084 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <metadata name="c1ThemeController1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>789, 17</value>
+  </metadata>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="c1GridColumn.Images" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVChTdYkBCgAgDAL9/6eLIsd0eSCKhw/r9aCLtC88
+        vAdHMEIXKUIUhMK76EfagglgA6CqHOQpL6GyAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridColumn.PropBag" xml:space="preserve">
+    <value>&lt;?xml version="1.0"?&gt;&lt;Blob&gt;&lt;DataCols&gt;&lt;C1DataColumn Caption="Data" DataField="Data"&gt;&lt;FilterDropdownText&gt;(所有)&lt;/FilterDropdownText&gt;&lt;FilterCancelText&gt;&amp;amp;Close&lt;/FilterCancelText&gt;&lt;FilterClearText&gt;C&amp;amp;lear&lt;/FilterClearText&gt;&lt;ImeMode&gt;NoControl&lt;/ImeMode&gt;&lt;ValueItems /&gt;&lt;GroupInfo&gt;&lt;AggregatesText&gt;{0}&lt;/AggregatesText&gt;&lt;/GroupInfo&gt;&lt;/C1DataColumn&gt;&lt;/DataCols&gt;&lt;Styles type="C1.Win.C1TrueDBGrid.Design.ContextWrapper"&gt;&lt;Data&gt;Caption{AlignHorz:Center;}ColumnSelector{}Editor{}EvenRow{}FilterBar{}FilterWatermark{}Footer{}Group{Border:None,,0, 0, 0, 0;}Heading{BackColor:Control;Font:Microsoft JhengHei UI, 9pt;Border:Flat,ControlDark,0, 0, 0, 0;}HeadingHot{}HighlightRow{BackColor:Highlight;Font:Microsoft JhengHei UI, 9pt;}Inactive{}Normal{Font:Microsoft JhengHei UI, 9pt;}OddRow{}RecordSelector{}RowSelector{}Selected{BackColor:Highlight;ForeColor:HighlightText;Font:Microsoft JhengHei UI, 9pt;}Style1{}Style10{AlignHorz:Near;}Style100{}Style101{}Style102{}Style103{}Style11{}Style12{}Style13{}Style14{Font:Microsoft JhengHei UI, 9pt;Trimming:Character;AlignHorz:Near;AlignVert:Center;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;WrapText:WrapWithOverflow;}Style15{}Style16{}Style17{BackColor:LightCyan;Trimming:Character;AlignHorz:General;AlignVert:Top;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;}Style18{}Style19{}Style2{}Style20{}Style21{}Style22{}Style23{}Style24{}Style3{}Style4{}Style5{}Style6{}Style7{}Style70{}Style71{}Style72{}Style73{}Style8{}Style9{}&lt;/Data&gt;&lt;/Styles&gt;&lt;Splits&gt;&lt;C1.Win.C1TrueDBGrid.MergeView HBarHeight="20" AllowColMove="False" Name="" AlternatingRowStyle="True" CaptionHeight="19" ColumnCaptionHeight="19" ColumnFooterHeight="19" FetchRowStyles="True" MarqueeStyle="DottedCellBorder" RecordSelectorWidth="17" DefRecSelWidth="17" VerticalScrollGroup="1" HorizontalScrollGroup="1"&gt;&lt;CaptionStyle parent="Style2" me="Style10" /&gt;&lt;EditorStyle parent="Editor" me="Style5" /&gt;&lt;EvenRowStyle parent="EvenRow" me="Style8" /&gt;&lt;FilterBarStyle parent="FilterBar" me="Style13" /&gt;&lt;FilterWatermarkStyle parent="FilterWatermark" me="Style102" /&gt;&lt;FooterStyle parent="Footer" me="Style3" /&gt;&lt;GroupStyle parent="Group" me="Style12" /&gt;&lt;HeadingStyle parent="Heading" me="Style2" /&gt;&lt;HighLightRowStyle parent="HighlightRow" me="Style7" /&gt;&lt;InactiveStyle parent="Inactive" me="Style4" /&gt;&lt;OddRowStyle parent="OddRow" me="Style9" /&gt;&lt;RecordSelectorStyle parent="RecordSelector" me="Style11" /&gt;&lt;RowSelectorStyle parent="RowSelector" me="Style100" /&gt;&lt;ColumnSelectorStyle parent="ColumnSelector" me="Style101" /&gt;&lt;SelectedStyle parent="Selected" me="Style6" /&gt;&lt;Style parent="Normal" me="Style1" /&gt;&lt;internalCols&gt;&lt;C1DisplayColumn&gt;&lt;HeadingStyle parent="Style2" me="Style14" /&gt;&lt;ColumnSelectorStyle parent="Style14" me="Style103" /&gt;&lt;Style parent="Style1" me="Style15" /&gt;&lt;FooterStyle parent="Style3" me="Style16" /&gt;&lt;EditorStyle parent="Style5" me="Style17" /&gt;&lt;GroupHeaderStyle parent="Style1" me="Style73" /&gt;&lt;GroupFooterStyle parent="Style1" me="Style72" /&gt;&lt;Visible&gt;True&lt;/Visible&gt;&lt;ColumnDivider&gt;DarkGray,Single&lt;/ColumnDivider&gt;&lt;Height&gt;19&lt;/Height&gt;&lt;DCIdx&gt;0&lt;/DCIdx&gt;&lt;/C1DisplayColumn&gt;&lt;/internalCols&gt;&lt;ClientRect&gt;0, 0, 1038, 434&lt;/ClientRect&gt;&lt;BorderSide&gt;0&lt;/BorderSide&gt;&lt;/C1.Win.C1TrueDBGrid.MergeView&gt;&lt;/Splits&gt;&lt;NamedStyles&gt;&lt;Style parent="" me="Normal" /&gt;&lt;Style parent="Normal" me="Heading" /&gt;&lt;Style parent="Heading" me="Footer" /&gt;&lt;Style parent="Heading" me="Caption" /&gt;&lt;Style parent="Heading" me="Inactive" /&gt;&lt;Style parent="Normal" me="Selected" /&gt;&lt;Style parent="Normal" me="Editor" /&gt;&lt;Style parent="Normal" me="HighlightRow" /&gt;&lt;Style parent="Normal" me="EvenRow" /&gt;&lt;Style parent="Normal" me="OddRow" /&gt;&lt;Style parent="Heading" me="RecordSelector" /&gt;&lt;Style parent="Normal" me="FilterBar" /&gt;&lt;Style parent="Caption" me="Group" /&gt;&lt;Style parent="RecordSelector" me="RowSelector" /&gt;&lt;Style parent="Heading" me="ColumnSelector" /&gt;&lt;Style parent="FilterBar" me="FilterWatermark" /&gt;&lt;Style parent="Heading" me="HeadingHot" /&gt;&lt;/NamedStyles&gt;&lt;vertSplits&gt;1&lt;/vertSplits&gt;&lt;horzSplits&gt;1&lt;/horzSplits&gt;&lt;Layout&gt;Modified&lt;/Layout&gt;&lt;DefaultRecSelWidth&gt;17&lt;/DefaultRecSelWidth&gt;&lt;ClientArea&gt;0, 0, 1038, 434&lt;/ClientArea&gt;&lt;PrintPageHeaderStyle parent="" me="Style70" /&gt;&lt;PrintPageFooterStyle parent="" me="Style71" /&gt;&lt;/Blob&gt;</value>
+  </data>
+  <metadata name="tsColumnVertical.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1100, 17</value>
+  </metadata>
+  <data name="btnColumnInsert.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABySURBVDhPY6AqKD7w4z/blP//GSZhxyA5kBqockzAPf3f
+        /7OPP/3/8OEDVgySA6mBKocA7hiG/yAMYpPlArDms8ZwQ0gGMAPQDSHaNcgGIBtCdHhQzQXImkkCII0w
+        zUTbiguQlQ6QAcUuoBgMxTBgYAAAdsWKIxPKnuQAAAAASUVORK5CYII=
+</value>
+  </data>
+  <data name="btnColumnTop.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAE7SURBVDhPtZLfK0NhGMef/0qWojXaBerUURMl1ly6Wkkr
+        JdKu3NqNLCUHsaQVy2orZ3IUspraIrcuFP6Br+c973vm9bbjV3zrW+fm83ne530P/U1Gy/hV/zVppwWa
+        vvDrf/8kARyEUh7s5dL3JDpceJDdvmPJpAtrofi5xIQdBkXzTSDXYMlYBdb8QWeJDu8rWIA+fAus3ACL
+        lyyxj2Fl9j5KzMniyAGow3MeMOOyZOgQ1uyOJtHhewmvKtCEk1UgUWbJwK4mSPFzJc9BU2egiVO4jwzW
+        GbySbU8e5P3jBVA/w9GtkAsdr6LxCiwpUJ9McWP3juFftP6iwJps+9gxfe+wjJRw/fwOirITw0cs6As7
+        th6+Ye9JTT2RFXCsyIJI/mtBOscXGnVAvZugng3ZyDqoaw3ddtYQEL0BHluB4qg2xoYAAAAASUVORK5C
+        YII=
+</value>
+  </data>
+  <data name="btnColumnUp.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFaSURBVDhPtZHNK0RRGMbPH6VoGtE0o0mDpiiixGnsWM3G
+        moWFpCSzwURykTtNPjLTTExckysfmRpFZKvIxz/weM89947j5nItvPXU2fx+z9t72L9NUrsFGzq1Yr3/
+        Mg7sDEuY4LMn/iQqnHmQWbsjyYABPlP+WeKGNQJF0jdAqkqS3gPw6cPvJSqs27AALfgamLoCxs5J0pkD
+        n9z/KnE3i5UdUIVHTWDEIEnbFvhEQZGo8L2E52zQDfMS0F0kScuGIkjQd3G68iAdqf8IxiOBFQIvZGrN
+        sSxYNAMWITi06nHQvhKq78C4DarNLLrpAanTU0TlzQaPZWprh9d9CLryuHz9BEXIifY9EjR7ra1OfBdn
+        L3ZrQUbA4R0SNC77ENAXmc8S7MjJRLaBYJYEgbQPQauO8hOBopVAEQHX6SRoWPhdkEzRl4Y0sKYVsOCS
+        TGARrH4e8WH3Box9AJl2kuBaL9LEAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="btnColumnDown.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGFSURBVDhPrZJZK8RRGMbPp5HlyjIpmSylZsSFkiUy8pcL
+        slyMKBcT4mIsd+ZiJo1SjG1kpuyGkW1soShRLnwPj+ecM5NlDP8Lbz135/d73/OeI/69nIEniLYLndaY
+        TssphOMIztkHxI/9UgRlvbwlR9TtmRPIw/PPgP9RZ+oecN9QUL1lQsCRpWCGoIegzNgt4LqkoGrdhID3
+        lQLPAzB+pzN4BfSeUVARMiHgsqRgguAQQZm+GNB+RIE9aELQEFWC4Wug/1yng7DjgIKyxRSC+DOJxig3
+        HVGCfnbtPNZp3geqdygomYOwzkIUzEDkT3+SNemxE1l6BboItkR1JGzbAArXgOxlIC1AmcX7IVAfhJ1H
+        +VQDHLn7RIM1uzr2dcAaAnJWCC8QzvOiqsP/9TrG5KF6ph7CrYRrCZazq0wR4dwgkC5hiy8ZTpThjkDY
+        gqgnXLkJFId18ghnLP4BJ8oY2VbLKiVoWdXJVJ1/GDtVGUMbatNZS1Ax1fl7Ga4wl+VTSQ0L8Q6IN4Z/
+        SkW63QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="btnColumnBottom.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFnSURBVDhPrZPdK4NhGMafv0Y+jrAlsnyU2pSDNwuLrNZy
+        QFiZphwIRYlDDiahhdmYTA35yGo+RiRlJcqB/8Plep9ny8eMd3LV7+z5Xffz3G+v+Pd4g48QXVcKd1Lh
+        OodwJuANpJA+9kMo6nl+zUa0HRkr0A+vPQGLD4rZe2DqlgX2fQMFvKpeMJcCpu8Uo9fA4AULbBEDBe1x
+        WTBDcYyiji8JdCdY0BDKUZBekuiI853HsmD8Bhi6VPRQdp6woG4VwhKAqFqCqFj4UNaprp0h/AL0nQKu
+        uMJ+AFh3geptoHQDKAiyzOx/L5Cfh5MnuKhhTuw/U2LLocIWAyxRoGyT8jplkx+VzZOfn2MfiUJoMXgo
+        uym3UmzkVJ0ayuURoFCXzfPZciaaLwxhjcBBuWkPqN1RmCgXhX6RM9EGgnJZ9RTNW4piOfmba+eK5lmR
+        my4JQ2Jo8tdovctc1rwkbzn/OPiT/AUhxBsvyXArBBwn2QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <metadata name="tsColumns.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>676, 17</value>
+  </metadata>
+  <data name="tabColumns.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        wgAADsIBFShKgAAAAPlJREFUOE9joAqoWfLlPzKuWPDpf/Hs9/9zp7z+n9b3/H947f3/AeW3wdgz/xoY
+        O2de/m+XcvE/3ICvv/7C8eUX3/+fe/Lj/8l7P/8fuvn7/5azf/6vO/EPjFcegeClB/4DDbiAMOD66+9w
+        vPv25/+brnz9v/LMt//zDn3/37Hh9/+6FX/BuGzhPzAumINmADKuWPAR6oU3QC+8+B8B9IJ/2W0wRvaC
+        bTLUC+VTj/8nB+jZleE24AsDAwZGBxgGdE+6CMYgANPw+OkvMA3jI6sh6AIQQDcQGQwRFzx/+RtMw/hd
+        pLgAHaMDvAYQA1AMAHHIwWADyAcMDABmdZstKhDAxAAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="c1GridIndexExpressions.Images" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVChTdYkBCgAgDAL9/6eLIsd0eSCKhw/r9aCLtC88
+        vAdHMEIXKUIUhMK76EfagglgA6CqHOQpL6GyAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridIndexExpressions.PropBag" xml:space="preserve">
+    <value>&lt;?xml version="1.0"?&gt;&lt;Blob&gt;&lt;DataCols&gt;&lt;C1DataColumn Caption="Data" DataField="Data"&gt;&lt;FilterDropdownText&gt;(所有)&lt;/FilterDropdownText&gt;&lt;FilterCancelText&gt;&amp;amp;Close&lt;/FilterCancelText&gt;&lt;FilterClearText&gt;C&amp;amp;lear&lt;/FilterClearText&gt;&lt;ImeMode&gt;NoControl&lt;/ImeMode&gt;&lt;ValueItems /&gt;&lt;GroupInfo&gt;&lt;AggregatesText&gt;{0}&lt;/AggregatesText&gt;&lt;/GroupInfo&gt;&lt;/C1DataColumn&gt;&lt;/DataCols&gt;&lt;Styles type="C1.Win.C1TrueDBGrid.Design.ContextWrapper"&gt;&lt;Data&gt;Caption{AlignHorz:Center;}ColumnSelector{}Editor{}EvenRow{}FilterBar{}FilterWatermark{}Footer{}Group{Border:None,,0, 0, 0, 0;}Heading{BackColor:Control;Font:Microsoft JhengHei UI, 9pt;Border:Flat,ControlDark,0, 0, 0, 0;}HeadingHot{}HighlightRow{BackColor:Highlight;Font:Microsoft JhengHei UI, 9pt;}Inactive{}Normal{Font:Microsoft JhengHei UI, 9pt;}OddRow{}RecordSelector{}RowSelector{}Selected{BackColor:Highlight;ForeColor:HighlightText;Font:Microsoft JhengHei UI, 9pt;}Style1{}Style10{AlignHorz:Near;}Style100{}Style101{}Style102{}Style103{}Style11{}Style12{}Style13{}Style14{Font:Microsoft JhengHei UI, 9pt;Trimming:Character;AlignHorz:Near;AlignVert:Center;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;WrapText:WrapWithOverflow;}Style15{}Style16{}Style17{BackColor:LightCyan;Trimming:Character;AlignHorz:General;AlignVert:Top;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;}Style18{}Style19{}Style2{}Style20{}Style21{}Style22{}Style23{}Style24{}Style3{}Style4{}Style5{}Style6{}Style7{}Style70{}Style71{}Style72{}Style73{}Style8{}Style9{}&lt;/Data&gt;&lt;/Styles&gt;&lt;Splits&gt;&lt;C1.Win.C1TrueDBGrid.MergeView HBarHeight="20" AllowColMove="False" Name="" AlternatingRowStyle="True" CaptionHeight="19" ColumnCaptionHeight="19" ColumnFooterHeight="19" MarqueeStyle="DottedCellBorder" RecordSelectorWidth="17" DefRecSelWidth="17" VerticalScrollGroup="1" HorizontalScrollGroup="1"&gt;&lt;CaptionStyle parent="Style2" me="Style10" /&gt;&lt;EditorStyle parent="Editor" me="Style5" /&gt;&lt;EvenRowStyle parent="EvenRow" me="Style8" /&gt;&lt;FilterBarStyle parent="FilterBar" me="Style13" /&gt;&lt;FilterWatermarkStyle parent="FilterWatermark" me="Style102" /&gt;&lt;FooterStyle parent="Footer" me="Style3" /&gt;&lt;GroupStyle parent="Group" me="Style12" /&gt;&lt;HeadingStyle parent="Heading" me="Style2" /&gt;&lt;HighLightRowStyle parent="HighlightRow" me="Style7" /&gt;&lt;InactiveStyle parent="Inactive" me="Style4" /&gt;&lt;OddRowStyle parent="OddRow" me="Style9" /&gt;&lt;RecordSelectorStyle parent="RecordSelector" me="Style11" /&gt;&lt;RowSelectorStyle parent="RowSelector" me="Style100" /&gt;&lt;ColumnSelectorStyle parent="ColumnSelector" me="Style101" /&gt;&lt;SelectedStyle parent="Selected" me="Style6" /&gt;&lt;Style parent="Normal" me="Style1" /&gt;&lt;internalCols&gt;&lt;C1DisplayColumn&gt;&lt;HeadingStyle parent="Style2" me="Style14" /&gt;&lt;ColumnSelectorStyle parent="Style14" me="Style103" /&gt;&lt;Style parent="Style1" me="Style15" /&gt;&lt;FooterStyle parent="Style3" me="Style16" /&gt;&lt;EditorStyle parent="Style5" me="Style17" /&gt;&lt;GroupHeaderStyle parent="Style1" me="Style73" /&gt;&lt;GroupFooterStyle parent="Style1" me="Style72" /&gt;&lt;Visible&gt;True&lt;/Visible&gt;&lt;ColumnDivider&gt;DarkGray,Single&lt;/ColumnDivider&gt;&lt;Height&gt;19&lt;/Height&gt;&lt;DCIdx&gt;0&lt;/DCIdx&gt;&lt;/C1DisplayColumn&gt;&lt;/internalCols&gt;&lt;ClientRect&gt;0, 0, 1054, 342&lt;/ClientRect&gt;&lt;BorderSide&gt;0&lt;/BorderSide&gt;&lt;/C1.Win.C1TrueDBGrid.MergeView&gt;&lt;/Splits&gt;&lt;NamedStyles&gt;&lt;Style parent="" me="Normal" /&gt;&lt;Style parent="Normal" me="Heading" /&gt;&lt;Style parent="Heading" me="Footer" /&gt;&lt;Style parent="Heading" me="Caption" /&gt;&lt;Style parent="Heading" me="Inactive" /&gt;&lt;Style parent="Normal" me="Selected" /&gt;&lt;Style parent="Normal" me="Editor" /&gt;&lt;Style parent="Normal" me="HighlightRow" /&gt;&lt;Style parent="Normal" me="EvenRow" /&gt;&lt;Style parent="Normal" me="OddRow" /&gt;&lt;Style parent="Heading" me="RecordSelector" /&gt;&lt;Style parent="Normal" me="FilterBar" /&gt;&lt;Style parent="Caption" me="Group" /&gt;&lt;Style parent="RecordSelector" me="RowSelector" /&gt;&lt;Style parent="Heading" me="ColumnSelector" /&gt;&lt;Style parent="FilterBar" me="FilterWatermark" /&gt;&lt;Style parent="Heading" me="HeadingHot" /&gt;&lt;/NamedStyles&gt;&lt;vertSplits&gt;1&lt;/vertSplits&gt;&lt;horzSplits&gt;1&lt;/horzSplits&gt;&lt;Layout&gt;Modified&lt;/Layout&gt;&lt;DefaultRecSelWidth&gt;17&lt;/DefaultRecSelWidth&gt;&lt;ClientArea&gt;0, 0, 1054, 342&lt;/ClientArea&gt;&lt;PrintPageHeaderStyle parent="" me="Style70" /&gt;&lt;PrintPageFooterStyle parent="" me="Style71" /&gt;&lt;/Blob&gt;</value>
+  </data>
+  <metadata name="toolStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1129, 55</value>
+  </metadata>
+  <data name="btnIndexExpressionsTop.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAE7SURBVDhPtZLfK0NhGMef/0qWojXaBerUURMl1ly6Wkkr
+        JdKu3NqNLCUHsaQVy2orZ3IUspraIrcuFP6Br+c973vm9bbjV3zrW+fm83ne530P/U1Gy/hV/zVppwWa
+        vvDrf/8kARyEUh7s5dL3JDpceJDdvmPJpAtrofi5xIQdBkXzTSDXYMlYBdb8QWeJDu8rWIA+fAus3ACL
+        lyyxj2Fl9j5KzMniyAGow3MeMOOyZOgQ1uyOJtHhewmvKtCEk1UgUWbJwK4mSPFzJc9BU2egiVO4jwzW
+        GbySbU8e5P3jBVA/w9GtkAsdr6LxCiwpUJ9McWP3juFftP6iwJps+9gxfe+wjJRw/fwOirITw0cs6As7
+        th6+Ye9JTT2RFXCsyIJI/mtBOscXGnVAvZugng3ZyDqoaw3ddtYQEL0BHluB4qg2xoYAAAAASUVORK5C
+        YII=
+</value>
+  </data>
+  <data name="btnIndexExpressionsUp.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFaSURBVDhPtZHNK0RRGMbPH6VoGtE0o0mDpiiixGnsWM3G
+        moWFpCSzwURykTtNPjLTTExckysfmRpFZKvIxz/weM89947j5nItvPXU2fx+z9t72L9NUrsFGzq1Yr3/
+        Mg7sDEuY4LMn/iQqnHmQWbsjyYABPlP+WeKGNQJF0jdAqkqS3gPw6cPvJSqs27AALfgamLoCxs5J0pkD
+        n9z/KnE3i5UdUIVHTWDEIEnbFvhEQZGo8L2E52zQDfMS0F0kScuGIkjQd3G68iAdqf8IxiOBFQIvZGrN
+        sSxYNAMWITi06nHQvhKq78C4DarNLLrpAanTU0TlzQaPZWprh9d9CLryuHz9BEXIifY9EjR7ra1OfBdn
+        L3ZrQUbA4R0SNC77ENAXmc8S7MjJRLaBYJYEgbQPQauO8hOBopVAEQHX6SRoWPhdkEzRl4Y0sKYVsOCS
+        TGARrH4e8WH3Box9AJl2kuBaL9LEAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="btnIndexExpressionsDown.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGFSURBVDhPrZJZK8RRGMbPp5HlyjIpmSylZsSFkiUy8pcL
+        slyMKBcT4mIsd+ZiJo1SjG1kpuyGkW1soShRLnwPj+ecM5NlDP8Lbz135/d73/OeI/69nIEniLYLndaY
+        TssphOMIztkHxI/9UgRlvbwlR9TtmRPIw/PPgP9RZ+oecN9QUL1lQsCRpWCGoIegzNgt4LqkoGrdhID3
+        lQLPAzB+pzN4BfSeUVARMiHgsqRgguAQQZm+GNB+RIE9aELQEFWC4Wug/1yng7DjgIKyxRSC+DOJxig3
+        HVGCfnbtPNZp3geqdygomYOwzkIUzEDkT3+SNemxE1l6BboItkR1JGzbAArXgOxlIC1AmcX7IVAfhJ1H
+        +VQDHLn7RIM1uzr2dcAaAnJWCC8QzvOiqsP/9TrG5KF6ph7CrYRrCZazq0wR4dwgkC5hiy8ZTpThjkDY
+        gqgnXLkJFId18ghnLP4BJ8oY2VbLKiVoWdXJVJ1/GDtVGUMbatNZS1Ax1fl7Ga4wl+VTSQ0L8Q6IN4Z/
+        SkW63QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="btnIndexExpressionsBottom.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFnSURBVDhPrZPdK4NhGMafv0Y+jrAlsnyU2pSDNwuLrNZy
+        QFiZphwIRYlDDiahhdmYTA35yGo+RiRlJcqB/8Plep9ny8eMd3LV7+z5Xffz3G+v+Pd4g48QXVcKd1Lh
+        OodwJuANpJA+9kMo6nl+zUa0HRkr0A+vPQGLD4rZe2DqlgX2fQMFvKpeMJcCpu8Uo9fA4AULbBEDBe1x
+        WTBDcYyiji8JdCdY0BDKUZBekuiI853HsmD8Bhi6VPRQdp6woG4VwhKAqFqCqFj4UNaprp0h/AL0nQKu
+        uMJ+AFh3geptoHQDKAiyzOx/L5Cfh5MnuKhhTuw/U2LLocIWAyxRoGyT8jplkx+VzZOfn2MfiUJoMXgo
+        uym3UmzkVJ0ayuURoFCXzfPZciaaLwxhjcBBuWkPqN1RmCgXhX6RM9EGgnJZ9RTNW4piOfmba+eK5lmR
+        my4JQ2Jo8tdovctc1rwkbzn/OPiT/AUhxBsvyXArBBwn2QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <metadata name="tsIndexExpressions.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1949, 17</value>
+  </metadata>
+  <data name="c1GridIndexes.Images" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVChTdYkBCgAgDAL9/6eLIsd0eSCKhw/r9aCLtC88
+        vAdHMEIXKUIUhMK76EfagglgA6CqHOQpL6GyAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridIndexes.PropBag" xml:space="preserve">
+    <value>&lt;?xml version="1.0"?&gt;&lt;Blob&gt;&lt;DataCols&gt;&lt;C1DataColumn Caption="Data" DataField="Data"&gt;&lt;FilterDropdownText&gt;(所有)&lt;/FilterDropdownText&gt;&lt;FilterCancelText&gt;&amp;amp;Close&lt;/FilterCancelText&gt;&lt;FilterClearText&gt;C&amp;amp;lear&lt;/FilterClearText&gt;&lt;ImeMode&gt;NoControl&lt;/ImeMode&gt;&lt;ValueItems /&gt;&lt;GroupInfo&gt;&lt;AggregatesText&gt;{0}&lt;/AggregatesText&gt;&lt;/GroupInfo&gt;&lt;/C1DataColumn&gt;&lt;/DataCols&gt;&lt;Styles type="C1.Win.C1TrueDBGrid.Design.ContextWrapper"&gt;&lt;Data&gt;Caption{AlignHorz:Center;}ColumnSelector{}Editor{}EvenRow{}FilterBar{}FilterWatermark{}Footer{}Group{Border:None,,0, 0, 0, 0;}Heading{BackColor:Control;Font:Microsoft JhengHei UI, 9pt;Border:Flat,ControlDark,0, 0, 0, 0;}HeadingHot{}HighlightRow{BackColor:Highlight;Font:Microsoft JhengHei UI, 9pt;}Inactive{}Normal{Font:Microsoft JhengHei UI, 9pt;}OddRow{}RecordSelector{}RowSelector{}Selected{BackColor:Highlight;ForeColor:HighlightText;Font:Microsoft JhengHei UI, 9pt;}Style1{}Style10{AlignHorz:Near;}Style100{}Style101{}Style102{}Style103{}Style11{}Style12{}Style13{}Style14{Font:Microsoft JhengHei UI, 9pt;Trimming:Character;AlignHorz:Near;AlignVert:Center;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;WrapText:WrapWithOverflow;}Style15{}Style16{}Style17{BackColor:LightCyan;Trimming:Character;AlignHorz:General;AlignVert:Top;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;}Style18{}Style19{}Style2{}Style20{}Style21{}Style22{}Style23{}Style24{}Style3{}Style4{}Style5{}Style6{}Style7{}Style70{}Style71{}Style72{}Style73{}Style8{}Style9{}&lt;/Data&gt;&lt;/Styles&gt;&lt;Splits&gt;&lt;C1.Win.C1TrueDBGrid.MergeView HBarHeight="20" AllowColMove="False" Name="" AlternatingRowStyle="True" CaptionHeight="19" ColumnCaptionHeight="19" ColumnFooterHeight="19" MarqueeStyle="DottedCellBorder" RecordSelectorWidth="17" DefRecSelWidth="17" VerticalScrollGroup="1" HorizontalScrollGroup="1"&gt;&lt;CaptionStyle parent="Style2" me="Style10" /&gt;&lt;EditorStyle parent="Editor" me="Style5" /&gt;&lt;EvenRowStyle parent="EvenRow" me="Style8" /&gt;&lt;FilterBarStyle parent="FilterBar" me="Style13" /&gt;&lt;FilterWatermarkStyle parent="FilterWatermark" me="Style102" /&gt;&lt;FooterStyle parent="Footer" me="Style3" /&gt;&lt;GroupStyle parent="Group" me="Style12" /&gt;&lt;HeadingStyle parent="Heading" me="Style2" /&gt;&lt;HighLightRowStyle parent="HighlightRow" me="Style7" /&gt;&lt;InactiveStyle parent="Inactive" me="Style4" /&gt;&lt;OddRowStyle parent="OddRow" me="Style9" /&gt;&lt;RecordSelectorStyle parent="RecordSelector" me="Style11" /&gt;&lt;RowSelectorStyle parent="RowSelector" me="Style100" /&gt;&lt;ColumnSelectorStyle parent="ColumnSelector" me="Style101" /&gt;&lt;SelectedStyle parent="Selected" me="Style6" /&gt;&lt;Style parent="Normal" me="Style1" /&gt;&lt;internalCols&gt;&lt;C1DisplayColumn&gt;&lt;HeadingStyle parent="Style2" me="Style14" /&gt;&lt;ColumnSelectorStyle parent="Style14" me="Style103" /&gt;&lt;Style parent="Style1" me="Style15" /&gt;&lt;FooterStyle parent="Style3" me="Style16" /&gt;&lt;EditorStyle parent="Style5" me="Style17" /&gt;&lt;GroupHeaderStyle parent="Style1" me="Style73" /&gt;&lt;GroupFooterStyle parent="Style1" me="Style72" /&gt;&lt;Visible&gt;True&lt;/Visible&gt;&lt;ColumnDivider&gt;DarkGray,Single&lt;/ColumnDivider&gt;&lt;Height&gt;19&lt;/Height&gt;&lt;DCIdx&gt;0&lt;/DCIdx&gt;&lt;/C1DisplayColumn&gt;&lt;/internalCols&gt;&lt;ClientRect&gt;0, 0, 1030, 148&lt;/ClientRect&gt;&lt;BorderSide&gt;0&lt;/BorderSide&gt;&lt;/C1.Win.C1TrueDBGrid.MergeView&gt;&lt;/Splits&gt;&lt;NamedStyles&gt;&lt;Style parent="" me="Normal" /&gt;&lt;Style parent="Normal" me="Heading" /&gt;&lt;Style parent="Heading" me="Footer" /&gt;&lt;Style parent="Heading" me="Caption" /&gt;&lt;Style parent="Heading" me="Inactive" /&gt;&lt;Style parent="Normal" me="Selected" /&gt;&lt;Style parent="Normal" me="Editor" /&gt;&lt;Style parent="Normal" me="HighlightRow" /&gt;&lt;Style parent="Normal" me="EvenRow" /&gt;&lt;Style parent="Normal" me="OddRow" /&gt;&lt;Style parent="Heading" me="RecordSelector" /&gt;&lt;Style parent="Normal" me="FilterBar" /&gt;&lt;Style parent="Caption" me="Group" /&gt;&lt;Style parent="RecordSelector" me="RowSelector" /&gt;&lt;Style parent="Heading" me="ColumnSelector" /&gt;&lt;Style parent="FilterBar" me="FilterWatermark" /&gt;&lt;Style parent="Heading" me="HeadingHot" /&gt;&lt;/NamedStyles&gt;&lt;vertSplits&gt;1&lt;/vertSplits&gt;&lt;horzSplits&gt;1&lt;/horzSplits&gt;&lt;Layout&gt;Modified&lt;/Layout&gt;&lt;DefaultRecSelWidth&gt;17&lt;/DefaultRecSelWidth&gt;&lt;ClientArea&gt;0, 0, 1030, 148&lt;/ClientArea&gt;&lt;PrintPageHeaderStyle parent="" me="Style70" /&gt;&lt;PrintPageFooterStyle parent="" me="Style71" /&gt;&lt;/Blob&gt;</value>
+  </data>
+  <metadata name="toolStrip3.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1335, 55</value>
+  </metadata>
+  <data name="btnIndexesTop.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAE7SURBVDhPtZLfK0NhGMef/0qWojXaBerUURMl1ly6Wkkr
+        JdKu3NqNLCUHsaQVy2orZ3IUspraIrcuFP6Br+c973vm9bbjV3zrW+fm83ne530P/U1Gy/hV/zVppwWa
+        vvDrf/8kARyEUh7s5dL3JDpceJDdvmPJpAtrofi5xIQdBkXzTSDXYMlYBdb8QWeJDu8rWIA+fAus3ACL
+        lyyxj2Fl9j5KzMniyAGow3MeMOOyZOgQ1uyOJtHhewmvKtCEk1UgUWbJwK4mSPFzJc9BU2egiVO4jwzW
+        GbySbU8e5P3jBVA/w9GtkAsdr6LxCiwpUJ9McWP3juFftP6iwJps+9gxfe+wjJRw/fwOirITw0cs6As7
+        th6+Ye9JTT2RFXCsyIJI/mtBOscXGnVAvZugng3ZyDqoaw3ddtYQEL0BHluB4qg2xoYAAAAASUVORK5C
+        YII=
+</value>
+  </data>
+  <data name="btnIndexesUp.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFaSURBVDhPtZHNK0RRGMbPH6VoGtE0o0mDpiiixGnsWM3G
+        moWFpCSzwURykTtNPjLTTExckysfmRpFZKvIxz/weM89947j5nItvPXU2fx+z9t72L9NUrsFGzq1Yr3/
+        Mg7sDEuY4LMn/iQqnHmQWbsjyYABPlP+WeKGNQJF0jdAqkqS3gPw6cPvJSqs27AALfgamLoCxs5J0pkD
+        n9z/KnE3i5UdUIVHTWDEIEnbFvhEQZGo8L2E52zQDfMS0F0kScuGIkjQd3G68iAdqf8IxiOBFQIvZGrN
+        sSxYNAMWITi06nHQvhKq78C4DarNLLrpAanTU0TlzQaPZWprh9d9CLryuHz9BEXIifY9EjR7ra1OfBdn
+        L3ZrQUbA4R0SNC77ENAXmc8S7MjJRLaBYJYEgbQPQauO8hOBopVAEQHX6SRoWPhdkEzRl4Y0sKYVsOCS
+        TGARrH4e8WH3Box9AJl2kuBaL9LEAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="btnIndexesDown.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGFSURBVDhPrZJZK8RRGMbPp5HlyjIpmSylZsSFkiUy8pcL
+        slyMKBcT4mIsd+ZiJo1SjG1kpuyGkW1soShRLnwPj+ecM5NlDP8Lbz135/d73/OeI/69nIEniLYLndaY
+        TssphOMIztkHxI/9UgRlvbwlR9TtmRPIw/PPgP9RZ+oecN9QUL1lQsCRpWCGoIegzNgt4LqkoGrdhID3
+        lQLPAzB+pzN4BfSeUVARMiHgsqRgguAQQZm+GNB+RIE9aELQEFWC4Wug/1yng7DjgIKyxRSC+DOJxig3
+        HVGCfnbtPNZp3geqdygomYOwzkIUzEDkT3+SNemxE1l6BboItkR1JGzbAArXgOxlIC1AmcX7IVAfhJ1H
+        +VQDHLn7RIM1uzr2dcAaAnJWCC8QzvOiqsP/9TrG5KF6ph7CrYRrCZazq0wR4dwgkC5hiy8ZTpThjkDY
+        gqgnXLkJFId18ghnLP4BJ8oY2VbLKiVoWdXJVJ1/GDtVGUMbatNZS1Ax1fl7Ga4wl+VTSQ0L8Q6IN4Z/
+        SkW63QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="btnIndexesBottom.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFnSURBVDhPrZPdK4NhGMafv0Y+jrAlsnyU2pSDNwuLrNZy
+        QFiZphwIRYlDDiahhdmYTA35yGo+RiRlJcqB/8Plep9ny8eMd3LV7+z5Xffz3G+v+Pd4g48QXVcKd1Lh
+        OodwJuANpJA+9kMo6nl+zUa0HRkr0A+vPQGLD4rZe2DqlgX2fQMFvKpeMJcCpu8Uo9fA4AULbBEDBe1x
+        WTBDcYyiji8JdCdY0BDKUZBekuiI853HsmD8Bhi6VPRQdp6woG4VwhKAqFqCqFj4UNaprp0h/AL0nQKu
+        uMJ+AFh3geptoHQDKAiyzOx/L5Cfh5MnuKhhTuw/U2LLocIWAyxRoGyT8jplkx+VzZOfn2MfiUJoMXgo
+        uym3UmzkVJ0ayuURoFCXzfPZciaaLwxhjcBBuWkPqN1RmCgXhX6RM9EGgnJZ9RTNW4piOfmba+eK5lmR
+        my4JQ2Jo8tdovctc1rwkbzn/OPiT/AUhxBsvyXArBBwn2QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <metadata name="tsIndexes.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1398, 17</value>
+  </metadata>
+  <data name="tabIndexes.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        wgAADsIBFShKgAAAAWdJREFUOE/N0L1LAnEcBvD7i/oPcmlqqq02hyRoiIJAG6qxIiiodAgrMnqTojdq
+        ySUkqKAiuTDM1PRMr84ytfO816e7n3KSgpAuPfAZbriH7/OjWs7YxjcMo2t5jLizGHRy6J9LwzrFoGc8
+        hm5HmOgcChIdAzRhsQVgFvCSCpoVcJcs4Toqwh+S4aMVnNwq2L/SCO9F2eY5CIvtvlrwyAnwhQs4fuDh
+        vSli1S9g8UzC9KGMiR2VsHs0YngZxK+C8oRcZUJGn8DCOsmgV5/QZQ8TtRPa+yoTHK5LNJM2i72mgKJM
+        RUHFwSmH3SOWSLES3J4IXCshwkhdgawAoqzpP2so8CqyOQWZDxnpNxlMSkIsIZqMNLwgl1ewtfcKz3ac
+        eGFEzC8FMeukCSP/8AJR1MDrj5cvKPj8kvGekcnjJZISovESniJVRhpewOmnu9err/4cK2FmIWAyUl/w
+        x/wqMD6aQQpaC0X9AD92mrFnlunqAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridPrimaryKeyConstraints.Images" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVChTdYkBCgAgDAL9/6eLIsd0eSCKhw/r9aCLtC88
+        vAdHMEIXKUIUhMK76EfagglgA6CqHOQpL6GyAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridPrimaryKeyConstraints.PropBag" xml:space="preserve">
+    <value>&lt;?xml version="1.0"?&gt;&lt;Blob&gt;&lt;DataCols&gt;&lt;C1DataColumn Caption="Data" DataField="Data"&gt;&lt;FilterDropdownText&gt;(所有)&lt;/FilterDropdownText&gt;&lt;FilterCancelText&gt;&amp;amp;Close&lt;/FilterCancelText&gt;&lt;FilterClearText&gt;C&amp;amp;lear&lt;/FilterClearText&gt;&lt;ImeMode&gt;NoControl&lt;/ImeMode&gt;&lt;ValueItems /&gt;&lt;GroupInfo&gt;&lt;AggregatesText&gt;{0}&lt;/AggregatesText&gt;&lt;/GroupInfo&gt;&lt;/C1DataColumn&gt;&lt;/DataCols&gt;&lt;Styles type="C1.Win.C1TrueDBGrid.Design.ContextWrapper"&gt;&lt;Data&gt;Caption{AlignHorz:Center;}ColumnSelector{}Editor{}EvenRow{}FilterBar{}FilterWatermark{}Footer{}Group{Border:None,,0, 0, 0, 0;}Heading{BackColor:Control;Border:Flat,ControlDark,0, 0, 0, 0;}HeadingHot{}HighlightRow{BackColor:Highlight;}Inactive{}Normal{}OddRow{}RecordSelector{}RowSelector{}Selected{BackColor:Highlight;ForeColor:HighlightText;}Style1{}Style10{AlignHorz:Near;}Style100{}Style101{}Style102{}Style103{}Style11{}Style12{}Style13{}Style14{Font:Microsoft JhengHei UI, 9pt;Trimming:Character;AlignHorz:Near;AlignVert:Center;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;WrapText:WrapWithOverflow;}Style15{}Style16{}Style17{BackColor:LightCyan;Trimming:Character;AlignHorz:General;AlignVert:Top;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;}Style18{}Style19{}Style2{}Style20{}Style21{}Style22{}Style23{}Style24{}Style3{}Style4{}Style5{}Style6{}Style7{}Style70{}Style71{}Style72{}Style73{}Style8{}Style9{}&lt;/Data&gt;&lt;/Styles&gt;&lt;Splits&gt;&lt;C1.Win.C1TrueDBGrid.MergeView HBarHeight="20" AllowColMove="False" Name="" AlternatingRowStyle="True" CaptionHeight="19" ColumnCaptionHeight="19" ColumnFooterHeight="19" MarqueeStyle="DottedCellBorder" RecordSelectorWidth="17" DefRecSelWidth="17" VerticalScrollGroup="1" HorizontalScrollGroup="1"&gt;&lt;CaptionStyle parent="Style2" me="Style10" /&gt;&lt;EditorStyle parent="Editor" me="Style5" /&gt;&lt;EvenRowStyle parent="EvenRow" me="Style8" /&gt;&lt;FilterBarStyle parent="FilterBar" me="Style13" /&gt;&lt;FilterWatermarkStyle parent="FilterWatermark" me="Style102" /&gt;&lt;FooterStyle parent="Footer" me="Style3" /&gt;&lt;GroupStyle parent="Group" me="Style12" /&gt;&lt;HeadingStyle parent="Heading" me="Style2" /&gt;&lt;HighLightRowStyle parent="HighlightRow" me="Style7" /&gt;&lt;InactiveStyle parent="Inactive" me="Style4" /&gt;&lt;OddRowStyle parent="OddRow" me="Style9" /&gt;&lt;RecordSelectorStyle parent="RecordSelector" me="Style11" /&gt;&lt;RowSelectorStyle parent="RowSelector" me="Style100" /&gt;&lt;ColumnSelectorStyle parent="ColumnSelector" me="Style101" /&gt;&lt;SelectedStyle parent="Selected" me="Style6" /&gt;&lt;Style parent="Normal" me="Style1" /&gt;&lt;internalCols&gt;&lt;C1DisplayColumn&gt;&lt;HeadingStyle parent="Style2" me="Style14" /&gt;&lt;ColumnSelectorStyle parent="Style14" me="Style103" /&gt;&lt;Style parent="Style1" me="Style15" /&gt;&lt;FooterStyle parent="Style3" me="Style16" /&gt;&lt;EditorStyle parent="Style5" me="Style17" /&gt;&lt;GroupHeaderStyle parent="Style1" me="Style73" /&gt;&lt;GroupFooterStyle parent="Style1" me="Style72" /&gt;&lt;Visible&gt;True&lt;/Visible&gt;&lt;ColumnDivider&gt;DarkGray,Single&lt;/ColumnDivider&gt;&lt;Height&gt;19&lt;/Height&gt;&lt;DCIdx&gt;0&lt;/DCIdx&gt;&lt;/C1DisplayColumn&gt;&lt;/internalCols&gt;&lt;ClientRect&gt;0, 0, 1054, 342&lt;/ClientRect&gt;&lt;BorderSide&gt;0&lt;/BorderSide&gt;&lt;/C1.Win.C1TrueDBGrid.MergeView&gt;&lt;/Splits&gt;&lt;NamedStyles&gt;&lt;Style parent="" me="Normal" /&gt;&lt;Style parent="Normal" me="Heading" /&gt;&lt;Style parent="Heading" me="Footer" /&gt;&lt;Style parent="Heading" me="Caption" /&gt;&lt;Style parent="Heading" me="Inactive" /&gt;&lt;Style parent="Normal" me="Selected" /&gt;&lt;Style parent="Normal" me="Editor" /&gt;&lt;Style parent="Normal" me="HighlightRow" /&gt;&lt;Style parent="Normal" me="EvenRow" /&gt;&lt;Style parent="Normal" me="OddRow" /&gt;&lt;Style parent="Heading" me="RecordSelector" /&gt;&lt;Style parent="Normal" me="FilterBar" /&gt;&lt;Style parent="Caption" me="Group" /&gt;&lt;Style parent="RecordSelector" me="RowSelector" /&gt;&lt;Style parent="Heading" me="ColumnSelector" /&gt;&lt;Style parent="FilterBar" me="FilterWatermark" /&gt;&lt;Style parent="Heading" me="HeadingHot" /&gt;&lt;/NamedStyles&gt;&lt;vertSplits&gt;1&lt;/vertSplits&gt;&lt;horzSplits&gt;1&lt;/horzSplits&gt;&lt;Layout&gt;Modified&lt;/Layout&gt;&lt;DefaultRecSelWidth&gt;17&lt;/DefaultRecSelWidth&gt;&lt;ClientArea&gt;0, 0, 1054, 342&lt;/ClientArea&gt;&lt;PrintPageHeaderStyle parent="" me="Style70" /&gt;&lt;PrintPageFooterStyle parent="" me="Style71" /&gt;&lt;/Blob&gt;</value>
+  </data>
+  <metadata name="toolStrip5.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1662, 55</value>
+  </metadata>
+  <data name="toolStripButton5.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAE7SURBVDhPtZLfK0NhGMef/0qWojXaBerUURMl1ly6Wkkr
+        JdKu3NqNLCUHsaQVy2orZ3IUspraIrcuFP6Br+c973vm9bbjV3zrW+fm83ne530P/U1Gy/hV/zVppwWa
+        vvDrf/8kARyEUh7s5dL3JDpceJDdvmPJpAtrofi5xIQdBkXzTSDXYMlYBdb8QWeJDu8rWIA+fAus3ACL
+        lyyxj2Fl9j5KzMniyAGow3MeMOOyZOgQ1uyOJtHhewmvKtCEk1UgUWbJwK4mSPFzJc9BU2egiVO4jwzW
+        GbySbU8e5P3jBVA/w9GtkAsdr6LxCiwpUJ9McWP3juFftP6iwJps+9gxfe+wjJRw/fwOirITw0cs6As7
+        th6+Ye9JTT2RFXCsyIJI/mtBOscXGnVAvZugng3ZyDqoaw3ddtYQEL0BHluB4qg2xoYAAAAASUVORK5C
+        YII=
+</value>
+  </data>
+  <data name="toolStripButton6.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFaSURBVDhPtZHNK0RRGMbPH6VoGtE0o0mDpiiixGnsWM3G
+        moWFpCSzwURykTtNPjLTTExckysfmRpFZKvIxz/weM89947j5nItvPXU2fx+z9t72L9NUrsFGzq1Yr3/
+        Mg7sDEuY4LMn/iQqnHmQWbsjyYABPlP+WeKGNQJF0jdAqkqS3gPw6cPvJSqs27AALfgamLoCxs5J0pkD
+        n9z/KnE3i5UdUIVHTWDEIEnbFvhEQZGo8L2E52zQDfMS0F0kScuGIkjQd3G68iAdqf8IxiOBFQIvZGrN
+        sSxYNAMWITi06nHQvhKq78C4DarNLLrpAanTU0TlzQaPZWprh9d9CLryuHz9BEXIifY9EjR7ra1OfBdn
+        L3ZrQUbA4R0SNC77ENAXmc8S7MjJRLaBYJYEgbQPQauO8hOBopVAEQHX6SRoWPhdkEzRl4Y0sKYVsOCS
+        TGARrH4e8WH3Box9AJl2kuBaL9LEAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="toolStripButton11.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGFSURBVDhPrZJZK8RRGMbPp5HlyjIpmSylZsSFkiUy8pcL
+        slyMKBcT4mIsd+ZiJo1SjG1kpuyGkW1soShRLnwPj+ecM5NlDP8Lbz135/d73/OeI/69nIEniLYLndaY
+        TssphOMIztkHxI/9UgRlvbwlR9TtmRPIw/PPgP9RZ+oecN9QUL1lQsCRpWCGoIegzNgt4LqkoGrdhID3
+        lQLPAzB+pzN4BfSeUVARMiHgsqRgguAQQZm+GNB+RIE9aELQEFWC4Wug/1yng7DjgIKyxRSC+DOJxig3
+        HVGCfnbtPNZp3geqdygomYOwzkIUzEDkT3+SNemxE1l6BboItkR1JGzbAArXgOxlIC1AmcX7IVAfhJ1H
+        +VQDHLn7RIM1uzr2dcAaAnJWCC8QzvOiqsP/9TrG5KF6ph7CrYRrCZazq0wR4dwgkC5hiy8ZTpThjkDY
+        gqgnXLkJFId18ghnLP4BJ8oY2VbLKiVoWdXJVJ1/GDtVGUMbatNZS1Ax1fl7Ga4wl+VTSQ0L8Q6IN4Z/
+        SkW63QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="toolStripButton12.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFnSURBVDhPrZPdK4NhGMafv0Y+jrAlsnyU2pSDNwuLrNZy
+        QFiZphwIRYlDDiahhdmYTA35yGo+RiRlJcqB/8Plep9ny8eMd3LV7+z5Xffz3G+v+Pd4g48QXVcKd1Lh
+        OodwJuANpJA+9kMo6nl+zUa0HRkr0A+vPQGLD4rZe2DqlgX2fQMFvKpeMJcCpu8Uo9fA4AULbBEDBe1x
+        WTBDcYyiji8JdCdY0BDKUZBekuiI853HsmD8Bhi6VPRQdp6woG4VwhKAqFqCqFj4UNaprp0h/AL0nQKu
+        uMJ+AFh3geptoHQDKAiyzOx/L5Cfh5MnuKhhTuw/U2LLocIWAyxRoGyT8jplkx+VzZOfn2MfiUJoMXgo
+        uym3UmzkVJ0ayuURoFCXzfPZciaaLwxhjcBBuWkPqN1RmCgXhX6RM9EGgnJZ9RTNW4piOfmba+eK5lmR
+        my4JQ2Jo8tdovctc1rwkbzn/OPiT/AUhxBsvyXArBBwn2QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <metadata name="tsPrimaryKeyConstraints.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>541, 55</value>
+  </metadata>
+  <data name="c1GridPrimaryKey.Images" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVChTdYkBCgAgDAL9/6eLIsd0eSCKhw/r9aCLtC88
+        vAdHMEIXKUIUhMK76EfagglgA6CqHOQpL6GyAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridPrimaryKey.PropBag" xml:space="preserve">
+    <value>&lt;?xml version="1.0"?&gt;&lt;Blob&gt;&lt;DataCols&gt;&lt;C1DataColumn Caption="Data" DataField="Data"&gt;&lt;FilterDropdownText&gt;(所有)&lt;/FilterDropdownText&gt;&lt;FilterCancelText&gt;&amp;amp;Close&lt;/FilterCancelText&gt;&lt;FilterClearText&gt;C&amp;amp;lear&lt;/FilterClearText&gt;&lt;ImeMode&gt;NoControl&lt;/ImeMode&gt;&lt;ValueItems /&gt;&lt;GroupInfo&gt;&lt;AggregatesText&gt;{0}&lt;/AggregatesText&gt;&lt;/GroupInfo&gt;&lt;/C1DataColumn&gt;&lt;/DataCols&gt;&lt;Styles type="C1.Win.C1TrueDBGrid.Design.ContextWrapper"&gt;&lt;Data&gt;Caption{AlignHorz:Center;}ColumnSelector{}Editor{}EvenRow{}FilterBar{}FilterWatermark{}Footer{}Group{Border:None,,0, 0, 0, 0;}Heading{BackColor:Control;Border:Flat,ControlDark,0, 0, 0, 0;}HeadingHot{}HighlightRow{BackColor:Highlight;}Inactive{}Normal{}OddRow{}RecordSelector{}RowSelector{}Selected{BackColor:Highlight;ForeColor:HighlightText;}Style1{}Style10{AlignHorz:Near;}Style100{}Style101{}Style102{}Style103{}Style11{}Style12{}Style13{}Style14{Font:Microsoft JhengHei UI, 9pt;Trimming:Character;AlignHorz:Near;AlignVert:Center;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;WrapText:WrapWithOverflow;}Style15{}Style16{}Style17{BackColor:LightCyan;Trimming:Character;AlignHorz:General;AlignVert:Top;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;}Style18{}Style19{}Style2{}Style20{}Style21{}Style22{}Style23{}Style24{}Style3{}Style4{}Style5{}Style6{}Style7{}Style70{}Style71{}Style72{}Style73{}Style8{}Style9{}&lt;/Data&gt;&lt;/Styles&gt;&lt;Splits&gt;&lt;C1.Win.C1TrueDBGrid.MergeView HBarHeight="20" AllowColMove="False" Name="" AlternatingRowStyle="True" CaptionHeight="19" ColumnCaptionHeight="19" ColumnFooterHeight="19" MarqueeStyle="DottedCellBorder" RecordSelectorWidth="17" DefRecSelWidth="17" VerticalScrollGroup="1" HorizontalScrollGroup="1"&gt;&lt;CaptionStyle parent="Style2" me="Style10" /&gt;&lt;EditorStyle parent="Editor" me="Style5" /&gt;&lt;EvenRowStyle parent="EvenRow" me="Style8" /&gt;&lt;FilterBarStyle parent="FilterBar" me="Style13" /&gt;&lt;FilterWatermarkStyle parent="FilterWatermark" me="Style102" /&gt;&lt;FooterStyle parent="Footer" me="Style3" /&gt;&lt;GroupStyle parent="Group" me="Style12" /&gt;&lt;HeadingStyle parent="Heading" me="Style2" /&gt;&lt;HighLightRowStyle parent="HighlightRow" me="Style7" /&gt;&lt;InactiveStyle parent="Inactive" me="Style4" /&gt;&lt;OddRowStyle parent="OddRow" me="Style9" /&gt;&lt;RecordSelectorStyle parent="RecordSelector" me="Style11" /&gt;&lt;RowSelectorStyle parent="RowSelector" me="Style100" /&gt;&lt;ColumnSelectorStyle parent="ColumnSelector" me="Style101" /&gt;&lt;SelectedStyle parent="Selected" me="Style6" /&gt;&lt;Style parent="Normal" me="Style1" /&gt;&lt;internalCols&gt;&lt;C1DisplayColumn&gt;&lt;HeadingStyle parent="Style2" me="Style14" /&gt;&lt;ColumnSelectorStyle parent="Style14" me="Style103" /&gt;&lt;Style parent="Style1" me="Style15" /&gt;&lt;FooterStyle parent="Style3" me="Style16" /&gt;&lt;EditorStyle parent="Style5" me="Style17" /&gt;&lt;GroupHeaderStyle parent="Style1" me="Style73" /&gt;&lt;GroupFooterStyle parent="Style1" me="Style72" /&gt;&lt;Visible&gt;True&lt;/Visible&gt;&lt;ColumnDivider&gt;DarkGray,Single&lt;/ColumnDivider&gt;&lt;Height&gt;19&lt;/Height&gt;&lt;DCIdx&gt;0&lt;/DCIdx&gt;&lt;/C1DisplayColumn&gt;&lt;/internalCols&gt;&lt;ClientRect&gt;0, 0, 1030, 148&lt;/ClientRect&gt;&lt;BorderSide&gt;0&lt;/BorderSide&gt;&lt;/C1.Win.C1TrueDBGrid.MergeView&gt;&lt;/Splits&gt;&lt;NamedStyles&gt;&lt;Style parent="" me="Normal" /&gt;&lt;Style parent="Normal" me="Heading" /&gt;&lt;Style parent="Heading" me="Footer" /&gt;&lt;Style parent="Heading" me="Caption" /&gt;&lt;Style parent="Heading" me="Inactive" /&gt;&lt;Style parent="Normal" me="Selected" /&gt;&lt;Style parent="Normal" me="Editor" /&gt;&lt;Style parent="Normal" me="HighlightRow" /&gt;&lt;Style parent="Normal" me="EvenRow" /&gt;&lt;Style parent="Normal" me="OddRow" /&gt;&lt;Style parent="Heading" me="RecordSelector" /&gt;&lt;Style parent="Normal" me="FilterBar" /&gt;&lt;Style parent="Caption" me="Group" /&gt;&lt;Style parent="RecordSelector" me="RowSelector" /&gt;&lt;Style parent="Heading" me="ColumnSelector" /&gt;&lt;Style parent="FilterBar" me="FilterWatermark" /&gt;&lt;Style parent="Heading" me="HeadingHot" /&gt;&lt;/NamedStyles&gt;&lt;vertSplits&gt;1&lt;/vertSplits&gt;&lt;horzSplits&gt;1&lt;/horzSplits&gt;&lt;Layout&gt;Modified&lt;/Layout&gt;&lt;DefaultRecSelWidth&gt;17&lt;/DefaultRecSelWidth&gt;&lt;ClientArea&gt;0, 0, 1030, 148&lt;/ClientArea&gt;&lt;PrintPageHeaderStyle parent="" me="Style70" /&gt;&lt;PrintPageFooterStyle parent="" me="Style71" /&gt;&lt;/Blob&gt;</value>
+  </data>
+  <metadata name="tsPrimaryKeyVertical.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>144, 55</value>
+  </metadata>
+  <metadata name="tsPrimaryKey.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>734, 55</value>
+  </metadata>
+  <data name="tabPrimaryKeyConstraints.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        wgAADsIBFShKgAAAAVlJREFUOE+dkElLA0EQhavn6B/xZ6iIICQuuJGTyRjjcnAjGkGFeHBBRTwYMYY5
+        evGsQXLSAY8TIQfBH6N5VnfP0pMYHHzw6O7qeV/1FEl9vjmoLVHoaoFwkyd8uA7UB39Jht7rfQC+2KTs
+        PREu50VyAPCNxoXAwZTA85kAPIL7QDjKCJRnBfa4XpoQ2EpbWBu1sDpioTBs6QYaQCjP6I67kxoQvKaX
+        7SEfcLuoCwFgZ5wBd1wzvJmy1LrCneWa4/BJaU4Drhc0oM5Pl+HHU/2Cxr3A9pjARkqDlzks19ygEZa6
+        ygo1NPVs316NUEwnHGLr1cFxhnDIw9qfFpAzKPKwqufrEWCgH8r/UfbF1mG22neqXanAtF9WCsMt0v4N
+        wieeYWRV9DvGwgYktFQQajebIaCrc6f5znbzEcC0KrJ6QrgW+w0z1KUeAP9WKxFAruY+sYJgoNiZ6Ae5
+        XkiCFQJd5AAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="c1GridUniqueConstraints.Images" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVChTdYkBCgAgDAL9/6eLIsd0eSCKhw/r9aCLtC88
+        vAdHMEIXKUIUhMK76EfagglgA6CqHOQpL6GyAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridUniqueConstraints.PropBag" xml:space="preserve">
+    <value>&lt;?xml version="1.0"?&gt;&lt;Blob&gt;&lt;DataCols&gt;&lt;C1DataColumn Caption="Data" DataField="Data"&gt;&lt;FilterDropdownText&gt;(所有)&lt;/FilterDropdownText&gt;&lt;FilterCancelText&gt;&amp;amp;Close&lt;/FilterCancelText&gt;&lt;FilterClearText&gt;C&amp;amp;lear&lt;/FilterClearText&gt;&lt;ImeMode&gt;NoControl&lt;/ImeMode&gt;&lt;ValueItems /&gt;&lt;GroupInfo&gt;&lt;AggregatesText&gt;{0}&lt;/AggregatesText&gt;&lt;/GroupInfo&gt;&lt;/C1DataColumn&gt;&lt;/DataCols&gt;&lt;Styles type="C1.Win.C1TrueDBGrid.Design.ContextWrapper"&gt;&lt;Data&gt;Caption{AlignHorz:Center;}ColumnSelector{}Editor{}EvenRow{}FilterBar{}FilterWatermark{}Footer{}Group{Border:None,,0, 0, 0, 0;}Heading{BackColor:Control;Border:Flat,ControlDark,0, 0, 0, 0;}HeadingHot{}HighlightRow{BackColor:Highlight;}Inactive{}Normal{}OddRow{}RecordSelector{}RowSelector{}Selected{BackColor:Highlight;ForeColor:HighlightText;}Style1{}Style10{AlignHorz:Near;}Style100{}Style101{}Style102{}Style103{}Style11{}Style12{}Style13{}Style14{Font:Microsoft JhengHei UI, 9pt;Trimming:Character;AlignHorz:Near;AlignVert:Center;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;WrapText:WrapWithOverflow;}Style15{}Style16{}Style17{BackColor:LightCyan;Trimming:Character;AlignHorz:General;AlignVert:Top;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;}Style18{}Style19{}Style2{}Style20{}Style21{}Style22{}Style23{}Style24{}Style3{}Style4{}Style5{}Style6{}Style7{}Style70{}Style71{}Style72{}Style73{}Style8{}Style9{}&lt;/Data&gt;&lt;/Styles&gt;&lt;Splits&gt;&lt;C1.Win.C1TrueDBGrid.MergeView HBarHeight="20" AllowColMove="False" Name="" AlternatingRowStyle="True" CaptionHeight="19" ColumnCaptionHeight="19" ColumnFooterHeight="19" MarqueeStyle="DottedCellBorder" RecordSelectorWidth="17" DefRecSelWidth="17" VerticalScrollGroup="1" HorizontalScrollGroup="1"&gt;&lt;CaptionStyle parent="Style2" me="Style10" /&gt;&lt;EditorStyle parent="Editor" me="Style5" /&gt;&lt;EvenRowStyle parent="EvenRow" me="Style8" /&gt;&lt;FilterBarStyle parent="FilterBar" me="Style13" /&gt;&lt;FilterWatermarkStyle parent="FilterWatermark" me="Style102" /&gt;&lt;FooterStyle parent="Footer" me="Style3" /&gt;&lt;GroupStyle parent="Group" me="Style12" /&gt;&lt;HeadingStyle parent="Heading" me="Style2" /&gt;&lt;HighLightRowStyle parent="HighlightRow" me="Style7" /&gt;&lt;InactiveStyle parent="Inactive" me="Style4" /&gt;&lt;OddRowStyle parent="OddRow" me="Style9" /&gt;&lt;RecordSelectorStyle parent="RecordSelector" me="Style11" /&gt;&lt;RowSelectorStyle parent="RowSelector" me="Style100" /&gt;&lt;ColumnSelectorStyle parent="ColumnSelector" me="Style101" /&gt;&lt;SelectedStyle parent="Selected" me="Style6" /&gt;&lt;Style parent="Normal" me="Style1" /&gt;&lt;internalCols&gt;&lt;C1DisplayColumn&gt;&lt;HeadingStyle parent="Style2" me="Style14" /&gt;&lt;ColumnSelectorStyle parent="Style14" me="Style103" /&gt;&lt;Style parent="Style1" me="Style15" /&gt;&lt;FooterStyle parent="Style3" me="Style16" /&gt;&lt;EditorStyle parent="Style5" me="Style17" /&gt;&lt;GroupHeaderStyle parent="Style1" me="Style73" /&gt;&lt;GroupFooterStyle parent="Style1" me="Style72" /&gt;&lt;Visible&gt;True&lt;/Visible&gt;&lt;ColumnDivider&gt;DarkGray,Single&lt;/ColumnDivider&gt;&lt;Height&gt;19&lt;/Height&gt;&lt;DCIdx&gt;0&lt;/DCIdx&gt;&lt;/C1DisplayColumn&gt;&lt;/internalCols&gt;&lt;ClientRect&gt;0, 0, 1054, 342&lt;/ClientRect&gt;&lt;BorderSide&gt;0&lt;/BorderSide&gt;&lt;/C1.Win.C1TrueDBGrid.MergeView&gt;&lt;/Splits&gt;&lt;NamedStyles&gt;&lt;Style parent="" me="Normal" /&gt;&lt;Style parent="Normal" me="Heading" /&gt;&lt;Style parent="Heading" me="Footer" /&gt;&lt;Style parent="Heading" me="Caption" /&gt;&lt;Style parent="Heading" me="Inactive" /&gt;&lt;Style parent="Normal" me="Selected" /&gt;&lt;Style parent="Normal" me="Editor" /&gt;&lt;Style parent="Normal" me="HighlightRow" /&gt;&lt;Style parent="Normal" me="EvenRow" /&gt;&lt;Style parent="Normal" me="OddRow" /&gt;&lt;Style parent="Heading" me="RecordSelector" /&gt;&lt;Style parent="Normal" me="FilterBar" /&gt;&lt;Style parent="Caption" me="Group" /&gt;&lt;Style parent="RecordSelector" me="RowSelector" /&gt;&lt;Style parent="Heading" me="ColumnSelector" /&gt;&lt;Style parent="FilterBar" me="FilterWatermark" /&gt;&lt;Style parent="Heading" me="HeadingHot" /&gt;&lt;/NamedStyles&gt;&lt;vertSplits&gt;1&lt;/vertSplits&gt;&lt;horzSplits&gt;1&lt;/horzSplits&gt;&lt;Layout&gt;Modified&lt;/Layout&gt;&lt;DefaultRecSelWidth&gt;17&lt;/DefaultRecSelWidth&gt;&lt;ClientArea&gt;0, 0, 1054, 342&lt;/ClientArea&gt;&lt;PrintPageHeaderStyle parent="" me="Style70" /&gt;&lt;PrintPageFooterStyle parent="" me="Style71" /&gt;&lt;/Blob&gt;</value>
+  </data>
+  <metadata name="toolStrip2.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1444, 55</value>
+  </metadata>
+  <data name="toolStripButton7.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAE7SURBVDhPtZLfK0NhGMef/0qWojXaBerUURMl1ly6Wkkr
+        JdKu3NqNLCUHsaQVy2orZ3IUspraIrcuFP6Br+c973vm9bbjV3zrW+fm83ne530P/U1Gy/hV/zVppwWa
+        vvDrf/8kARyEUh7s5dL3JDpceJDdvmPJpAtrofi5xIQdBkXzTSDXYMlYBdb8QWeJDu8rWIA+fAus3ACL
+        lyyxj2Fl9j5KzMniyAGow3MeMOOyZOgQ1uyOJtHhewmvKtCEk1UgUWbJwK4mSPFzJc9BU2egiVO4jwzW
+        GbySbU8e5P3jBVA/w9GtkAsdr6LxCiwpUJ9McWP3juFftP6iwJps+9gxfe+wjJRw/fwOirITw0cs6As7
+        th6+Ye9JTT2RFXCsyIJI/mtBOscXGnVAvZugng3ZyDqoaw3ddtYQEL0BHluB4qg2xoYAAAAASUVORK5C
+        YII=
+</value>
+  </data>
+  <data name="toolStripButton8.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFaSURBVDhPtZHNK0RRGMbPH6VoGtE0o0mDpiiixGnsWM3G
+        moWFpCSzwURykTtNPjLTTExckysfmRpFZKvIxz/weM89947j5nItvPXU2fx+z9t72L9NUrsFGzq1Yr3/
+        Mg7sDEuY4LMn/iQqnHmQWbsjyYABPlP+WeKGNQJF0jdAqkqS3gPw6cPvJSqs27AALfgamLoCxs5J0pkD
+        n9z/KnE3i5UdUIVHTWDEIEnbFvhEQZGo8L2E52zQDfMS0F0kScuGIkjQd3G68iAdqf8IxiOBFQIvZGrN
+        sSxYNAMWITi06nHQvhKq78C4DarNLLrpAanTU0TlzQaPZWprh9d9CLryuHz9BEXIifY9EjR7ra1OfBdn
+        L3ZrQUbA4R0SNC77ENAXmc8S7MjJRLaBYJYEgbQPQauO8hOBopVAEQHX6SRoWPhdkEzRl4Y0sKYVsOCS
+        TGARrH4e8WH3Box9AJl2kuBaL9LEAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="toolStripButton9.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGFSURBVDhPrZJZK8RRGMbPp5HlyjIpmSylZsSFkiUy8pcL
+        slyMKBcT4mIsd+ZiJo1SjG1kpuyGkW1soShRLnwPj+ecM5NlDP8Lbz135/d73/OeI/69nIEniLYLndaY
+        TssphOMIztkHxI/9UgRlvbwlR9TtmRPIw/PPgP9RZ+oecN9QUL1lQsCRpWCGoIegzNgt4LqkoGrdhID3
+        lQLPAzB+pzN4BfSeUVARMiHgsqRgguAQQZm+GNB+RIE9aELQEFWC4Wug/1yng7DjgIKyxRSC+DOJxig3
+        HVGCfnbtPNZp3geqdygomYOwzkIUzEDkT3+SNemxE1l6BboItkR1JGzbAArXgOxlIC1AmcX7IVAfhJ1H
+        +VQDHLn7RIM1uzr2dcAaAnJWCC8QzvOiqsP/9TrG5KF6ph7CrYRrCZazq0wR4dwgkC5hiy8ZTpThjkDY
+        gqgnXLkJFId18ghnLP4BJ8oY2VbLKiVoWdXJVJ1/GDtVGUMbatNZS1Ax1fl7Ga4wl+VTSQ0L8Q6IN4Z/
+        SkW63QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="toolStripButton10.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFnSURBVDhPrZPdK4NhGMafv0Y+jrAlsnyU2pSDNwuLrNZy
+        QFiZphwIRYlDDiahhdmYTA35yGo+RiRlJcqB/8Plep9ny8eMd3LV7+z5Xffz3G+v+Pd4g48QXVcKd1Lh
+        OodwJuANpJA+9kMo6nl+zUa0HRkr0A+vPQGLD4rZe2DqlgX2fQMFvKpeMJcCpu8Uo9fA4AULbBEDBe1x
+        WTBDcYyiji8JdCdY0BDKUZBekuiI853HsmD8Bhi6VPRQdp6woG4VwhKAqFqCqFj4UNaprp0h/AL0nQKu
+        uMJ+AFh3geptoHQDKAiyzOx/L5Cfh5MnuKhhTuw/U2LLocIWAyxRoGyT8jplkx+VzZOfn2MfiUJoMXgo
+        uym3UmzkVJ0ayuURoFCXzfPZciaaLwxhjcBBuWkPqN1RmCgXhX6RM9EGgnJZ9RTNW4piOfmba+eK5lmR
+        my4JQ2Jo8tdovctc1rwkbzn/OPiT/AUhxBsvyXArBBwn2QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <metadata name="tsUniqueConstraints.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1675, 17</value>
+  </metadata>
+  <data name="c1GridUnique.Images" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVChTdYkBCgAgDAL9/6eLIsd0eSCKhw/r9aCLtC88
+        vAdHMEIXKUIUhMK76EfagglgA6CqHOQpL6GyAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridUnique.PropBag" xml:space="preserve">
+    <value>&lt;?xml version="1.0"?&gt;&lt;Blob&gt;&lt;DataCols&gt;&lt;C1DataColumn Caption="Data" DataField="Data"&gt;&lt;FilterDropdownText&gt;(所有)&lt;/FilterDropdownText&gt;&lt;FilterCancelText&gt;&amp;amp;Close&lt;/FilterCancelText&gt;&lt;FilterClearText&gt;C&amp;amp;lear&lt;/FilterClearText&gt;&lt;ImeMode&gt;NoControl&lt;/ImeMode&gt;&lt;ValueItems /&gt;&lt;GroupInfo&gt;&lt;AggregatesText&gt;{0}&lt;/AggregatesText&gt;&lt;/GroupInfo&gt;&lt;/C1DataColumn&gt;&lt;/DataCols&gt;&lt;Styles type="C1.Win.C1TrueDBGrid.Design.ContextWrapper"&gt;&lt;Data&gt;Caption{AlignHorz:Center;}ColumnSelector{}Editor{}EvenRow{}FilterBar{}FilterWatermark{}Footer{}Group{Border:None,,0, 0, 0, 0;}Heading{BackColor:Control;Border:Flat,ControlDark,0, 0, 0, 0;}HeadingHot{}HighlightRow{BackColor:Highlight;}Inactive{}Normal{}OddRow{}RecordSelector{}RowSelector{}Selected{BackColor:Highlight;ForeColor:HighlightText;}Style1{}Style10{AlignHorz:Near;}Style100{}Style101{}Style102{}Style103{}Style11{}Style12{}Style13{}Style14{Font:Microsoft JhengHei UI, 9pt;Trimming:Character;AlignHorz:Near;AlignVert:Center;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;WrapText:WrapWithOverflow;}Style15{}Style16{}Style17{BackColor:LightCyan;Trimming:Character;AlignHorz:General;AlignVert:Top;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;}Style18{}Style19{}Style2{}Style20{}Style21{}Style22{}Style23{}Style24{}Style3{}Style4{}Style5{}Style6{}Style7{}Style70{}Style71{}Style72{}Style73{}Style8{}Style9{}&lt;/Data&gt;&lt;/Styles&gt;&lt;Splits&gt;&lt;C1.Win.C1TrueDBGrid.MergeView HBarHeight="20" AllowColMove="False" Name="" AlternatingRowStyle="True" CaptionHeight="19" ColumnCaptionHeight="19" ColumnFooterHeight="19" MarqueeStyle="DottedCellBorder" RecordSelectorWidth="17" DefRecSelWidth="17" VerticalScrollGroup="1" HorizontalScrollGroup="1"&gt;&lt;CaptionStyle parent="Style2" me="Style10" /&gt;&lt;EditorStyle parent="Editor" me="Style5" /&gt;&lt;EvenRowStyle parent="EvenRow" me="Style8" /&gt;&lt;FilterBarStyle parent="FilterBar" me="Style13" /&gt;&lt;FilterWatermarkStyle parent="FilterWatermark" me="Style102" /&gt;&lt;FooterStyle parent="Footer" me="Style3" /&gt;&lt;GroupStyle parent="Group" me="Style12" /&gt;&lt;HeadingStyle parent="Heading" me="Style2" /&gt;&lt;HighLightRowStyle parent="HighlightRow" me="Style7" /&gt;&lt;InactiveStyle parent="Inactive" me="Style4" /&gt;&lt;OddRowStyle parent="OddRow" me="Style9" /&gt;&lt;RecordSelectorStyle parent="RecordSelector" me="Style11" /&gt;&lt;RowSelectorStyle parent="RowSelector" me="Style100" /&gt;&lt;ColumnSelectorStyle parent="ColumnSelector" me="Style101" /&gt;&lt;SelectedStyle parent="Selected" me="Style6" /&gt;&lt;Style parent="Normal" me="Style1" /&gt;&lt;internalCols&gt;&lt;C1DisplayColumn&gt;&lt;HeadingStyle parent="Style2" me="Style14" /&gt;&lt;ColumnSelectorStyle parent="Style14" me="Style103" /&gt;&lt;Style parent="Style1" me="Style15" /&gt;&lt;FooterStyle parent="Style3" me="Style16" /&gt;&lt;EditorStyle parent="Style5" me="Style17" /&gt;&lt;GroupHeaderStyle parent="Style1" me="Style73" /&gt;&lt;GroupFooterStyle parent="Style1" me="Style72" /&gt;&lt;Visible&gt;True&lt;/Visible&gt;&lt;ColumnDivider&gt;DarkGray,Single&lt;/ColumnDivider&gt;&lt;Height&gt;19&lt;/Height&gt;&lt;DCIdx&gt;0&lt;/DCIdx&gt;&lt;/C1DisplayColumn&gt;&lt;/internalCols&gt;&lt;ClientRect&gt;0, 0, 1030, 148&lt;/ClientRect&gt;&lt;BorderSide&gt;0&lt;/BorderSide&gt;&lt;/C1.Win.C1TrueDBGrid.MergeView&gt;&lt;/Splits&gt;&lt;NamedStyles&gt;&lt;Style parent="" me="Normal" /&gt;&lt;Style parent="Normal" me="Heading" /&gt;&lt;Style parent="Heading" me="Footer" /&gt;&lt;Style parent="Heading" me="Caption" /&gt;&lt;Style parent="Heading" me="Inactive" /&gt;&lt;Style parent="Normal" me="Selected" /&gt;&lt;Style parent="Normal" me="Editor" /&gt;&lt;Style parent="Normal" me="HighlightRow" /&gt;&lt;Style parent="Normal" me="EvenRow" /&gt;&lt;Style parent="Normal" me="OddRow" /&gt;&lt;Style parent="Heading" me="RecordSelector" /&gt;&lt;Style parent="Normal" me="FilterBar" /&gt;&lt;Style parent="Caption" me="Group" /&gt;&lt;Style parent="RecordSelector" me="RowSelector" /&gt;&lt;Style parent="Heading" me="ColumnSelector" /&gt;&lt;Style parent="FilterBar" me="FilterWatermark" /&gt;&lt;Style parent="Heading" me="HeadingHot" /&gt;&lt;/NamedStyles&gt;&lt;vertSplits&gt;1&lt;/vertSplits&gt;&lt;horzSplits&gt;1&lt;/horzSplits&gt;&lt;Layout&gt;Modified&lt;/Layout&gt;&lt;DefaultRecSelWidth&gt;17&lt;/DefaultRecSelWidth&gt;&lt;ClientArea&gt;0, 0, 1030, 148&lt;/ClientArea&gt;&lt;PrintPageHeaderStyle parent="" me="Style70" /&gt;&lt;PrintPageFooterStyle parent="" me="Style71" /&gt;&lt;/Blob&gt;</value>
+  </data>
+  <metadata name="tsUniqueVertical.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1251, 17</value>
+  </metadata>
+  <data name="btnUniqueTop.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAE7SURBVDhPtZLfK0NhGMef/0qWojXaBerUURMl1ly6Wkkr
+        JdKu3NqNLCUHsaQVy2orZ3IUspraIrcuFP6Br+c973vm9bbjV3zrW+fm83ne530P/U1Gy/hV/zVppwWa
+        vvDrf/8kARyEUh7s5dL3JDpceJDdvmPJpAtrofi5xIQdBkXzTSDXYMlYBdb8QWeJDu8rWIA+fAus3ACL
+        lyyxj2Fl9j5KzMniyAGow3MeMOOyZOgQ1uyOJtHhewmvKtCEk1UgUWbJwK4mSPFzJc9BU2egiVO4jwzW
+        GbySbU8e5P3jBVA/w9GtkAsdr6LxCiwpUJ9McWP3juFftP6iwJps+9gxfe+wjJRw/fwOirITw0cs6As7
+        th6+Ye9JTT2RFXCsyIJI/mtBOscXGnVAvZugng3ZyDqoaw3ddtYQEL0BHluB4qg2xoYAAAAASUVORK5C
+        YII=
+</value>
+  </data>
+  <data name="btnUniqueUp.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFaSURBVDhPtZHNK0RRGMbPH6VoGtE0o0mDpiiixGnsWM3G
+        moWFpCSzwURykTtNPjLTTExckysfmRpFZKvIxz/weM89947j5nItvPXU2fx+z9t72L9NUrsFGzq1Yr3/
+        Mg7sDEuY4LMn/iQqnHmQWbsjyYABPlP+WeKGNQJF0jdAqkqS3gPw6cPvJSqs27AALfgamLoCxs5J0pkD
+        n9z/KnE3i5UdUIVHTWDEIEnbFvhEQZGo8L2E52zQDfMS0F0kScuGIkjQd3G68iAdqf8IxiOBFQIvZGrN
+        sSxYNAMWITi06nHQvhKq78C4DarNLLrpAanTU0TlzQaPZWprh9d9CLryuHz9BEXIifY9EjR7ra1OfBdn
+        L3ZrQUbA4R0SNC77ENAXmc8S7MjJRLaBYJYEgbQPQauO8hOBopVAEQHX6SRoWPhdkEzRl4Y0sKYVsOCS
+        TGARrH4e8WH3Box9AJl2kuBaL9LEAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="btnUniqueDown.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGFSURBVDhPrZJZK8RRGMbPp5HlyjIpmSylZsSFkiUy8pcL
+        slyMKBcT4mIsd+ZiJo1SjG1kpuyGkW1soShRLnwPj+ecM5NlDP8Lbz135/d73/OeI/69nIEniLYLndaY
+        TssphOMIztkHxI/9UgRlvbwlR9TtmRPIw/PPgP9RZ+oecN9QUL1lQsCRpWCGoIegzNgt4LqkoGrdhID3
+        lQLPAzB+pzN4BfSeUVARMiHgsqRgguAQQZm+GNB+RIE9aELQEFWC4Wug/1yng7DjgIKyxRSC+DOJxig3
+        HVGCfnbtPNZp3geqdygomYOwzkIUzEDkT3+SNemxE1l6BboItkR1JGzbAArXgOxlIC1AmcX7IVAfhJ1H
+        +VQDHLn7RIM1uzr2dcAaAnJWCC8QzvOiqsP/9TrG5KF6ph7CrYRrCZazq0wR4dwgkC5hiy8ZTpThjkDY
+        gqgnXLkJFId18ghnLP4BJ8oY2VbLKiVoWdXJVJ1/GDtVGUMbatNZS1Ax1fl7Ga4wl+VTSQ0L8Q6IN4Z/
+        SkW63QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="btnUniqueBottom.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFnSURBVDhPrZPdK4NhGMafv0Y+jrAlsnyU2pSDNwuLrNZy
+        QFiZphwIRYlDDiahhdmYTA35yGo+RiRlJcqB/8Plep9ny8eMd3LV7+z5Xffz3G+v+Pd4g48QXVcKd1Lh
+        OodwJuANpJA+9kMo6nl+zUa0HRkr0A+vPQGLD4rZe2DqlgX2fQMFvKpeMJcCpu8Uo9fA4AULbBEDBe1x
+        WTBDcYyiji8JdCdY0BDKUZBekuiI853HsmD8Bhi6VPRQdp6woG4VwhKAqFqCqFj4UNaprp0h/AL0nQKu
+        uMJ+AFh3geptoHQDKAiyzOx/L5Cfh5MnuKhhTuw/U2LLocIWAyxRoGyT8jplkx+VzZOfn2MfiUJoMXgo
+        uym3UmzkVJ0ayuURoFCXzfPZciaaLwxhjcBBuWkPqN1RmCgXhX6RM9EGgnJZ9RTNW4piOfmba+eK5lmR
+        my4JQ2Jo8tdovctc1rwkbzn/OPiT/AUhxBsvyXArBBwn2QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <metadata name="tsUnique.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1845, 17</value>
+  </metadata>
+  <data name="tabUniqueConstraints.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        wgAADsIBFShKgAAAATdJREFUOE/FkrtKQ0EQhme29EV8DBURhEQj3kil8RIvhTeiEVSIhRdUxELEGE5p
+        k1qDpDNgeRBSCD6M8ju7kxPWEzQHLPzhZ3eHmW+GYcnq/SVAZYnaLucJNwuEt0YAl9BNtui11gPgQ0zO
+        4SPhcoaTA4BP1C8YB+OMpzMGQkKjSjjKMkpTjD2JFzOMrbTB2rDB6pBBftBoAwUQSpPacXdMAdE0P3lu
+        oAW4XdRABNgZFcCdxDxvpow7V6SzPXNSfFKcVsD1vAJqMrotfjjVCer3jO0RxkZKwctSbM9cv1dsdTXL
+        bmlu7JbDCqGQTrjE5nOA4yzhUJa1P8GwOyjIssrn68kAXdXXiw4nlk1uUqd9iNzaD//uFAE0/gdABPk/
+        gMbVcYCVvOQvuYTv8ifwHQf8KpsctxPRF3XyI5p9wjdtAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridForeignKeyReferencedTable.Images" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVChTdYkBCgAgDAL9/6eLIsd0eSCKhw/r9aCLtC88
+        vAdHMEIXKUIUhMK76EfagglgA6CqHOQpL6GyAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridForeignKeyReferencedTable.PropBag" xml:space="preserve">
+    <value>&lt;?xml version="1.0"?&gt;&lt;Blob&gt;&lt;DataCols&gt;&lt;C1DataColumn Caption="Data" DataField="Data"&gt;&lt;FilterDropdownText&gt;(所有)&lt;/FilterDropdownText&gt;&lt;FilterCancelText&gt;&amp;amp;Close&lt;/FilterCancelText&gt;&lt;FilterClearText&gt;C&amp;amp;lear&lt;/FilterClearText&gt;&lt;ImeMode&gt;NoControl&lt;/ImeMode&gt;&lt;ValueItems /&gt;&lt;GroupInfo&gt;&lt;AggregatesText&gt;{0}&lt;/AggregatesText&gt;&lt;/GroupInfo&gt;&lt;/C1DataColumn&gt;&lt;/DataCols&gt;&lt;Styles type="C1.Win.C1TrueDBGrid.Design.ContextWrapper"&gt;&lt;Data&gt;Caption{AlignHorz:Center;}ColumnSelector{}Editor{}EvenRow{}FilterBar{}FilterWatermark{}Footer{}Group{Border:None,,0, 0, 0, 0;}Heading{BackColor:Control;Border:Flat,ControlDark,0, 0, 0, 0;}HeadingHot{}HighlightRow{BackColor:Highlight;}Inactive{}Normal{}OddRow{}RecordSelector{}RowSelector{}Selected{BackColor:Highlight;ForeColor:HighlightText;}Style1{}Style10{AlignHorz:Near;}Style100{}Style101{}Style102{}Style103{}Style11{}Style12{}Style13{}Style14{Font:Microsoft JhengHei UI, 9pt;Trimming:Character;AlignHorz:Near;AlignVert:Center;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;WrapText:WrapWithOverflow;}Style15{}Style16{}Style17{BackColor:LightCyan;Trimming:Character;AlignHorz:General;AlignVert:Top;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;}Style18{}Style19{}Style2{}Style20{}Style21{}Style22{}Style23{}Style24{}Style3{}Style4{}Style5{}Style6{}Style7{}Style70{}Style71{}Style72{}Style73{}Style8{}Style9{}&lt;/Data&gt;&lt;/Styles&gt;&lt;Splits&gt;&lt;C1.Win.C1TrueDBGrid.MergeView HBarHeight="20" AllowColMove="False" Name="" AlternatingRowStyle="True" CaptionHeight="19" ColumnCaptionHeight="19" ColumnFooterHeight="19" MarqueeStyle="DottedCellBorder" RecordSelectorWidth="17" DefRecSelWidth="17" VerticalScrollGroup="1" HorizontalScrollGroup="1"&gt;&lt;CaptionStyle parent="Style2" me="Style10" /&gt;&lt;EditorStyle parent="Editor" me="Style5" /&gt;&lt;EvenRowStyle parent="EvenRow" me="Style8" /&gt;&lt;FilterBarStyle parent="FilterBar" me="Style13" /&gt;&lt;FilterWatermarkStyle parent="FilterWatermark" me="Style102" /&gt;&lt;FooterStyle parent="Footer" me="Style3" /&gt;&lt;GroupStyle parent="Group" me="Style12" /&gt;&lt;HeadingStyle parent="Heading" me="Style2" /&gt;&lt;HighLightRowStyle parent="HighlightRow" me="Style7" /&gt;&lt;InactiveStyle parent="Inactive" me="Style4" /&gt;&lt;OddRowStyle parent="OddRow" me="Style9" /&gt;&lt;RecordSelectorStyle parent="RecordSelector" me="Style11" /&gt;&lt;RowSelectorStyle parent="RowSelector" me="Style100" /&gt;&lt;ColumnSelectorStyle parent="ColumnSelector" me="Style101" /&gt;&lt;SelectedStyle parent="Selected" me="Style6" /&gt;&lt;Style parent="Normal" me="Style1" /&gt;&lt;internalCols&gt;&lt;C1DisplayColumn&gt;&lt;HeadingStyle parent="Style2" me="Style14" /&gt;&lt;ColumnSelectorStyle parent="Style14" me="Style103" /&gt;&lt;Style parent="Style1" me="Style15" /&gt;&lt;FooterStyle parent="Style3" me="Style16" /&gt;&lt;EditorStyle parent="Style5" me="Style17" /&gt;&lt;GroupHeaderStyle parent="Style1" me="Style73" /&gt;&lt;GroupFooterStyle parent="Style1" me="Style72" /&gt;&lt;Visible&gt;True&lt;/Visible&gt;&lt;ColumnDivider&gt;DarkGray,Single&lt;/ColumnDivider&gt;&lt;Height&gt;19&lt;/Height&gt;&lt;DCIdx&gt;0&lt;/DCIdx&gt;&lt;/C1DisplayColumn&gt;&lt;/internalCols&gt;&lt;ClientRect&gt;0, 0, 768, 199&lt;/ClientRect&gt;&lt;BorderSide&gt;0&lt;/BorderSide&gt;&lt;/C1.Win.C1TrueDBGrid.MergeView&gt;&lt;/Splits&gt;&lt;NamedStyles&gt;&lt;Style parent="" me="Normal" /&gt;&lt;Style parent="Normal" me="Heading" /&gt;&lt;Style parent="Heading" me="Footer" /&gt;&lt;Style parent="Heading" me="Caption" /&gt;&lt;Style parent="Heading" me="Inactive" /&gt;&lt;Style parent="Normal" me="Selected" /&gt;&lt;Style parent="Normal" me="Editor" /&gt;&lt;Style parent="Normal" me="HighlightRow" /&gt;&lt;Style parent="Normal" me="EvenRow" /&gt;&lt;Style parent="Normal" me="OddRow" /&gt;&lt;Style parent="Heading" me="RecordSelector" /&gt;&lt;Style parent="Normal" me="FilterBar" /&gt;&lt;Style parent="Caption" me="Group" /&gt;&lt;Style parent="RecordSelector" me="RowSelector" /&gt;&lt;Style parent="Heading" me="ColumnSelector" /&gt;&lt;Style parent="FilterBar" me="FilterWatermark" /&gt;&lt;Style parent="Heading" me="HeadingHot" /&gt;&lt;/NamedStyles&gt;&lt;vertSplits&gt;1&lt;/vertSplits&gt;&lt;horzSplits&gt;1&lt;/horzSplits&gt;&lt;Layout&gt;Modified&lt;/Layout&gt;&lt;DefaultRecSelWidth&gt;17&lt;/DefaultRecSelWidth&gt;&lt;ClientArea&gt;0, 0, 768, 199&lt;/ClientArea&gt;&lt;PrintPageHeaderStyle parent="" me="Style70" /&gt;&lt;PrintPageFooterStyle parent="" me="Style71" /&gt;&lt;/Blob&gt;</value>
+  </data>
+  <metadata name="tsForeignKeyReferencedTableVertical.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>861, 55</value>
+  </metadata>
+  <data name="btnForeignKeyReferencedTableTop.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAE7SURBVDhPtZLfK0NhGMef/0qWojXaBerUURMl1ly6Wkkr
+        JdKu3NqNLCUHsaQVy2orZ3IUspraIrcuFP6Br+c973vm9bbjV3zrW+fm83ne530P/U1Gy/hV/zVppwWa
+        vvDrf/8kARyEUh7s5dL3JDpceJDdvmPJpAtrofi5xIQdBkXzTSDXYMlYBdb8QWeJDu8rWIA+fAus3ACL
+        lyyxj2Fl9j5KzMniyAGow3MeMOOyZOgQ1uyOJtHhewmvKtCEk1UgUWbJwK4mSPFzJc9BU2egiVO4jwzW
+        GbySbU8e5P3jBVA/w9GtkAsdr6LxCiwpUJ9McWP3juFftP6iwJps+9gxfe+wjJRw/fwOirITw0cs6As7
+        th6+Ye9JTT2RFXCsyIJI/mtBOscXGnVAvZugng3ZyDqoaw3ddtYQEL0BHluB4qg2xoYAAAAASUVORK5C
+        YII=
+</value>
+  </data>
+  <data name="btnForeignKeyReferencedTableUp.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFaSURBVDhPtZHNK0RRGMbPH6VoGtE0o0mDpiiixGnsWM3G
+        moWFpCSzwURykTtNPjLTTExckysfmRpFZKvIxz/weM89947j5nItvPXU2fx+z9t72L9NUrsFGzq1Yr3/
+        Mg7sDEuY4LMn/iQqnHmQWbsjyYABPlP+WeKGNQJF0jdAqkqS3gPw6cPvJSqs27AALfgamLoCxs5J0pkD
+        n9z/KnE3i5UdUIVHTWDEIEnbFvhEQZGo8L2E52zQDfMS0F0kScuGIkjQd3G68iAdqf8IxiOBFQIvZGrN
+        sSxYNAMWITi06nHQvhKq78C4DarNLLrpAanTU0TlzQaPZWprh9d9CLryuHz9BEXIifY9EjR7ra1OfBdn
+        L3ZrQUbA4R0SNC77ENAXmc8S7MjJRLaBYJYEgbQPQauO8hOBopVAEQHX6SRoWPhdkEzRl4Y0sKYVsOCS
+        TGARrH4e8WH3Box9AJl2kuBaL9LEAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="btnForeignKeyReferencedTableDown.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGFSURBVDhPrZJZK8RRGMbPp5HlyjIpmSylZsSFkiUy8pcL
+        slyMKBcT4mIsd+ZiJo1SjG1kpuyGkW1soShRLnwPj+ecM5NlDP8Lbz135/d73/OeI/69nIEniLYLndaY
+        TssphOMIztkHxI/9UgRlvbwlR9TtmRPIw/PPgP9RZ+oecN9QUL1lQsCRpWCGoIegzNgt4LqkoGrdhID3
+        lQLPAzB+pzN4BfSeUVARMiHgsqRgguAQQZm+GNB+RIE9aELQEFWC4Wug/1yng7DjgIKyxRSC+DOJxig3
+        HVGCfnbtPNZp3geqdygomYOwzkIUzEDkT3+SNemxE1l6BboItkR1JGzbAArXgOxlIC1AmcX7IVAfhJ1H
+        +VQDHLn7RIM1uzr2dcAaAnJWCC8QzvOiqsP/9TrG5KF6ph7CrYRrCZazq0wR4dwgkC5hiy8ZTpThjkDY
+        gqgnXLkJFId18ghnLP4BJ8oY2VbLKiVoWdXJVJ1/GDtVGUMbatNZS1Ax1fl7Ga4wl+VTSQ0L8Q6IN4Z/
+        SkW63QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="btnForeignKeyReferencedTableBottom.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFnSURBVDhPrZPdK4NhGMafv0Y+jrAlsnyU2pSDNwuLrNZy
+        QFiZphwIRYlDDiahhdmYTA35yGo+RiRlJcqB/8Plep9ny8eMd3LV7+z5Xffz3G+v+Pd4g48QXVcKd1Lh
+        OodwJuANpJA+9kMo6nl+zUa0HRkr0A+vPQGLD4rZe2DqlgX2fQMFvKpeMJcCpu8Uo9fA4AULbBEDBe1x
+        WTBDcYyiji8JdCdY0BDKUZBekuiI853HsmD8Bhi6VPRQdp6woG4VwhKAqFqCqFj4UNaprp0h/AL0nQKu
+        uMJ+AFh3geptoHQDKAiyzOx/L5Cfh5MnuKhhTuw/U2LLocIWAyxRoGyT8jplkx+VzZOfn2MfiUJoMXgo
+        uym3UmzkVJ0ayuURoFCXzfPZciaaLwxhjcBBuWkPqN1RmCgXhX6RM9EGgnJZ9RTNW4piOfmba+eK5lmR
+        my4JQ2Jo8tdovctc1rwkbzn/OPiT/AUhxBsvyXArBBwn2QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="c1GridForeignKeyThisTable.Images" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVChTdYkBCgAgDAL9/6eLIsd0eSCKhw/r9aCLtC88
+        vAdHMEIXKUIUhMK76EfagglgA6CqHOQpL6GyAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridForeignKeyThisTable.PropBag" xml:space="preserve">
+    <value>&lt;?xml version="1.0"?&gt;&lt;Blob&gt;&lt;DataCols&gt;&lt;C1DataColumn Caption="Data" DataField="Data"&gt;&lt;FilterDropdownText&gt;(所有)&lt;/FilterDropdownText&gt;&lt;FilterCancelText&gt;&amp;amp;Close&lt;/FilterCancelText&gt;&lt;FilterClearText&gt;C&amp;amp;lear&lt;/FilterClearText&gt;&lt;ImeMode&gt;NoControl&lt;/ImeMode&gt;&lt;ValueItems /&gt;&lt;GroupInfo&gt;&lt;AggregatesText&gt;{0}&lt;/AggregatesText&gt;&lt;/GroupInfo&gt;&lt;/C1DataColumn&gt;&lt;/DataCols&gt;&lt;Styles type="C1.Win.C1TrueDBGrid.Design.ContextWrapper"&gt;&lt;Data&gt;Caption{AlignHorz:Center;}ColumnSelector{}Editor{}EvenRow{}FilterBar{}FilterWatermark{}Footer{}Group{Border:None,,0, 0, 0, 0;}Heading{BackColor:Control;Border:Flat,ControlDark,0, 0, 0, 0;}HeadingHot{}HighlightRow{BackColor:Highlight;}Inactive{}Normal{}OddRow{}RecordSelector{}RowSelector{}Selected{BackColor:Highlight;ForeColor:HighlightText;}Style1{}Style10{AlignHorz:Near;}Style100{}Style101{}Style102{}Style103{}Style11{}Style12{}Style13{}Style14{Font:Microsoft JhengHei UI, 9pt;Trimming:Character;AlignHorz:Near;AlignVert:Center;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;WrapText:WrapWithOverflow;}Style15{}Style16{}Style17{BackColor:LightCyan;Trimming:Character;AlignHorz:General;AlignVert:Top;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;}Style18{}Style19{}Style2{}Style20{}Style21{}Style22{}Style23{}Style24{}Style3{}Style4{}Style5{}Style6{}Style7{}Style70{}Style71{}Style72{}Style73{}Style8{}Style9{}&lt;/Data&gt;&lt;/Styles&gt;&lt;Splits&gt;&lt;C1.Win.C1TrueDBGrid.MergeView HBarHeight="20" AllowColMove="False" Name="" AlternatingRowStyle="True" CaptionHeight="19" ColumnCaptionHeight="19" ColumnFooterHeight="19" MarqueeStyle="DottedCellBorder" RecordSelectorWidth="17" DefRecSelWidth="17" VerticalScrollGroup="1" HorizontalScrollGroup="1"&gt;&lt;CaptionStyle parent="Style2" me="Style10" /&gt;&lt;EditorStyle parent="Editor" me="Style5" /&gt;&lt;EvenRowStyle parent="EvenRow" me="Style8" /&gt;&lt;FilterBarStyle parent="FilterBar" me="Style13" /&gt;&lt;FilterWatermarkStyle parent="FilterWatermark" me="Style102" /&gt;&lt;FooterStyle parent="Footer" me="Style3" /&gt;&lt;GroupStyle parent="Group" me="Style12" /&gt;&lt;HeadingStyle parent="Heading" me="Style2" /&gt;&lt;HighLightRowStyle parent="HighlightRow" me="Style7" /&gt;&lt;InactiveStyle parent="Inactive" me="Style4" /&gt;&lt;OddRowStyle parent="OddRow" me="Style9" /&gt;&lt;RecordSelectorStyle parent="RecordSelector" me="Style11" /&gt;&lt;RowSelectorStyle parent="RowSelector" me="Style100" /&gt;&lt;ColumnSelectorStyle parent="ColumnSelector" me="Style101" /&gt;&lt;SelectedStyle parent="Selected" me="Style6" /&gt;&lt;Style parent="Normal" me="Style1" /&gt;&lt;internalCols&gt;&lt;C1DisplayColumn&gt;&lt;HeadingStyle parent="Style2" me="Style14" /&gt;&lt;ColumnSelectorStyle parent="Style14" me="Style103" /&gt;&lt;Style parent="Style1" me="Style15" /&gt;&lt;FooterStyle parent="Style3" me="Style16" /&gt;&lt;EditorStyle parent="Style5" me="Style17" /&gt;&lt;GroupHeaderStyle parent="Style1" me="Style73" /&gt;&lt;GroupFooterStyle parent="Style1" me="Style72" /&gt;&lt;Visible&gt;True&lt;/Visible&gt;&lt;ColumnDivider&gt;DarkGray,Single&lt;/ColumnDivider&gt;&lt;Height&gt;19&lt;/Height&gt;&lt;DCIdx&gt;0&lt;/DCIdx&gt;&lt;/C1DisplayColumn&gt;&lt;/internalCols&gt;&lt;ClientRect&gt;0, 0, 256, 274&lt;/ClientRect&gt;&lt;BorderSide&gt;0&lt;/BorderSide&gt;&lt;/C1.Win.C1TrueDBGrid.MergeView&gt;&lt;/Splits&gt;&lt;NamedStyles&gt;&lt;Style parent="" me="Normal" /&gt;&lt;Style parent="Normal" me="Heading" /&gt;&lt;Style parent="Heading" me="Footer" /&gt;&lt;Style parent="Heading" me="Caption" /&gt;&lt;Style parent="Heading" me="Inactive" /&gt;&lt;Style parent="Normal" me="Selected" /&gt;&lt;Style parent="Normal" me="Editor" /&gt;&lt;Style parent="Normal" me="HighlightRow" /&gt;&lt;Style parent="Normal" me="EvenRow" /&gt;&lt;Style parent="Normal" me="OddRow" /&gt;&lt;Style parent="Heading" me="RecordSelector" /&gt;&lt;Style parent="Normal" me="FilterBar" /&gt;&lt;Style parent="Caption" me="Group" /&gt;&lt;Style parent="RecordSelector" me="RowSelector" /&gt;&lt;Style parent="Heading" me="ColumnSelector" /&gt;&lt;Style parent="FilterBar" me="FilterWatermark" /&gt;&lt;Style parent="Heading" me="HeadingHot" /&gt;&lt;/NamedStyles&gt;&lt;vertSplits&gt;1&lt;/vertSplits&gt;&lt;horzSplits&gt;1&lt;/horzSplits&gt;&lt;Layout&gt;Modified&lt;/Layout&gt;&lt;DefaultRecSelWidth&gt;17&lt;/DefaultRecSelWidth&gt;&lt;ClientArea&gt;0, 0, 256, 274&lt;/ClientArea&gt;&lt;PrintPageHeaderStyle parent="" me="Style70" /&gt;&lt;PrintPageFooterStyle parent="" me="Style71" /&gt;&lt;/Blob&gt;</value>
+  </data>
+  <metadata name="tsForeignKeyThisTableVertical.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>315, 55</value>
+  </metadata>
+  <data name="btnForeignKeyThisTableTop.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAE7SURBVDhPtZLfK0NhGMef/0qWojXaBerUURMl1ly6Wkkr
+        JdKu3NqNLCUHsaQVy2orZ3IUspraIrcuFP6Br+c973vm9bbjV3zrW+fm83ne530P/U1Gy/hV/zVppwWa
+        vvDrf/8kARyEUh7s5dL3JDpceJDdvmPJpAtrofi5xIQdBkXzTSDXYMlYBdb8QWeJDu8rWIA+fAus3ACL
+        lyyxj2Fl9j5KzMniyAGow3MeMOOyZOgQ1uyOJtHhewmvKtCEk1UgUWbJwK4mSPFzJc9BU2egiVO4jwzW
+        GbySbU8e5P3jBVA/w9GtkAsdr6LxCiwpUJ9McWP3juFftP6iwJps+9gxfe+wjJRw/fwOirITw0cs6As7
+        th6+Ye9JTT2RFXCsyIJI/mtBOscXGnVAvZugng3ZyDqoaw3ddtYQEL0BHluB4qg2xoYAAAAASUVORK5C
+        YII=
+</value>
+  </data>
+  <data name="btnForeignKeyThisTableUp.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFaSURBVDhPtZHNK0RRGMbPH6VoGtE0o0mDpiiixGnsWM3G
+        moWFpCSzwURykTtNPjLTTExckysfmRpFZKvIxz/weM89947j5nItvPXU2fx+z9t72L9NUrsFGzq1Yr3/
+        Mg7sDEuY4LMn/iQqnHmQWbsjyYABPlP+WeKGNQJF0jdAqkqS3gPw6cPvJSqs27AALfgamLoCxs5J0pkD
+        n9z/KnE3i5UdUIVHTWDEIEnbFvhEQZGo8L2E52zQDfMS0F0kScuGIkjQd3G68iAdqf8IxiOBFQIvZGrN
+        sSxYNAMWITi06nHQvhKq78C4DarNLLrpAanTU0TlzQaPZWprh9d9CLryuHz9BEXIifY9EjR7ra1OfBdn
+        L3ZrQUbA4R0SNC77ENAXmc8S7MjJRLaBYJYEgbQPQauO8hOBopVAEQHX6SRoWPhdkEzRl4Y0sKYVsOCS
+        TGARrH4e8WH3Box9AJl2kuBaL9LEAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="btnForeignKeyThisTableDown.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGFSURBVDhPrZJZK8RRGMbPp5HlyjIpmSylZsSFkiUy8pcL
+        slyMKBcT4mIsd+ZiJo1SjG1kpuyGkW1soShRLnwPj+ecM5NlDP8Lbz135/d73/OeI/69nIEniLYLndaY
+        TssphOMIztkHxI/9UgRlvbwlR9TtmRPIw/PPgP9RZ+oecN9QUL1lQsCRpWCGoIegzNgt4LqkoGrdhID3
+        lQLPAzB+pzN4BfSeUVARMiHgsqRgguAQQZm+GNB+RIE9aELQEFWC4Wug/1yng7DjgIKyxRSC+DOJxig3
+        HVGCfnbtPNZp3geqdygomYOwzkIUzEDkT3+SNemxE1l6BboItkR1JGzbAArXgOxlIC1AmcX7IVAfhJ1H
+        +VQDHLn7RIM1uzr2dcAaAnJWCC8QzvOiqsP/9TrG5KF6ph7CrYRrCZazq0wR4dwgkC5hiy8ZTpThjkDY
+        gqgnXLkJFId18ghnLP4BJ8oY2VbLKiVoWdXJVJ1/GDtVGUMbatNZS1Ax1fl7Ga4wl+VTSQ0L8Q6IN4Z/
+        SkW63QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="btnForeignKeyThisTableBottom.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFnSURBVDhPrZPdK4NhGMafv0Y+jrAlsnyU2pSDNwuLrNZy
+        QFiZphwIRYlDDiahhdmYTA35yGo+RiRlJcqB/8Plep9ny8eMd3LV7+z5Xffz3G+v+Pd4g48QXVcKd1Lh
+        OodwJuANpJA+9kMo6nl+zUa0HRkr0A+vPQGLD4rZe2DqlgX2fQMFvKpeMJcCpu8Uo9fA4AULbBEDBe1x
+        WTBDcYyiji8JdCdY0BDKUZBekuiI853HsmD8Bhi6VPRQdp6woG4VwhKAqFqCqFj4UNaprp0h/AL0nQKu
+        uMJ+AFh3geptoHQDKAiyzOx/L5Cfh5MnuKhhTuw/U2LLocIWAyxRoGyT8jplkx+VzZOfn2MfiUJoMXgo
+        uym3UmzkVJ0ayuURoFCXzfPZciaaLwxhjcBBuWkPqN1RmCgXhX6RM9EGgnJZ9RTNW4piOfmba+eK5lmR
+        my4JQ2Jo8tdovctc1rwkbzn/OPiT/AUhxBsvyXArBBwn2QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <metadata name="tsForeignKeyThisTable.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>369, 17</value>
+  </metadata>
+  <metadata name="tsForeignKeyReferencedTable.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>144, 17</value>
+  </metadata>
+  <metadata name="toolStrip4.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1553, 55</value>
+  </metadata>
+  <data name="toolStripButton1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAE7SURBVDhPtZLfK0NhGMef/0qWojXaBerUURMl1ly6Wkkr
+        JdKu3NqNLCUHsaQVy2orZ3IUspraIrcuFP6Br+c973vm9bbjV3zrW+fm83ne530P/U1Gy/hV/zVppwWa
+        vvDrf/8kARyEUh7s5dL3JDpceJDdvmPJpAtrofi5xIQdBkXzTSDXYMlYBdb8QWeJDu8rWIA+fAus3ACL
+        lyyxj2Fl9j5KzMniyAGow3MeMOOyZOgQ1uyOJtHhewmvKtCEk1UgUWbJwK4mSPFzJc9BU2egiVO4jwzW
+        GbySbU8e5P3jBVA/w9GtkAsdr6LxCiwpUJ9McWP3juFftP6iwJps+9gxfe+wjJRw/fwOirITw0cs6As7
+        th6+Ye9JTT2RFXCsyIJI/mtBOscXGnVAvZugng3ZyDqoaw3ddtYQEL0BHluB4qg2xoYAAAAASUVORK5C
+        YII=
+</value>
+  </data>
+  <data name="toolStripButton2.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFaSURBVDhPtZHNK0RRGMbPH6VoGtE0o0mDpiiixGnsWM3G
+        moWFpCSzwURykTtNPjLTTExckysfmRpFZKvIxz/weM89947j5nItvPXU2fx+z9t72L9NUrsFGzq1Yr3/
+        Mg7sDEuY4LMn/iQqnHmQWbsjyYABPlP+WeKGNQJF0jdAqkqS3gPw6cPvJSqs27AALfgamLoCxs5J0pkD
+        n9z/KnE3i5UdUIVHTWDEIEnbFvhEQZGo8L2E52zQDfMS0F0kScuGIkjQd3G68iAdqf8IxiOBFQIvZGrN
+        sSxYNAMWITi06nHQvhKq78C4DarNLLrpAanTU0TlzQaPZWprh9d9CLryuHz9BEXIifY9EjR7ra1OfBdn
+        L3ZrQUbA4R0SNC77ENAXmc8S7MjJRLaBYJYEgbQPQauO8hOBopVAEQHX6SRoWPhdkEzRl4Y0sKYVsOCS
+        TGARrH4e8WH3Box9AJl2kuBaL9LEAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="toolStripButton3.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGFSURBVDhPrZJZK8RRGMbPp5HlyjIpmSylZsSFkiUy8pcL
+        slyMKBcT4mIsd+ZiJo1SjG1kpuyGkW1soShRLnwPj+ecM5NlDP8Lbz135/d73/OeI/69nIEniLYLndaY
+        TssphOMIztkHxI/9UgRlvbwlR9TtmRPIw/PPgP9RZ+oecN9QUL1lQsCRpWCGoIegzNgt4LqkoGrdhID3
+        lQLPAzB+pzN4BfSeUVARMiHgsqRgguAQQZm+GNB+RIE9aELQEFWC4Wug/1yng7DjgIKyxRSC+DOJxig3
+        HVGCfnbtPNZp3geqdygomYOwzkIUzEDkT3+SNemxE1l6BboItkR1JGzbAArXgOxlIC1AmcX7IVAfhJ1H
+        +VQDHLn7RIM1uzr2dcAaAnJWCC8QzvOiqsP/9TrG5KF6ph7CrYRrCZazq0wR4dwgkC5hiy8ZTpThjkDY
+        gqgnXLkJFId18ghnLP4BJ8oY2VbLKiVoWdXJVJ1/GDtVGUMbatNZS1Ax1fl7Ga4wl+VTSQ0L8Q6IN4Z/
+        SkW63QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="toolStripButton4.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFnSURBVDhPrZPdK4NhGMafv0Y+jrAlsnyU2pSDNwuLrNZy
+        QFiZphwIRYlDDiahhdmYTA35yGo+RiRlJcqB/8Plep9ny8eMd3LV7+z5Xffz3G+v+Pd4g48QXVcKd1Lh
+        OodwJuANpJA+9kMo6nl+zUa0HRkr0A+vPQGLD4rZe2DqlgX2fQMFvKpeMJcCpu8Uo9fA4AULbBEDBe1x
+        WTBDcYyiji8JdCdY0BDKUZBekuiI853HsmD8Bhi6VPRQdp6woG4VwhKAqFqCqFj4UNaprp0h/AL0nQKu
+        uMJ+AFh3geptoHQDKAiyzOx/L5Cfh5MnuKhhTuw/U2LLocIWAyxRoGyT8jplkx+VzZOfn2MfiUJoMXgo
+        uym3UmzkVJ0ayuURoFCXzfPZciaaLwxhjcBBuWkPqN1RmCgXhX6RM9EGgnJZ9RTNW4piOfmba+eK5lmR
+        my4JQ2Jo8tdovctc1rwkbzn/OPiT/AUhxBsvyXArBBwn2QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="c1GridForeignKey.Images" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVChTdYkBCgAgDAL9/6eLIsd0eSCKhw/r9aCLtC88
+        vAdHMEIXKUIUhMK76EfagglgA6CqHOQpL6GyAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridForeignKey.PropBag" xml:space="preserve">
+    <value>&lt;?xml version="1.0"?&gt;&lt;Blob&gt;&lt;DataCols&gt;&lt;C1DataColumn Caption="Data" DataField="Data"&gt;&lt;FilterDropdownText&gt;(所有)&lt;/FilterDropdownText&gt;&lt;FilterCancelText&gt;&amp;amp;Close&lt;/FilterCancelText&gt;&lt;FilterClearText&gt;C&amp;amp;lear&lt;/FilterClearText&gt;&lt;ImeMode&gt;NoControl&lt;/ImeMode&gt;&lt;ValueItems /&gt;&lt;GroupInfo&gt;&lt;AggregatesText&gt;{0}&lt;/AggregatesText&gt;&lt;/GroupInfo&gt;&lt;/C1DataColumn&gt;&lt;/DataCols&gt;&lt;Styles type="C1.Win.C1TrueDBGrid.Design.ContextWrapper"&gt;&lt;Data&gt;Caption{AlignHorz:Center;}ColumnSelector{}Editor{}EvenRow{}FilterBar{}FilterWatermark{}Footer{}Group{Border:None,,0, 0, 0, 0;}Heading{BackColor:Control;Border:Flat,ControlDark,0, 0, 0, 0;}HeadingHot{}HighlightRow{BackColor:Highlight;}Inactive{}Normal{}OddRow{}RecordSelector{}RowSelector{}Selected{BackColor:Highlight;ForeColor:HighlightText;}Style1{}Style10{AlignHorz:Near;}Style100{}Style101{}Style102{}Style103{}Style11{}Style12{}Style13{}Style14{Font:Microsoft JhengHei UI, 9pt;Trimming:Character;AlignHorz:Near;AlignVert:Center;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;WrapText:WrapWithOverflow;}Style15{}Style16{}Style17{BackColor:LightCyan;Trimming:Character;AlignHorz:General;AlignVert:Top;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;}Style18{}Style19{}Style2{}Style20{}Style21{}Style22{}Style23{}Style24{}Style3{}Style4{}Style5{}Style6{}Style7{}Style70{}Style71{}Style72{}Style73{}Style8{}Style9{}&lt;/Data&gt;&lt;/Styles&gt;&lt;Splits&gt;&lt;C1.Win.C1TrueDBGrid.MergeView HBarHeight="20" AllowColMove="False" Name="" AlternatingRowStyle="True" CaptionHeight="19" ColumnCaptionHeight="19" ColumnFooterHeight="19" MarqueeStyle="DottedCellBorder" RecordSelectorWidth="17" DefRecSelWidth="17" VerticalScrollGroup="1" HorizontalScrollGroup="1"&gt;&lt;CaptionStyle parent="Style2" me="Style10" /&gt;&lt;EditorStyle parent="Editor" me="Style5" /&gt;&lt;EvenRowStyle parent="EvenRow" me="Style8" /&gt;&lt;FilterBarStyle parent="FilterBar" me="Style13" /&gt;&lt;FilterWatermarkStyle parent="FilterWatermark" me="Style102" /&gt;&lt;FooterStyle parent="Footer" me="Style3" /&gt;&lt;GroupStyle parent="Group" me="Style12" /&gt;&lt;HeadingStyle parent="Heading" me="Style2" /&gt;&lt;HighLightRowStyle parent="HighlightRow" me="Style7" /&gt;&lt;InactiveStyle parent="Inactive" me="Style4" /&gt;&lt;OddRowStyle parent="OddRow" me="Style9" /&gt;&lt;RecordSelectorStyle parent="RecordSelector" me="Style11" /&gt;&lt;RowSelectorStyle parent="RowSelector" me="Style100" /&gt;&lt;ColumnSelectorStyle parent="ColumnSelector" me="Style101" /&gt;&lt;SelectedStyle parent="Selected" me="Style6" /&gt;&lt;Style parent="Normal" me="Style1" /&gt;&lt;internalCols&gt;&lt;C1DisplayColumn&gt;&lt;HeadingStyle parent="Style2" me="Style14" /&gt;&lt;ColumnSelectorStyle parent="Style14" me="Style103" /&gt;&lt;Style parent="Style1" me="Style15" /&gt;&lt;FooterStyle parent="Style3" me="Style16" /&gt;&lt;EditorStyle parent="Style5" me="Style17" /&gt;&lt;GroupHeaderStyle parent="Style1" me="Style73" /&gt;&lt;GroupFooterStyle parent="Style1" me="Style72" /&gt;&lt;Visible&gt;True&lt;/Visible&gt;&lt;ColumnDivider&gt;DarkGray,Single&lt;/ColumnDivider&gt;&lt;Height&gt;19&lt;/Height&gt;&lt;DCIdx&gt;0&lt;/DCIdx&gt;&lt;/C1DisplayColumn&gt;&lt;/internalCols&gt;&lt;ClientRect&gt;0, 0, 1030, 148&lt;/ClientRect&gt;&lt;BorderSide&gt;0&lt;/BorderSide&gt;&lt;/C1.Win.C1TrueDBGrid.MergeView&gt;&lt;/Splits&gt;&lt;NamedStyles&gt;&lt;Style parent="" me="Normal" /&gt;&lt;Style parent="Normal" me="Heading" /&gt;&lt;Style parent="Heading" me="Footer" /&gt;&lt;Style parent="Heading" me="Caption" /&gt;&lt;Style parent="Heading" me="Inactive" /&gt;&lt;Style parent="Normal" me="Selected" /&gt;&lt;Style parent="Normal" me="Editor" /&gt;&lt;Style parent="Normal" me="HighlightRow" /&gt;&lt;Style parent="Normal" me="EvenRow" /&gt;&lt;Style parent="Normal" me="OddRow" /&gt;&lt;Style parent="Heading" me="RecordSelector" /&gt;&lt;Style parent="Normal" me="FilterBar" /&gt;&lt;Style parent="Caption" me="Group" /&gt;&lt;Style parent="RecordSelector" me="RowSelector" /&gt;&lt;Style parent="Heading" me="ColumnSelector" /&gt;&lt;Style parent="FilterBar" me="FilterWatermark" /&gt;&lt;Style parent="Heading" me="HeadingHot" /&gt;&lt;/NamedStyles&gt;&lt;vertSplits&gt;1&lt;/vertSplits&gt;&lt;horzSplits&gt;1&lt;/horzSplits&gt;&lt;Layout&gt;Modified&lt;/Layout&gt;&lt;DefaultRecSelWidth&gt;17&lt;/DefaultRecSelWidth&gt;&lt;ClientArea&gt;0, 0, 1030, 148&lt;/ClientArea&gt;&lt;PrintPageHeaderStyle parent="" me="Style70" /&gt;&lt;PrintPageFooterStyle parent="" me="Style71" /&gt;&lt;/Blob&gt;</value>
+  </data>
+  <metadata name="tsForeignKeyVertical.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1504, 17</value>
+  </metadata>
+  <data name="btnForeignKeyTop.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAE7SURBVDhPtZLfK0NhGMef/0qWojXaBerUURMl1ly6Wkkr
+        JdKu3NqNLCUHsaQVy2orZ3IUspraIrcuFP6Br+c973vm9bbjV3zrW+fm83ne530P/U1Gy/hV/zVppwWa
+        vvDrf/8kARyEUh7s5dL3JDpceJDdvmPJpAtrofi5xIQdBkXzTSDXYMlYBdb8QWeJDu8rWIA+fAus3ACL
+        lyyxj2Fl9j5KzMniyAGow3MeMOOyZOgQ1uyOJtHhewmvKtCEk1UgUWbJwK4mSPFzJc9BU2egiVO4jwzW
+        GbySbU8e5P3jBVA/w9GtkAsdr6LxCiwpUJ9McWP3juFftP6iwJps+9gxfe+wjJRw/fwOirITw0cs6As7
+        th6+Ye9JTT2RFXCsyIJI/mtBOscXGnVAvZugng3ZyDqoaw3ddtYQEL0BHluB4qg2xoYAAAAASUVORK5C
+        YII=
+</value>
+  </data>
+  <data name="btnForeignKeyUp.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFaSURBVDhPtZHNK0RRGMbPH6VoGtE0o0mDpiiixGnsWM3G
+        moWFpCSzwURykTtNPjLTTExckysfmRpFZKvIxz/weM89947j5nItvPXU2fx+z9t72L9NUrsFGzq1Yr3/
+        Mg7sDEuY4LMn/iQqnHmQWbsjyYABPlP+WeKGNQJF0jdAqkqS3gPw6cPvJSqs27AALfgamLoCxs5J0pkD
+        n9z/KnE3i5UdUIVHTWDEIEnbFvhEQZGo8L2E52zQDfMS0F0kScuGIkjQd3G68iAdqf8IxiOBFQIvZGrN
+        sSxYNAMWITi06nHQvhKq78C4DarNLLrpAanTU0TlzQaPZWprh9d9CLryuHz9BEXIifY9EjR7ra1OfBdn
+        L3ZrQUbA4R0SNC77ENAXmc8S7MjJRLaBYJYEgbQPQauO8hOBopVAEQHX6SRoWPhdkEzRl4Y0sKYVsOCS
+        TGARrH4e8WH3Box9AJl2kuBaL9LEAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="btnForeignKeyDown.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGFSURBVDhPrZJZK8RRGMbPp5HlyjIpmSylZsSFkiUy8pcL
+        slyMKBcT4mIsd+ZiJo1SjG1kpuyGkW1soShRLnwPj+ecM5NlDP8Lbz135/d73/OeI/69nIEniLYLndaY
+        TssphOMIztkHxI/9UgRlvbwlR9TtmRPIw/PPgP9RZ+oecN9QUL1lQsCRpWCGoIegzNgt4LqkoGrdhID3
+        lQLPAzB+pzN4BfSeUVARMiHgsqRgguAQQZm+GNB+RIE9aELQEFWC4Wug/1yng7DjgIKyxRSC+DOJxig3
+        HVGCfnbtPNZp3geqdygomYOwzkIUzEDkT3+SNemxE1l6BboItkR1JGzbAArXgOxlIC1AmcX7IVAfhJ1H
+        +VQDHLn7RIM1uzr2dcAaAnJWCC8QzvOiqsP/9TrG5KF6ph7CrYRrCZazq0wR4dwgkC5hiy8ZTpThjkDY
+        gqgnXLkJFId18ghnLP4BJ8oY2VbLKiVoWdXJVJ1/GDtVGUMbatNZS1Ax1fl7Ga4wl+VTSQ0L8Q6IN4Z/
+        SkW63QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="btnForeignKeyBottom.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFnSURBVDhPrZPdK4NhGMafv0Y+jrAlsnyU2pSDNwuLrNZy
+        QFiZphwIRYlDDiahhdmYTA35yGo+RiRlJcqB/8Plep9ny8eMd3LV7+z5Xffz3G+v+Pd4g48QXVcKd1Lh
+        OodwJuANpJA+9kMo6nl+zUa0HRkr0A+vPQGLD4rZe2DqlgX2fQMFvKpeMJcCpu8Uo9fA4AULbBEDBe1x
+        WTBDcYyiji8JdCdY0BDKUZBekuiI853HsmD8Bhi6VPRQdp6woG4VwhKAqFqCqFj4UNaprp0h/AL0nQKu
+        uMJ+AFh3geptoHQDKAiyzOx/L5Cfh5MnuKhhTuw/U2LLocIWAyxRoGyT8jplkx+VzZOfn2MfiUJoMXgo
+        uym3UmzkVJ0ayuURoFCXzfPZciaaLwxhjcBBuWkPqN1RmCgXhX6RM9EGgnJZ9RTNW4piOfmba+eK5lmR
+        my4JQ2Jo8tdovctc1rwkbzn/OPiT/AUhxBsvyXArBBwn2QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <metadata name="tsForeignKey.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 55</value>
+  </metadata>
+  <data name="tabForeignKeyConstraints.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        wgAADsIBFShKgAAAAV1JREFUOE+VkElLA0EQhavn6K/xH6hIQEjcF4IHjUtcIG6JE0GF8eBCFPEgYgwB
+        DwZB8KZBcjPgMQg5CP4Y5VnVndZ2SDA+eFNQM++rmiLR+0sRhQX6dj5JuJgjvFWL0B/8JQm9ljsAfLBJ
+        u/ZIOJ1S7QOAT1ROFHZHFJ5yCqgRqneE/bhCMK6wzf3soMJGzMNKn4fliIdkr2cGGAAhGDMTt4YMwG7T
+        yjM9DcDlvGlYgD/AgCvuOV6Perou8WSpCQ4fZicM4HzWAMq8uoQfjswGlZLCZr/CWtSAFzksNdHthEVn
+        00ofTa/dcK1AyMTaPGL9uYiDOGGPj7UzqiA3yPCx8servwD+jQ/qJPglrv9VcB+AJglUZ0cIqetU+5Dg
+        1glbuxB+8g1/rJuuwmEHot83DbkSgHiYLcEutoRdgLVutJLdRACumgbt1LD/BbD/GnYY0FTyUQunc+kG
+        gOgLYSsuohpmeeMAAAAASUVORK5CYII=
+</value>
+  </data>
+  <data name="c1GridCheck.Images" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVChTdYkBCgAgDAL9/6eLIsd0eSCKhw/r9aCLtC88
+        vAdHMEIXKUIUhMK76EfagglgA6CqHOQpL6GyAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridCheck.PropBag" xml:space="preserve">
+    <value>&lt;?xml version="1.0"?&gt;&lt;Blob&gt;&lt;DataCols&gt;&lt;C1DataColumn Caption="Data" DataField="Data"&gt;&lt;FilterDropdownText&gt;(所有)&lt;/FilterDropdownText&gt;&lt;FilterCancelText&gt;&amp;amp;Close&lt;/FilterCancelText&gt;&lt;FilterClearText&gt;C&amp;amp;lear&lt;/FilterClearText&gt;&lt;ImeMode&gt;NoControl&lt;/ImeMode&gt;&lt;ValueItems /&gt;&lt;GroupInfo&gt;&lt;AggregatesText&gt;{0}&lt;/AggregatesText&gt;&lt;/GroupInfo&gt;&lt;/C1DataColumn&gt;&lt;/DataCols&gt;&lt;Styles type="C1.Win.C1TrueDBGrid.Design.ContextWrapper"&gt;&lt;Data&gt;Caption{AlignHorz:Center;}ColumnSelector{}Editor{}EvenRow{}FilterBar{}FilterWatermark{}Footer{}Group{Border:None,,0, 0, 0, 0;}Heading{BackColor:Control;Font:Microsoft JhengHei UI, 9pt;Border:Flat,ControlDark,0, 0, 0, 0;}HeadingHot{}HighlightRow{BackColor:Highlight;Font:Microsoft JhengHei UI, 9pt;}Inactive{}Normal{Font:Microsoft JhengHei UI, 9pt;}OddRow{}RecordSelector{}RowSelector{}Selected{BackColor:Highlight;ForeColor:HighlightText;Font:Microsoft JhengHei UI, 9pt;}Style1{}Style10{AlignHorz:Near;}Style100{}Style101{}Style102{}Style103{}Style11{}Style12{}Style13{}Style14{Font:Microsoft JhengHei UI, 9pt;Trimming:Character;AlignHorz:Near;AlignVert:Center;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;WrapText:WrapWithOverflow;}Style15{}Style16{}Style17{BackColor:LightCyan;Trimming:Character;AlignHorz:General;AlignVert:Top;AlignImage:Stretch;ForegroundImagePos:LeftOfText;GradientMode:None;Alpha:255;}Style18{}Style19{}Style2{}Style20{}Style21{}Style22{}Style23{}Style24{}Style3{}Style4{}Style5{}Style6{}Style7{}Style70{}Style71{}Style72{}Style73{}Style8{}Style9{}&lt;/Data&gt;&lt;/Styles&gt;&lt;Splits&gt;&lt;C1.Win.C1TrueDBGrid.MergeView HBarHeight="20" AllowColMove="False" Name="" AlternatingRowStyle="True" CaptionHeight="19" ColumnCaptionHeight="19" ColumnFooterHeight="19" MarqueeStyle="DottedCellBorder" RecordSelectorWidth="17" DefRecSelWidth="17" VerticalScrollGroup="1" HorizontalScrollGroup="1"&gt;&lt;CaptionStyle parent="Style2" me="Style10" /&gt;&lt;EditorStyle parent="Editor" me="Style5" /&gt;&lt;EvenRowStyle parent="EvenRow" me="Style8" /&gt;&lt;FilterBarStyle parent="FilterBar" me="Style13" /&gt;&lt;FilterWatermarkStyle parent="FilterWatermark" me="Style102" /&gt;&lt;FooterStyle parent="Footer" me="Style3" /&gt;&lt;GroupStyle parent="Group" me="Style12" /&gt;&lt;HeadingStyle parent="Heading" me="Style2" /&gt;&lt;HighLightRowStyle parent="HighlightRow" me="Style7" /&gt;&lt;InactiveStyle parent="Inactive" me="Style4" /&gt;&lt;OddRowStyle parent="OddRow" me="Style9" /&gt;&lt;RecordSelectorStyle parent="RecordSelector" me="Style11" /&gt;&lt;RowSelectorStyle parent="RowSelector" me="Style100" /&gt;&lt;ColumnSelectorStyle parent="ColumnSelector" me="Style101" /&gt;&lt;SelectedStyle parent="Selected" me="Style6" /&gt;&lt;Style parent="Normal" me="Style1" /&gt;&lt;internalCols&gt;&lt;C1DisplayColumn&gt;&lt;HeadingStyle parent="Style2" me="Style14" /&gt;&lt;ColumnSelectorStyle parent="Style14" me="Style103" /&gt;&lt;Style parent="Style1" me="Style15" /&gt;&lt;FooterStyle parent="Style3" me="Style16" /&gt;&lt;EditorStyle parent="Style5" me="Style17" /&gt;&lt;GroupHeaderStyle parent="Style1" me="Style73" /&gt;&lt;GroupFooterStyle parent="Style1" me="Style72" /&gt;&lt;Visible&gt;True&lt;/Visible&gt;&lt;ColumnDivider&gt;DarkGray,Single&lt;/ColumnDivider&gt;&lt;Height&gt;19&lt;/Height&gt;&lt;DCIdx&gt;0&lt;/DCIdx&gt;&lt;/C1DisplayColumn&gt;&lt;/internalCols&gt;&lt;ClientRect&gt;0, 0, 1038, 434&lt;/ClientRect&gt;&lt;BorderSide&gt;0&lt;/BorderSide&gt;&lt;/C1.Win.C1TrueDBGrid.MergeView&gt;&lt;/Splits&gt;&lt;NamedStyles&gt;&lt;Style parent="" me="Normal" /&gt;&lt;Style parent="Normal" me="Heading" /&gt;&lt;Style parent="Heading" me="Footer" /&gt;&lt;Style parent="Heading" me="Caption" /&gt;&lt;Style parent="Heading" me="Inactive" /&gt;&lt;Style parent="Normal" me="Selected" /&gt;&lt;Style parent="Normal" me="Editor" /&gt;&lt;Style parent="Normal" me="HighlightRow" /&gt;&lt;Style parent="Normal" me="EvenRow" /&gt;&lt;Style parent="Normal" me="OddRow" /&gt;&lt;Style parent="Heading" me="RecordSelector" /&gt;&lt;Style parent="Normal" me="FilterBar" /&gt;&lt;Style parent="Caption" me="Group" /&gt;&lt;Style parent="RecordSelector" me="RowSelector" /&gt;&lt;Style parent="Heading" me="ColumnSelector" /&gt;&lt;Style parent="FilterBar" me="FilterWatermark" /&gt;&lt;Style parent="Heading" me="HeadingHot" /&gt;&lt;/NamedStyles&gt;&lt;vertSplits&gt;1&lt;/vertSplits&gt;&lt;horzSplits&gt;1&lt;/horzSplits&gt;&lt;Layout&gt;Modified&lt;/Layout&gt;&lt;DefaultRecSelWidth&gt;17&lt;/DefaultRecSelWidth&gt;&lt;ClientArea&gt;0, 0, 1038, 434&lt;/ClientArea&gt;&lt;PrintPageHeaderStyle parent="" me="Style70" /&gt;&lt;PrintPageFooterStyle parent="" me="Style71" /&gt;&lt;/Blob&gt;</value>
+  </data>
+  <metadata name="tsCheckVertical.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>959, 17</value>
+  </metadata>
+  <data name="btnCheckInsert.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABySURBVDhPY6AqKD7w4z/blP//GSZhxyA5kBqockzAPf3f
+        /7OPP/3/8OEDVgySA6mBKocA7hiG/yAMYpPlArDms8ZwQ0gGMAPQDSHaNcgGIBtCdHhQzQXImkkCII0w
+        zUTbiguQlQ6QAcUuoBgMxTBgYAAAdsWKIxPKnuQAAAAASUVORK5CYII=
+</value>
+  </data>
+  <data name="btnCheckTop.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAE7SURBVDhPtZLfK0NhGMef/0qWojXaBerUURMl1ly6Wkkr
+        JdKu3NqNLCUHsaQVy2orZ3IUspraIrcuFP6Br+c973vm9bbjV3zrW+fm83ne530P/U1Gy/hV/zVppwWa
+        vvDrf/8kARyEUh7s5dL3JDpceJDdvmPJpAtrofi5xIQdBkXzTSDXYMlYBdb8QWeJDu8rWIA+fAus3ACL
+        lyyxj2Fl9j5KzMniyAGow3MeMOOyZOgQ1uyOJtHhewmvKtCEk1UgUWbJwK4mSPFzJc9BU2egiVO4jwzW
+        GbySbU8e5P3jBVA/w9GtkAsdr6LxCiwpUJ9McWP3juFftP6iwJps+9gxfe+wjJRw/fwOirITw0cs6As7
+        th6+Ye9JTT2RFXCsyIJI/mtBOscXGnVAvZugng3ZyDqoaw3ddtYQEL0BHluB4qg2xoYAAAAASUVORK5C
+        YII=
+</value>
+  </data>
+  <data name="btnCheckUp.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFaSURBVDhPtZHNK0RRGMbPH6VoGtE0o0mDpiiixGnsWM3G
+        moWFpCSzwURykTtNPjLTTExckysfmRpFZKvIxz/weM89947j5nItvPXU2fx+z9t72L9NUrsFGzq1Yr3/
+        Mg7sDEuY4LMn/iQqnHmQWbsjyYABPlP+WeKGNQJF0jdAqkqS3gPw6cPvJSqs27AALfgamLoCxs5J0pkD
+        n9z/KnE3i5UdUIVHTWDEIEnbFvhEQZGo8L2E52zQDfMS0F0kScuGIkjQd3G68iAdqf8IxiOBFQIvZGrN
+        sSxYNAMWITi06nHQvhKq78C4DarNLLrpAanTU0TlzQaPZWprh9d9CLryuHz9BEXIifY9EjR7ra1OfBdn
+        L3ZrQUbA4R0SNC77ENAXmc8S7MjJRLaBYJYEgbQPQauO8hOBopVAEQHX6SRoWPhdkEzRl4Y0sKYVsOCS
+        TGARrH4e8WH3Box9AJl2kuBaL9LEAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="btnCheckDown.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGFSURBVDhPrZJZK8RRGMbPp5HlyjIpmSylZsSFkiUy8pcL
+        slyMKBcT4mIsd+ZiJo1SjG1kpuyGkW1soShRLnwPj+ecM5NlDP8Lbz135/d73/OeI/69nIEniLYLndaY
+        TssphOMIztkHxI/9UgRlvbwlR9TtmRPIw/PPgP9RZ+oecN9QUL1lQsCRpWCGoIegzNgt4LqkoGrdhID3
+        lQLPAzB+pzN4BfSeUVARMiHgsqRgguAQQZm+GNB+RIE9aELQEFWC4Wug/1yng7DjgIKyxRSC+DOJxig3
+        HVGCfnbtPNZp3geqdygomYOwzkIUzEDkT3+SNemxE1l6BboItkR1JGzbAArXgOxlIC1AmcX7IVAfhJ1H
+        +VQDHLn7RIM1uzr2dcAaAnJWCC8QzvOiqsP/9TrG5KF6ph7CrYRrCZazq0wR4dwgkC5hiy8ZTpThjkDY
+        gqgnXLkJFId18ghnLP4BJ8oY2VbLKiVoWdXJVJ1/GDtVGUMbatNZS1Ax1fl7Ga4wl+VTSQ0L8Q6IN4Z/
+        SkW63QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="btnCheckBottom.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFnSURBVDhPrZPdK4NhGMafv0Y+jrAlsnyU2pSDNwuLrNZy
+        QFiZphwIRYlDDiahhdmYTA35yGo+RiRlJcqB/8Plep9ny8eMd3LV7+z5Xffz3G+v+Pd4g48QXVcKd1Lh
+        OodwJuANpJA+9kMo6nl+zUa0HRkr0A+vPQGLD4rZe2DqlgX2fQMFvKpeMJcCpu8Uo9fA4AULbBEDBe1x
+        WTBDcYyiji8JdCdY0BDKUZBekuiI853HsmD8Bhi6VPRQdp6woG4VwhKAqFqCqFj4UNaprp0h/AL0nQKu
+        uMJ+AFh3geptoHQDKAiyzOx/L5Cfh5MnuKhhTuw/U2LLocIWAyxRoGyT8jplkx+VzZOfn2MfiUJoMXgo
+        uym3UmzkVJ0ayuURoFCXzfPZciaaLwxhjcBBuWkPqN1RmCgXhX6RM9EGgnJZ9RTNW4piOfmba+eK5lmR
+        my4JQ2Jo8tdovctc1rwkbzn/OPiT/AUhxBsvyXArBBwn2QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <metadata name="tsCheck.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>1238, 55</value>
+  </metadata>
+  <data name="tabCheckConstraints.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        wgAADsIBFShKgAAAAXBJREFUOE+VkjlLQ0EUhe+80sbev2Ch/8CIiEuicScYMHGJS+FGNIIKsXBBRSxE
+        jCGljbUGSWfASh5iCtHKzn+hHO+deSNPjSY58L0Z7ptz7nAZEr3c5ZCdpi8yCcLpJOGpmIM+UEliesjX
+        AXhnSONeE47GVPUBwAcKhwqbAwo3+wpwCcVLwnZEIT2ssM71VFhhOeRgvtPBXLuDRJtjGpgAQnrIdFzr
+        MwH2Nn8x3uoFnE2Zgg1Y7eWAc675WAo6ep3lzrLG2bybGjEBJxMmIM9XF/PVnrlB4UJhpUdhMWiCZ9gs
+        azzgM4uOY0oPTV/bw80SkqEqh1i6zWEnQtjiYW0MKsgMkjyszMFCdQG1qL6lARQlUD9Tq5pjYdAoGx+Z
+        e6bbC+Evz9CgCyLpwi9Sr6zGaIfZlxgxdzES8M1kJT/E/Mrwk26KBX539nfXG7/sgTdGQsp1tiobILIh
+        z4w129pPSYjFKxlZw3/mirLGsmaiT7KUHkMJGTpnAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <metadata name="tsSqlPreview.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>551, 17</value>
+  </metadata>
+  <data name="btnRefresh.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAJFSURBVDhPY8AP6pkgmASgntSk7rbs6VT3DT/v2q86/ler
+        /sofm3kfb5t135ok7V2jClWGFTC6L7xT67Pp6S/vDT//u6/69t95yef/9vM+/ree8e6/+eTX/417X/7U
+        KDlZAVIsmXnlA1gXDHiufNbvv+3Pf5Bm+ykvf9rNfb5Gv3RjuVbBugrjngfrJOuf/tJvf/Zfu/Hxf8ms
+        m7+UC26+E1Lx4ANrtqhd7+vffvYfSLPryq8XlSIxnSrlXqquXf/oinr1w//Kpff+S+bf/gUUZgRL+m79
+        fR6secm350quGWJgQTQgZJOrJWO//y9Is3z+7f/SmddeQqUYGFwWPZ3qsuLbY7Pmg8lQIQwgnXLxI1/y
+        lW+SmTd/iadffy+deeUPVIocEMrMIO7KDeUwMIjrgThAQXKBzYy3Z0z6XrxTqr/zRav+wSut+kf3oFIY
+        gMt5YRJPyJnHbF4Hp0GFGBhMJrx5adL/6r9B5/P/Os1Pbos7FmhDpVCBSogoT8j5Zxx+Z/4zuR8/DxVl
+        YDQBxjFU83/1modXhd3qNaBycMBmkKfKE3z6Akgzi8esfwx63b5gCVBiMGh//l6n+f5njdpH/1XK7/+X
+        LLzzSzr98noh3yWVfB4LK3hDTq7hsd//E6L55H8Gm639YM0woNn0+C6Ilk3eXSGadeenTPat/xJp1/+L
+        JFz5LxB16T/Q2f8hmjf9YrBaUwdUCklA2ACvQbqqcNS+SYLxF24DNf8B2vwXqPkus9PWqQzyaRheIwRA
+        WRlPdmZgAAAFhwMXWTw91QAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="btnSelectAll.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB0SURBVDhPY6AYGG79/j9o6f//XiRgkHoQZug5959BE2gA
+        uYCh5RjQgLWoBjDMSQZjYgBD9V6EATCNyJp7e3txYhBAMQAEiLUZBjAMIBVgNQDdG/jAaBigGQDTiKwZ
+        m99hGASoEwaGlIYBmMCFQZkFLz72HwCpWCkKZ0ryeAAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="btnCopy.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAD9SURBVDhPtZAhaEJRFIb/vmgzLi4abYu2RYPFYFuyLa6Z
+        1tZWxCCICAvyyspLgqyMBYuPIWwzCCKCY+7JPfLLeXDxuoNBD3zc+x/+/9zDxVmq2v8SC7X9XzR9LFxA
+        1g+GlDtjscgG7N81Dty0RrJKJYB959zuZIinj8aB0tObzH9dAPscQHjPXifUGgeuH1/l+8cFsO+TfSIH
+        UGscKD4MJFluTOjxN6DWOFBoxPI+35jQ429ArXHg6v5FhrPUhB5/A2qNA5d3kcTT1IQefwNqjQP5+rNE
+        n38m9PgbUGscyN12pTdZm9Czj8aBi1pb2snahB61H6hKU47i9AVsATCdOsrqYftqAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="btnSaveAs.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGGSURBVDhPY6AKSNz69H/EqjtEY6g2BEjY9PD//Q//wNhz
+        zsX/2+78g+OVl77DxUD02cffMQ0BCRBrAEgNhiEBi6/jNGDjjd8YBoAwSA9UOwMDsgSIjQ+D1Ny8dvP/
+        4mXb/u+fmCIDNsBx6hm4AYTwxZv3/u+NSPn/qiD6/5323GNgA6z6joMlsdmIjJfuOPq/b/aZ/ycvP/2/
+        RFXv/xpGBog3jDoOwg3ABV4/uf7/7NbI//sObP+fUzn5f03d0v/Twtx6wQZoNe6BG/Dh6y8UW0F44/6j
+        /89uC////+eK/+/PMf+fnKP+v2fOekQgKlVux+mC10+v/T++KQqi+bLM/+XFgv83LOz7D9ID1c7AIFW0
+        EW7AezQXzJ9a9v/aobr/L44z/V9ayP9/5rw5YLUgPVDtDAzCOWvgBnz/9ef/reef4Xja1On/j+1c9X96
+        Bu//7ct7wGpAakF6oNoZGLhTl6MYgAwqyjP/d3fX/9+yefH/rz//wA0A6YFqB4KYhf/JwpQDBgYAMSVX
+        WX/YpcEAAAAASUVORK5CYII=
+</value>
+  </data>
+  <data name="btnWordWrap.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABdSURBVDhPYxg8IKh6739SMFQbFQE2W/BhqDYqApy2BM36
+        jxVTBLAZgNMF2ADZLoBpxGZA8dLn/7FhqDREE9kGwDQjY3SATTMIQ6VRXYANYNMMwlBpCMBnwAABBgYA
+        cf3GSiYQn9kAAAAASUVORK5CYII=
+</value>
+  </data>
+  <data name="btnWordWrap2.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAE2SURBVDhPnZMxSMNAFIZv7+gSusXR0dHNbG6SSdDFwc1J
+        p45uTt3cBAmiBRHBQbq4dFBBSqF0cLC1CNYMQi1CpWkkv/0b7hF7UTgDX97d474/L4EoXo3uO/6DyMFt
+        iM2rnhXBTZiG8MbGOIEVdCRg7ayNYQz4vg/P8+C6LhzH4Yi58CydRneQBqweP6A/SqygIwErh028fibG
+        k3rDZNrPVr2mIwHLB3V0Pr5yUeuBAft05Bssle/Q6k8Oz0zA3iwMYKUjEyzu13D/Fv8JxWylIwELe9eo
+        hTF2T8IfsEf06HrNSkdeYb5URfVlbASwp+Us7NORCYo7l7h4jowA9ogW9Z7QkYC57XNUOmYAe6dP0bQy
+        ILunIwGFrQqOHke/EOXu6cg34I+hNiZjWiA/Ey8uUgYWUFbqGyGQCyRKyrUMAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="btnShowAllCharacters.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACtSURBVDhPYxicoHLCsv/Jvdv+h3fs+B/due1/WveG/zEd
+        W/4XT9rwH6oEN6jsX/bfp/PIf7f2Y2Cc1rUOrCmjb9P/yfNW4jcArLnjMFyze8fx/8UT14I1FU1cT9h2
+        ZM0wDDOgmBgDwrv3/QdhmGaSXTBl3gqwAUFdB8lzAQiADAHh9qmL/qd0riHNBeigfepC0l2ADJANGKIu
+        6Jux6H/1xOVgjRVTIAYNNsDAAABI6qeS5NLx9AAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="btnShowAllCharacters2.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGGSURBVDhPlZM/SEJRFIff3tjW2NjY2NZSBA3RYpBLVNLQ
+        pJNjk08lS8gtilegEmZ/KHWQQCoFCSkcGspEsB4RqEWF+sSTvyv3pNHyHnzvvnvP+X2cN1wFT65Yo1yx
+        ahoOa2mdFs6fTRHOvtJt6Z06gqo4aLbJFMjky59dwdzBI30Z1IdzM0iL6zGyqAmad8fI5j0mq3rGdWTE
+        b+A1s39PlXqbcW4Eadp9RROutMDmiYrzFd8p9yDDgqntO3r5bgtEWL3k8KSaIYf/UNTs/iPuQ4YF44Eb
+        Kny0BL1hCQSoOToC2YcMC8Z8GcpXWgKL90Igw3IC1DCB7EOGBaNqirJvhmBrJywEs55U3wSoYQLZhwwL
+        RtaSlNINBhLgCuzRkjsiBDjHBLIHGRYMO+MULzeZRNng1RXQhAB7TCB7kGHBkP2EoqXGv0gBvjGBPEeG
+        BYOrEQoVGkzw6XeVAuwxgexBhgUDyyHafaj30OhZ/9LtQYYFuEyKVTOFdq13BfJGmgPXudYJK8oPdYYp
+        P90Q6UMAAAAASUVORK5CYII=
+</value>
+  </data>
+  <data name="btnZoomIn.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGxSURBVDhPY6ArcO1n+A/CUC7pwLKV4T8IQ7nEA4Nahv/Y
+        MFQaAhp33rGOWHJlYcr6m88zNt5+G7zkyq6SLftdQHIqRQz/sWGwRhBo3nFbNmLp5ePLrz74/eP33/8/
+        //z7v/HC43+RSy7fzFm+wBOqjEE6i+E/CEO5CJCz5lrFzOOP/7/78ff/9fe//19/9/v/i69//0879vi/
+        z6wdbVBlDPwJDP9BGMpFgJglF2bceP/r/8mXv/7vevQdjI+9+Ak06Od/i8nHtoSuWsUDVYodJC+90Lzx
+        +rv/B5//+j/18hcw3vfs1/+N1979D51/cl7utm3sUKXYQePWW65BM0/8OPP69/+dT3793wHEp4Hs4Bkn
+        /1tPPTwbqgw/yF1xscC+c//N9g2XvrfvufvTuW/3O5HK3f8tZl1/E73qfPr///8ZoUqxg5lnnnLVb79t
+        1LvrTlTPzpsJxRuvBZlPv3AlfNOT/8bTL76q33vTC6qUeNB98IGi0YTTN41mXP4v37b/beC8s+lQKeJB
+        5bZb9vpNe67z1R/+L1Wx4zlUmDRQv+O2ikTBplVWHfuaoULUAgwMAHYF+py+k85MAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="btnZoomOut.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGNSURBVDhPYxgh4CUDw39sGCoNAY0771hHLLmyMGX9zecZ
+        G2+/DV5yZVffhnMuIDlsmkEYrBEEmnfclo1Yevn48qsPfv/4/ff/zz///m+88Phf5JLLN+fO3eoJVYYb
+        5Ky5VjHz+OP/7378/X/9/e//19/9/v/i69//0449/p+y4FQnVBluELPkwowb73/9P/ny1/9dj76D8bEX
+        P4EG/fzvMvvStpmrzvBDlWIHyUsvNG+8/u7/wee//k+9/AWM9z379X/jtXf/o+afnjdx2y12qFLsoHHr
+        LdegmSd+nHn9+//OJ7/+7wDi00B28IyT/12nnpoNVYYf5K64WGDfuf9m+4ZL39v33P3p3Lf7nUjl7v8W
+        s66/SVh/M/3///+MUKXYwcwzT7nqt9826t11J6pn582E4o03g8ynX7gSvunJf+PpF1817b3vBVVKPOg+
+        +EDRaMLpm0YzLv+Xb9v/NnDe2XSoFPGgctste/2mPdf56g//l6rY8RwqTBqo33FbRaJg0yqrjn3NUCFq
+        AQYGAHz98pHRhd1gAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="tabSqlPreview.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        wgAADsIBFShKgAAAAOlJREFUOE+tkb0KwkAQhBfFSlQUKwsVLW3sfBlfyCZnSBCCnaXPcvkhRgSxEixt
+        xNoze9mLSUyIAT9YLjM7N8UF/gdz7sC8GzD3UjCvMHMFzZ/QjQzMFfSVD3MeMlNY8nMBlVi8QxuitEBd
+        pvmirCBJbtYM5qAfpqQidl4TDHtAKmJ1aoFpj0h9eAIINWSlPf3cVp5cJonNbdCTZ0g2qHRuQfj/F7hI
+        LqsVIGs+hI3fTQWZO8ZTTexnyYYUSV/tUtriDRmU4ItbvE8qAgP4ePg22nEGQtRgL+rxxKBYGpxUOblZ
+        NKvMfwB4A7f8vBa0lVmuAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <metadata name="oracleScript1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>44</value>
+  </metadata>
+  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAQAQAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACZ////Zsz//wDM//8z////mf///5n/
+        //8AAAAAx5V3/3Y+Lv92Pi7/dj4u/3Y+Lv92Pi7/dj4u/3Y+Lv9m////AGb//5n///8Amf//AMz//5n/
+        //8AZv//mf///8eVd///////////////////////////////////////Zv///5n///8AZv//AJn//wDM
+        //8AZv//mf///5n////HlXf//////+Wspf/hp6D/++7t//rr6P/WmJH/05WN/wDM//8A////AJn//wDM
+        //8AzP//AMz//zP///8zzP//x5V3///////9+Pb//fTz//zx7//77ev/++nn//rl4/8Amf//AJn//wCZ
+        ////////zP///wDM//8Amf//AJn//8eVd///////67aw/+ixqv/88e//++3r/92im//ZnZX/M8z//5n/
+        //8AZv//AJn//wDM//8AZv//mf///zPM///HlXf///////75+f/99/X//PPy//vw7v/77Or/+ujm/2bM
+        //8AZv//mf///wDM//8AzP//mf///wBm//9m////x5V3///////wu7X/7rmy//329f/88vH/5aym/+Gn
+        of/65+X/Zv///2b///8Amf//AMz//2b///9m////AAAAAMeVd/////////z7//77+f/+9/b//fXz//zx
+        7//77ez/++nn//rm4//54t//+eLf//////92Pi7/AAAAAAAAAADHlXf///////C8tv/wvLb//vn5//33
+        9v/rta//6LGr//vs6v/66Ob/3aGb/9mdlf//////dj4u/wAAAAAAAAAAx5V3////////////////////
+        /////////////////////////////////////////////3Y+Lv8AAAAAAAAAAPSkfP/0pHz/8aB4/++b
+        c//slG3/6I5m/+OGX//ffVj/23ZP/9t2T//Wb0n/1m9J/9NpQ//RYz3/AAAAAAAAAAD0pHz/9+vX//Pb
+        u//11LL/9syp//fCnv/6upP/+7CI//2ofv/9qH7//qF2//6hdv//nHD/0GQ+/wAAAAAAAAAA9KR8//36
+        9f/36NP/+OTO//neyf/72cL//NO7//zNtP/+yK7//siu//7Eqf/+xKn//8Cl/9BkPv8AAAAAAAAAAPSk
+        fP/0pHz/8qB4/++bc//rlG3/545m/+OHX//ffVf/23dQ/9t3UP/Wb0n/1m9J/9NpQ//RZD7/AAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAA/4EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAwAAAAMAAAADAAAAAwAAAAMAAAAD
+        AAAAAwAA//8AAA==
+</value>
+  </data>
+</root>

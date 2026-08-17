@@ -1,0 +1,25 @@
+<Project>
+  <!-- JasonQuery 內部設定資料庫使用的 SQLite managed assemblies。 -->
+  <ItemGroup Condition="'$(UseJasonQuerySQLiteReferences)' == 'true'">
+    <Reference Include="System.Data.SQLite">
+      <HintPath>$(SQLiteAssembliesPath)\System.Data.SQLite.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>true</Private>
+    </Reference>
+
+    <Reference Include="System.Threading.Tasks.Extensions">
+      <HintPath>$(SQLiteAssembliesPath)\System.Threading.Tasks.Extensions.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- JasonQuery 已停止支援 x86；這裡固定複製使用者提供的 x64 native DLL。 -->
+  <ItemGroup Condition="'$(UseJasonQuerySQLiteReferences)' == 'true'">
+    <Content Include="$(SQLiteAssembliesPath)\SQLite.Interop.dll">
+      <Link>SQLite.Interop.dll</Link>
+      <TargetPath>SQLite.Interop.dll</TargetPath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

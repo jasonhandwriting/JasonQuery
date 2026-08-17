@@ -1,0 +1,64 @@
+name: Draft Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release tag, for example v0.94.0"
+        required: true
+        type: string
+      package_url:
+        description: "HTTPS URL of the already validated official ZIP"
+        required: true
+        default: "https://www.jasonquery.org/JasonQueryUpdate/JasonQuery64.zip"
+        type: string
+      package_sha256:
+        description: "Expected SHA-256 from the trusted Windows VM"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark the draft as a prerelease"
+        required: true
+        default: false
+        type: boolean
+      confirm_draft:
+        description: "Create a draft release only; publishing remains manual"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: draft-release-${{ inputs.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  draft-release:
+    name: Create verified draft release
+    if: inputs.confirm_draft == true
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Download, verify, and create draft
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          $prerelease = [System.Convert]::ToBoolean($env:RELEASE_PRERELEASE)
+
+          .\Build\New-DraftRelease.ps1 `
+              -TagName "${{ inputs.tag_name }}" `
+              -PackageUrl "${{ inputs.package_url }}" `
+              -PackageSha256 "${{ inputs.package_sha256 }}" `
+              -Repository "${{ github.repository }}" `
+              -TargetCommitish "main" `
+              -Prerelease:$prerelease

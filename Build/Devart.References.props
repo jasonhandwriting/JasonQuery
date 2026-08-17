@@ -1,0 +1,34 @@
+<Project>
+  <ItemGroup>
+    <Reference Include="Devart.Data">
+      <HintPath>$(DevartAssembliesPath)\Devart.Data.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+
+    <Reference Include="Devart.Data.Oracle">
+      <HintPath>$(DevartAssembliesPath)\Devart.Data.Oracle.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+
+    <Reference Include="Devart.Data.PostgreSql">
+      <HintPath>$(DevartAssembliesPath)\Devart.Data.PostgreSql.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+
+    <Reference Include="Devart.Data.SqlServer">
+      <HintPath>$(DevartAssembliesPath)\Devart.Data.SqlServer.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+
+    <Reference Include="Devart.Data.MySql">
+      <HintPath>$(DevartAssembliesPath)\Devart.Data.MySql.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+
+    <Reference Include="Devart.Data.SQLite"
+               Condition="'$(MSBuildProjectFile)' == 'JasonQuery.csproj'">
+      <HintPath>$(DevartAssembliesPath)\Devart.Data.SQLite.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{ABA5A657-167B-43E5-9B6C-651715A613A1}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>JasonLibrary</RootNamespace>
+    <AssemblyName>JasonLibrary</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>8.0</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\Release\</OutputPath>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>8.0</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Cyotek.Windows.Forms.ColorPicker">
+      <HintPath>..\packages\Cyotek.Windows.Forms.ColorPicker.1.7.2\lib\net35\Cyotek.Windows.Forms.ColorPicker.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.TransactSql.ScriptDom">
+      <HintPath>..\packages\Microsoft.SqlServer.TransactSql.ScriptDom.180.78.1\lib\net472\Microsoft.SqlServer.TransactSql.ScriptDom.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SQL.Formatter">
+      <HintPath>..\packages\Hogimn.Sql.Formatter.2.0.4\lib\netstandard2.0\SQL.Formatter.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="ScintillaNET, Version=3.6.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\ScintillaNET\bin\Release\ScintillaNET.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Drawing.Design" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Core\Schema\ColumnInfo.cs" />
+    <Compile Include="Core\Schema\ColumnTypeResolver.cs" />
+    <Compile Include="Core\Schema\Enums\CategoryDataTypeKind.cs" />
+    <Compile Include="Core\Schema\Enums\ColumnMode.cs" />
+    <Compile Include="Core\Database\Enums\DatabaseProviderKind.cs" />
+    <Compile Include="Core\Schema\Enums\ColumnUpdateValueSupportKind.cs" />
+    <Compile Include="Core\Schema\Enums\FormatterMode.cs" />
+    <Compile Include="Core\Schema\Enums\SpecialDataTypeKind.cs" />
+    <Compile Include="Core\Security\Encryptor.cs" />
+    <Compile Include="Core\MyLibrary.cs" />
+    <Compile Include="Core\Text\Formatting\ISqlFormatterEngine.cs" />
+    <Compile Include="Core\Text\Formatting\Engines\HogimnSqlFormatterEngine.cs" />
+    <Compile Include="Core\Text\Formatting\Engines\MicrosoftScriptDomSqlFormatterEngine.cs" />
+    <Compile Include="Core\Text\Formatting\OracleSqlClauseAligner.cs" />
+    <Compile Include="Core\Text\Formatting\SqlListPacker.cs" />
+    <Compile Include="Core\Text\Formatting\SqlFormatOptions.cs" />
+    <Compile Include="Core\Text\Formatting\SqlFormatRequest.cs" />
+    <Compile Include="Core\Text\Formatting\SqlFormatResult.cs" />
+    <Compile Include="Core\Text\Formatting\SqlFormatterCoordinator.cs" />
+    <Compile Include="Core\Text\Formatting\SqlFormatterEngineDescriptor.cs" />
+    <Compile Include="Core\Text\Formatting\SqlFormatterEngineKind.cs" />
+    <Compile Include="Core\Text\Formatting\SqlFormatterEngineResolver.cs" />
+    <Compile Include="Core\Text\Formatting\SqlFormatterEngineReadiness.cs" />
+    <Compile Include="Core\Text\Formatting\SqlFormatterKeywordCase.cs" />
+    <Compile Include="Core\Text\Formatting\SqlFormatterSupportCatalog.cs" />
+    <Compile Include="Core\Text\Formatting\SqlTextNormalizer.cs" />
+    <Compile Include="Core\Text\Formatting\SqlTokenSemanticValidationResult.cs" />
+    <Compile Include="Core\Text\Formatting\SqlTokenSemanticValidator.cs" />
+    <Compile Include="Core\Events\ValueUpdatedEventArgs.cs" />
+    <Compile Include="Core\Update\UpdateChannel.cs" />
+    <Compile Include="Core\Update\UpdateDigestValidator.cs" />
+    <Compile Include="Core\Update\UpdateMetadataContracts.cs" />
+    <Compile Include="Core\Update\UpdateMetadataParser.cs" />
+    <Compile Include="Core\Update\UpdateMetadataProvider.cs" />
+    <Compile Include="Core\Update\UpdateMetadataSettingsContract.cs" />
+    <Compile Include="Core\Update\UpdateMetadataSourceKind.cs" />
+    <Compile Include="Core\Update\UpdateReleaseSelector.cs" />
+    <Compile Include="Core\Update\UpdateSourceResolver.cs" />
+    <Compile Include="Core\Update\UpdateVersionComparer.cs" />
+    <Compile Include="Core\Win32\Win32Api.cs" />
+    <Compile Include="Providers\MySql\Enums\MySqlColumnTypeName.cs" />
+    <Compile Include="Providers\MySql\Mapping\MySqlColumnTypeResolver.cs" />
+    <Compile Include="Providers\Oracle\Enums\OracleColumnTypeName.cs" />
+    <Compile Include="Providers\Oracle\Mapping\OracleColumnTypeResolver.cs" />
+    <Compile Include="Providers\PostgreSql\Enums\PostgreSqlColumnTypeName.cs" />
+    <Compile Include="Providers\PostgreSql\Enums\PostgreSqlResolutionMode.cs" />
+    <Compile Include="Providers\PostgreSql\Mapping\PostgreSqlColumnTypeMapping.cs" />
+    <Compile Include="Providers\PostgreSql\Mapping\PostgreSqlColumnTypeResolver.cs" />
+    <Compile Include="Providers\SqlServer\Enums\SqlServerColumnTypeName.cs" />
+    <Compile Include="Providers\SqlServer\Mapping\SqlServerColumnTypeResolver.cs" />
+    <Compile Include="UI\Controls\ColorPickerDialogHelper.cs" />
+    <Compile Include="UI\Controls\HexBox\BitControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\Controls\HexBox\BitControl.designer.cs">
+      <DependentUpon>BitControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Controls\HexBox\BitInfo.cs" />
+    <Compile Include="UI\Controls\HexBox\BuiltInContextMenu.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\Controls\HexBox\ByteCharConverters.cs" />
+    <Compile Include="UI\Controls\HexBox\ByteCollection.cs" />
+    <Compile Include="UI\Controls\HexBox\BytePositionInfo.cs" />
+    <Compile Include="UI\Controls\HexBox\Caret.cs" />
+    <Compile Include="UI\Controls\HexBox\DataBlock.cs" />
+    <Compile Include="UI\Controls\HexBox\DataMap.cs" />
+    <Compile Include="UI\Controls\HexBox\DynamicByteProvider.cs" />
+    <Compile Include="UI\Controls\HexBox\DynamicFileByteProvider.cs" />
+    <Compile Include="UI\Controls\HexBox\FileByteProvider.cs" />
+    <Compile Include="UI\Controls\HexBox\FileDataBlock.cs" />
+    <Compile Include="UI\Controls\HexBox\FindOptions.cs" />
+    <Compile Include="UI\Controls\HexBox\HexBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\Controls\HexBox\HexCasing.cs" />
+    <Compile Include="UI\Controls\HexBox\IByteProvider.cs" />
+    <Compile Include="UI\Controls\HexBox\MemoryDataBlock.cs" />
+    <Compile Include="UI\Controls\HexBox\NativeMethods.cs" />
+    <Compile Include="UI\Controls\HexBox\Util.cs" />
+    <Compile Include="Infrastructure\Enums\EnumAliasAttribute.cs" />
+    <Compile Include="Infrastructure\Enums\EnumAliasParser.cs" />
+    <Compile Include="Infrastructure\Enums\EnumParser.cs" />
+    <Compile Include="UI\Controls\ScintillaEditor.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\Controls\Stylers\ScintillaStyler.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\Controls\Stylers\SqlStyler.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UI\Controls\HexBox\BitControl.resx">
+      <DependentUpon>BitControl.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\licenses.licx" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,1394 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{87BF5097-DE0D-4BDA-89C2-3E87D47FFD57}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>JasonQuery</RootNamespace>
+    <AssemblyName>JasonQuery</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <LangVersion>8.0</LangVersion>
+    <Deterministic>true</Deterministic>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>JasonQuery.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>JasonQuery.Program</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>8.0</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>8.0</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="C1.C1Excel.4.5.2">
+      <HintPath>..\..\..\..\..\Program Files (x86)\ComponentOne\WinForms Edition\bin\v4.5.2\C1.C1Excel.4.5.2.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.C1Zip.4.5.2">
+      <HintPath>..\..\..\..\..\Program Files (x86)\ComponentOne\WinForms Edition\bin\v4.5.2\C1.C1Zip.4.5.2.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.4.5.2">
+      <HintPath>..\..\..\..\..\Program Files (x86)\ComponentOne\WinForms Edition\bin\v4.5.2\C1.Win.4.5.2.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.C1Command.4.5.2">
+      <HintPath>..\..\..\..\..\Program Files (x86)\ComponentOne\WinForms Edition\bin\v4.5.2\C1.Win.C1Command.4.5.2.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.C1Input.4.5.2">
+      <HintPath>..\..\..\..\..\Program Files (x86)\ComponentOne\WinForms Edition\bin\v4.5.2\C1.Win.C1Input.4.5.2.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.C1Ribbon.4.5.2">
+      <HintPath>..\..\..\..\..\Program Files (x86)\ComponentOne\WinForms Edition\bin\v4.5.2\C1.Win.C1Ribbon.4.5.2.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.C1SuperTooltip.4.5.2, Version=4.5.20201.416, Culture=neutral, PublicKeyToken=79882d576c6336da, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Program Files (x86)\ComponentOne\WinForms Edition\bin\v4.5.2\C1.Win.C1SuperTooltip.4.5.2.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.C1Themes.4.5.2">
+      <HintPath>..\..\..\..\..\Program Files (x86)\ComponentOne\WinForms Edition\bin\v4.5.2\C1.Win.C1Themes.4.5.2.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.C1Themes.Extended.4.5.2">
+      <HintPath>..\..\..\..\..\Program Files (x86)\ComponentOne\WinForms Edition\bin\v4.5.2\C1.Win.C1Themes.Extended.4.5.2.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.C1TrueDBGrid.4.5.2">
+      <HintPath>..\..\..\..\..\Program Files (x86)\ComponentOne\WinForms Edition\bin\v4.5.2\C1.Win.C1TrueDBGrid.4.5.2.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.C1TrueDBGrid.Excel.4.5.2">
+      <HintPath>..\..\..\..\..\Program Files (x86)\ComponentOne\WinForms Edition\bin\v4.5.2\C1.Win.C1TrueDBGrid.Excel.4.5.2.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.Calendar.4.5.2, Version=4.5.20201.416, Culture=neutral, PublicKeyToken=79882d576c6336da, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Program Files (x86)\ComponentOne\WinForms Edition\bin\v4.5.2\C1.Win.Calendar.4.5.2.dll</HintPath>
+    </Reference>
+    <Reference Include="C1.Win.Ribbon.4.5.2, Version=4.5.20201.416, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="IconLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\.local\IconLibrary\IconLibrary.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing.Design" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Core\Arrange\ArrangeContext.cs" />
+    <Compile Include="Core\Arrange\ArrangeStrategyFactory.cs" />
+    <Compile Include="Core\Arrange\BaseArrangeStrategy.cs" />
+    <Compile Include="Core\Arrange\Builders\LargeBinaryValueBuilder.cs" />
+    <Compile Include="Core\Arrange\Builders\LargeTextValueBuilder.cs" />
+    <Compile Include="Core\Arrange\CommonSchemaPreparationStrategy.cs" />
+    <Compile Include="Core\Arrange\Formatting\ColumnValueFormatterRegistry.cs" />
+    <Compile Include="Core\Arrange\Formatting\FormatterTextHelper.cs" />
+    <Compile Include="Core\Arrange\IArrangeStrategy.cs" />
+    <Compile Include="Core\Arrange\ISchemaPreparationStrategy.cs" />
+    <Compile Include="Core\Arrange\MySql\Formatters\MySqlBitFormatter.cs" />
+    <Compile Include="Core\Arrange\MySql\Formatters\MySqlDateFormatter.cs" />
+    <Compile Include="Core\Arrange\MySql\Formatters\MySqlDateTimeFormatter.cs" />
+    <Compile Include="Core\Arrange\MySql\Formatters\MySqlFormatterProvider.cs" />
+    <Compile Include="Core\Arrange\MySql\Formatters\MySqlTimeFormatter.cs" />
+    <Compile Include="Core\Arrange\MySql\Formatters\MySqlTimestampFormatter.cs" />
+    <Compile Include="Core\Arrange\MySql\MySqlArrangeStrategy.cs" />
+    <Compile Include="Core\Arrange\MySql\MySqlSchemaPreparationStrategy.cs" />
+    <Compile Include="Core\Arrange\Oracle\Formatters\OracleCharFormatter.cs" />
+    <Compile Include="Core\Arrange\Oracle\Formatters\OracleDateFormatter.cs" />
+    <Compile Include="Core\Arrange\Oracle\Formatters\OracleFormatterProvider.cs" />
+    <Compile Include="Core\Arrange\Oracle\Formatters\OracleIntervalDayToSecondFormatter.cs" />
+    <Compile Include="Core\Arrange\Oracle\Formatters\OracleIntervalYearToMonthFormatter.cs" />
+    <Compile Include="Core\Arrange\Oracle\Formatters\OracleNumberFormatter.cs" />
+    <Compile Include="Core\Arrange\Oracle\Formatters\OracleTimestampFormatter.cs" />
+    <Compile Include="Core\Arrange\Oracle\Formatters\OracleTimestampWithLocalTimeZoneFormatter.cs" />
+    <Compile Include="Core\Arrange\Oracle\Formatters\OracleTimestampWithTimeZoneFormatter.cs" />
+    <Compile Include="Core\Arrange\Oracle\OracleArrangeStrategy.cs" />
+    <Compile Include="Core\Arrange\Oracle\OracleSchemaPreparationStrategy.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlBooleanArrayFormatter.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlBoxArrayFormatter.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlCharacterArrayFormatter.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlBitFormatter.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlCharArrayFormatter.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlDateFormatter.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlDateTimeFormatHelper.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlFormatterProvider.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlTimestampWithoutTimeZoneFormatter.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlTimestampWithTimeZoneFormatter.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlTimeWithoutTimeZoneFormatter.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlTimeWithTimeZoneFormatter.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\PostgreSqlArrangeStrategy.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlArrayFormatter.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\Formatters\PostgreSqlBooleanFormatter.cs" />
+    <Compile Include="Core\Arrange\PostgreSql\PostgreSqlSchemaPreparationStrategy.cs" />
+    <Compile Include="Core\Arrange\SqlServer\Formatters\SqlServerBitFormatterProvider.cs" />
+    <Compile Include="Core\Arrange\SqlServer\Formatters\SqlServerDateFormatterProvider.cs" />
+    <Compile Include="Core\Arrange\SqlServer\Formatters\SqlServerDateTimeFormatterProvider.cs" />
+    <Compile Include="Core\Arrange\SqlServer\Formatters\SqlServerDateTimeOffsetFormatterProvider.cs" />
+    <Compile Include="Core\Arrange\SqlServer\Formatters\SqlServerFormatterProvider.cs" />
+    <Compile Include="Core\Arrange\SqlServer\Formatters\SqlServerRowVersionFormatterProvider.cs" />
+    <Compile Include="Core\Arrange\SqlServer\Formatters\SqlServerTimeFormatterProvider.cs" />
+    <Compile Include="Core\Arrange\SqlServer\SqlServerArrangeStrategy.cs" />
+    <Compile Include="Core\Arrange\SqlServer\SqlServerSchemaPreparationStrategy.cs" />
+    <Compile Include="Core\Config\AppConfigHelper.cs" />
+    <Compile Include="Core\Database\Connection\DatabaseConnectionContext.cs" />
+    <Compile Include="Core\Database\Connection\DatabaseConnectionGuard.cs" />
+    <Compile Include="Core\Database\Connection\DatabaseConnectionOptions.cs" />
+    <Compile Include="Core\Database\Connection\DatabaseServerVersionInfo.cs" />
+    <Compile Include="Core\Database\Connection\DatabaseTransactionActionHelper.cs" />
+    <Compile Include="Core\Database\Connection\DataSourceType.cs" />
+    <Compile Include="Core\Database\Connection\DataSourceTypeHelper.cs" />
+    <Compile Include="Core\Database\Connection\DataSourceTypeMapper.cs" />
+    <Compile Include="Core\Database\Connection\SqlServerVersionInfo.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\Formatting\IMySqlCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\Formatting\MySqlCreateScriptFormatContext.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\Formatting\MySqlCreateScriptFormatterBase.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\Formatting\MySqlCreateScriptFormatterDispatcher.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\Formatting\MySqlCreateScriptFormatterHelper.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\Formatting\MySqlFormatterCommonHelper.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\Formatting\MySqlIndexCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\Formatting\MySqlRoutineCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\Formatting\MySqlTableCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\Formatting\MySqlTriggerCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\Formatting\MySqlViewCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\MySqlCreateScriptDispatcher.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\MySqlCreateScriptExecutionHelper.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\MySqlCreateScriptRequest.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\MySqlCreateScriptSqlBuilder.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\MySqlIndexCreateScriptAssembler.cs" />
+    <Compile Include="Core\Database\CreateScript\MySql\MySqlShowCreateScriptAssembler.cs" />
+    <Compile Include="Core\Database\CreateScript\Oracle\Index\OracleIndexCreateScriptAssembler.cs" />
+    <Compile Include="Core\Database\CreateScript\Oracle\OracleCreateScriptAssembler.cs" />
+    <Compile Include="Core\Database\CreateScript\Oracle\OracleCreateScriptDispatcher.cs" />
+    <Compile Include="Core\Database\CreateScript\Oracle\OracleCreateScriptRequest.cs" />
+    <Compile Include="Core\Database\CreateScript\Oracle\OracleCreateTableScriptBeautifier.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\Formatting\IPostgreSqlCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\Formatting\PostgreSqlCreateScriptFormatContext.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\Formatting\PostgreSqlCreateScriptFormatterBase.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\Formatting\PostgreSqlCreateScriptFormatterDispatcher.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\Formatting\PostgreSqlCreateScriptFormatterHelper.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\Formatting\PostgreSqlFunctionCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\Formatting\PostgreSqlIndexCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\Formatting\PostgreSqlProcedureCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\Formatting\PostgreSqlRoutineCreateScriptFormatterHelper.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\Formatting\PostgreSqlTriggerCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\Formatting\PostgreSqlViewCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\Index\PostgreSqlIndexCreateScriptSqlBuilder.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\PostgreSqlCreateScriptDispatcher.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\PostgreSqlCreateScriptRequest.cs" />
+    <Compile Include="Core\Database\CreateScript\PostgreSql\PostgreSqlCreateTableScriptBeautifier.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\ISqlServerCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerClauseStyleFormatterHelper.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerConstraintBeautifierHelper.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerCreateScriptFormatContext.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerCreateScriptFormatterBase.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerCreateScriptFormatterDispatcher.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerCreateScriptFormatterHelper.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerExtendedPropertyBeautifierHelper.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerFunctionCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerIndexCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerModuleCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerProcedureCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerRoutineCreateScriptFormatterHelper.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerTableCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerTriggerCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerViewCreateScriptFormatter.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\Formatting\SqlServerViewTriggerBodyBeautifierHelper.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\SqlServerCreateScriptDispatcher.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\SqlServerCreateScriptExecutionHelper.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\SqlServerCreateScriptRequest.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\SqlServerIndexCreateScriptAssembler.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\SqlServerIndexCreateScriptSqlBuilder.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\SqlServerModuleCreateScriptAssembler.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\SqlServerModuleCreateScriptSqlBuilder.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\SqlServerTableCreateScriptAssembler.cs" />
+    <Compile Include="Core\Database\CreateScript\SqlServer\SqlServerTableCreateScriptSqlBuilder.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDdlOperation.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDdlRequest.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDdlSqlBuilder.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnAddBuildFailureKind.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnAddBuildResult.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnAddRequest.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnAddSqlBuilder.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnDefaultFormatResult.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnDefaultLiteralKind.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnDefaultValueFormatter.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnDefaultValueKind.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnDefinition.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnTypeArgumentKind.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnTypeBuildResult.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnTypeCatalog.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnTypeDefinition.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnTypeSqlBuilder.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\DdlInputSafetyValidator.cs" />
+    <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\OracleLengthSemantics.cs" />
+    <Compile Include="Core\Database\DdlPreview\DdlExecutionCompletionDecision.cs" />
+    <Compile Include="Core\Database\DdlPreview\DdlExecutionCompletionPolicy.cs" />
+    <Compile Include="Core\Database\DdlPreview\DdlIdentifierQuotingPolicy.cs" />
+    <Compile Include="Core\Database\DdlPreview\DdlMainFormNotificationKind.cs" />
+    <Compile Include="Core\Database\DdlPreview\TableDdlOperation.cs" />
+    <Compile Include="Core\Database\DdlPreview\TableDdlRequest.cs" />
+    <Compile Include="Core\Database\DdlPreview\TableDdlSqlBuilder.cs" />
+    <Compile Include="Core\Database\Diagnostics\Common\SqlErrorResolutionResult.cs" />
+    <Compile Include="Core\Database\Diagnostics\MySql\MySqlErrorMessageInfo.cs" />
+    <Compile Include="Core\Database\Diagnostics\MySql\MySqlErrorMessageKind.cs" />
+    <Compile Include="Core\Database\Diagnostics\MySql\MySqlErrorMessageParser.cs" />
+    <Compile Include="Core\Database\Diagnostics\MySql\MySqlErrorPositionRequest.cs" />
+    <Compile Include="Core\Database\Diagnostics\MySql\MySqlErrorPositionResolution.cs" />
+    <Compile Include="Core\Database\Diagnostics\MySql\MySqlErrorPositionResolver.cs" />
+    <Compile Include="Core\Database\Diagnostics\Oracle\OracleErrorCodeParser.cs" />
+    <Compile Include="Core\Database\Diagnostics\Oracle\OracleErrorPositionRequest.cs" />
+    <Compile Include="Core\Database\Diagnostics\Oracle\OracleErrorPositionResolver.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlErrorTargetResolver.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlStringLengthDiagnosticText.cs" />
+    <Compile Include="Core\Database\Diagnostics\SqlServer\SqlServerErrorPositionRequest.cs" />
+    <Compile Include="Core\Database\Diagnostics\SqlServer\SqlServerErrorPositionResolution.cs" />
+    <Compile Include="Core\Database\Diagnostics\SqlServer\SqlServerErrorPositionResolver.cs" />
+    <Compile Include="Core\Database\Diagnostics\SqlServer\SqlServerSecondaryErrorItem.cs" />
+    <Compile Include="Core\Database\Diagnostics\SqlServer\SqlServerSecondaryErrorParser.cs" />
+    <Compile Include="Core\Database\DmlPreview\DmlPreviewLiteralFormatRequest.cs" />
+    <Compile Include="Core\Database\DmlPreview\DmlPreviewOriginalRowResolver.cs" />
+    <Compile Include="Core\Database\DmlPreview\DmlPreviewPrimaryKeyColumn.cs" />
+    <Compile Include="Core\Database\DmlPreview\DmlPreviewSqlBuilder.cs" />
+    <Compile Include="Core\Database\DmlPreview\DmlPreviewSqlLiteralFormatter.cs" />
+    <Compile Include="Core\Database\DmlPreview\DmlPreviewWhereConditionBuilder.cs" />
+    <Compile Include="Core\Database\DmlPreview\DmlPreviewWhereConditionFailureKind.cs" />
+    <Compile Include="Core\Database\DmlPreview\DmlPreviewWhereConditionRequest.cs" />
+    <Compile Include="Core\Database\DmlPreview\DmlPreviewWhereConditionResult.cs" />
+    <Compile Include="Core\Database\DmlPreview\DmlPreviewWhereConditionSource.cs" />
+    <Compile Include="Core\Database\Execution\SqlExecuteErrorPayload.cs" />
+    <Compile Include="Core\Database\Execution\SqlParameterPositionMapper.cs" />
+    <Compile Include="Core\Database\Metadata\AutoCompleteKeywordAppender.cs" />
+    <Compile Include="Core\Database\Metadata\AutoCompleteSourceNames.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Function\MySqlFunctionSchemaBuildContext.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Function\MySqlFunctionSchemaOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Function\MySqlFunctionSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\MySqlMetadataContext.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\QueryEditor\MySqlQueryEditorMetadataSnapshot.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Procedure\MySqlProcedureSchemaBuildContext.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Procedure\MySqlProcedureSchemaOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Procedure\MySqlProcedureSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\QueryEditor\MySqlQueryEditorMetadataLoader.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\QueryEditor\MySqlQueryEditorMetadataLoadOptions.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Table\MySqlTableColumnInfoMapBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Table\MySqlTableMetadataLoadResult.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Table\MySqlTableRowCountMapBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Table\MySqlTableSchemaBuildContext.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Table\MySqlTableSchemaOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Table\MySqlTableSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Trigger\MySqlTriggerSchemaBuildContext.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Trigger\MySqlTriggerSchemaOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\Trigger\MySqlTriggerSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\View\MySqlViewColumnInfoMapBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\View\MySqlViewMetadataLoadResult.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\View\MySqlViewSchemaBuildContext.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\View\MySqlViewSchemaOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\MySql\View\MySqlViewSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Common\OracleSimpleSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Function\OracleFunctionMetadataOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Function\OracleFunctionSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Index\OracleIndexMetadataOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Index\OracleIndexSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\OracleMetadataContext.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Package\OraclePackageMetadataOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Package\OraclePackageSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Procedure\OracleProcedureMetadataOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Procedure\OracleProcedureSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\QueryEditor\OracleQueryEditorMetadataLoader.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\QueryEditor\OracleQueryEditorMetadataLoadOptions.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Table\OracleTableMetadataOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Table\OracleTableSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Trigger\OracleTriggerMetadataOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\Trigger\OracleTriggerSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\Oracle\View\OracleViewMetadataOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Function\PostgreSqlFunctionCountMapBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Function\PostgreSqlFunctionSchemaBuildContext.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Function\PostgreSqlFunctionSchemaOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Function\PostgreSqlFunctionSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\QueryEditor\PostgreSqlQueryEditorMetadataLoader.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\QueryEditor\PostgreSqlQueryEditorMetadataLoadOptions.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Table\PostgreSqlFallbackColumnTypeFormatter.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Table\PostgreSqlTableSchemaBuildContext.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Table\PostgreSqlTableSchemaOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Trigger\PostgreSqlTriggerCountMapBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Trigger\PostgreSqlTriggerSchemaBuildContext.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Trigger\PostgreSqlTriggerSchemaOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Trigger\PostgreSqlTriggerSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\View\PostgreSqlViewSchemaBuildContext.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\View\PostgreSqlViewSchemaMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\View\PostgreSqlViewSchemaOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\View\PostgreSqlViewSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\View\PostgreSqlViewSchemaTypeBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\SchemaObjectColumnInfoMapBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\SchemaObjectColumnInfoTextBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\SchemaObjectCountResolver.cs" />
+    <Compile Include="Core\Database\Metadata\SchemaObjectKeywordApplyHelper.cs" />
+    <Compile Include="Core\Database\Metadata\SchemaObjectNames.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Table\PostgreSqlTableSchemaTypeBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\PostgreSql\Table\PostgreSqlTableSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\SchemaObjectNameWithCountTextBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\SchemaObjectTypeHelper.cs" />
+    <Compile Include="Core\Database\Metadata\SchemaTypeTextBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\ScintillaKeywordTextBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\Common\SqlServerSimpleSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\Function\SqlServerFunctionMetadataOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\Index\SqlServerIndexMetadataOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\Procedure\SqlServerProcedureMetadataOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\QueryEditor\SqlServerQueryEditorMetadataLoader.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\QueryEditor\SqlServerQueryEditorMetadataLoadOptions.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\SqlServerMetadataContext.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\Table\SqlServerTableColumnInfoMapBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\Table\SqlServerTableRowCountMapBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\Table\SqlServerTableSchemaBuildContext.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\Table\SqlServerTableSchemaOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\Table\SqlServerTableSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\Trigger\SqlServerTriggerMetadataOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\View\SqlServerViewColumnInfoMapBuilder.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\View\SqlServerViewSchemaBuildContext.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\View\SqlServerViewSchemaOrganizer.cs" />
+    <Compile Include="Core\Database\Metadata\SqlServer\View\SqlServerViewSchemaRowBuilder.cs" />
+    <Compile Include="Core\Database\QueryEditor\QueryEditorSchemaTypeNames.cs" />
+    <Compile Include="Core\Database\SqlBuilder\MySql\Metadata\Function\MySqlFunctionMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\MySql\Metadata\Procedure\MySqlProcedureMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\MySql\Metadata\QueryEditor\MySqlQueryEditorSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\MySql\Metadata\Table\MySqlTableColumnCommentsSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\MySql\Metadata\Table\MySqlTableColumnInfoSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\MySql\Metadata\Table\MySqlTableColumnMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\MySql\Metadata\Table\MySqlTableMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\MySql\Metadata\Trigger\MySqlTriggerMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\MySql\Metadata\View\MySqlViewColumnMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\MySql\Metadata\View\MySqlViewMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\Oracle\CreateScript\Index\OracleIndexCreateScriptSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\Oracle\CreateScript\OracleCreateScriptSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\Oracle\Metadata\Function\OracleFunctionSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\Oracle\Metadata\Index\OracleIndexSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\Oracle\Metadata\Package\OraclePackageSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\Oracle\Metadata\Procedure\OracleProcedureSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\Oracle\Metadata\Table\OracleTableColumnCommentsSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\Oracle\Metadata\Table\OracleTableColumnInfoSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\Oracle\Metadata\Table\OracleTableSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\Oracle\Metadata\Trigger\OracleTriggerSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\Oracle\Metadata\View\OracleViewSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\Oracle\Metadata\QueryEditor\OracleQueryEditorSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\CreateScript\PostgreSqlRoutineCreateScriptSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\CreateScript\PostgreSqlTableCreateScriptSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\CreateScript\PostgreSqlTriggerCreateScriptSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\CreateScript\PostgreSqlViewCreateScriptSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\Metadata\Function\PostgreSqlFunctionMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\Metadata\QueryEditor\PostgreSqlQueryEditorSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\Metadata\Table\PostgreSqlTableColumnCommentsSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\Metadata\Table\PostgreSqlTableColumnInfoSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\Metadata\Table\PostgreSqlTableMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\Metadata\Table\PostgreSqlTableSchemaMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\Metadata\Table\PostgreSqlTableSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\Metadata\Trigger\PostgreSqlTriggerMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\Metadata\View\PostgreSqlViewColumnInfoTableBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\Metadata\View\PostgreSqlViewColumnMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\PostgreSql\Metadata\View\PostgreSqlViewMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\Function\SqlServerFunctionMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\Index\SqlServerIndexMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\Procedure\SqlServerProcedureMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\QueryEditor\SqlServerQueryEditorSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\Table\SqlServerTableColumnCommentsSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\Table\SqlServerTableColumnInfoSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\Table\SqlServerTableColumnMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\Table\SqlServerTableMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\Table\SqlServerTableRowCountSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\Table\SqlServerTableSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\Trigger\SqlServerTriggerMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\View\SqlServerViewColumnMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\SqlBuilder\SqlServer\Metadata\View\SqlServerViewMetadataSqlBuilder.cs" />
+    <Compile Include="Core\Database\Transactions\DatabaseTransactionActionCoordinator.cs" />
+    <Compile Include="Core\Database\Transactions\DatabaseTransactionActionKind.cs" />
+    <Compile Include="Core\Database\Transactions\DatabaseTransactionActionResult.cs" />
+    <Compile Include="Core\Database\Transactions\DatabaseTransactionImpact.cs" />
+    <Compile Include="Core\Database\Transactions\DatabaseTransactionStatePolicy.cs" />
+    <Compile Include="Core\Database\Transactions\LockingQueries\DatabaseLockingQueryCompletionDecision.cs" />
+    <Compile Include="Core\Database\Transactions\LockingQueries\DatabaseLockingQueryCompletionKind.cs" />
+    <Compile Include="Core\Database\Transactions\LockingQueries\DatabaseLockingQueryCompletionPolicy.cs" />
+    <Compile Include="Core\Database\Transactions\LockingQueries\DatabaseLockingQueryDetectionResult.cs" />
+    <Compile Include="Core\Database\Transactions\LockingQueries\DatabaseLockingQueryDetector.cs" />
+    <Compile Include="Core\Database\Transactions\LockingQueries\DatabaseLockingQueryExecutionDecision.cs" />
+    <Compile Include="Core\Database\Transactions\LockingQueries\DatabaseLockingQueryExecutionPolicy.cs" />
+    <Compile Include="Core\Database\Transactions\LockingQueries\DatabaseLockingQueryKind.cs" />
+    <Compile Include="Core\Database\Transactions\PendingTransactionReminderDecision.cs" />
+    <Compile Include="Core\Database\Transactions\PendingTransactionReminderPolicy.cs" />
+    <Compile Include="Core\Database\Transactions\PendingTransactionReminderState.cs" />
+    <Compile Include="Core\Data\DataRows\DataRowSafeValueExtensions.cs" />
+    <Compile Include="Core\Data\DataTables\DataTableColumnHelper.cs" />
+    <Compile Include="Core\Data\DataTables\DataTableLifecycleHelper.cs" />
+    <Compile Include="Core\Data\DataTables\DataTableHelper.cs" />
+    <Compile Include="Core\Data\DataTables\DataTableSearchHelper.cs" />
+    <Compile Include="Core\Data\DataTables\DataTableSortHelper.cs" />
+    <Compile Include="Core\Data\Dictionaries\DictionarySafeValueExtensions.cs" />
+    <Compile Include="Core\Data\Formatters\DataSizeFormatter.cs" />
+    <Compile Include="Core\Data\Formatters\LargeValueFormatter.cs" />
+    <Compile Include="Core\Data\Readers\SchemaRowReader.cs" />
+    <Compile Include="Core\Arrange\Formatting\IColumnValueFormatter.cs" />
+    <Compile Include="Core\Data\Schema\MySqlSchemaColumnInfoBuilder.cs" />
+    <Compile Include="Core\Data\Schema\OracleSchemaColumnInfoBuilder.cs" />
+    <Compile Include="Core\Data\Schema\PostgreSqlSchemaColumnInfoBuilder.cs" />
+    <Compile Include="Core\Data\Schema\SchemaColumnInfoBuilder.cs" />
+    <Compile Include="Core\Data\Schema\SchemaColumnInfoBuilderHelper.cs" />
+    <Compile Include="Core\Data\Schema\SqlServerSchemaColumnInfoBuilder.cs" />
+    <Compile Include="Core\Data\SqlTraceHelper.cs" />
+    <Compile Include="Core\Data\Text\SqlFormatter.cs" />
+    <Compile Include="Core\Data\Value\DbValueHelper.cs" />
+    <Compile Include="Core\Export\ExportCellValueResolution.cs" />
+    <Compile Include="Core\Export\ExportCellValueResolver.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Analysis\QueryEditorParameterAnalyzer.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Analysis\QueryEditorSqlNormalizer.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\AutoCompleteObjectLookupMode.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\CtrlJPeriodTriggerInfo.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Builders\QueryEditorAutoCompleteDataTableBuilder.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompletePeriodResolveContext.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompleteRangeMode.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompleteSpaceAnalysisRequest.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompleteSpaceAnalysisResult.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompleteSpaceIntent.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompleteSpaceKeyword.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompleteSpaceSourceKind.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompleteTextRange.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Resolvers\QueryEditorAutoCompletePeriodResolver.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Resolvers\QueryEditorAutoCompleteSpaceAnalyzer.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\State\QueryEditorAutoCompleteSessionCloseReason.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\State\QueryEditorAutoCompleteSessionState.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Support\QueryEditorAutoCompleteDataFilter.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Support\QueryEditorAutoCompleteKeyUpHelper.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Support\QueryEditorAutoCompletePopupCleanupCoordinator.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Support\QueryEditorAutoCompleteRangeResolver.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Support\QueryEditorAutoCompleteSessionPolicy.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Support\QueryEditorAutoCompleteTriggerPolicy.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Support\SpaceAutoCompleteDataFilter.cs" />
+    <Compile Include="Core\QueryEngine\Formatters\LargeTextPreviewBuilder.cs" />
+    <Compile Include="Core\QueryEngine\Formatters\LargeTextPreviewLengthPolicy.cs" />
+    <Compile Include="Core\QueryEngine\Formatters\LargeTextPreviewResult.cs" />
+    <Compile Include="Core\QueryEngine\Types\LargeValueContentLoader.cs" />
+    <Compile Include="Core\QueryEngine\Types\LargeValueContentLoadResult.cs" />
+    <Compile Include="Core\QueryEngine\Types\TextDataType.cs" />
+    <Compile Include="Core\SchemaExplorer\Selection\ISchemaExplorerRowReader.cs" />
+    <Compile Include="Core\SchemaExplorer\Selection\SchemaExplorerGroupLevelPolicy.cs" />
+    <Compile Include="Core\SchemaExplorer\Selection\SchemaExplorerSelectionInfo.cs" />
+    <Compile Include="Core\SchemaExplorer\Selection\SchemaExplorerSelectionKind.cs" />
+    <Compile Include="Core\SchemaExplorer\Selection\SchemaExplorerSelectionResolver.cs" />
+    <Compile Include="Core\SchemaExplorer\Selection\SchemaExplorerSelectionResolveRequest.cs" />
+    <Compile Include="Core\Text\TextFileLoadHelper.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\IPostgreSqlColumnLengthMetadataProvider.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlColumnLengthInfo.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlColumnLengthMetadataProvider.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlInsertValueInfo.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlInsertValuesParser.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlInsertValuesParseResult.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlSqlScanner.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlStringLengthCandidate.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlStringLengthDiagnostic.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlStringLengthDiagnosticConfidence.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlStringLengthErrorAnalyzer.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlUpdateSetParser.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlUpdateSetParseResult.cs" />
+    <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlUpdateSetValueInfo.cs" />
+    <Compile Include="Infrastructure\Windows\WindowsShortcutHelper.cs" />
+    <Compile Include="UI\Forms\CellEditorBinaryContracts.cs" />
+    <Compile Include="UI\Forms\ConnectionForm.ColorAndIcon.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.Connect.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.ConnectionContext.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.Copy.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.DatabaseList.Common.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.DatabaseList.MySql.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.DatabaseList.PostgreSql.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.DatabaseList.SqlServer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.DataSource.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.DbInfoGrid.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.Help.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.Keyboard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.Localization.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.Save.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.Validation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\EditColumnForm.AddColumn.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\GridFormat\GridColumnEditorContracts.cs" />
+    <Compile Include="UI\Forms\GridFormat\GridColumnEditorRegistry.cs" />
+    <Compile Include="UI\Forms\GridFormat\GridEditorValueNormalizers.cs" />
+    <Compile Include="UI\Forms\GridFormat\GridEditorValueValidators.cs" />
+    <Compile Include="UI\Forms\QueryForm.AutoComplete.DataBridge.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.AutoComplete.EditorEvents.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.AutoComplete.Fields.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.AutoComplete.ForAll.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.AutoComplete.GridEvents.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.AutoComplete.HostAdapters.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.AutoComplete.Initialization.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.AutoComplete.Wrappers.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.AutoReplace.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.CellViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.ColumnNavigator.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.Editor.Initialization.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.EditorContentState.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.EditorMessageWelcome.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.FileBackup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.FileLoad.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.FileSave.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.FileWatch.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.Filters.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.FormLoad.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.KeyCommands.Initialization.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.KeyCommands.ProcessCmdKey.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.KeyCommands.ResultGridNavigation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.LeftPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.Localization.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryEditorContextMenu.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryEditorContextMenuBuilder.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryEditorContextMenuStateApplier.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryEditorHighlightSelection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryEditorMenuPayload.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryEditorMouse.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryEditorObjectResolver.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryExecutionConnection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryExecutionContext.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryExecutionKind.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryExecutionLockingQuery.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryExecutionPipelineRunContext.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryExecutionState.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryExecutionText.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryExecutionThread.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryExecutionUiState.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryExecutionVariables.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryResultColumnList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryResultContextMenu.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryResultDisplayOptions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryResultDockingTab.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryResultFreezeColumn.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryResultGridBinder.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryResultGridSelection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryResultLoader.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.QueryResultStatus.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.SchemaBrowser.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.SingleRecordViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.SqlExecuteErrorDisplay.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.SqlExecuteErrorInfo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.SqlExecuteErrorPointer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.SqlExecuteErrorPosition.Dispatcher.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.SqlExecuteErrorPosition.MySql.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.SqlExecuteErrorPosition.Oracle.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.SqlExecuteErrorPosition.PostgreSql.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.SqlExecuteErrorPosition.SqlServer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.SqlExecuteErrorTargetWord.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.SqlNavigator.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.CellViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.DisplayInfo.MySql.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.DisplayInfo.Oracle.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.DisplayInfo.PostgreSql.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.DisplayInfo.SqlServer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.DisplaySchemaInfo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.GridFormat.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.GridFormat.EditorFactories.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.GridFormat.EditorLifecycle.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.GridFormat.EditorRegistry.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.GridFormat.Header.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.GridFormat.MySql.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.GridFormat.Oracle.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.GridFormat.PostgreSql.Array.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.GridFormat.PostgreSql.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.GridFormat.SqlServer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.LayoutAndStyle.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.Navigation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.SchemaExplorerGrid.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.SchemaExplorerSelection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.Splitter.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.SqlEditorHighlightSelection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.SqlPane.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.SqlPreview.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.SqlPreview.MySql.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.SqlPreview.Oracle.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.SqlPreview.PostgreSql.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.SqlPreview.SqlServer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.SqlPreviewEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.TableDataQuery.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.TableEdit.Binary.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.TableEdit.ButtonStatus.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.TableEdit.CellEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.TableEdit.CellTips.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.TableEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.TableEdit.Filter.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.TableEdit.Markers.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.TableEdit.NewRow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SingleRecordViewerForm.CellViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SqlVariablesForm.SqlVariablesRequest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SqlVariablesForm.SqlVariablesResolveResult.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Helpers\CellViewerContextBuilder.cs" />
+    <Compile Include="UI\Helpers\CellViewerGridHelper.cs" />
+    <Compile Include="UI\Helpers\ControlLayoutHelper.cs" />
+    <Compile Include="UI\Helpers\GridColumnFilterHelper.cs" />
+    <Compile Include="UI\Helpers\GridColumnNavigatorHelper.cs" />
+    <Compile Include="UI\Helpers\GridHeadingCellTipHelper.cs" />
+    <Compile Include="UI\Helpers\MemoryHelper.cs" />
+    <Compile Include="UI\Helpers\SingleRecordCellViewerContextBuilder.cs" />
+    <Compile Include="UI\Models\CellViewerCellContext.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Builders\QueryEditorAutoCompleteDataBuilder.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Contexts\QueryEditorAutoCompletePopupContextFactory.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Contexts\QueryEditorAutoCompleteResolveContextFactory.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Filters\QueryEditorAutoCompleteFilterCoordinator.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Popup\IQueryEditorAutoCompletePopupPresenter.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Popup\QueryEditorAutoCompletePopupContext.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Popup\QueryEditorAutoCompletePopupController.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Popup\QueryEditorAutoCompletePopupOffsetResolver.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompleteRequest.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompleteResolveContextBase.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Support\QueryEditorAutoCompleteSchemaQueryExecutor.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Resolvers\QueryEditorAutoCompleteSchemaResolver.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompleteSpaceResolveContext.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Resolvers\QueryEditorAutoCompleteSpaceResolver.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Resolvers\QueryEditorAutoCompleteSubqueryResolver.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Resolvers\QueryEditorAutoCompleteWithAsResolver.cs" />
+    <Compile Include="Core\QueryEngine\Editor\AutoComplete\Resolvers\QueryEditorCtrlJPeriodResolver.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorBlockSelectionService.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorCommentService.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorIndentService.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorLineSelectionService.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorLineTransformContext.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorLineTransformOptions.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorLineTransformResult.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorLineTransformServiceBase.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorSelectionHelper.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorSelectionMode.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorSelectionRange.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorSqlFormatterOptionsFactory.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorSqlFormatterService.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\SqlFormatterEnginePreferenceResolver.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\SqlFormatterPreviewSqlCatalog.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorTextCaseService.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorWhitespaceCleanupService.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\ITextEditor.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\ScintillaTextEditorAdapter.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\AutoReplace\EditorAutoReplaceContext.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\AutoReplace\EditorAutoReplaceService.cs" />
+    <Compile Include="Core\QueryEngine\Formatters\BinaryPreviewFormatter.cs" />
+    <Compile Include="Core\QueryEngine\Formatters\TextPreviewFormatter.cs" />
+    <Compile Include="Core\QueryEngine\Types\LargeBinaryDataType.cs" />
+    <Compile Include="Core\QueryEngine\Types\LargeTextDataType.cs" />
+    <Compile Include="Core\Schema\ColumnInfoCollector.cs" />
+    <Compile Include="Database\Providers\Executor\MySqlSqlExecutor.cs" />
+    <Compile Include="Database\Providers\Executor\PostgreSqlSqlExecutor.cs" />
+    <Compile Include="Display\Columns\ColumnDisplayContext.cs" />
+    <Compile Include="Display\Columns\ColumnHeaderFormatter.cs" />
+    <Compile Include="Editor\FindAndReplace\CharacterRange.cs" />
+    <Compile Include="Editor\FindAndReplace\FindOption.cs" />
+    <Compile Include="Editor\FindAndReplace\FindAndReplace.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Infrastructure\Diagnostics\ExceptionMessageFormatter.cs" />
+    <Compile Include="Infrastructure\Exceptions\ExceptionHelper.cs" />
+    <Compile Include="Services\CheckForUpdates.cs" />
+    <Compile Include="Core\Database\Execution\DatabaseSqlExecutor.cs" />
+    <Compile Include="Database\Internal\Repositories\JasonQueryRepository.cs" />
+    <Compile Include="Services\ExceptionDialogService.cs" />
+    <Compile Include="UI\Helpers\GridHelper.cs" />
+    <Compile Include="Core\Localization\LocalizationHelper.cs" />
+    <Compile Include="Core\Config\MyGlobal.cs" />
+    <Compile Include="Database\Providers\Readers\MySqlReader.cs" />
+    <Compile Include="Database\Providers\Readers\OracleReader.cs" />
+    <Compile Include="Database\Providers\Readers\PostgreSqlReader.cs" />
+    <Compile Include="Database\Providers\Readers\SqlServerReader.cs" />
+    <Compile Include="Core\Text\TextEncode.cs" />
+    <Compile Include="Core\Text\TextEngine.cs" />
+    <Compile Include="Core\Text\TextHelper.cs" />
+    <Compile Include="Core\Logging\TraceLogger.cs" />
+    <Compile Include="UI\Helpers\UIHelper.cs" />
+    <Compile Include="UI\Helpers\MessageBoxHelper.cs" />
+    <Compile Include="UI\Forms\FindAndReplaceForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\FindAndReplaceForm.Designer.cs">
+      <DependentUpon>FindAndReplaceForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\AboutForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\AboutForm.Designer.cs">
+      <DependentUpon>AboutForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\AsciiTableForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\AsciiTableForm.Designer.cs">
+      <DependentUpon>AsciiTableForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\BlobGotoDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\BlobGotoDialog.Designer.cs">
+      <DependentUpon>BlobGotoDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\BlobViewerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\BlobViewerForm.Designer.cs">
+      <DependentUpon>BlobViewerForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\CellEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\CellEditorForm.designer.cs">
+      <DependentUpon>CellEditorForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\CellViewerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\CellViewerForm.designer.cs">
+      <DependentUpon>CellViewerForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\UpdateForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\UpdateForm.Designer.cs">
+      <DependentUpon>UpdateForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\ColorConverterDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ColorConverterDialog.designer.cs">
+      <DependentUpon>ColorConverterDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionForm.Designer.cs">
+      <DependentUpon>ConnectionForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionExportForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionExportForm.designer.cs">
+      <DependentUpon>ConnectionExportForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionImportForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ConnectionImportForm.designer.cs">
+      <DependentUpon>ConnectionImportForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\OracleCreateTableWizardForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\OracleCreateTableWizardForm.Designer.cs">
+      <DependentUpon>OracleCreateTableWizardForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\CustomPasswordDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\CustomPasswordDialog.Designer.cs">
+      <DependentUpon>CustomPasswordDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\CommitRollbackDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\CommitRollbackDialog.Designer.cs">
+      <DependentUpon>CommitRollbackDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\EditColumnForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\EditColumnForm.Designer.cs">
+      <DependentUpon>EditColumnForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\EditTableForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\EditTableForm.Designer.cs">
+      <DependentUpon>EditTableForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\EncryptionMethodForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\EncryptionMethodForm.Designer.cs">
+      <DependentUpon>EncryptionMethodForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\ExportToFileForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ExportToFileForm.Designer.cs">
+      <DependentUpon>ExportToFileForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\FileSplitterForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\FileSplitterForm.designer.cs">
+      <DependentUpon>FileSplitterForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\GenerateSqlForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\GenerateSqlForm.designer.cs">
+      <DependentUpon>GenerateSqlForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\OracleSidHelpForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\OracleSidHelpForm.Designer.cs">
+      <DependentUpon>OracleSidHelpForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\VariableTypeHelpForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\VariableTypeHelpForm.designer.cs">
+      <DependentUpon>VariableTypeHelpForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\MessageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\MessageForm.designer.cs">
+      <DependentUpon>MessageForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\RenameTabDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\RenameTabDialog.Designer.cs">
+      <DependentUpon>RenameTabDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\ProgressDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\ProgressDialog.designer.cs">
+      <DependentUpon>ProgressDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.Designer.cs">
+      <DependentUpon>SchemaBrowserForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\OptionsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\OptionsForm.Designer.cs">
+      <DependentUpon>OptionsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\QueryForm.Designer.cs">
+      <DependentUpon>QueryForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\MainForm.designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaFilterDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SchemaFilterDialog.Designer.cs">
+      <DependentUpon>SchemaFilterDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\SingleRecordViewerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SingleRecordViewerForm.designer.cs">
+      <DependentUpon>SingleRecordViewerForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\SqlHistoryForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SqlHistoryForm.designer.cs">
+      <DependentUpon>SqlHistoryForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\SqlStatementViewerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SqlStatementViewerForm.designer.cs">
+      <DependentUpon>SqlStatementViewerForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\SqlVariablesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\SqlVariablesForm.designer.cs">
+      <DependentUpon>SqlVariablesForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\Models\MyActionInfo.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Handlers\QueryEditorAutoCompleteEditorKeyHandler.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Contexts\QueryEditorAutoCompleteEditorKeyUpContext.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Handlers\QueryEditorAutoCompleteEditorKeyUpHandler.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Handlers\QueryEditorAutoCompleteGridKeyHandler.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Popup\QueryEditorAutoCompletePopupPresenterHostFactory.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Popup\QueryEditorAutoCompletePopupPresenterHostImplementation.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Support\QueryEditorAutoCompleteGridStyleHelper.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Support\QueryEditorAutoCompleteRangeHelper.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Handlers\QueryEditorAutoCompleteCommitHandler.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Contexts\QueryEditorAutoCompleteUiContext.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\State\QueryEditorAutoCompletePopupKind.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\State\QueryEditorAutoCompleteReplaceMode.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\State\QueryEditorAutoCompleteSession.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Support\QueryEditorAutoCompleteUiContextBuilder.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Contexts\QueryEditorAutoCompleteVisiblePopupRefreshContext.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Handlers\QueryEditorAutoCompleteVisiblePopupRefreshHandler.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Workflows\QueryEditorAutoCompleteEditorKeyUpWorkflow.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Workflows\QueryEditorAutoCompleteFacade.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Workflows\QueryEditorAutoCompleteInteractionBundle.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Workflows\QueryEditorAutoCompleteInteractionComposer.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Workflows\QueryEditorAutoCompleteKeyInputWorkflow.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Workflows\QueryEditorAutoCompleteSessionCoordinator.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Workflows\QueryEditorAutoCompleteVisiblePopupRefreshWorkflow.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Workflows\QueryEditorAutoCompleteWorkflowCoordinator.cs" />
+    <Compile Include="UI\QueryEditor\AutoComplete\Workflows\QueryEditorPeriodTriggerCoordinator.cs" />
+    <Compile Include="UI\QueryEditor\KeyCommands\QueryEditorKeyCommandContext.cs" />
+    <Compile Include="UI\QueryEditor\KeyCommands\QueryEditorKeyCommandHandler.cs" />
+    <Compile Include="UI\SchemaExplorer\C1SchemaExplorerRowReader.cs" />
+    <EmbeddedResource Include="UI\Forms\FindAndReplaceForm.resx">
+      <DependentUpon>FindAndReplaceForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\AboutForm.resx">
+      <DependentUpon>AboutForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\AsciiTableForm.resx">
+      <DependentUpon>AsciiTableForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\BlobGotoDialog.resx">
+      <DependentUpon>BlobGotoDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\BlobViewerForm.resx">
+      <DependentUpon>BlobViewerForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\CellEditorForm.resx">
+      <DependentUpon>CellEditorForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\CellViewerForm.resx">
+      <DependentUpon>CellViewerForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\UpdateForm.resx">
+      <DependentUpon>UpdateForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\ColorConverterDialog.resx">
+      <DependentUpon>ColorConverterDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\ConnectionForm.resx">
+      <DependentUpon>ConnectionForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\ConnectionExportForm.resx">
+      <DependentUpon>ConnectionExportForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\ConnectionImportForm.resx">
+      <DependentUpon>ConnectionImportForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\OracleCreateTableWizardForm.resx">
+      <DependentUpon>OracleCreateTableWizardForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\CustomPasswordDialog.resx">
+      <DependentUpon>CustomPasswordDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\CommitRollbackDialog.resx">
+      <DependentUpon>CommitRollbackDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\EditColumnForm.resx">
+      <DependentUpon>EditColumnForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\EditTableForm.resx">
+      <DependentUpon>EditTableForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\EncryptionMethodForm.resx">
+      <DependentUpon>EncryptionMethodForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\ExportToFileForm.resx">
+      <DependentUpon>ExportToFileForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\FileSplitterForm.resx">
+      <DependentUpon>FileSplitterForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\GenerateSqlForm.resx">
+      <DependentUpon>GenerateSqlForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\OracleSidHelpForm.resx">
+      <DependentUpon>OracleSidHelpForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\VariableTypeHelpForm.resx">
+      <DependentUpon>VariableTypeHelpForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\MessageForm.resx">
+      <DependentUpon>MessageForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\RenameTabDialog.resx">
+      <DependentUpon>RenameTabDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\ProgressDialog.resx">
+      <DependentUpon>ProgressDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\SchemaBrowserForm.resx">
+      <DependentUpon>SchemaBrowserForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\OptionsForm.resx">
+      <DependentUpon>OptionsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\QueryForm.resx">
+      <DependentUpon>QueryForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\SchemaFilterDialog.resx">
+      <DependentUpon>SchemaFilterDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\SingleRecordViewerForm.resx">
+      <DependentUpon>SingleRecordViewerForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\SqlHistoryForm.resx">
+      <DependentUpon>SqlHistoryForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\SqlStatementViewerForm.resx">
+      <DependentUpon>SqlStatementViewerForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\SqlVariablesForm.resx">
+      <DependentUpon>SqlVariablesForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\licenses.licx" />
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <EmbeddedResource Include="Files\JasonQuery.db" />
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Image\Panel_C1Status.png" />
+    <EmbeddedResource Include="Image\Panel_C1Status_Dark.png" />
+    <Content Include="JasonQuery.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\JasonLibrary\JasonLibrary.csproj">
+      <Project>{aba5a657-167b-43e5-9b6c-651715a613a1}</Project>
+      <Name>JasonLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MagicLibrary\MagicLibrary.csproj">
+      <Project>{f284392f-6873-4be5-99ba-24793532d930}</Project>
+      <Name>MagicLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ScintillaNET\ScintillaNET.csproj">
+      <Project>{22ae2386-60f1-476e-9303-61cdb0aac4cf}</Project>
+      <Name>ScintillaNET</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

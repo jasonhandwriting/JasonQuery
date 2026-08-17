@@ -1,0 +1,21 @@
+C1.Win.C1Ribbon.C1StatusBar, C1.Win.C1Ribbon.4.5.2, Version=4.5.20201.416
+C1.Win.C1Input.C1ComboBox, C1.Win.C1Input.4.5.2, Version=4.5.20201.416
+C1.Win.C1Input.C1DropDownControl, C1.Win.C1Input.4.5.2, Version=4.5.20201.416
+C1.Win.C1Input.C1CheckBox, C1.Win.C1Input.4.5.2, Version=4.5.20201.416
+C1.Win.Ribbon.C1StatusBar, C1.Win.Ribbon.4.5.2, Version=4.5.20201.416
+C1.Win.C1Themes.C1ThemeController, C1.Win.C1Themes.4.5.2, Version=4.5.20201.416
+C1.Win.C1Input.C1FontPicker, C1.Win.C1Input.4.5.2, Version=4.5.20201.416
+C1.Win.C1Input.C1Label, C1.Win.C1Input.4.5.2, Version=4.5.20201.416
+C1.Win.C1SuperTooltip.C1SuperTooltip, C1.Win.C1SuperTooltip.4.5.2, Version=4.5.20201.416
+C1.Win.C1Input.C1TextBox, C1.Win.C1Input.4.5.2, Version=4.5.20201.416
+C1.Win.C1Input.C1NumericEdit, C1.Win.C1Input.4.5.2, Version=4.5.20201.416
+C1.C1Excel.C1XLBook, C1.C1Excel.4.5.2, Version=4.5.20201.416
+C1.Win.Calendar.C1DateEdit, C1.Win.Calendar.4.5.2, Version=4.5.20201.416
+C1.Win.C1Themes.C1ThemePicker, C1.Win.C1Themes.Extended.4.5.2, Version=4.5.20201.416
+C1.Win.C1Input.C1Button, C1.Win.C1Input.4.5.2, Version=4.5.20201.416
+C1.Win.C1Command.C1ToolBar, C1.Win.C1Command.4.5.2, Version=4.5.20201.416
+C1.Win.C1TrueDBGrid.C1TrueDBGrid, C1.Win.C1TrueDBGrid.4.5.2, Version=4.5.20201.416
+C1.Win.C1Command.C1DockingTab, C1.Win.C1Command.4.5.2, Version=4.5.20201.416
+C1.Win.C1Command.C1CommandHolder, C1.Win.C1Command.4.5.2, Version=4.5.20201.416
+C1.Win.C1Input.C1SplitButton, C1.Win.C1Input.4.5.2, Version=4.5.20201.416
+Devart.Data.Oracle.OracleConnection, Devart.Data.Oracle

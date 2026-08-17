@@ -1,0 +1,60 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35919.96
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JasonQuery", "JasonQuery\JasonQuery.csproj", "{87BF5097-DE0D-4BDA-89C2-3E87D47FFD57}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JasonLibrary", "JasonLibrary\JasonLibrary.csproj", "{ABA5A657-167B-43E5-9B6C-651715A613A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicLibrary", "MagicLibrary\MagicLibrary.csproj", "{F284392F-6873-4BE5-99BA-24793532D930}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScintillaNET", "ScintillaNET\ScintillaNET.csproj", "{22AE2386-60F1-476E-9303-61CDB0AAC4CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JasonLibrary.Tests", "Tests\JasonLibrary.Tests\JasonLibrary.Tests.csproj", "{5022D292-1FE3-FF0B-6A5F-68B4973664CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JasonQuery.Tests", "Tests\JasonQuery.Tests\JasonQuery.Tests.csproj", "{3990EB71-6267-E51C-53D2-7C2BE7891080}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JasonQuery.IntegrationTests", "Tests\JasonQuery.IntegrationTests\JasonQuery.IntegrationTests.csproj", "{A6D9C2F1-7B4E-4A5F-9C13-8E6D2B7F1042}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{87BF5097-DE0D-4BDA-89C2-3E87D47FFD57}.Debug|x64.ActiveCfg = Debug|x64
+		{87BF5097-DE0D-4BDA-89C2-3E87D47FFD57}.Debug|x64.Build.0 = Debug|x64
+		{87BF5097-DE0D-4BDA-89C2-3E87D47FFD57}.Release|x64.ActiveCfg = Release|x64
+		{87BF5097-DE0D-4BDA-89C2-3E87D47FFD57}.Release|x64.Build.0 = Release|x64
+		{ABA5A657-167B-43E5-9B6C-651715A613A1}.Debug|x64.ActiveCfg = Debug|x64
+		{ABA5A657-167B-43E5-9B6C-651715A613A1}.Debug|x64.Build.0 = Debug|x64
+		{ABA5A657-167B-43E5-9B6C-651715A613A1}.Release|x64.ActiveCfg = Release|x64
+		{ABA5A657-167B-43E5-9B6C-651715A613A1}.Release|x64.Build.0 = Release|x64
+		{F284392F-6873-4BE5-99BA-24793532D930}.Debug|x64.ActiveCfg = Debug|x64
+		{F284392F-6873-4BE5-99BA-24793532D930}.Debug|x64.Build.0 = Debug|x64
+		{F284392F-6873-4BE5-99BA-24793532D930}.Release|x64.ActiveCfg = Release|x64
+		{F284392F-6873-4BE5-99BA-24793532D930}.Release|x64.Build.0 = Release|x64
+		{22AE2386-60F1-476E-9303-61CDB0AAC4CF}.Debug|x64.ActiveCfg = Debug|x64
+		{22AE2386-60F1-476E-9303-61CDB0AAC4CF}.Debug|x64.Build.0 = Debug|x64
+		{22AE2386-60F1-476E-9303-61CDB0AAC4CF}.Release|x64.ActiveCfg = Release|x64
+		{22AE2386-60F1-476E-9303-61CDB0AAC4CF}.Release|x64.Build.0 = Release|x64
+		{5022D292-1FE3-FF0B-6A5F-68B4973664CD}.Debug|x64.ActiveCfg = Debug|x64
+		{5022D292-1FE3-FF0B-6A5F-68B4973664CD}.Debug|x64.Build.0 = Debug|x64
+		{5022D292-1FE3-FF0B-6A5F-68B4973664CD}.Release|x64.ActiveCfg = Release|x64
+		{5022D292-1FE3-FF0B-6A5F-68B4973664CD}.Release|x64.Build.0 = Release|x64
+		{3990EB71-6267-E51C-53D2-7C2BE7891080}.Debug|x64.ActiveCfg = Debug|x64
+		{3990EB71-6267-E51C-53D2-7C2BE7891080}.Debug|x64.Build.0 = Debug|x64
+		{3990EB71-6267-E51C-53D2-7C2BE7891080}.Release|x64.ActiveCfg = Release|x64
+		{3990EB71-6267-E51C-53D2-7C2BE7891080}.Release|x64.Build.0 = Release|x64
+		{A6D9C2F1-7B4E-4A5F-9C13-8E6D2B7F1042}.Debug|x64.ActiveCfg = Debug|x64
+		{A6D9C2F1-7B4E-4A5F-9C13-8E6D2B7F1042}.Debug|x64.Build.0 = Debug|x64
+		{A6D9C2F1-7B4E-4A5F-9C13-8E6D2B7F1042}.Release|x64.ActiveCfg = Release|x64
+		{A6D9C2F1-7B4E-4A5F-9C13-8E6D2B7F1042}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {371CAAC4-5631-42C2-919F-DCC1E316BE3C}
+	EndGlobalSection
+EndGlobal

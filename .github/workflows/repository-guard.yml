@@ -1,0 +1,53 @@
+name: Repository Guard
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-guard-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository-guard:
+    name: Repository Guard
+    runs-on: windows-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Validate repository
+        shell: powershell
+        run: |
+          .\Build\Validate-Repository.ps1 `
+              -RepositoryRoot "${{ github.workspace }}" `
+              -ReportPath "Build\ValidationReports\Repository-Guard.txt" `
+              -RequireCleanWorkingTree `
+              -SkipGitleaks
+
+      - name: Validate Phase 3 automation
+        shell: powershell
+        run: |
+          .\Build\Validate-Phase3.ps1 `
+              -RepositoryRoot "${{ github.workspace }}" `
+              -ReportPath "Build\ValidationReports\Phase3-Guard.txt"
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: repository-guard-${{ github.run_id }}-${{ github.run_attempt }}
+          path: Build/ValidationReports/
+          if-no-files-found: warn
+          retention-days: 7

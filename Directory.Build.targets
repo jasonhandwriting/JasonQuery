@@ -1,0 +1,99 @@
+<Project>
+  <PropertyGroup>
+    <JasonQueryHogimnAssemblyFileName>SQL.Formatter.dll</JasonQueryHogimnAssemblyFileName>
+    <JasonQueryScriptDomAssemblyFileName>Microsoft.SqlServer.TransactSql.ScriptDom.dll</JasonQueryScriptDomAssemblyFileName>
+    <JasonQueryScriptDomResourceAssemblyFileName>Microsoft.SqlServer.TransactSql.ScriptDom.resources.dll</JasonQueryScriptDomResourceAssemblyFileName>
+    <JasonQueryLegacyFormatterAssemblyFileName>PoorMansTSqlFormatterLib.dll</JasonQueryLegacyFormatterAssemblyFileName>
+    <JasonQuerySystemDataSQLiteAssemblyFileName>System.Data.SQLite.dll</JasonQuerySystemDataSQLiteAssemblyFileName>
+    <JasonQueryTasksExtensionsAssemblyFileName>System.Threading.Tasks.Extensions.dll</JasonQueryTasksExtensionsAssemblyFileName>
+    <JasonQuerySQLiteInteropAssemblyFileName>SQLite.Interop.dll</JasonQuerySQLiteInteropAssemblyFileName>
+  </PropertyGroup>
+
+  <!--
+    ScriptDOM 內建英文資源。JasonQuery 只發布繁中與簡中 satellite assemblies；
+    條件只比對 ScriptDOM 的資源 DLL，不影響其他元件的語系資源。
+  -->
+  <Target Name="FilterJasonQueryScriptDomSatelliteAssemblies"
+          AfterTargets="ResolveAssemblyReferences"
+          BeforeTargets="_CopyFilesMarkedCopyLocal">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths
+        Remove="@(ReferenceCopyLocalPaths)"
+        Condition="'%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)' == '$(JasonQueryScriptDomResourceAssemblyFileName)'
+                And '%(ReferenceCopyLocalPaths.DestinationSubDirectory)' != 'zh-Hans\'
+                And '%(ReferenceCopyLocalPaths.DestinationSubDirectory)' != 'zh-Hant\'
+                And '%(ReferenceCopyLocalPaths.DestinationSubDirectory)' != 'zh-Hans/'
+                And '%(ReferenceCopyLocalPaths.DestinationSubDirectory)' != 'zh-Hant/'
+                And '%(ReferenceCopyLocalPaths.DestinationSubDirectory)' != 'zh-Hans'
+                And '%(ReferenceCopyLocalPaths.DestinationSubDirectory)' != 'zh-Hant'" />
+
+      <ReferenceSatellitePaths
+        Remove="@(ReferenceSatellitePaths)"
+        Condition="'%(ReferenceSatellitePaths.Filename)%(ReferenceSatellitePaths.Extension)' == '$(JasonQueryScriptDomResourceAssemblyFileName)'
+                And '%(ReferenceSatellitePaths.DestinationSubDirectory)' != 'zh-Hans\'
+                And '%(ReferenceSatellitePaths.DestinationSubDirectory)' != 'zh-Hant\'
+                And '%(ReferenceSatellitePaths.DestinationSubDirectory)' != 'zh-Hans/'
+                And '%(ReferenceSatellitePaths.DestinationSubDirectory)' != 'zh-Hant/'
+                And '%(ReferenceSatellitePaths.DestinationSubDirectory)' != 'zh-Hans'
+                And '%(ReferenceSatellitePaths.DestinationSubDirectory)' != 'zh-Hant'" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    JasonLibrary 與正式執行檔的輸出必須一致。若舊檔殘留，先 Clean Solution
+    並刪除既有 bin\Debug、bin\Release 後再 Rebuild。
+  -->
+  <Target Name="ValidateJasonQueryFormatterBuildOutput"
+          AfterTargets="Build"
+          Condition="'$(DesignTimeBuild)' != 'true'
+                  And ('$(MSBuildProjectFile)' == 'JasonLibrary.csproj'
+                    Or '$(MSBuildProjectFile)' == 'JasonQuery.csproj')">
+    <ItemGroup>
+      <_UnexpectedScriptDomSatellite
+        Include="$(TargetDir)**\$(JasonQueryScriptDomResourceAssemblyFileName)"
+        Exclude="$(TargetDir)zh-Hans\$(JasonQueryScriptDomResourceAssemblyFileName);
+                 $(TargetDir)zh-Hant\$(JasonQueryScriptDomResourceAssemblyFileName)" />
+    </ItemGroup>
+
+    <Error
+      Condition="!Exists('$(TargetDir)$(JasonQueryHogimnAssemblyFileName)')"
+      Text="Missing formatter dependency: $(TargetDir)$(JasonQueryHogimnAssemblyFileName)." />
+
+    <Error
+      Condition="!Exists('$(TargetDir)$(JasonQueryScriptDomAssemblyFileName)')"
+      Text="Missing formatter dependency: $(TargetDir)$(JasonQueryScriptDomAssemblyFileName)." />
+
+    <Error
+      Condition="!Exists('$(TargetDir)zh-Hans\$(JasonQueryScriptDomResourceAssemblyFileName)')"
+      Text="Missing ScriptDOM Simplified Chinese resource: $(TargetDir)zh-Hans\$(JasonQueryScriptDomResourceAssemblyFileName)." />
+
+    <Error
+      Condition="!Exists('$(TargetDir)zh-Hant\$(JasonQueryScriptDomResourceAssemblyFileName)')"
+      Text="Missing ScriptDOM Traditional Chinese resource: $(TargetDir)zh-Hant\$(JasonQueryScriptDomResourceAssemblyFileName)." />
+
+    <Error
+      Condition="Exists('$(TargetDir)$(JasonQueryLegacyFormatterAssemblyFileName)')"
+      Text="Legacy formatter assembly must not be included: $(TargetDir)$(JasonQueryLegacyFormatterAssemblyFileName). Clean the output directory and rebuild." />
+
+    <Error
+      Condition="'@(_UnexpectedScriptDomSatellite)' != ''"
+      Text="Unexpected ScriptDOM satellite assemblies: @(_UnexpectedScriptDomSatellite, ', '). Only zh-Hans and zh-Hant are allowed." />
+  </Target>
+
+  <Target Name="ValidateJasonQuerySQLiteBuildOutput"
+          AfterTargets="Build"
+          Condition="'$(DesignTimeBuild)' != 'true'
+                  And '$(MSBuildProjectFile)' == 'JasonQuery.csproj'">
+    <Error
+      Condition="!Exists('$(TargetDir)$(JasonQuerySystemDataSQLiteAssemblyFileName)')"
+      Text="Missing SQLite dependency: $(TargetDir)$(JasonQuerySystemDataSQLiteAssemblyFileName)." />
+
+    <Error
+      Condition="!Exists('$(TargetDir)$(JasonQueryTasksExtensionsAssemblyFileName)')"
+      Text="Missing SQLite dependency: $(TargetDir)$(JasonQueryTasksExtensionsAssemblyFileName)." />
+
+    <Error
+      Condition="!Exists('$(TargetDir)$(JasonQuerySQLiteInteropAssemblyFileName)')"
+      Text="Missing x64 SQLite native dependency: $(TargetDir)$(JasonQuerySQLiteInteropAssemblyFileName)." />
+  </Target>
+</Project>

@@ -1,0 +1,86 @@
+<Project>
+  <PropertyGroup>
+    <DevartAssembliesPath
+      Condition="'$(DevartAssembliesPath)' == ''
+              And '$(JASONQUERY_DEVART_DIR)' != ''">$(JASONQUERY_DEVART_DIR)</DevartAssembliesPath>
+
+    <DevartAssembliesPath
+      Condition="'$(DevartAssembliesPath)' == ''">$(MSBuildThisFileDirectory).local\Devart</DevartAssembliesPath>
+
+    <!-- 只有這兩個專案直接匯入 Devart 參考。 -->
+    <UseJasonQueryDevartReferences
+      Condition="'$(MSBuildProjectFile)' == 'JasonQuery.csproj'
+              Or '$(MSBuildProjectFile)' == 'JasonQuery.IntegrationTests.csproj'">true</UseJasonQueryDevartReferences>
+
+    <UseJasonQueryDevartReferences
+      Condition="'$(UseJasonQueryDevartReferences)' == ''">false</UseJasonQueryDevartReferences>
+
+    <SQLiteAssembliesPath
+      Condition="'$(SQLiteAssembliesPath)' == ''
+              And '$(JASONQUERY_SQLITE_DIR)' != ''">$(JASONQUERY_SQLITE_DIR)</SQLiteAssembliesPath>
+
+    <SQLiteAssembliesPath
+      Condition="'$(SQLiteAssembliesPath)' == ''">$(MSBuildThisFileDirectory).local\SQLite</SQLiteAssembliesPath>
+
+    <!-- JasonQuery 主程式使用 System.Data.SQLite 讀寫內部設定資料庫 -->
+    <UseJasonQuerySQLiteReferences
+      Condition="'$(MSBuildProjectFile)' == 'JasonQuery.csproj'">true</UseJasonQuerySQLiteReferences>
+
+    <UseJasonQuerySQLiteReferences
+      Condition="'$(UseJasonQuerySQLiteReferences)' == ''">false</UseJasonQuerySQLiteReferences>
+  </PropertyGroup>
+
+  <Import
+    Project="$(MSBuildThisFileDirectory)Build\Devart.References.props"
+    Condition="'$(UseJasonQueryDevartReferences)' == 'true'" />
+
+  <Import
+    Project="$(MSBuildThisFileDirectory)Build\SQLite.References.props"
+    Condition="'$(UseJasonQuerySQLiteReferences)' == 'true'" />
+
+  <Target Name="ValidateJasonQueryDevartAssemblies"
+          BeforeTargets="ResolveReferences"
+          Condition="'$(UseJasonQueryDevartReferences)' == 'true'">
+
+    <Message
+      Text="ProjectFile=$(MSBuildProjectFile); UseDevart=[$(UseJasonQueryDevartReferences)]; DevartPath=[$(DevartAssembliesPath)]"
+      Importance="High" />
+
+    <Error Condition="!Exists('$(DevartAssembliesPath)\Devart.Data.dll')"
+           Text="Missing Devart.Data.dll in $(DevartAssembliesPath)." />
+
+    <Error Condition="!Exists('$(DevartAssembliesPath)\Devart.Data.Oracle.dll')"
+           Text="Missing Devart.Data.Oracle.dll in $(DevartAssembliesPath)." />
+
+    <Error Condition="!Exists('$(DevartAssembliesPath)\Devart.Data.PostgreSql.dll')"
+           Text="Missing Devart.Data.PostgreSql.dll in $(DevartAssembliesPath)." />
+
+    <Error Condition="!Exists('$(DevartAssembliesPath)\Devart.Data.SqlServer.dll')"
+           Text="Missing Devart.Data.SqlServer.dll in $(DevartAssembliesPath)." />
+
+    <Error Condition="!Exists('$(DevartAssembliesPath)\Devart.Data.MySql.dll')"
+           Text="Missing Devart.Data.MySql.dll in $(DevartAssembliesPath)." />
+
+    <Error Condition="'$(MSBuildProjectFile)' == 'JasonQuery.csproj'
+                  And !Exists('$(DevartAssembliesPath)\Devart.Data.SQLite.dll')"
+           Text="Missing Devart.Data.SQLite.dll in $(DevartAssembliesPath)." />
+  </Target>
+
+  <Target Name="ValidateJasonQuerySQLiteAssemblies"
+          BeforeTargets="ResolveReferences"
+          Condition="'$(UseJasonQuerySQLiteReferences)' == 'true'">
+
+    <Message
+      Text="ProjectFile=$(MSBuildProjectFile); UseSQLite=[$(UseJasonQuerySQLiteReferences)]; SQLitePath=[$(SQLiteAssembliesPath)]"
+      Importance="High" />
+
+    <Error Condition="!Exists('$(SQLiteAssembliesPath)\System.Data.SQLite.dll')"
+           Text="Missing System.Data.SQLite.dll in $(SQLiteAssembliesPath)." />
+
+    <Error Condition="!Exists('$(SQLiteAssembliesPath)\System.Threading.Tasks.Extensions.dll')"
+           Text="Missing System.Threading.Tasks.Extensions.dll in $(SQLiteAssembliesPath)." />
+
+    <Error Condition="!Exists('$(SQLiteAssembliesPath)\SQLite.Interop.dll')"
+           Text="Missing x64 SQLite.Interop.dll in $(SQLiteAssembliesPath)." />
+  </Target>
+</Project>
