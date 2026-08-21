@@ -375,7 +375,6 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
             );
         }
 
-
         private static DataTable CreateOracleColumnSchemaTable()
         {
             var table = new DataTable();
@@ -397,8 +396,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
         }
 
         private static void AddOracleColumnSchemaRow(DataTable table, string columnName, string baseSchemaName,
-                                                     string baseTableName, string typeName, int columnSize,
-                                                     bool allowDBNull)
+                                                     string baseTableName, string typeName, int columnSize, bool allowDBNull)
         {
             var row = table.NewRow();
 

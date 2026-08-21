@@ -1,5 +1,7 @@
 ﻿# Changelog
 
+All notable changes to JasonQuery from version 0.94 onward are documented in this file. Versions 0.27 through 0.93 predate this changelog and are covered by the historical JasonQuery Release Notes.
+
 ## [0.94] - 2026-08-20
 
 ### Enhancements

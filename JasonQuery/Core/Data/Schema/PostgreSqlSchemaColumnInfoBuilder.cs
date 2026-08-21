@@ -100,9 +100,9 @@ namespace JasonQuery.Core.Data.Schema
                             {
                                 dr["UsedProviderFallback"] = string.Empty;
 
-                                var sColumnName = SchemaRowReader.GetColumnName(dr);
+                                var columnName = SchemaRowReader.GetColumnName(dr);
 
-                                if (collector.TryGet(sColumnName, schema, table, out var info))
+                                if (collector.TryGet(columnName, schema, table, out var info))
                                 {
                                     //update collector
                                     info.BaseDataType = sTrueType;
