@@ -130,7 +130,7 @@ namespace JasonQuery.Core.Data.Schema
 
                             var columnName = SchemaRowReader.GetColumnName(dr);
 
-                            if (collector.TryGet(columnName, out var info))
+                            if (collector.TryGet(columnName, schema, table, out var info))
                             {
                                 //update collector
                                 info.BaseDataType = trueType;

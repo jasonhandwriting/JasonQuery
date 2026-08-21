@@ -252,7 +252,14 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Builders
                 {
                     var columnName = dr.GetSafeString("ColumnName");
 
-                    if (columnInfoCollector != null && columnInfoCollector.TryGet(columnName, out var columnInfo))
+                    if (columnInfoCollector != null &&
+                        columnInfoCollector.TryGet
+                        (
+                            columnName,
+                            dr.GetSafeString("BaseSchemaName"),
+                            dr.GetSafeString("BaseTableName"),
+                            out var columnInfo
+                        ))
                     {
                         var baseSchemaName = columnInfo.BaseSchemaName;
                         var baseTableName = columnInfo.BaseTableName;
