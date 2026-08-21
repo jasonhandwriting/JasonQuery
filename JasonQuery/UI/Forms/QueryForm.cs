@@ -5,8 +5,6 @@ using IconLibrary;
 using JasonLibrary.Core;
 using JasonLibrary.Core.Events;
 using JasonLibrary.Core.Schema.Enums;
-using JasonLibrary.Core.Text;
-using JasonLibrary.Core.Text.Formatting;
 using JasonLibrary.UI.Controls;
 using JasonLibrary.UI.Controls.Stylers;
 using JasonQuery.Core.Arrange;

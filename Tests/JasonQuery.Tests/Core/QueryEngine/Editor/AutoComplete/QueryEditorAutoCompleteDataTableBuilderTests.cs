@@ -232,6 +232,50 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
             );
         }
 
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("Regression")]
+        [TestCategory("AutoComplete")]
+        [TestCategory("Oracle")]
+        public void BuildPeriodSourceRows_DuplicateColumnNamesPreserveEachSourceMetadata()
+        {
+            var schema = CreateOracleColumnSchemaTable();
+
+            AddOracleColumnSchemaRow(schema, "NAME", "SYS", "JQDEMO_DEPARTMENT", "NVARCHAR2", 100, false);
+            AddOracleColumnSchemaRow(schema, "NAME", "SYS", "JQDEMO_EMPLOYEE", "VARCHAR2", 150, true);
+            AddOracleColumnSchemaRow(schema, "NAME", "SYS", "JQDEMO_PRODUCT", "NVARCHAR2", 120, false);
+
+            var result = QueryEditorAutoCompleteDataTableBuilder.BuildAutoCompleteSourceRowsForPeriod
+            (
+                schema,
+                DataSourceType.Oracle
+            );
+
+            CollectionAssert.AreEqual
+            (
+                new[]
+                {
+                    "[SYS.JQDEMO_DEPARTMENT]",
+                    "[SYS.JQDEMO_EMPLOYEE]",
+                    "[SYS.JQDEMO_PRODUCT]"
+                },
+                GetValues(result, "BaseTableName")
+            );
+
+            CollectionAssert.AreEqual
+            (
+                new[] { "NVARCHAR2(100)", "VARCHAR2(150)", "NVARCHAR2(120)" },
+                GetValues(result, "DataType")
+            );
+
+            CollectionAssert.AreEqual
+            (
+                new[] { "N", string.Empty, "N" },
+                GetValues(result, "AllowDBNull")
+            );
+        }
+
         [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("AutoComplete")]
@@ -329,6 +373,47 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
                 new[] { "B", "A" },
                 GetValues(metadata, "SchemaName")
             );
+        }
+
+        private static DataTable CreateOracleColumnSchemaTable()
+        {
+            var table = new DataTable();
+
+            table.Columns.Add("ColumnName");
+            table.Columns.Add("BaseSchemaName");
+            table.Columns.Add("BaseTableName");
+            table.Columns.Add("TypeName");
+            table.Columns.Add("DataType");
+            table.Columns.Add("ColumnSize", typeof(int));
+            table.Columns.Add("NumericPrecision", typeof(int));
+            table.Columns.Add("NumericScale", typeof(int));
+            table.Columns.Add("ProviderSpecificDataType");
+            table.Columns.Add("IsKey", typeof(bool));
+            table.Columns.Add("AllowDBNull", typeof(bool));
+            table.Columns.Add("Comment");
+
+            return table;
+        }
+
+        private static void AddOracleColumnSchemaRow(DataTable table, string columnName, string baseSchemaName,
+                                                     string baseTableName, string typeName, int columnSize, bool allowDBNull)
+        {
+            var row = table.NewRow();
+
+            row["ColumnName"] = columnName;
+            row["BaseSchemaName"] = baseSchemaName;
+            row["BaseTableName"] = baseTableName;
+            row["TypeName"] = typeName;
+            row["DataType"] = "System.String";
+            row["ColumnSize"] = columnSize;
+            row["NumericPrecision"] = 0;
+            row["NumericScale"] = 0;
+            row["ProviderSpecificDataType"] = "System.String";
+            row["IsKey"] = false;
+            row["AllowDBNull"] = allowDBNull;
+            row["Comment"] = string.Empty;
+
+            table.Rows.Add(row);
         }
 
         private static DataTable CreateMetadataTable()

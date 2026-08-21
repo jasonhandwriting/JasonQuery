@@ -251,11 +251,14 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Builders
                 foreach (DataRow dr in dtSchemaTable.AsEnumerable())
                 {
                     var columnName = dr.GetSafeString("ColumnName");
+                    var baseSchemaName = dr.GetSafeString("BaseSchemaName");
+                    var baseTableName = dr.GetSafeString("BaseTableName");
 
-                    if (columnInfoCollector != null && columnInfoCollector.TryGet(columnName, out var columnInfo))
+                    if (columnInfoCollector != null && columnInfoCollector.TryGet(columnName, baseSchemaName, baseTableName, out var columnInfo))
                     {
-                        var baseSchemaName = columnInfo.BaseSchemaName;
-                        var baseTableName = columnInfo.BaseTableName;
+                        baseSchemaName = columnInfo.BaseSchemaName;
+                        baseTableName = columnInfo.BaseTableName;
+
                         var isKey = columnInfo.IsPrimaryKey;
                         var allowDBNull = columnInfo.IsNullable;
                         var row = dt.NewRow();
