@@ -111,6 +111,11 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
 
         public bool TryResolve(QueryEditorAutoCompletePeriodResolveContext context, int positionNew, out QueryEditorAutoCompleteRequest request)
         {
+            return TryResolve(context, positionNew, out request, out _);
+        }
+
+        public bool TryResolve(QueryEditorAutoCompletePeriodResolveContext context, int positionNew, out QueryEditorAutoCompleteRequest request, out bool queryExecutionFailed)
+        {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
@@ -118,13 +123,14 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
 
             context.Validate();
             request = null;
+            queryExecutionFailed = false;
 
             if (!TryAnalyzeContext(context, positionNew, out var resolveState))
             {
                 return false;
             }
 
-            if (!TryBuildAutoCompleteTable(context, resolveState, out var dtPeriod))
+            if (!TryBuildAutoCompleteTable(context, resolveState, out var dtPeriod, out queryExecutionFailed))
             {
                 return false;
             }
@@ -232,9 +238,11 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
             return IsSqlServer ? TextHelper.IsEngAlphabetOrNumber(ch, '_', '.') : TextHelper.IsEngAlphabetOrNumber(ch, '_');
         }
 
-        private bool TryBuildAutoCompleteTable(QueryEditorAutoCompletePeriodResolveContext context, PeriodResolveState resolveState, out DataTable dtPeriod)
+        private bool TryBuildAutoCompleteTable(QueryEditorAutoCompletePeriodResolveContext context, PeriodResolveState resolveState,
+                                               out DataTable dtPeriod, out bool queryExecutionFailed)
         {
             dtPeriod = null;
+            queryExecutionFailed = false;
 
             if (resolveState == null)
             {
@@ -272,7 +280,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
                         var sqlPrompt = SqlTraceHelper.BuildHeaderNewLine("---Get the AutoComplete List (When the . key is pressed)");
                         var sql = string.Format("{0}{1}", sqlPrompt, resolveState.AutoCompleteSql);
 
-                        if (!_schemaQueryExecutor.TryExecute(sql, "When the . key is pressed", out var dtSchemaTable))
+                        if (!_schemaQueryExecutor.TryExecute(sql, "When the . key is pressed", out var dtSchemaTable, out queryExecutionFailed))
                         {
                             return false;
                         }
