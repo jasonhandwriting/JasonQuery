@@ -1,7 +1,7 @@
-﻿using System;
-using JasonQuery.Core.QueryEngine.Editor.AutoComplete.Models;
+﻿using JasonQuery.Core.QueryEngine.Editor.AutoComplete.Models;
 using JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers;
 using JasonQuery.UI.QueryEditor.AutoComplete.Popup;
+using System;
 
 namespace JasonQuery.UI.QueryEditor.AutoComplete.Workflows
 {
@@ -17,7 +17,31 @@ namespace JasonQuery.UI.QueryEditor.AutoComplete.Workflows
 
         void HideSpacePopup();
 
+        void ShowResolveErrorStatus();
+
+        void ClearResolveErrorStatus();
+
         void ShowException(Exception ex);
+    }
+
+    internal enum QueryEditorAutoCompleteFeedbackAction
+    {
+        None = 0,
+        ShowResolveError,
+        ClearResolveError
+    }
+
+    internal static class QueryEditorAutoCompleteFeedbackPolicy
+    {
+        public static QueryEditorAutoCompleteFeedbackAction Resolve(bool queryExecutionFailed, bool autoCompleteSucceeded)
+        {
+            if (autoCompleteSucceeded)
+            {
+                return QueryEditorAutoCompleteFeedbackAction.ClearResolveError;
+            }
+
+            return queryExecutionFailed ? QueryEditorAutoCompleteFeedbackAction.ShowResolveError : QueryEditorAutoCompleteFeedbackAction.None;
+        }
     }
 
     internal sealed class QueryEditorAutoCompleteWorkflowCoordinator
@@ -42,15 +66,19 @@ namespace JasonQuery.UI.QueryEditor.AutoComplete.Workflows
             {
                 var resolveContext = _host.CreatePeriodResolveContext();
 
-                if (!_periodResolver.TryResolve(resolveContext, triggerPositionOverride, out var request))
+                if (!_periodResolver.TryResolve(resolveContext, triggerPositionOverride, out var request, out var queryExecutionFailed))
                 {
                     _host.HidePeriodPopup();
+                    ApplyFeedback(QueryEditorAutoCompleteFeedbackPolicy.Resolve(queryExecutionFailed, false));
+
                     return false;
                 }
 
                 var initialCaretPosition = triggerPositionOverride == 0 ? _host.EditorCurrentPosition : request.TriggerPosition;
+                var succeeded = _popupPresenter.TryPresentPeriod(request, initialCaretPosition);
 
-                return _popupPresenter.TryPresentPeriod(request, initialCaretPosition);
+                ApplyFeedback(QueryEditorAutoCompleteFeedbackPolicy.Resolve(false, succeeded));
+                return succeeded;
             }
             catch (Exception ex)
             {
@@ -66,21 +94,42 @@ namespace JasonQuery.UI.QueryEditor.AutoComplete.Workflows
             {
                 var resolveContext = _host.CreateSpaceResolveContext();
 
-                if (!_spaceResolver.TryResolve(resolveContext, out var request))
+                if (!_spaceResolver.TryResolve(resolveContext, out var request, out var queryExecutionFailed))
                 {
                     _host.HideSpacePopup();
+                    ApplyFeedback(QueryEditorAutoCompleteFeedbackPolicy.Resolve(queryExecutionFailed, false));
+
                     return false;
                 }
 
                 var initialCaretPosition = triggerPositionOverride == 0 ? _host.EditorCurrentPosition : triggerPositionOverride;
+                var succeeded = _popupPresenter.TryPresentSpace(request, initialCaretPosition);
 
-                return _popupPresenter.TryPresentSpace(request, initialCaretPosition);
+                ApplyFeedback(QueryEditorAutoCompleteFeedbackPolicy.Resolve(false, succeeded));
+                return succeeded;
             }
             catch (Exception ex)
             {
                 _host.HideSpacePopup();
                 _host.ShowException(ex);
                 return false;
+            }
+        }
+
+        private void ApplyFeedback(QueryEditorAutoCompleteFeedbackAction action)
+        {
+            switch (action)
+            {
+                case QueryEditorAutoCompleteFeedbackAction.ShowResolveError:
+                    {
+                        _host.ShowResolveErrorStatus();
+                        break;
+                    }
+                case QueryEditorAutoCompleteFeedbackAction.ClearResolveError:
+                    {
+                        _host.ClearResolveErrorStatus();
+                        break;
+                    }
             }
         }
     }

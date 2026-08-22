@@ -2,6 +2,7 @@
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Database.Execution;
+using JasonQuery.Core.Localization;
 using JasonQuery.Core.QueryEngine.Editor.Analysis;
 using JasonQuery.Core.QueryEngine.Editor.AutoComplete.Models;
 using JasonQuery.UI.QueryEditor.AutoComplete.Contexts;
@@ -11,12 +12,15 @@ using JasonQuery.UI.QueryEditor.AutoComplete.State;
 using JasonQuery.UI.QueryEditor.AutoComplete.Workflows;
 using System;
 using System.Data;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace JasonQuery.UI.Forms
 {
     public partial class QueryForm
     {
+        private string _autoCompleteResolveErrorStatusText = string.Empty;
+
         private sealed class QueryEditorAutoCompleteWorkflowHostAdapter : IQueryEditorAutoCompleteWorkflowHost
         {
             private readonly QueryForm _owner;
@@ -51,10 +55,61 @@ namespace JasonQuery.UI.Forms
                 _owner.HideSpaceAutoCompletePopup();
             }
 
+            public void ShowResolveErrorStatus()
+            {
+                _owner.ShowAutoCompleteResolveErrorStatus();
+            }
+
+            public void ClearResolveErrorStatus()
+            {
+                _owner.ClearAutoCompleteResolveErrorStatus();
+            }
+
             public void ShowException(Exception ex)
             {
                 _owner.ShowExceptionMessage(ex);
             }
+        }
+
+        private void ShowAutoCompleteResolveErrorStatus()
+        {
+            var message = LocalizationHelper.GetLanguageString
+            (
+                "AutoComplete failed to retrieve suggestions. See SQL History for details.",
+                "form",
+                GetType().Name,
+                "msg",
+                "AutoCompleteResolveError",
+                "Text"
+            );
+
+            _autoCompleteResolveErrorStatusText = message;
+
+            SetEditorStatusBarInfo(message, Color.DarkRed);
+
+            //Reset the existing status-bar timeout, including when the same error occurs again.
+            lblInfoEditor.Tag = message;
+            c1StatusBar2.Tag = MyGlobal.DateTimeNow();
+        }
+
+        private void ClearAutoCompleteResolveErrorStatus()
+        {
+            if (string.IsNullOrEmpty(_autoCompleteResolveErrorStatusText))
+            {
+                return;
+            }
+
+            if (!string.Equals(lblInfoEditor.Text, _autoCompleteResolveErrorStatusText, StringComparison.Ordinal))
+            {
+                _autoCompleteResolveErrorStatusText = string.Empty;
+                return;
+            }
+
+            SetEditorStatusBarInfo(string.Empty, Color.Black);
+
+            lblInfoEditor.Tag = string.Empty;
+            c1StatusBar2.Tag = string.Empty;
+            _autoCompleteResolveErrorStatusText = string.Empty;
         }
 
         private sealed class QueryEditorAutoCompleteFilterCoordinatorHostAdapter : IQueryEditorAutoCompleteFilterCoordinatorHost

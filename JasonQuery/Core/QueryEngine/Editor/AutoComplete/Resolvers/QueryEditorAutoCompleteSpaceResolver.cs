@@ -19,6 +19,11 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
 
         public bool TryResolve(QueryEditorAutoCompleteSpaceResolveContext context, out QueryEditorAutoCompleteRequest request)
         {
+            return TryResolve(context, out request, out _);
+        }
+
+        public bool TryResolve(QueryEditorAutoCompleteSpaceResolveContext context, out QueryEditorAutoCompleteRequest request, out bool queryExecutionFailed)
+        {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
@@ -26,6 +31,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
 
             context.Validate();
             request = null;
+            queryExecutionFailed = false;
 
             var currentBlock = context.SelectCurrentBlock(false);
 
@@ -44,7 +50,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
                 }
             );
 
-            if (!analysisResult.CanResolve || !TryBuildAutoCompleteTable(context, analysisResult, out var dtSpace))
+            if (!analysisResult.CanResolve || !TryBuildAutoCompleteTable(context, analysisResult, out var dtSpace, out queryExecutionFailed))
             {
                 return false;
             }
@@ -59,9 +65,11 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
         }
 
         private bool TryBuildAutoCompleteTable(QueryEditorAutoCompleteSpaceResolveContext context,
-                                               QueryEditorAutoCompleteSpaceAnalysisResult analysisResult, out DataTable dtSpace)
+                                               QueryEditorAutoCompleteSpaceAnalysisResult analysisResult, out DataTable dtSpace,
+                                               out bool queryExecutionFailed)
         {
             dtSpace = null;
+            queryExecutionFailed = false;
 
             switch (analysisResult.Intent)
             {
@@ -71,12 +79,12 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
                         {
                             case QueryEditorAutoCompleteSpaceSourceKind.ObjectName:
                                 {
-                                    return TryLoadColumnsFromSchema(context, analysisResult.ObjectName, out dtSpace);
+                                    return TryLoadColumnsFromSchema(context, analysisResult.ObjectName, out dtSpace, out queryExecutionFailed);
                                 }
                             case QueryEditorAutoCompleteSpaceSourceKind.SubquerySql:
                             case QueryEditorAutoCompleteSpaceSourceKind.CteSql:
                                 {
-                                    return TryLoadColumnsFromSql(context, analysisResult.SourceSql, out dtSpace);
+                                    return TryLoadColumnsFromSql(context, analysisResult.SourceSql, out dtSpace, out queryExecutionFailed);
                                 }
                             case QueryEditorAutoCompleteSpaceSourceKind.None:
                             default:
@@ -98,9 +106,11 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
             }
         }
 
-        private bool TryLoadColumnsFromSql(QueryEditorAutoCompleteSpaceResolveContext context, string sourceSql, out DataTable dtSpace)
+        private bool TryLoadColumnsFromSql(QueryEditorAutoCompleteSpaceResolveContext context, string sourceSql, out DataTable dtSpace,
+                                           out bool queryExecutionFailed)
         {
             dtSpace = null;
+            queryExecutionFailed = false;
 
             var normalizedSql = (sourceSql ?? string.Empty).Trim().TrimEnd(';');
 
@@ -112,7 +122,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
             var sqlPrompt = SqlTraceHelper.BuildHeaderNewLine("---Get the AutoComplete List (When the SPACE key is pressed)");
             var sql = string.Format("{0}{1}", sqlPrompt, normalizedSql);
 
-            if (!_schemaQueryExecutor.TryExecute(sql, "When the SPACE key is pressed", out var dtSchemaTable))
+            if (!_schemaQueryExecutor.TryExecute(sql, "When the SPACE key is pressed", out var dtSchemaTable, out queryExecutionFailed))
             {
                 return false;
             }
@@ -120,9 +130,11 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
             return TryBuildColumnAutoCompleteTable(context, ref dtSchemaTable, out dtSpace);
         }
 
-        private bool TryLoadColumnsFromSchema(QueryEditorAutoCompleteSpaceResolveContext context, string tableViewName, out DataTable dtSpace)
+        private bool TryLoadColumnsFromSchema(QueryEditorAutoCompleteSpaceResolveContext context, string tableViewName, out DataTable dtSpace,
+                                              out bool queryExecutionFailed)
         {
             dtSpace = null;
+            queryExecutionFailed = false;
 
             if (string.IsNullOrWhiteSpace(tableViewName))
             {
@@ -137,7 +149,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
                 sql = string.Format("{0}SELECT * FROM {1}.{2} WHERE 1 = 2", sqlPrompt, context.ConnectionDatabase, tableViewName);
             }
 
-            if (!_schemaQueryExecutor.TryExecute(sql, "When the SPACE key is pressed", out var dtSchemaTable))
+            if (!_schemaQueryExecutor.TryExecute(sql, "When the SPACE key is pressed", out var dtSchemaTable, out queryExecutionFailed))
             {
                 return false;
             }

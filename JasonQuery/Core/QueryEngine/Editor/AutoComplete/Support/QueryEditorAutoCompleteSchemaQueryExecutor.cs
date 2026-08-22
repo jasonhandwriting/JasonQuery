@@ -7,6 +7,16 @@ using System.Data;
 
 namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
 {
+    internal static class QueryEditorAutoCompleteSchemaQueryExecutionPolicy
+    {
+        public static bool IsSuccessful(DataTable dtData, string errorMessage, out bool queryExecutionFailed)
+        {
+            queryExecutionFailed = !string.IsNullOrWhiteSpace(errorMessage);
+
+            return dtData != null && !queryExecutionFailed;
+        }
+    }
+
     internal sealed class QueryEditorAutoCompleteSchemaQueryExecutor
     {
         private readonly DataSourceType _currentSourceType;
@@ -18,9 +28,15 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
 
         public bool TryExecute(string sql, string traceScenario, out DataTable dtSchemaTable)
         {
-            dtSchemaTable = new DataTable();
+            return TryExecute(sql, traceScenario, out dtSchemaTable, out _);
+        }
 
-             switch (_currentSourceType)
+        public bool TryExecute(string sql, string traceScenario, out DataTable dtSchemaTable, out bool queryExecutionFailed)
+        {
+            dtSchemaTable = new DataTable();
+            queryExecutionFailed = false;
+
+            switch (_currentSourceType)
             {
                 case DataSourceType.Oracle:
                     {
@@ -28,7 +44,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
                         {
                             var dtData = MyGlobal.OracleReader.ExecuteQueryPaged100Rows(sql, 0, 0, out string errorMessage, out dtSchemaTable);
 
-                            return dtData != null && string.IsNullOrEmpty(errorMessage);
+                            return QueryEditorAutoCompleteSchemaQueryExecutionPolicy.IsSuccessful(dtData, errorMessage, out queryExecutionFailed);
                         }
                         catch (Exception)
                         {
@@ -52,7 +68,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
                             var dtData = MyGlobal.PostgreSqlReader.ExecuteQueryPaged100Rows(sql, 0, 0, out bool rollback, out bool permissionDenied,
                                                                                             out errorMessage, out var errorCode, out dtSchemaTable);
 
-                            return dtData != null && string.IsNullOrEmpty(errorMessage);
+                            return QueryEditorAutoCompleteSchemaQueryExecutionPolicy.IsSuccessful(dtData, errorMessage, out queryExecutionFailed);
                         }
                         catch (Exception)
                         {
@@ -84,7 +100,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
                         {
                             var dtData = MyGlobal.SqlServerReader.ExecuteQueryPaged100Rows(sql, 0, 0, out string errorMessage, out dtSchemaTable);
 
-                            return dtData != null && string.IsNullOrEmpty(errorMessage);
+                            return QueryEditorAutoCompleteSchemaQueryExecutionPolicy.IsSuccessful(dtData, errorMessage, out queryExecutionFailed);
                         }
                         catch (Exception)
                         {
@@ -98,7 +114,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
                         {
                             var dtData = MyGlobal.MySqlReader.ExecuteQueryPaged100Rows(sql, 0, 0, out string errorMessage, out dtSchemaTable);
 
-                            return dtData != null && string.IsNullOrEmpty(errorMessage);
+                            return QueryEditorAutoCompleteSchemaQueryExecutionPolicy.IsSuccessful(dtData, errorMessage, out queryExecutionFailed);
                         }
                         catch (Exception)
                         {
