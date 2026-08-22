@@ -1368,6 +1368,15 @@
     <EmbeddedResource Include="Image\Panel_C1Status.png" />
     <EmbeddedResource Include="Image\Panel_C1Status_Dark.png" />
     <Content Include="JasonQuery.ico" />
+    <Content Include="localization\chinese-chs.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="localization\chinese-cht.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="localization\english.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
