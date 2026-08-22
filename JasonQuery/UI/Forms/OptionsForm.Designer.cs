@@ -7065,7 +7065,6 @@ namespace JasonQuery.UI.Forms
             this.grpUpdateInformationSource.TabIndex = 18;
             this.grpUpdateInformationSource.TabStop = false;
             this.grpUpdateInformationSource.Text = "Update Information Source";
-            this.grpUpdateInformationSource.Visible = false;
             // 
             // btnHelp_LocalUpdateFolder
             // 
