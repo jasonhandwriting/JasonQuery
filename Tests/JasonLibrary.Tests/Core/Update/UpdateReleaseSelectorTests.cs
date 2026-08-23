@@ -21,8 +21,7 @@ namespace JasonLibrary.Tests.Core.Update
             var result = new UpdateReleaseSelector().FindUpdate
             (
                 manifest,
-                "0.92",
-                UpdateChannel.Production
+                "0.92"
             );
 
             Assert.IsNotNull(result);
@@ -44,8 +43,7 @@ namespace JasonLibrary.Tests.Core.Update
             var result = new UpdateReleaseSelector().FindUpdate
             (
                 manifest,
-                "0.92.9",
-                UpdateChannel.Test
+                "0.92.9"
             );
 
             Assert.IsNotNull(result);
@@ -56,23 +54,32 @@ namespace JasonLibrary.Tests.Core.Update
         [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("Update")]
-        public void FindUpdate_EqualOnlineVersions_PrefersProductionRelease()
+        public void FindUpdate_PrereleaseFlagDoesNotOverrideThirdPartChannelRule()
         {
             var manifest = CreateManifest
             (
                 CreateRelease("v0.93.0", true),
-                CreateRelease("v0.93.0", false)
+                CreateRelease("v0.93.1", false)
             );
 
-            var result = new UpdateReleaseSelector().FindUpdate
+            var productionResult = new UpdateReleaseSelector().FindUpdate
             (
                 manifest,
-                "0.92.9",
-                UpdateChannel.Test
+                "0.92.0"
             );
 
-            Assert.IsNotNull(result);
-            Assert.AreEqual(UpdateChannel.Production, result.Channel);
+            var testResult = new UpdateReleaseSelector().FindUpdate
+            (
+                manifest,
+                "0.92.9"
+            );
+
+            Assert.IsNotNull(productionResult);
+            Assert.AreEqual("0.93.0", productionResult.Version);
+            Assert.AreEqual(UpdateChannel.Production, productionResult.Channel);
+            Assert.IsNotNull(testResult);
+            Assert.AreEqual("0.93.1", testResult.Version);
+            Assert.AreEqual(UpdateChannel.Test, testResult.Channel);
         }
 
         [TestMethod]
@@ -85,8 +92,7 @@ namespace JasonLibrary.Tests.Core.Update
             var result = new UpdateReleaseSelector().FindUpdate
             (
                 manifest,
-                "0.92",
-                UpdateChannel.Production
+                "0.92"
             );
 
             Assert.IsNull(result);
@@ -108,11 +114,31 @@ namespace JasonLibrary.Tests.Core.Update
             var result = new UpdateReleaseSelector().FindUpdate
             (
                 CreateManifest(draft, invalidDigest),
-                "0.92",
-                UpdateChannel.Production
+                "0.92"
             );
 
             Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("Update")]
+        public void FindLatest_ReturnsNewestReleaseForRequestedChannel()
+        {
+            var manifest = CreateManifest
+            (
+                CreateRelease("v0.94.0", false),
+                CreateRelease("v0.95.0", false),
+                CreateRelease("v0.95.1", true),
+                CreateRelease("v0.95.2", true)
+            );
+
+            var selector = new UpdateReleaseSelector();
+            var production = selector.FindLatest(manifest, UpdateChannel.Production);
+            var test = selector.FindLatest(manifest, UpdateChannel.Test);
+
+            Assert.AreEqual("0.95.0", production.Version);
+            Assert.AreEqual("0.95.2", test.Version);
         }
 
         private static UpdateMetadataManifest CreateManifest(params UpdateReleaseMetadata[] releases)
@@ -127,7 +153,8 @@ namespace JasonLibrary.Tests.Core.Update
 
         private static UpdateReleaseMetadata CreateRelease(string version, bool prerelease)
         {
-            var packageName = prerelease ? UpdateMetadataSettingsContract.TestPackageFileName : UpdateMetadataSettingsContract.ProductionPackageFileName;
+            var channel = UpdateChannelResolver.Resolve(version);
+            var packageName = channel == UpdateChannel.Test ? UpdateMetadataSettingsContract.TestPackageFileName : UpdateMetadataSettingsContract.ProductionPackageFileName;
 
             return new UpdateReleaseMetadata
             {

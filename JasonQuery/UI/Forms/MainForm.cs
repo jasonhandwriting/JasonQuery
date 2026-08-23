@@ -2,6 +2,7 @@
 using JasonLibrary.Core;
 using JasonLibrary.Core.Events;
 using JasonLibrary.Core.Text.Formatting;
+using JasonLibrary.Core.Update;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Data;
 using JasonQuery.Core.Data.DataRows;
@@ -57,6 +58,12 @@ namespace JasonQuery.UI.Forms
         private DateTime? _pendingTransactionWarningNextTime; //按下 OK 後，間隔 5 分鐘後再跳一次提示訊息，避免使用者忘記 Commit 或 Rollback
         private string _pendingTransactionMessage = string.Empty;
         private static HashSet<string> SpecialTabName;
+
+        private enum UpdateCheckScheduleOperation
+        {
+            Query,
+            MarkCompleted
+        }
 
         //20250602 簡化資料庫判斷方式
         private DataSourceType _currentSourceType;
@@ -249,7 +256,6 @@ namespace JasonQuery.UI.Forms
 
                 //尚未登入前，標題列顯示的內容
                 Text = $"{Tag}{version}";
-
                 AppConfigHelper.JasonQueryVersion = $"{Tag} {AppConfigHelper.LocalVersion}";
 
                 if (JasonQueryRepository.CheckDBPassword(string.Empty))
@@ -311,18 +317,19 @@ namespace JasonQuery.UI.Forms
                 #region 判斷是否要檢查新版本
                 if (MyLibrary.CheckForUpdate)
                 {
-                    var isNeedToCheckUpdate = MyLibrary.CheckForUpdateValue == 0 || VerifyCheckForUpdate("Query");
+                    var isNeedToCheckUpdate = MyLibrary.CheckForUpdateValue == 0 || VerifyCheckForUpdate(UpdateCheckScheduleOperation.Query);
 
                     if (isNeedToCheckUpdate)
                     {
-                        var form = new UpdateForm
+                        using (var form = new UpdateForm { IsCheckOnStartup = true })
                         {
-                            IsCheckOnStartup = true
-                        };
+                            form.ShowDialog();
 
-                        form.ShowDialog();
-
-                        VerifyCheckForUpdate("Update");
+                            if (form.UpdateCheckCompletedSuccessfully)
+                            {
+                                VerifyCheckForUpdate(UpdateCheckScheduleOperation.MarkCompleted);
+                            }
+                        }
                     }
                 }
                 #endregion
@@ -348,6 +355,8 @@ namespace JasonQuery.UI.Forms
                 {
                     LoadConnectionForm();
                 }
+
+                AppConfigHelper.JasonQueryVersion = $"{Tag} {AppConfigHelper.LocalVersion}, {DatabaseSqlExecutor.DatabaseVersionDisplayText}";
 
                 AppConfigHelper.MainFormLeft = Left;
                 AppConfigHelper.MainFormTop = Top;
@@ -1283,6 +1292,21 @@ namespace JasonQuery.UI.Forms
             //CheckForUpdateDays：若新插入則預設 7，並取值
             EnsureInsert("CheckForUpdateDays", "7"); //20200715 此處要寫入記錄，否則第一次啟動時找不到 JasonQuery.db，產生 JasonQuery.db 後，馬上就會檢查更新
             MyLibrary.CheckForUpdateValue = GetInt("CheckForUpdateDays", 7);
+
+            MyLibrary.UpdateMetadataSource = UpdateMetadataSettingsContract.ParseSource
+            (
+                GetString
+                (
+                    UpdateMetadataSettingsContract.SourceSettingName,
+                    UpdateMetadataSettingsContract.DefaultSource.ToString()
+                )
+            );
+
+            MyLibrary.UpdateMetadataLocalFolder = GetString
+            (
+                UpdateMetadataSettingsContract.LocalFolderSettingName,
+                string.Empty
+            );
 
             AppConfigHelper.IsBackupFile = GetBool("BackupFile", true);
             AppConfigHelper.AskBeforeOpenUnsavedFiles = GetBool("AskMeBeforeOpenUnsavedFiles", false);
@@ -5350,13 +5374,13 @@ namespace JasonQuery.UI.Forms
             AppConfigHelper.MainFormTop = Top;
         }
 
-        private static bool VerifyCheckForUpdate(string sMode)
+        private static bool VerifyCheckForUpdate(UpdateCheckScheduleOperation operation)
         {
             var sql = string.Empty;
             var result = false;
             var sbSql = new StringBuilder();
 
-            if (sMode == "Query")
+            if (operation == UpdateCheckScheduleOperation.Query)
             {
                 //查詢是否需要更新
                 sbSql.AppendLine("SELECT AttributeDate FROM SystemConfig");
@@ -5386,8 +5410,8 @@ namespace JasonQuery.UI.Forms
                         //日期格式有錯誤
                         sbSql.Clear();
                         sbSql.AppendLine("UPDATE SystemConfig");
-                        sbSql.AppendLine($"   SET AttributeDate = '{MyGlobal.DomainUser}'");
-                        sbSql.AppendLine($" WHERE DomainUser = '{DateTime.Now:yyyy/MM/dd 00:00:00}'");
+                        sbSql.AppendLine($"   SET AttributeDate = '{DateTime.Now:yyyy/MM/dd 00:00:00}'");
+                        sbSql.AppendLine($" WHERE DomainUser = '{MyGlobal.DomainUser}'");
                         sbSql.AppendLine("   AND AttributeKey = 'GlobalConfig'");
                         sbSql.Append("   AND AttributeName = 'CheckForUpdateDays'");
 

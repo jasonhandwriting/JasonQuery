@@ -79,13 +79,104 @@ namespace JasonLibrary.Tests.Core.Update
             }
         }
 
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("Update")]
+        public async Task LoadAsync_HttpNotFound_ThrowsClassifiedFailureWithLocation()
+        {
+            var handler = new RecordingHttpMessageHandler(string.Empty, HttpStatusCode.NotFound);
+
+            using (var httpClient = new HttpClient(handler))
+            using (var provider = new UpdateMetadataProvider(httpClient, "JasonQuery.Tests/1.0"))
+            {
+                var exception = await Assert.ThrowsExactlyAsync<UpdateMetadataLoadException>
+                (
+                    () => provider.LoadAsync
+                    (
+                        UpdateMetadataSourceKind.OfficialWebsite,
+                        string.Empty,
+                        CancellationToken.None
+                    )
+                );
+
+                Assert.AreEqual(UpdateMetadataFailureKind.NotFound, exception.FailureKind);
+                Assert.AreEqual(HttpStatusCode.NotFound, exception.StatusCode.Value);
+                Assert.AreEqual(UpdateMetadataSettingsContract.OfficialWebsiteMetadataUrl, exception.Location);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("Update")]
+        public async Task LoadAsync_LocalFileMissing_ThrowsClassifiedFailureWithPath()
+        {
+            var folder = Path.Combine(Path.GetTempPath(), "JasonQueryUpdateTests", Guid.NewGuid().ToString("N"));
+
+            Directory.CreateDirectory(folder);
+
+            try
+            {
+                using (var httpClient = new HttpClient(new RecordingHttpMessageHandler("[]")))
+                using (var provider = new UpdateMetadataProvider(httpClient, "JasonQuery.Tests/1.0"))
+                {
+                    var exception = await Assert.ThrowsExactlyAsync<UpdateMetadataLoadException>
+                    (
+                        () => provider.LoadAsync
+                        (
+                            UpdateMetadataSourceKind.LocalFolder,
+                            folder,
+                            CancellationToken.None
+                        )
+                    );
+
+                    Assert.AreEqual(UpdateMetadataFailureKind.NotFound, exception.FailureKind);
+                    Assert.AreEqual(Path.Combine(folder, UpdateMetadataSettingsContract.MetadataFileName), exception.Location);
+                    Assert.IsNull(exception.StatusCode);
+                }
+            }
+            finally
+            {
+                if (Directory.Exists(folder))
+                {
+                    Directory.Delete(folder, true);
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("Update")]
+        public async Task LoadAsync_RequestTimeout_ThrowsClassifiedFailure()
+        {
+            var handler = new ThrowingHttpMessageHandler(new TaskCanceledException("Timed out."));
+
+            using (var httpClient = new HttpClient(handler))
+            using (var provider = new UpdateMetadataProvider(httpClient, "JasonQuery.Tests/1.0"))
+            {
+                var exception = await Assert.ThrowsExactlyAsync<UpdateMetadataLoadException>
+                (
+                    () => provider.LoadAsync
+                    (
+                        UpdateMetadataSourceKind.OfficialWebsite,
+                        string.Empty,
+                        CancellationToken.None
+                    )
+                );
+
+                Assert.AreEqual(UpdateMetadataFailureKind.Timeout, exception.FailureKind);
+                Assert.AreEqual(UpdateMetadataSettingsContract.OfficialWebsiteMetadataUrl, exception.Location);
+            }
+        }
+
         private sealed class RecordingHttpMessageHandler : HttpMessageHandler
         {
             private readonly string _json;
+            private readonly HttpStatusCode _statusCode;
 
-            public RecordingHttpMessageHandler(string json)
+            public RecordingHttpMessageHandler(string json, HttpStatusCode statusCode = HttpStatusCode.OK)
             {
                 _json = json;
+                _statusCode = statusCode;
             }
 
             public int RequestCount { get; private set; }
@@ -109,11 +200,26 @@ namespace JasonLibrary.Tests.Core.Update
 
                 return Task.FromResult
                 (
-                    new HttpResponseMessage(HttpStatusCode.OK)
+                    new HttpResponseMessage(_statusCode)
                     {
                         Content = new StringContent(_json)
                     }
                 );
+            }
+        }
+
+        private sealed class ThrowingHttpMessageHandler : HttpMessageHandler
+        {
+            private readonly Exception _exception;
+
+            public ThrowingHttpMessageHandler(Exception exception)
+            {
+                _exception = exception;
+            }
+
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                return Task.FromException<HttpResponseMessage>(_exception);
             }
         }
     }

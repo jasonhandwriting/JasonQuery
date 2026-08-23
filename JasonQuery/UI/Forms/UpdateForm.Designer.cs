@@ -77,14 +77,14 @@
             // 
             // lnkCheck
             // 
-            this.lnkCheck.AutoSize = true;
+            this.lnkCheck.AutoEllipsis = true;
             this.lnkCheck.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.lnkCheck.Location = new System.Drawing.Point(23, 29);
             this.lnkCheck.Name = "lnkCheck";
-            this.lnkCheck.Size = new System.Drawing.Size(305, 16);
+            this.lnkCheck.Size = new System.Drawing.Size(382, 16);
             this.lnkCheck.TabIndex = 3;
             this.lnkCheck.TabStop = true;
-            this.lnkCheck.Text = "http://www.jasonquery.org/JasonQueryUpdate/jq.txt";
+            this.lnkCheck.Text = "jasonquery-update.json";
             this.lnkCheck.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkCheck_LinkClicked);
             // 
             // grpDownloadInfo

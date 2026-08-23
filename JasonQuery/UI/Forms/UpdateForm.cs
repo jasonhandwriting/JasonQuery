@@ -1,13 +1,15 @@
-﻿using JasonQuery.Core.Config;
+﻿using JasonLibrary.Core;
+using JasonLibrary.Core.Update;
+using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
-using JasonQuery.Core.Text;
-using JasonQuery.Services;
 using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace JasonQuery.UI.Forms
@@ -16,16 +18,19 @@ namespace JasonQuery.UI.Forms
     {
         public bool IsCheckOnStartup { get; set; }
 
+        public bool UpdateCheckCompletedSuccessfully { get; private set; }
+
         private readonly MessageForm _messageForm = new MessageForm();
         private const string EnvironmentProd = "PROD";
         private const string EnvironmentTest = "TEST";
+        private UpdateReleaseSelection _selectedRelease;
 
         public UpdateForm()
         {
             InitializeComponent();
         }
 
-        private void Form_Load(object sender, EventArgs e)
+        private async void Form_Load(object sender, EventArgs e)
         {
             try
             {
@@ -38,13 +43,22 @@ namespace JasonQuery.UI.Forms
                     AutoPopDelay = 5000
                 };
 
-                var languageText = string.Empty;
+                var manualUpdateHelpToolTip = LocalizationHelper.GetLanguageString("How to update manually", "form", GetType().Name, "object", "btnHelp_HowToUpdate", "ToolTipText");
 
-                languageText = LocalizationHelper.GetLanguageString("Use JasonQuery to download the file directly", "form", GetType().Name, "msg", "DownloadWithJasonQuery", "Text");
-                toolTip1.SetToolTip(lnkDownloadJasonQuery64, languageText);
+                toolTip1.SetToolTip(btnHelp_HowToUpdate, manualUpdateHelpToolTip);
 
-                languageText = LocalizationHelper.GetLanguageString("How to update manually", "form", GetType().Name, "object", "btnHelp_HowToUpdate", "ToolTipText");
-                toolTip1.SetToolTip(btnHelp_HowToUpdate, languageText);
+                ConfigureMetadataLink
+                (
+                    UpdateSourceResolver.ResolveMetadata
+                    (
+                        MyLibrary.UpdateMetadataSource,
+                        MyLibrary.UpdateMetadataLocalFolder
+                    )
+                );
+
+                lnkDownloadJasonQuery64.Enabled = false;
+                lnkDownloadJasonQuery64Test.Enabled = false;
+                btnUpdateNow.Enabled = false;
 
                 lblLength.Text = grpDownloadInfo.Text;
                 grpDownloadInfo.Text += "   ";
@@ -55,18 +69,19 @@ namespace JasonQuery.UI.Forms
                     //顯示 MessageForm
                     _messageForm.TopLevel = true;
 
-                    var message = string.Empty;
+                    var updateCheckCaption = LocalizationHelper.GetLanguageString("Check for Updates", "form", GetType().Name, "msg", "CheckforUpdatesTitle", "Text");
 
-                    message = LocalizationHelper.GetLanguageString("Check for Updates", "form", GetType().Name, "msg", "CheckforUpdatesTitle", "Text");
-                    _messageForm.Caption = message;
-                    message = LocalizationHelper.GetLanguageString("check for updates on startup...", "form", GetType().Name, "msg", "CheckforUpdatesInfo", "Text");
-                    _messageForm.Info = message;
+                    _messageForm.Caption = updateCheckCaption;
+
+                    var updateCheckInformation = LocalizationHelper.GetLanguageString("check for updates on startup...", "form", GetType().Name, "msg", "CheckforUpdatesInfo", "Text");
+
+                    _messageForm.Info = updateCheckInformation;
                     _messageForm.StartPosition = FormStartPosition.CenterScreen;
                     _messageForm.IsNeedToMovePosition = true; //20231111 加入此變數，MessageForm 顯示於螢幕中央時，視窗的位置再往上調整一些，如果有錯誤發生時，MessageBox 才不會剛好擋住 MessageForm！
                     _messageForm.Show();
                     _messageForm.Refresh();
 
-                    CheckForUpdates1();
+                    await CheckForUpdatesAsync();
                 }
                 else
                 {
@@ -75,53 +90,94 @@ namespace JasonQuery.UI.Forms
             }
             catch (Exception ex)
             {
+                CloseStartupMessage();
+
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
+                if (IsCheckOnStartup)
+                {
+                    Close();
+                }
+                else
+                {
+                    Show();
+                }
             }
         }
 
-        private void btnCheckForUpdates_Click(object sender, EventArgs e)
+        private async void btnCheckForUpdates_Click(object sender, EventArgs e)
         {
-            CheckForUpdates1();
+            await CheckForUpdatesAsync();
         }
 
-        private void CheckForUpdates1()
+        private async Task CheckForUpdatesAsync()
         {
-            //20240315 此處不能用 https 網址，否則 CheckForUpdates2 函數會引發例外錯誤 (無法建立 SSL 通道)
-            const string address = "http://www.jasonquery.org/JasonQueryUpdate/";
+            var source = MyLibrary.UpdateMetadataSource;
+            UpdateContentLocation metadataLocation = null;
 
             try
             {
                 Cursor = Cursors.WaitCursor;
+                btnCheckForUpdates.Enabled = false;
+                btnUpdateNow.Enabled = false;
+                UpdateCheckCompletedSuccessfully = false;
+                _selectedRelease = null;
 
-                var fileName = Path.GetFileName(Path.GetTempFileName()).Replace(".", string.Empty);
-                var targetFileName = $"{fileName}_jq_{DateTime.Now:yyyyMMddHHmmss}.txt";
+                var localFolder = MyLibrary.UpdateMetadataLocalFolder;
 
-                //是否為預覽版本
-                //sResult 若為空值，表示目前使用的版本為最新的
-                //sResult 若有兩個小數點，且最後不是 .0，表示目前使用的版本為測試版
-                var result = CheckForUpdates2(AppConfigHelper.LocalVersion, address, "jq.txt", targetFileName);
+                metadataLocation = UpdateSourceResolver.ResolveMetadata(source, localFolder);
 
-                var isBetaVersion = IsBetaVersion(AppConfigHelper.LocalVersion);
-                var versionDescript = LocalizationHelper.GetLanguageString("(Production Version)", "form", GetType().Name, "msg", "ProductionVersion", "Text");
+                var installedChannel = UpdateChannelResolver.Resolve(AppConfigHelper.LocalVersion);
+                UpdateMetadataManifest manifest;
 
-                if (isBetaVersion)
+                using (var provider = new UpdateMetadataProvider($"JasonQuery/{AppConfigHelper.LocalVersion}"))
                 {
-                    versionDescript = LocalizationHelper.GetLanguageString("(Beta Version)", "form", GetType().Name, "msg", "BetaVersion", "Text");
+                    manifest = await provider.LoadAsync(source, localFolder, CancellationToken.None);
                 }
+
+                var selector = new UpdateReleaseSelector();
+
+                _selectedRelease = selector.FindUpdate
+                (
+                    manifest,
+                    AppConfigHelper.LocalVersion
+                );
+
+                ConfigureMetadataLink(metadataLocation);
+
+                ConfigurePackageLink
+                (
+                    lnkDownloadJasonQuery64,
+                    source,
+                    localFolder,
+                    selector.FindLatest(manifest, UpdateChannel.Production)
+                );
+
+                ConfigurePackageLink
+                (
+                    lnkDownloadJasonQuery64Test,
+                    source,
+                    localFolder,
+                    selector.FindLatest(manifest, UpdateChannel.Test)
+                );
+
+                var displayChannel = _selectedRelease?.Channel ?? installedChannel;
+                var versionDescription = GetVersionDescription(displayChannel);
 
                 btnCheckForUpdates.Visible = false;
                 lblInfo.Visible = true;
                 lblInfo2.Visible = true;
+                btnUpdateNow.Enabled = _selectedRelease != null && source == UpdateMetadataSourceKind.OfficialWebsite;
+                UpdateCheckCompletedSuccessfully = true;
 
-                _messageForm.Hide();
-                _messageForm.Close();
+                CloseStartupMessage();
 
-                if (!string.IsNullOrEmpty(result))
+                if (_selectedRelease != null)
                 {
                     lblInfo.Text = LocalizationHelper.GetLanguageString("A new version of JasonQuery is available:", "form", GetType().Name, "object", "lblInfoHasNewVersion", "Text");
-                    lblInfo2.Text = $"{result} {versionDescript}";
+                    lblInfo2.Text = $"{_selectedRelease.Version} {versionDescription}";
 
                     lblInfo.ForeColor = Color.DarkGreen;
                     lblInfo2.ForeColor = Color.DarkGreen;
@@ -137,58 +193,195 @@ namespace JasonQuery.UI.Forms
                     {
                         Cursor = Cursors.Default;
 
-                        //先 Hide() 再 Dispose()，UpdateForm 不會有感覺，很順！
+                        //啟動時沒有新版本，直接關閉 UpdateForm
                         Hide();
-                        Dispose();
+                        Close();
+                        return;
                     }
 
                     lblInfo.Text = LocalizationHelper.GetLanguageString("You are using the latest version of JasonQuery.", "form", GetType().Name, "object", "lblInfoLatest", "Text");
-                    lblInfo2.Text = $"{AppConfigHelper.LocalVersion}{versionDescript}";
+                    lblInfo2.Text = $"{AppConfigHelper.LocalVersion} {versionDescription}";
                 }
             }
             catch (Exception ex)
             {
-                var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
+                CloseStartupMessage();
+
+                var message = BuildUpdateCheckFailureMessage(ex, source, metadataLocation);
 
                 MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
+                if (IsCheckOnStartup)
+                {
+                    Hide();
+                    Close();
+                }
             }
             finally
             {
-                Cursor = Cursors.Default;
+                if (!IsDisposed)
+                {
+                    Cursor = Cursors.Default;
+                    btnCheckForUpdates.Enabled = true;
+                }
             }
         }
 
-        private static string CheckForUpdates2(string localVersion, string address, string fileName, string targetFileName)
+        private string BuildUpdateCheckFailureMessage(Exception exception, UpdateMetadataSourceKind source, UpdateContentLocation metadataLocation)
         {
-            var path = Path.GetTempPath();
+            var methodLabel = GetUpdateMessage("Update check method:", "UpdateCheckMethodLabel");
+            var method = GetUpdateCheckMethod(source);
 
-            //取得網路所發佈的版號
-            var versionInfo = CheckForUpdates.GetUpdateInfo(address, fileName, path, targetFileName);
+            var summary = GetUpdateMessage
+            (
+                "JasonQuery could not check for updates. Please verify the update source and try again.",
+                "UpdateCheckFailed"
+            );
 
-            try
-            {
-                File.Delete($"{path}{targetFileName}");
-            }
-            catch (Exception)
-            {
-                //do nothing
-            }
+            var reason = GetUpdateCheckFailureReason(exception, source);
+            var sourceLabel = GetUpdateMessage("Update information source:", "UpdateInformationSourceLabel");
+            var sourceValue = metadataLocation?.Value;
 
-            if (string.IsNullOrEmpty(versionInfo))
+            if (exception is UpdateMetadataLoadException loadException && !string.IsNullOrWhiteSpace(loadException.Location))
             {
-                //20250510 無法取得網路上的版號，返回 0 (可能原因：網路不通、jq.txt 的網址連不上)
-                return string.Empty;
+                sourceValue = loadException.Location;
             }
 
-            //20250410 等於 1，表示網路上版本較新！
-            return TextHelper.CompareVersions(versionInfo, localVersion) == 1 ? versionInfo : string.Empty;
+            if (string.IsNullOrWhiteSpace(sourceValue))
+            {
+                return $"{methodLabel}\r\n{method}\r\n\r\n{summary}\r\n\r\n{reason}";
+            }
+
+            return $"{methodLabel}\r\n{method}\r\n\r\n{summary}\r\n\r\n{reason}\r\n\r\n{sourceLabel}\r\n{sourceValue}";
+        }
+
+        private string GetUpdateCheckMethod(UpdateMetadataSourceKind source)
+        {
+            switch (source)
+            {
+                case UpdateMetadataSourceKind.GitHub:
+                    {
+                        return GetUpdateMessage("GitHub Releases", "UpdateCheckMethodGitHub");
+                    }
+                case UpdateMetadataSourceKind.LocalFolder:
+                    {
+                        return GetUpdateMessage("Company Update Folder", "UpdateCheckMethodLocalFolder");
+                    }
+                case UpdateMetadataSourceKind.OfficialWebsite:
+                default:
+                    {
+                        return GetUpdateMessage("JasonQuery Website", "UpdateCheckMethodOfficialWebsite");
+                    }
+            }
+        }
+
+        private string GetUpdateCheckFailureReason(Exception exception, UpdateMetadataSourceKind source)
+        {
+            if (exception is UpdateMetadataLoadException loadException)
+            {
+                string reason;
+
+                switch (loadException.FailureKind)
+                {
+                    case UpdateMetadataFailureKind.NotFound:
+                        {
+                            reason = source == UpdateMetadataSourceKind.GitHub
+                                     ? GetUpdateMessage("The selected GitHub Releases source was not found.", "UpdateSourceNotFound")
+                                     : GetUpdateMessage("The JasonQuery update information file was not found at the selected source.", "UpdateFileNotFound");
+                            break;
+                        }
+                    case UpdateMetadataFailureKind.AccessDenied:
+                        {
+                            reason = GetUpdateMessage("Access to the update information source was denied.", "UpdateSourceAccessDenied");
+                            break;
+                        }
+                    case UpdateMetadataFailureKind.Timeout:
+                        {
+                            reason = GetUpdateMessage("The update information source did not respond in time.", "UpdateSourceTimeout");
+                            break;
+                        }
+                    case UpdateMetadataFailureKind.Network:
+                        {
+                            reason = GetUpdateMessage("JasonQuery could not connect to the update information source.", "UpdateSourceNetworkError");
+                            break;
+                        }
+                    case UpdateMetadataFailureKind.ServerError:
+                        {
+                            reason = GetUpdateMessage("The update server is temporarily unavailable.", "UpdateSourceServerError");
+                            break;
+                        }
+                    case UpdateMetadataFailureKind.ReadError:
+                        {
+                            reason = GetUpdateMessage("JasonQuery could not read the update information file.", "UpdateFileReadError");
+                            break;
+                        }
+                    default:
+                        {
+                            reason = GetUpdateMessage("The update source returned an unexpected HTTP response.", "UpdateSourceHttpError");
+                            break;
+                        }
+                }
+
+                if (loadException.StatusCode.HasValue)
+                {
+                    reason += $" (HTTP {(int)loadException.StatusCode.Value})";
+                }
+
+                return reason;
+            }
+
+            if (exception is NotSupportedException)
+            {
+                return GetUpdateMessage("The update information format is not supported by this version of JasonQuery.", "UpdateFormatNotSupported");
+            }
+
+            if (exception is FormatException)
+            {
+                return GetUpdateMessage("The update information file contains invalid JSON or data.", "UpdateContentInvalid");
+            }
+
+            return GetUpdateMessage("An unexpected error occurred while checking for updates.", "UpdateUnexpectedError");
+        }
+
+        private string GetUpdateMessage(string defaultText, string id)
+        {
+            return LocalizationHelper.GetLanguageString(defaultText, "form", GetType().Name, "msg", id, "Text");
+        }
+
+        private void ConfigureMetadataLink(UpdateContentLocation location)
+        {
+            lnkCheck.Text = location.Value;
+            lnkCheck.Tag = location;
+            lnkCheck.Enabled = true;
+        }
+
+        private static void ConfigurePackageLink(LinkLabel link, UpdateMetadataSourceKind source, string localFolder, UpdateReleaseSelection selection)
+        {
+            link.Tag = null;
+            link.Enabled = false;
+
+            if (selection == null)
+            {
+                return;
+            }
+
+            link.Text = selection.Asset.Name;
+
+            var location = UpdateSourceResolver.ResolvePackage(source, localFolder, selection.Asset);
+
+            if (location.IsLocalFile && !File.Exists(location.Value))
+            {
+                return;
+            }
+
+            link.Tag = location;
+            link.Enabled = true;
         }
 
         private void lnkCheck_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             lnkCheck.LinkVisited = true;
-
-            Process.Start("http://www.jasonquery.org/JasonQueryUpdate/jq.txt");
+            OpenContentLocation(lnkCheck);
         }
 
         private void btnOK_Click(object sender, EventArgs e)
@@ -199,26 +392,24 @@ namespace JasonQuery.UI.Forms
         private void lnkDownloadJasonQuery64_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             lnkDownloadJasonQuery64.LinkVisited = true;
-
-            Process.Start("http://www.jasonquery.org/JasonQueryUpdate/JasonQuery64.zip");
+            OpenContentLocation(lnkDownloadJasonQuery64);
         }
 
         private void lnkDownloadJasonQuery64Test_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             lnkDownloadJasonQuery64Test.LinkVisited = true;
-
-            Process.Start("http://www.jasonquery.org/JasonQueryUpdate/JasonQuery64Test.zip");
+            OpenContentLocation(lnkDownloadJasonQuery64Test);
         }
 
         private void btnHelp_HowToUpdate_Click(object sender, EventArgs e)
         {
-            var temp0 = LocalizationHelper.GetLanguageString("How to manually update JasonQuery to the latest version:", "form", GetType().Name, "msg", "HowToUpdate0", "Text") + "\r\n\r\n";
-            var temp1 = LocalizationHelper.GetLanguageString("1. Download the latest JasonQuery.7z", "form", GetType().Name, "msg", "HowToUpdate1", "Text") + "\r\n";
-            var temp2 = LocalizationHelper.GetLanguageString("2. Close all open JasonQuery", "form", GetType().Name, "msg", "HowToUpdate2", "Text") + "\r\n";
-            var temp3 = LocalizationHelper.GetLanguageString("3. Unzip \"JasonQuery x64\" or \"JasonQuery x86\" to the folder where JasonQuery is currently located (overwrite all, JasonQuery.7z does not include JasonQuery.db)", "form", GetType().Name, "msg", "HowToUpdate3", "Text") + "\r\n";
-            var temp4 = LocalizationHelper.GetLanguageString("4. Run JasonQuery", "form", GetType().Name, "msg", "HowToUpdate4", "Text");
+            var manualUpdateTitle = LocalizationHelper.GetLanguageString("How to manually update JasonQuery to the latest version:", "form", GetType().Name, "msg", "HowToUpdate0", "Text") + "\r\n\r\n";
+            var downloadPackageStep = LocalizationHelper.GetLanguageString("1. Download the latest JasonQuery64.zip", "form", GetType().Name, "msg", "HowToUpdate1", "Text") + "\r\n";
+            var closeJasonQueryStep = LocalizationHelper.GetLanguageString("2. Close all open JasonQuery", "form", GetType().Name, "msg", "HowToUpdate2", "Text") + "\r\n";
+            var extractPackageStep = LocalizationHelper.GetLanguageString("3. Unzip \"JasonQuery x64\" or \"JasonQuery x86\" to the folder where JasonQuery is currently located (overwrite all, JasonQuery64.zip does not include JasonQuery.db)", "form", GetType().Name, "msg", "HowToUpdate3", "Text") + "\r\n";
+            var runJasonQueryStep = LocalizationHelper.GetLanguageString("4. Run JasonQuery", "form", GetType().Name, "msg", "HowToUpdate4", "Text");
 
-            MessageBox.Show($"{temp0}{temp1}{temp2}{temp3}{temp4}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"{manualUpdateTitle}{downloadPackageStep}{closeJasonQueryStep}{extractPackageStep}{runJasonQueryStep}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnUpdateNow_Click(object sender, EventArgs e)
@@ -227,7 +418,7 @@ namespace JasonQuery.UI.Forms
 
             if (File.Exists(executeName))
             {
-                var environment = ResolveUpdateEnvironment(AppConfigHelper.LocalVersion);
+                var environment = ResolveUpdateEnvironment(_selectedRelease?.Channel ?? UpdateChannelResolver.Resolve(AppConfigHelper.LocalVersion));
 
                 var infoExe = new ProcessStartInfo
                 {
@@ -250,25 +441,63 @@ namespace JasonQuery.UI.Forms
             }
             else
             {
-                var temp = LocalizationHelper.GetLanguageString("File not found:", "form", GetType().Name, "msg", "UpdaterNotFound", "Text");
+                var fileNotFoundMessage = LocalizationHelper.GetLanguageString("File not found:", "form", GetType().Name, "msg", "UpdaterNotFound", "Text");
 
-                MessageBox.Show($"{temp}\r\n\r\n{executeName}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"{fileNotFoundMessage}\r\n\r\n{executeName}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
-        private static string ResolveUpdateEnvironment(string version)
+        private static string ResolveUpdateEnvironment(UpdateChannel channel)
         {
-            return IsBetaVersion(version) ? EnvironmentTest : EnvironmentProd;
+            return channel == UpdateChannel.Test ? EnvironmentTest : EnvironmentProd;
         }
 
-        private static bool IsBetaVersion(string version)
+        private string GetVersionDescription(UpdateChannel channel)
         {
-            if (string.IsNullOrWhiteSpace(version))
+            return channel == UpdateChannel.Test
+                   ? LocalizationHelper.GetLanguageString("(Test Version)", "form", GetType().Name, "msg", "TestVersion", "Text")
+                   : LocalizationHelper.GetLanguageString("(Release Version)", "form", GetType().Name, "msg", "ProductionVersion", "Text");
+        }
+
+        private void OpenContentLocation(LinkLabel link)
+        {
+            if (!(link.Tag is UpdateContentLocation location))
             {
-                return false;
+                return;
             }
 
-            return version.Split('.').Length == 3 && !version.EndsWith(".0", StringComparison.Ordinal);
+            try
+            {
+                Process.Start
+                (
+                    new ProcessStartInfo
+                    {
+                        FileName = location.Value,
+                        UseShellExecute = true
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
+
+                MessageBox.Show
+                (
+                    message,
+                    AppConfigHelper.JasonQueryVersion,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Exclamation
+                );
+            }
+        }
+
+        private void CloseStartupMessage()
+        {
+            if (!_messageForm.IsDisposed)
+            {
+                _messageForm.Hide();
+                _messageForm.Close();
+            }
         }
     }
 }

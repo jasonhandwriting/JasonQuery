@@ -36,7 +36,28 @@ namespace JasonLibrary.Core.Update
 
             if (location.IsLocalFile)
             {
-                var localJson = File.ReadAllText(location.Value);
+                string localJson;
+
+                try
+                {
+                    localJson = File.ReadAllText(location.Value);
+                }
+                catch (FileNotFoundException ex)
+                {
+                    throw CreateLoadException(UpdateMetadataFailureKind.NotFound, location.Value, ex);
+                }
+                catch (DirectoryNotFoundException ex)
+                {
+                    throw CreateLoadException(UpdateMetadataFailureKind.NotFound, location.Value, ex);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    throw CreateLoadException(UpdateMetadataFailureKind.AccessDenied, location.Value, ex);
+                }
+                catch (IOException ex)
+                {
+                    throw CreateLoadException(UpdateMetadataFailureKind.ReadError, location.Value, ex);
+                }
 
                 return _parser.Parse(localJson);
             }
@@ -57,15 +78,83 @@ namespace JasonLibrary.Core.Update
                     );
                 }
 
-                using (var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false))
-                {
-                    response.EnsureSuccessStatusCode();
+                HttpResponseMessage response;
 
-                    var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                try
+                {
+                    response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                }
+                catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+                {
+                    throw CreateLoadException(UpdateMetadataFailureKind.Timeout, location.Value, ex);
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw CreateLoadException(UpdateMetadataFailureKind.Network, location.Value, ex);
+                }
+
+                using (response)
+                {
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw CreateHttpLoadException(location.Value, response.StatusCode);
+                    }
+
+                    string json;
+
+                    try
+                    {
+                        json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    }
+                    catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+                    {
+                        throw CreateLoadException(UpdateMetadataFailureKind.Timeout, location.Value, ex);
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        throw CreateLoadException(UpdateMetadataFailureKind.Network, location.Value, ex);
+                    }
+                    catch (IOException ex)
+                    {
+                        throw CreateLoadException(UpdateMetadataFailureKind.ReadError, location.Value, ex);
+                    }
 
                     return _parser.Parse(json);
                 }
             }
+        }
+
+        private static UpdateMetadataLoadException CreateHttpLoadException(string location, HttpStatusCode statusCode)
+        {
+            var failureKind = statusCode == HttpStatusCode.NotFound
+                              ? UpdateMetadataFailureKind.NotFound
+                              : statusCode == HttpStatusCode.Unauthorized || statusCode == HttpStatusCode.Forbidden
+                                  ? UpdateMetadataFailureKind.AccessDenied
+                                  : statusCode == HttpStatusCode.RequestTimeout
+                                      ? UpdateMetadataFailureKind.Timeout
+                                      : (int)statusCode >= 500
+                                          ? UpdateMetadataFailureKind.ServerError
+                                          : UpdateMetadataFailureKind.HttpError;
+
+            return new UpdateMetadataLoadException
+            (
+                failureKind,
+                location,
+                $"The update information source returned HTTP {(int)statusCode} ({statusCode}).",
+                statusCode
+            );
+        }
+
+        private static UpdateMetadataLoadException CreateLoadException(UpdateMetadataFailureKind failureKind, string location, Exception innerException)
+        {
+            return new UpdateMetadataLoadException
+            (
+                failureKind,
+                location,
+                innerException.Message,
+                null,
+                innerException
+            );
         }
 
         public void Dispose()
