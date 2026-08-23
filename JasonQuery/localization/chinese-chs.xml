@@ -105,7 +105,7 @@
   <language category="form" class="UpdateForm" type="object" id="lblUpdateNow" attribute="Text" name="执行 Updater.exe 并下载和更新最新文件。" />
   <language category="form" class="UpdateForm" type="object" id="btnUpdateNow" attribute="Text" name="立即更新 (一键更新)" />
   <language category="form" class="UpdateForm" type="msg" id="ProductionVersion" attribute="Text" name="(正式版本)" />
-  <language category="form" class="UpdateForm" type="msg" id="BetaVersion" attribute="Text" name="(测试版本)" />
+  <language category="form" class="UpdateForm" type="msg" id="TestVersion" attribute="Text" name="(测试版本)" />
   <language category="form" class="UpdateForm" type="msg" id="CheckforUpdatesTitle" attribute="Text" name="检查更新" />
   <language category="form" class="UpdateForm" type="msg" id="CheckforUpdatesInfo" attribute="Text" name="启动时检查更新..." />
   <language category="form" class="UpdateForm" type="msg" id="Recommended" attribute="Text" name="建议的" />
@@ -121,6 +121,23 @@
   <language category="form" class="UpdateForm" type="msg" id="HowToUpdate3" attribute="Text" name="3. 将 &quot;JasonQuery x64&quot; 或 &quot;JasonQuery x86&quot; 解压缩到 JasonQuery 目前所在的文件夹（全部覆盖，JasonQuery64.zip 不包含 JasonQuery.db）" />
   <language category="form" class="UpdateForm" type="msg" id="HowToUpdate4" attribute="Text" name="4. 执行 JasonQuery" />
   <language category="form" class="UpdateForm" type="msg" id="UpdaterNotFound" attribute="Text" name="文件找不到：" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateCheckFailed" attribute="Text" name="JasonQuery 无法检查更新，请确认更新信息来源后再试一次。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateCheckMethodLabel" attribute="Text" name="更新检查方式：" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateCheckMethodOfficialWebsite" attribute="Text" name="JasonQuery 官网" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateCheckMethodGitHub" attribute="Text" name="GitHub Releases" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateCheckMethodLocalFolder" attribute="Text" name="公司内部更新文件夹" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateInformationSourceLabel" attribute="Text" name="更新信息来源：" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateFileNotFound" attribute="Text" name="在所选来源找不到 JasonQuery 更新信息文件。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateSourceNotFound" attribute="Text" name="找不到指定的 GitHub Releases 更新信息来源。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateSourceAccessDenied" attribute="Text" name="更新信息来源拒绝访问。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateSourceTimeout" attribute="Text" name="更新信息来源未在指定时间内响应。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateSourceNetworkError" attribute="Text" name="JasonQuery 无法连接到更新信息来源。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateSourceServerError" attribute="Text" name="更新服务器目前暂时无法使用。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateSourceHttpError" attribute="Text" name="更新信息来源返回了意外的 HTTP 响应。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateFileReadError" attribute="Text" name="JasonQuery 无法读取更新信息文件。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateContentInvalid" attribute="Text" name="更新信息文件包含无效的 JSON 或数据。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateFormatNotSupported" attribute="Text" name="此版本的 JasonQuery 不支持该更新信息格式。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateUnexpectedError" attribute="Text" name="检查更新时发生意外错误。" />
   <!-- SingleRecordViewerForm-->
   <language category="form" class="SingleRecordViewerForm" type="object" id="this" attribute="Text" name="单笔记录查看器" />
   <language category="form" class="SingleRecordViewerForm" type="object" id="btnFirst" attribute="ToolTipText" name="第一笔记录" />
@@ -735,7 +752,6 @@
   <language category="form" class="SqlHistoryForm" type="object" id="btnWordWrap2" attribute="ToolTipText" name="自动换行" />
   <language category="form" class="SqlHistoryForm" type="object" id="btnShowAllCharacters" attribute="ToolTipText" name="显示所有字符" />
   <language category="form" class="SqlHistoryForm" type="object" id="btnShowAllCharacters2" attribute="ToolTipText" name="显示所有字符" />
-  <language category="form" class="SqlHistoryForm" type="object" id="btnCompact" attribute="ToolTipText" name="压缩 'JasonQuery.db'" />
   <language category="form" class="SqlHistoryForm" type="object" id="chkCopyAsHTML" attribute="Text" name="将 SQL 语句复制成 HTML 格式" />
   <language category="form" class="SqlHistoryForm" type="gridheader" id="DataSource" attribute="Text" name="数据来源" />
   <language category="form" class="SqlHistoryForm" type="gridheader" id="ConnectionName" attribute="Text" name="连线名称" />
@@ -1596,7 +1612,6 @@
   <language category="form" class="EditTableFormData" type="object" id="btnDuplicateCurrentRow" attribute="ToolTipText" name="复制当前行 (Ctrl+Alt+Insert)" />
   <language category="form" class="EditTableFormData" type="object" id="btnDeleteCurrentRow" attribute="ToolTipText" name="删除当前行 (Alt+Delete)" />
   <language category="form" class="EditTableFormData" type="object" id="btnSetNull" attribute="ToolTipText" name="设置为空" />
-  <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="ToolTipText" name="预览 Insert/Update/Delete SQL 语句" />
   <language category="form" class="EditTableFormData" type="object" id="btnApplyEdit" attribute="ToolTipText" name="套用所有更改" />
   <language category="form" class="EditTableFormData" type="object" id="btnCancelEdit" attribute="ToolTipText" name="取消所有更改" />
   <language category="form" class="EditTableFormData" type="object" id="btnCommit" attribute="ToolTipText" name="Commit" />
@@ -1617,7 +1632,7 @@
   <language category="form" class="EditTableFormData" type="object" id="btnZoomIn" attribute="ToolTipText" name="放大&#x000A;Ctrl+鼠标滚轮向上" />
   <language category="form" class="EditTableFormData" type="object" id="btnZoomOut" attribute="ToolTipText" name="缩小&#x000A;Ctrl+鼠标滚轮向下" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="Text" name="SQL 预览" />
-  <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="ToolTipText" name="SQL 预览" />
+  <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="ToolTipText" name="预览 Insert/Update/Delete SQL 语句" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlSelectAll" attribute="ToolTipText" name="全选" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlCopy" attribute="ToolTipText" name="复制" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlSaveAs" attribute="ToolTipText" name="另存为" />
@@ -1628,8 +1643,6 @@
   <language category="form" class="EditTableFormData" type="object" id="btnSqlZoomIn" attribute="ToolTipText" name="放大&#x000A;Ctrl+鼠标滚轮向上" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlZoomOut" attribute="ToolTipText" name="缩小&#x000A;Ctrl+鼠标滚轮向下" />
   <language category="form" class="EditTableFormData" type="object" id="chkShowFilterRow" attribute="Text" name="显示筛选行" />
-  <language category="form" class="EditTableFormData" type="object" id="btnZoomIn" attribute="ToolTipText" name="放大&#x000A;Ctrl+鼠标滚轮向上" />
-  <language category="form" class="EditTableFormData" type="object" id="btnZoomOut" attribute="ToolTipText" name="缩小&#x000A;Ctrl+鼠标滚轮向下" />
   <language category="form" class="EditTableFormData" type="gridheader" id="TableName" attribute="Text" name="表名称" />
   <language category="form" class="EditTableFormData" type="gridheader" id="ColumnName" attribute="Text" name="字段名称" />
   <language category="form" class="EditTableFormData" type="msg" id="FindWhat" attribute="Text" name="查找字符串：" />
@@ -2020,7 +2033,6 @@
   <language category="form" class="OptionsForm" type="msg" id="VB6/VBAStyle2" attribute="Text" name="New line character VbCrLf" />
   <language category="form" class="OptionsForm" type="msg" id="DelphiStyle1" attribute="Text" name="Using + operator" />
   <language category="form" class="OptionsForm" type="msg" id="DelphiStyle2" attribute="Text" name="New line character #13#10" />
-  <language category="form" class="OptionsForm" type="msg" id="SelectBackupFolder" attribute="Text" name="选择备份路径..." />
   <language category="form" class="OptionsForm" type="msg" id="SelectBackupFolder" attribute="Text" name="选择备份路径..." />
   <language category="form" class="OptionsForm" type="msg" id="Help_AppendQueryResult" attribute="Text" name="此功能默认为启用。&#x000A;&#x000A;当启用 “分页查询” 且查询成功完成后，按下 “下一页” 时，JasonQuery 会再次执行前一次的查询，并依照目前的页数取得下一批资料。&#x000A;&#x000A;若启用此功能，新取得的数据将会附加在先前的查询结果后方。&#x000A;若停用，查询结果将只显示最新一页的数据。" />
   <language category="form" class="OptionsForm" type="msg" id="Help_AutoComplete" attribute="Text" name="当启用此功能时，JasonQuery 会在您输入 SQL 的过程中，实时分析目前的输入内容，并在符合条件时自动显示可用的成员清单。&#x000A;&#x000A; “最小字符数” 用于控制在输入多少字符后才触发自动完成，可用来避免过于频繁的弹出窗口。&#x000A;&#x000A;下方选项可用来指定自动完成所包含的成员类型，例如内建关键词、函数，或用户自定义的数据库对象。" />

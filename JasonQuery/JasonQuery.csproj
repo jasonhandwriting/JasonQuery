@@ -961,7 +961,6 @@
     </Compile>
     <Compile Include="Infrastructure\Diagnostics\ExceptionMessageFormatter.cs" />
     <Compile Include="Infrastructure\Exceptions\ExceptionHelper.cs" />
-    <Compile Include="Services\CheckForUpdates.cs" />
     <Compile Include="Core\Database\Execution\DatabaseSqlExecutor.cs" />
     <Compile Include="Database\Internal\Repositories\JasonQueryRepository.cs" />
     <Compile Include="Services\ExceptionDialogService.cs" />

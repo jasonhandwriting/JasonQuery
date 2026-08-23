@@ -105,7 +105,7 @@
   <language category="form" class="UpdateForm" type="object" id="lblUpdateNow" attribute="Text" name="Call Updater.exe to download and update lastest files." />
   <language category="form" class="UpdateForm" type="object" id="btnUpdateNow" attribute="Text" name="Update Now (One-Click update)" />
   <language category="form" class="UpdateForm" type="msg" id="ProductionVersion" attribute="Text" name="(Release Version)" />
-  <language category="form" class="UpdateForm" type="msg" id="BetaVersion" attribute="Text" name="(Preview Version)" />
+  <language category="form" class="UpdateForm" type="msg" id="TestVersion" attribute="Text" name="(Test Version)" />
   <language category="form" class="UpdateForm" type="msg" id="CheckforUpdatesTitle" attribute="Text" name="Check for Updates" />
   <language category="form" class="UpdateForm" type="msg" id="CheckforUpdatesInfo" attribute="Text" name="check for updates on startup..." />
   <language category="form" class="UpdateForm" type="msg" id="Recommended" attribute="Text" name="recommended" />
@@ -121,6 +121,23 @@
   <language category="form" class="UpdateForm" type="msg" id="HowToUpdate3" attribute="Text" name="3. Unzip &quot;JasonQuery x64&quot; or &quot;JasonQuery x86&quot; to the folder where JasonQuery is currently located (overwrite all, JasonQuery64.zip does not include JasonQuery.db)" />
   <language category="form" class="UpdateForm" type="msg" id="HowToUpdate4" attribute="Text" name="4. Run JasonQuery" />
   <language category="form" class="UpdateForm" type="msg" id="UpdaterNotFound" attribute="Text" name="File not found:" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateCheckFailed" attribute="Text" name="JasonQuery could not check for updates. Please verify the update source and try again." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateCheckMethodLabel" attribute="Text" name="Update check method:" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateCheckMethodOfficialWebsite" attribute="Text" name="JasonQuery Website" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateCheckMethodGitHub" attribute="Text" name="GitHub Releases" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateCheckMethodLocalFolder" attribute="Text" name="Company Update Folder" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateInformationSourceLabel" attribute="Text" name="Update information source:" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateFileNotFound" attribute="Text" name="The JasonQuery update information file was not found at the selected source." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateSourceNotFound" attribute="Text" name="The selected GitHub Releases source was not found." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateSourceAccessDenied" attribute="Text" name="Access to the update information source was denied." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateSourceTimeout" attribute="Text" name="The update information source did not respond in time." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateSourceNetworkError" attribute="Text" name="JasonQuery could not connect to the update information source." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateSourceServerError" attribute="Text" name="The update server is temporarily unavailable." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateSourceHttpError" attribute="Text" name="The update source returned an unexpected HTTP response." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateFileReadError" attribute="Text" name="JasonQuery could not read the update information file." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateContentInvalid" attribute="Text" name="The update information file contains invalid JSON or data." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateFormatNotSupported" attribute="Text" name="The update information format is not supported by this version of JasonQuery." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdateUnexpectedError" attribute="Text" name="An unexpected error occurred while checking for updates." />
   <!-- SingleRecordViewerForm-->
   <language category="form" class="SingleRecordViewerForm" type="object" id="this" attribute="Text" name="Single Record Viewer" />
   <language category="form" class="SingleRecordViewerForm" type="object" id="btnFirst" attribute="ToolTipText" name="First Record" />
@@ -735,7 +752,6 @@
   <language category="form" class="SqlHistoryForm" type="object" id="btnWordWrap2" attribute="ToolTipText" name="Word Wrap" />
   <language category="form" class="SqlHistoryForm" type="object" id="btnShowAllCharacters" attribute="ToolTipText" name="Show All Characters" />
   <language category="form" class="SqlHistoryForm" type="object" id="btnShowAllCharacters2" attribute="ToolTipText" name="Show All Characters" />
-  <language category="form" class="SqlHistoryForm" type="object" id="btnCompact" attribute="ToolTipText" name="Compact 'JasonQuery.db'" />
   <language category="form" class="SqlHistoryForm" type="object" id="chkCopyAsHTML" attribute="Text" name="Copy SQL Statement As HTML" />
   <language category="form" class="SqlHistoryForm" type="gridheader" id="DataSource" attribute="Text" name="Data Source" />
   <language category="form" class="SqlHistoryForm" type="gridheader" id="ConnectionName" attribute="Text" name="Connection Name" />
@@ -1596,7 +1612,6 @@
   <language category="form" class="EditTableFormData" type="object" id="btnDuplicateCurrentRow" attribute="ToolTipText" name="Duplicate Current Row (Ctrl+Alt+Insert)" />
   <language category="form" class="EditTableFormData" type="object" id="btnDeleteCurrentRow" attribute="ToolTipText" name="Delete Current Row (Alt+Delete)" />
   <language category="form" class="EditTableFormData" type="object" id="btnSetNull" attribute="ToolTipText" name="Set to Null" />
-  <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="ToolTipText" name="Preview Insert/Update/Delete SQL statements" />
   <language category="form" class="EditTableFormData" type="object" id="btnApplyEdit" attribute="ToolTipText" name="Apply All Changes" />
   <language category="form" class="EditTableFormData" type="object" id="btnCancelEdit" attribute="ToolTipText" name="Cancel All Changes" />
   <language category="form" class="EditTableFormData" type="object" id="btnCommit" attribute="ToolTipText" name="Commit" />
@@ -1617,7 +1632,7 @@
   <language category="form" class="EditTableFormData" type="object" id="btnZoomIn" attribute="ToolTipText" name="Zoom In&#x000A;Ctrl+Mouse Wheel Up" />
   <language category="form" class="EditTableFormData" type="object" id="btnZoomOut" attribute="ToolTipText" name="Zoom Out&#x000A;Ctrl+Mouse Wheel Down" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="Text" name="SQL Preview" />
-  <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="ToolTipText" name="SQL Preview" />
+  <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="ToolTipText" name="Preview Insert/Update/Delete SQL statements" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlSelectAll" attribute="ToolTipText" name="Select All" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlCopy" attribute="ToolTipText" name="Copy" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlSaveAs" attribute="ToolTipText" name="Save As" />
@@ -1628,8 +1643,6 @@
   <language category="form" class="EditTableFormData" type="object" id="btnSqlZoomIn" attribute="ToolTipText" name="Zoom In&#x000A;Ctrl+Mouse Wheel Up" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlZoomOut" attribute="ToolTipText" name="Zoom Out&#x000A;Ctrl+Mouse Wheel Down" />
   <language category="form" class="EditTableFormData" type="object" id="chkShowFilterRow" attribute="Text" name="Show Filter Row" />
-  <language category="form" class="EditTableFormData" type="object" id="btnZoomIn" attribute="ToolTipText" name="Zoom In&#x000A;Ctrl+Mouse Wheel Up" />
-  <language category="form" class="EditTableFormData" type="object" id="btnZoomOut" attribute="ToolTipText" name="Zoom Out&#x000A;Ctrl+Mouse Wheel Down" />
   <language category="form" class="EditTableFormData" type="gridheader" id="TableName" attribute="Text" name="Table Name" />
   <language category="form" class="EditTableFormData" type="gridheader" id="ColumnName" attribute="Text" name="Column Name" />
   <language category="form" class="EditTableFormData" type="msg" id="FindWhat" attribute="Text" name="Find What:" />
@@ -2020,7 +2033,6 @@
   <language category="form" class="OptionsForm" type="msg" id="VB6/VBAStyle2" attribute="Text" name="New line character VbCrLf" />
   <language category="form" class="OptionsForm" type="msg" id="DelphiStyle1" attribute="Text" name="Using + operator" />
   <language category="form" class="OptionsForm" type="msg" id="DelphiStyle2" attribute="Text" name="New line character #13#10" />
-  <language category="form" class="OptionsForm" type="msg" id="SelectBackupFolder" attribute="Text" name="Select Backup Folder..." />
   <language category="form" class="OptionsForm" type="msg" id="SelectBackupFolder" attribute="Text" name="Select Backup Folder..." />
   <language category="form" class="OptionsForm" type="msg" id="Help_AppendQueryResult" attribute="Text" name="This feature is enabled by default.&#x000A;&#x000A;When Paging is enabled and a query completes successfully, pressing &quot;Next Page&quot; will re-execute the previous query to retrieve the next set of rows.&#x000A;&#x000A;If enabled, the new results will be appended to the existing results.&#x000A;If disabled, only the latest page of results will be displayed." />
   <language category="form" class="OptionsForm" type="msg" id="Help_AutoComplete" attribute="Text" name="When this option is enabled, JasonQuery analyzes your SQL input while typing and automatically displays a list of matching members when the conditions are met.&#x000A;&#x000A;The minimum fragment length controls how many characters are required before Auto Complete is triggered, helping to avoid excessive popups.&#x000A;&#x000A;The options below allow you to specify which types of members are included in Auto Complete, such as built-in keywords, functions, or user-defined database objects." />
