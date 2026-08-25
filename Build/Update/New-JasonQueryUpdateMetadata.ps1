@@ -507,7 +507,11 @@ if (-not [string]::IsNullOrWhiteSpace($ReportPath)) {
             "[PASS] Metadata - $metadataFullPath",
             "[PASS] Legacy metadata - $legacyFullPath"
         )
-        [System.IO.File]::AppendAllLines($reportFullPath, $reportLines, (New-Object System.Text.UTF8Encoding($false)))
+        $reportText = [string]::Join([Environment]::NewLine, $reportLines) + [Environment]::NewLine
+        [System.IO.File]::AppendAllText(
+            $reportFullPath,
+            $reportText,
+            (New-Object System.Text.UTF8Encoding($false)))
     }
     catch {
         Write-Warning "Update metadata was generated, but the validation report could not be updated: $($_.Exception.Message)"
