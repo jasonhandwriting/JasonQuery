@@ -108,19 +108,6 @@
   <language category="form" class="UpdateForm" type="msg" id="TestVersion" attribute="Text" name="(測試版本)" />
   <language category="form" class="UpdateForm" type="msg" id="CheckforUpdatesTitle" attribute="Text" name="檢查更新" />
   <language category="form" class="UpdateForm" type="msg" id="CheckforUpdatesInfo" attribute="Text" name="啟動時檢查更新..." />
-  <language category="form" class="UpdateForm" type="msg" id="Recommended" attribute="Text" name="建議的" />
-  <language category="form" class="UpdateForm" type="msg" id="DownloadUpdate1" attribute="Text" name="正在下載更新" />
-  <language category="form" class="UpdateForm" type="msg" id="DownloadUpdate2" attribute="Text" name="正在下載更新...請稍候！" />
-  <language category="form" class="UpdateForm" type="msg" id="From" attribute="Text" name="從" />
-  <language category="form" class="UpdateForm" type="msg" id="To" attribute="Text" name="到" />
-  <language category="form" class="UpdateForm" type="msg" id="OpenWithBrowser" attribute="Text" name="使用預設瀏覽器開啟網址" />
-  <language category="form" class="UpdateForm" type="msg" id="DownloadWithJasonQuery" attribute="Text" name="使用 JasonQuery 直接下載檔案" />
-  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate0" attribute="Text" name="如何手動將 JasonQuery 更新到最新版本：" />
-  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate1" attribute="Text" name="1. 下載最新的 JasonQuery64.zip" />
-  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate2" attribute="Text" name="2. 關閉所有執行中的 JasonQuery" />
-  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate3" attribute="Text" name="3. 將 &quot;JasonQuery x64&quot; 或 &quot;JasonQuery x86&quot; 解壓縮到 JasonQuery 目前所在的資料夾（全部覆蓋，JasonQuery64.zip 不包含 JasonQuery.db）" />
-  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate4" attribute="Text" name="4. 執行 JasonQuery" />
-  <language category="form" class="UpdateForm" type="msg" id="UpdaterNotFound" attribute="Text" name="檔案找不到：" />
   <language category="form" class="UpdateForm" type="msg" id="UpdateCheckFailed" attribute="Text" name="JasonQuery 無法檢查更新，請確認更新資訊來源後再試一次。" />
   <language category="form" class="UpdateForm" type="msg" id="UpdateCheckMethodLabel" attribute="Text" name="更新檢查方式：" />
   <language category="form" class="UpdateForm" type="msg" id="UpdateCheckMethodOfficialWebsite" attribute="Text" name="JasonQuery 官網" />
@@ -138,6 +125,22 @@
   <language category="form" class="UpdateForm" type="msg" id="UpdateContentInvalid" attribute="Text" name="更新資訊檔案包含無效的 JSON 或資料。" />
   <language category="form" class="UpdateForm" type="msg" id="UpdateFormatNotSupported" attribute="Text" name="此版本的 JasonQuery 不支援該更新資訊格式。" />
   <language category="form" class="UpdateForm" type="msg" id="UpdateUnexpectedError" attribute="Text" name="檢查更新時發生非預期錯誤。" />
+  <language category="form" class="UpdateForm" type="msg" id="Recommended" attribute="Text" name="建議的" />
+  <language category="form" class="UpdateForm" type="msg" id="DownloadUpdate1" attribute="Text" name="正在下載更新" />
+  <language category="form" class="UpdateForm" type="msg" id="DownloadUpdate2" attribute="Text" name="正在下載更新...請稍候！" />
+  <language category="form" class="UpdateForm" type="msg" id="From" attribute="Text" name="從" />
+  <language category="form" class="UpdateForm" type="msg" id="To" attribute="Text" name="到" />
+  <language category="form" class="UpdateForm" type="msg" id="OpenWithBrowser" attribute="Text" name="使用預設瀏覽器開啟網址" />
+  <language category="form" class="UpdateForm" type="msg" id="DownloadWithJasonQuery" attribute="Text" name="使用 JasonQuery 直接下載檔案" />
+  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate0" attribute="Text" name="如何手動將 JasonQuery 更新到最新版本：" />
+  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate1" attribute="Text" name="1. 下載最新的 JasonQuery64.zip" />
+  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate2" attribute="Text" name="2. 關閉所有執行中的 JasonQuery" />
+  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate3" attribute="Text" name="3. 將 &quot;JasonQuery x64&quot; 解壓縮到 JasonQuery 目前所在的資料夾（全部覆蓋；JasonQuery64.zip 不包含 JasonQuery.db）" />
+  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate4" attribute="Text" name="4. 執行 JasonQuery" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdaterNotFound" attribute="Text" name="檔案找不到：" />
+  <language category="form" class="UpdateForm" type="msg" id="VerifiedPackageUnavailable" attribute="Text" name="目前沒有可用且已驗證的更新壓縮包。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdaterLaunchFailed" attribute="Text" name="無法啟動 Updater，尚未套用任何更新檔案。" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdaterAlreadyRunning" attribute="Text" name="Updater 已在執行中，請先關閉再開始另一次更新。" />
   <!-- SingleRecordViewerForm-->
   <language category="form" class="SingleRecordViewerForm" type="object" id="this" attribute="Text" name="單筆記錄檢視器" />
   <language category="form" class="SingleRecordViewerForm" type="object" id="btnFirst" attribute="ToolTipText" name="第一筆記錄" />
@@ -257,22 +260,18 @@
   <!-- UpdaterForm-->
   <language category="form" class="UpdaterForm" type="object" id="this" attribute="Text" name="更新程式 - JasonQuery" />
   <language category="form" class="UpdaterForm" type="object" id="lblTitle" attribute="Text" name="下載並更新" />
-  <language category="form" class="UpdaterForm" type="object" id="grpUpdateSource" attribute="Text" name="" />
-  <language category="form" class="UpdaterForm" type="object" id="rdoJasonQueryOfficial" attribute="Text" name="" />
-  <language category="form" class="UpdaterForm" type="object" id="rdoGitHubOfficial" attribute="Text" name="" />
-  <language category="form" class="UpdaterForm" type="object" id="rdoLocal" attribute="Text" name="" />
+  <language category="form" class="UpdaterForm" type="object" id="grpUpdateSource" attribute="Text" name="更新資訊來源" />
+  <language category="form" class="UpdaterForm" type="object" id="rdoJasonQueryOfficial" attribute="Text" name="JasonQuery 官網" />
+  <language category="form" class="UpdaterForm" type="object" id="rdoGitHubOfficial" attribute="Text" name="GitHub Releases" />
+  <language category="form" class="UpdaterForm" type="object" id="rdoLocal" attribute="Text" name="公司內部更新資料夾：" />
   <language category="form" class="UpdaterForm" type="object" id="lblStep1" attribute="Text" name="步驟 1: 手動關閉所有執行中的 JasonQuery" />
-  <language category="form" class="UpdaterForm" type="object" id="lblStep2" attribute="Text" name="步驟 2: 下載 JasonQuery.zip 至暫存路徑" />
-  <language category="form" class="UpdaterForm" type="object" id="lblStep3" attribute="Text" name="步驟 3: 解壓縮 JasonQuery.zip 至暫存路徑" />
-  <language category="form" class="UpdaterForm" type="object" id="lblStep4" attribute="Text" name="步驟 4: 更新檔案並刪除暫存檔案" />
+  <language category="form" class="UpdaterForm" type="object" id="lblStep2" attribute="Text" name="步驟 2: 取得並驗證 JasonQuery.zip" />
+  <language category="form" class="UpdaterForm" type="object" id="lblStep3" attribute="Text" name="步驟 3: 安全解壓縮 JasonQuery.zip" />
+  <language category="form" class="UpdaterForm" type="object" id="lblStep4" attribute="Text" name="步驟 4: 備份並更新檔案；失敗時自動復原" />
   <language category="form" class="UpdaterForm" type="object" id="lblFrom" attribute="Text" name="從:" />
   <language category="form" class="UpdaterForm" type="object" id="lblTo" attribute="Text" name="到: (JasonQuery.exe 的所在路徑)" />
   <language category="form" class="UpdaterForm" type="object" id="btnUpdate" attribute="Text" name="更新(&amp;U)" />
-  <language category="form" class="UpdaterForm" type="msg" id="UpdateProduction" attribute="ToolTipText" name="更新為正式版本！" />
-  <language category="form" class="UpdaterForm" type="msg" id="UpdateBeta" attribute="ToolTipText" name="更新為測試版本！" />
   <language category="form" class="UpdaterForm" type="object" id="btnDownload" attribute="Text" name="下載(&amp;D)" />
-  <language category="form" class="UpdaterForm" type="msg" id="DownloadProduction" attribute="ToolTipText" name="使用預設瀏覽器下載 JasonQuery「正式版本」的壓縮檔！&#x000A;http://www.jasonquery.org/JasonQueryUpdate/JasonQuery64.zip" />
-  <language category="form" class="UpdaterForm" type="msg" id="DownloadBeta" attribute="ToolTipText" name="使用預設瀏覽器下載 JasonQuery「測試版本」的壓縮檔！&#x000A;http://www.jasonquery.org/JasonQueryUpdate/JasonQuery64Test.zip" />
   <language category="form" class="UpdaterForm" type="object" id="grpVersion" attribute="Text" name="版本" />
   <language category="form" class="UpdaterForm" type="object" id="rdoRelease" attribute="Text" name="正式版本(&amp;P)" />
   <language category="form" class="UpdaterForm" type="object" id="rdoPreview" attribute="Text" name="測試版本(&amp;B)" />
@@ -281,14 +280,35 @@
   <language category="form" class="UpdaterForm" type="object" id="grpComplete" attribute="Text" name="更新完畢後" />
   <language category="form" class="UpdaterForm" type="object" id="chkLaunchJQ" attribute="Text" name="啟動 JasonQuery" />
   <language category="form" class="UpdaterForm" type="object" id="chkClose" attribute="Text" name="關閉本程式" />
-  <language category="form" class="UpdaterForm" type="msg" id="UpdateOK" attribute="Text" name="所有檔案已成功更新！" />
   <language category="form" class="UpdaterForm" type="msg" id="CloseJQAutomatically" attribute="Text" name="自動關閉所有正在執行的 JasonQuery？" />
   <language category="form" class="UpdaterForm" type="msg" id="CloseJQAutomatically2" attribute="Text" name="按下「是」按鈕前，請先確認是否需要存檔或執行「Commit / Rollback」指令！" />
   <language category="form" class="UpdaterForm" type="msg" id="UpdateCompleted" attribute="Text" name="更新完畢！" />
   <language category="form" class="UpdaterForm" type="msg" id="PressOK" attribute="Text" name="按下確定關閉本程式。" />
   <language category="form" class="UpdaterForm" type="msg" id="PressOKAndLaunchJasonQuery" attribute="Text" name="按下確定關閉本程式，並自動啟動 JasonQuery。" />
   <language category="form" class="UpdaterForm" type="msg" id="UpdateFailed" attribute="Text" name="更新失敗！" />
-  <language category="form" class="UpdaterForm" type="msg" id="FailedTryAgain" attribute="Text" name="請再試一次或自行手動更新！" />
+  <language category="form" class="UpdaterForm" type="msg" id="StartUpdaterFromJasonQuery" attribute="Text" name="請先在 JasonQuery 選定並驗證可用更新，再啟動 Updater。" />
+  <language category="form" class="UpdaterForm" type="msg" id="VerifiedUpdateToolTip" attribute="ToolTipText" name="完成大小與 SHA-256 驗證後，安裝選定的 JasonQuery 版本。" />
+  <language category="form" class="UpdaterForm" type="msg" id="OpenPackageLocationToolTip" attribute="ToolTipText" name="開啟選定的更新壓縮包位置：" />
+  <language category="form" class="UpdaterForm" type="msg" id="JasonQueryStillRunning" attribute="Text" name="JasonQuery 仍在執行中，請先關閉再開始更新。" />
+  <language category="form" class="UpdaterForm" type="msg" id="PackageSizeMismatch" attribute="Text" name="下載的壓縮包大小與更新資訊不符。" />
+  <language category="form" class="UpdaterForm" type="msg" id="PackageDigestMismatch" attribute="Text" name="下載的壓縮包 SHA-256 與更新資訊不符。" />
+  <language category="form" class="UpdaterForm" type="msg" id="PackageNotFound" attribute="Text" name="找不到選定的更新壓縮包。" />
+  <language category="form" class="UpdaterForm" type="msg" id="PackageInvalid" attribute="Text" name="更新壓縮包已損壞，或包含不安全的壓縮路徑。" />
+  <language category="form" class="UpdaterForm" type="msg" id="PackagePreparationFailed" attribute="Text" name="無法準備更新壓縮包。" />
+  <language category="form" class="UpdaterForm" type="msg" id="UpdateWorkerFailed" attribute="Text" name="無法啟動更新交易；Updater 未刻意套用任何更新檔案。" />
+  <language category="form" class="UpdaterForm" type="msg" id="ProtectedApplicationFile" attribute="Text" name="更新壓縮包包含受保護的應用程式檔案：" />
+  <language category="form" class="UpdaterForm" type="msg" id="WorkerPreparingUpdate" attribute="Text" name="正在準備更新，請稍候。" />
+  <language category="form" class="UpdaterForm" type="msg" id="WorkerCreatingBackup" attribute="Text" name="正在建立並驗證前一版本備份。" />
+  <language category="form" class="UpdaterForm" type="msg" id="WorkerApplyingUpdate" attribute="Text" name="正在安裝並驗證更新檔案。" />
+  <language category="form" class="UpdaterForm" type="msg" id="WorkerRestoringBackup" attribute="Text" name="更新失敗，正在還原並驗證前一版本。" />
+  <language category="form" class="UpdaterForm" type="msg" id="WorkerFinalizingUpdate" attribute="Text" name="正在完成更新並整理舊備份。" />
+  <language category="form" class="UpdaterForm" type="msg" id="WorkerDoNotClose" attribute="Text" name="更新完成前，請勿關閉此視窗或啟動 JasonQuery。" />
+  <language category="form" class="UpdaterForm" type="msg" id="VerifiedBackupLocation" attribute="Text" name="已驗證的前一版本備份儲存於：" />
+  <language category="form" class="UpdaterForm" type="msg" id="VerifiedBackupLocationShort" attribute="Text" name="已驗證的備份位置：" />
+  <language category="form" class="UpdaterForm" type="msg" id="AutomaticRecoveryCompleted" attribute="Text" name="已自動還原前一版本，並完成 SHA-256 驗證。" />
+  <language category="form" class="UpdaterForm" type="msg" id="AutomaticRecoveryFailed" attribute="Text" name="自動復原未能完成；修復安裝內容前，請勿啟動 JasonQuery。" />
+  <language category="form" class="UpdaterForm" type="msg" id="UpdaterLogLocation" attribute="Text" name="Updater 記錄：" />
+  <language category="form" class="UpdaterForm" type="msg" id="LaunchJasonQueryFailed" attribute="Text" name="更新已完成，但無法自動啟動 JasonQuery。" />
   <!-- ConnectionForm-->
   <language category="form" class="ConnectionForm" type="object" id="this" attribute="Text" name="資料庫連線" />
   <language category="form" class="ConnectionForm" type="object" id="thisViewMode" attribute="Text" name="資料庫連線 - 檢視模式" />
@@ -1612,6 +1632,7 @@
   <language category="form" class="EditTableFormData" type="object" id="btnDuplicateCurrentRow" attribute="ToolTipText" name="複製目前列 (Ctrl+Alt+Insert)" />
   <language category="form" class="EditTableFormData" type="object" id="btnDeleteCurrentRow" attribute="ToolTipText" name="刪除目前列 (Alt+Delete)" />
   <language category="form" class="EditTableFormData" type="object" id="btnSetNull" attribute="ToolTipText" name="設定為空" />
+  <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="ToolTipText" name="預覽 Insert/Update/Delete SQL 語句" />
   <language category="form" class="EditTableFormData" type="object" id="btnApplyEdit" attribute="ToolTipText" name="套用所有變更" />
   <language category="form" class="EditTableFormData" type="object" id="btnCancelEdit" attribute="ToolTipText" name="取消所有變更" />
   <language category="form" class="EditTableFormData" type="object" id="btnCommit" attribute="ToolTipText" name="Commit" />
@@ -1632,7 +1653,6 @@
   <language category="form" class="EditTableFormData" type="object" id="btnZoomIn" attribute="ToolTipText" name="放大&#x000A;Ctrl+滑鼠滾輪向上" />
   <language category="form" class="EditTableFormData" type="object" id="btnZoomOut" attribute="ToolTipText" name="縮小&#x000A;Ctrl+滑鼠滾輪向下" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="Text" name="SQL 預覽" />
-  <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="ToolTipText" name="預覽 Insert/Update/Delete SQL 語句" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlSelectAll" attribute="ToolTipText" name="全選" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlCopy" attribute="ToolTipText" name="複製" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlSaveAs" attribute="ToolTipText" name="另存新檔" />

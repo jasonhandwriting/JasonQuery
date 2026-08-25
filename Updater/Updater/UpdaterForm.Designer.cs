@@ -64,7 +64,7 @@
             this.rdoJasonQueryOfficial = new System.Windows.Forms.RadioButton();
             this.rdoGitHubOfficial = new System.Windows.Forms.RadioButton();
             this.rdoLocal = new System.Windows.Forms.RadioButton();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.txtUpdateSource = new System.Windows.Forms.TextBox();
             this.btnBrowseLocalFolder = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.picStep1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picChecked)).BeginInit();
@@ -112,7 +112,7 @@
             this.lblStep4.Name = "lblStep4";
             this.lblStep4.Size = new System.Drawing.Size(272, 16);
             this.lblStep4.TabIndex = 3;
-            this.lblStep4.Text = "Step 4: Update files and Delete temporary filles";
+            this.lblStep4.Text = "Step 4: Back up and update files; restore automatically on failure";
             // 
             // tmrCheck
             // 
@@ -180,7 +180,7 @@
             this.lblStep2.Name = "lblStep2";
             this.lblStep2.Size = new System.Drawing.Size(311, 16);
             this.lblStep2.TabIndex = 95;
-            this.lblStep2.Text = "Step 2: Download JasonQuery.zip to temporary folder";
+            this.lblStep2.Text = "Step 2: Acquire and verify JasonQuery.zip";
             this.lblStep2.Visible = false;
             // 
             // pbDownloadStatus
@@ -226,7 +226,7 @@
             this.rdoPreview.Size = new System.Drawing.Size(68, 20);
             this.rdoPreview.TabIndex = 107;
             this.rdoPreview.Tag = "";
-            this.rdoPreview.Text = "Preview";
+            this.rdoPreview.Text = "Test";
             this.rdoPreview.UseVisualStyleBackColor = false;
             this.rdoPreview.CheckedChanged += new System.EventHandler(this.rdoUpdateBeta_CheckedChanged);
             // 
@@ -250,7 +250,7 @@
             this.lblStep3.Name = "lblStep3";
             this.lblStep3.Size = new System.Drawing.Size(285, 16);
             this.lblStep3.TabIndex = 100;
-            this.lblStep3.Text = "Step 3: Unzip JasonQuery.zip to temporary folder";
+            this.lblStep3.Text = "Step 3: Safely extract JasonQuery.zip";
             this.lblStep3.Visible = false;
             // 
             // picStep3
@@ -385,7 +385,7 @@
             // grpUpdateSource
             // 
             this.grpUpdateSource.Controls.Add(this.btnBrowseLocalFolder);
-            this.grpUpdateSource.Controls.Add(this.textBox1);
+            this.grpUpdateSource.Controls.Add(this.txtUpdateSource);
             this.grpUpdateSource.Controls.Add(this.rdoLocal);
             this.grpUpdateSource.Controls.Add(this.rdoGitHubOfficial);
             this.grpUpdateSource.Controls.Add(this.rdoJasonQueryOfficial);
@@ -394,7 +394,7 @@
             this.grpUpdateSource.Size = new System.Drawing.Size(643, 106);
             this.grpUpdateSource.TabIndex = 119;
             this.grpUpdateSource.TabStop = false;
-            this.grpUpdateSource.Text = "Update Source";
+            this.grpUpdateSource.Text = "Update Information Source";
             // 
             // rdoJasonQueryOfficial
             // 
@@ -404,7 +404,7 @@
             this.rdoJasonQueryOfficial.Size = new System.Drawing.Size(134, 20);
             this.rdoJasonQueryOfficial.TabIndex = 107;
             this.rdoJasonQueryOfficial.Tag = "";
-            this.rdoJasonQueryOfficial.Text = "JasonQuery Official";
+            this.rdoJasonQueryOfficial.Text = "JasonQuery Website";
             this.rdoJasonQueryOfficial.UseVisualStyleBackColor = false;
             // 
             // rdoGitHubOfficial
@@ -415,7 +415,7 @@
             this.rdoGitHubOfficial.Size = new System.Drawing.Size(108, 20);
             this.rdoGitHubOfficial.TabIndex = 108;
             this.rdoGitHubOfficial.Tag = "";
-            this.rdoGitHubOfficial.Text = "GitHub Official";
+            this.rdoGitHubOfficial.Text = "GitHub Releases";
             this.rdoGitHubOfficial.UseVisualStyleBackColor = false;
             // 
             // rdoLocal
@@ -426,18 +426,18 @@
             this.rdoLocal.Size = new System.Drawing.Size(58, 20);
             this.rdoLocal.TabIndex = 109;
             this.rdoLocal.Tag = "";
-            this.rdoLocal.Text = "Local:";
+            this.rdoLocal.Text = "Company Update Folder:";
             this.rdoLocal.UseVisualStyleBackColor = false;
             // 
-            // textBox1
+            // txtUpdateSource
             // 
-            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.txtUpdateSource.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Font = new System.Drawing.Font("微軟正黑體", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.textBox1.Location = new System.Drawing.Point(80, 74);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(518, 22);
-            this.textBox1.TabIndex = 117;
+            this.txtUpdateSource.Font = new System.Drawing.Font("微軟正黑體", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.txtUpdateSource.Location = new System.Drawing.Point(170, 74);
+            this.txtUpdateSource.Name = "txtUpdateSource";
+            this.txtUpdateSource.Size = new System.Drawing.Size(428, 22);
+            this.txtUpdateSource.TabIndex = 117;
             // 
             // btnBrowseLocalFolder
             // 
@@ -544,7 +544,7 @@
         private System.Windows.Forms.TextBox txtList;
         private System.Windows.Forms.GroupBox grpUpdateSource;
         private System.Windows.Forms.Button btnBrowseLocalFolder;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox txtUpdateSource;
         private System.Windows.Forms.RadioButton rdoLocal;
         private System.Windows.Forms.RadioButton rdoGitHubOfficial;
         private System.Windows.Forms.RadioButton rdoJasonQueryOfficial;

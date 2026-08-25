@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JasonQuery.Tests", "Tests\J
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JasonQuery.IntegrationTests", "Tests\JasonQuery.IntegrationTests\JasonQuery.IntegrationTests.csproj", "{A6D9C2F1-7B4E-4A5F-9C13-8E6D2B7F1042}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Updater", "Updater\Updater\Updater.csproj", "{F59B1571-E69B-44C5-9F8B-1DBDFC526129}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -50,6 +52,10 @@ Global
 		{A6D9C2F1-7B4E-4A5F-9C13-8E6D2B7F1042}.Debug|x64.Build.0 = Debug|x64
 		{A6D9C2F1-7B4E-4A5F-9C13-8E6D2B7F1042}.Release|x64.ActiveCfg = Release|x64
 		{A6D9C2F1-7B4E-4A5F-9C13-8E6D2B7F1042}.Release|x64.Build.0 = Release|x64
+		{F59B1571-E69B-44C5-9F8B-1DBDFC526129}.Debug|x64.ActiveCfg = Debug|x64
+		{F59B1571-E69B-44C5-9F8B-1DBDFC526129}.Debug|x64.Build.0 = Debug|x64
+		{F59B1571-E69B-44C5-9F8B-1DBDFC526129}.Release|x64.ActiveCfg = Release|x64
+		{F59B1571-E69B-44C5-9F8B-1DBDFC526129}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

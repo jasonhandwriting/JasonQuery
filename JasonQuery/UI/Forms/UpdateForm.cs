@@ -24,6 +24,8 @@ namespace JasonQuery.UI.Forms
         private const string EnvironmentProd = "PROD";
         private const string EnvironmentTest = "TEST";
         private UpdateReleaseSelection _selectedRelease;
+        private UpdateContentLocation _selectedPackageLocation;
+        private UpdateMetadataSourceKind _selectedSource;
 
         public UpdateForm()
         {
@@ -124,6 +126,8 @@ namespace JasonQuery.UI.Forms
                 btnUpdateNow.Enabled = false;
                 UpdateCheckCompletedSuccessfully = false;
                 _selectedRelease = null;
+                _selectedPackageLocation = null;
+                _selectedSource = source;
 
                 var localFolder = MyLibrary.UpdateMetadataLocalFolder;
 
@@ -155,6 +159,16 @@ namespace JasonQuery.UI.Forms
                     selector.FindLatest(manifest, UpdateChannel.Production)
                 );
 
+                if (_selectedRelease != null)
+                {
+                    _selectedPackageLocation = ResolveAvailablePackageLocation
+                    (
+                        source,
+                        localFolder,
+                        _selectedRelease
+                    );
+                }
+
                 ConfigurePackageLink
                 (
                     lnkDownloadJasonQuery64Test,
@@ -169,7 +183,7 @@ namespace JasonQuery.UI.Forms
                 btnCheckForUpdates.Visible = false;
                 lblInfo.Visible = true;
                 lblInfo2.Visible = true;
-                btnUpdateNow.Enabled = _selectedRelease != null && source == UpdateMetadataSourceKind.OfficialWebsite;
+                btnUpdateNow.Enabled = _selectedRelease != null && _selectedPackageLocation != null;
                 UpdateCheckCompletedSuccessfully = true;
 
                 CloseStartupMessage();
@@ -378,6 +392,18 @@ namespace JasonQuery.UI.Forms
             link.Enabled = true;
         }
 
+        private static UpdateContentLocation ResolveAvailablePackageLocation(UpdateMetadataSourceKind source, string localFolder, UpdateReleaseSelection selection)
+        {
+            if (selection == null)
+            {
+                return null;
+            }
+
+            var location = UpdateSourceResolver.ResolvePackage(source, localFolder, selection.Asset);
+
+            return location.IsLocalFile && !File.Exists(location.Value) ? null : location;
+        }
+
         private void lnkCheck_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             lnkCheck.LinkVisited = true;
@@ -406,7 +432,7 @@ namespace JasonQuery.UI.Forms
             var manualUpdateTitle = LocalizationHelper.GetLanguageString("How to manually update JasonQuery to the latest version:", "form", GetType().Name, "msg", "HowToUpdate0", "Text") + "\r\n\r\n";
             var downloadPackageStep = LocalizationHelper.GetLanguageString("1. Download the latest JasonQuery64.zip", "form", GetType().Name, "msg", "HowToUpdate1", "Text") + "\r\n";
             var closeJasonQueryStep = LocalizationHelper.GetLanguageString("2. Close all open JasonQuery", "form", GetType().Name, "msg", "HowToUpdate2", "Text") + "\r\n";
-            var extractPackageStep = LocalizationHelper.GetLanguageString("3. Unzip \"JasonQuery x64\" or \"JasonQuery x86\" to the folder where JasonQuery is currently located (overwrite all, JasonQuery64.zip does not include JasonQuery.db)", "form", GetType().Name, "msg", "HowToUpdate3", "Text") + "\r\n";
+            var extractPackageStep = LocalizationHelper.GetLanguageString("3. Unzip \"JasonQuery x64\" to the folder where JasonQuery is currently located (overwrite all; JasonQuery64.zip does not include JasonQuery.db)", "form", GetType().Name, "msg", "HowToUpdate3", "Text") + "\r\n";
             var runJasonQueryStep = LocalizationHelper.GetLanguageString("4. Run JasonQuery", "form", GetType().Name, "msg", "HowToUpdate4", "Text");
 
             MessageBox.Show($"{manualUpdateTitle}{downloadPackageStep}{closeJasonQueryStep}{extractPackageStep}{runJasonQueryStep}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -416,21 +442,90 @@ namespace JasonQuery.UI.Forms
         {
             var executeName = $@"{Application.StartupPath}\Updater.exe";
 
-            if (File.Exists(executeName))
+            if (File.Exists(executeName) && _selectedRelease != null && _selectedPackageLocation != null)
             {
-                var environment = ResolveUpdateEnvironment(_selectedRelease?.Channel ?? UpdateChannelResolver.Resolve(AppConfigHelper.LocalVersion));
-
-                var infoExe = new ProcessStartInfo
+                if (IsUpdaterRunning(executeName))
                 {
-                    FileName = executeName,
-                    WorkingDirectory = $@"{Application.StartupPath}\",
-                    Arguments = $"{LocalizationHelper.LocalizationCode}|{LocalizationHelper.XmlFileName}|{environment}",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Normal
-                };
+                    var alreadyRunning = LocalizationHelper.GetLanguageString
+                    (
+                        "Updater is already running. Close it before starting another update.",
+                        "form",
+                        GetType().Name,
+                        "msg",
+                        "UpdaterAlreadyRunning",
+                        "Text"
+                    );
 
-                Process.Start(infoExe);
+                    MessageBox.Show
+                    (
+                        alreadyRunning,
+                        AppConfigHelper.JasonQueryVersion,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+
+                    return;
+                }
+
+                string requestPath = null;
+
+                try
+                {
+                    var environment = ResolveUpdateEnvironment(_selectedRelease.Channel);
+
+                    var request = new UpdateExecutionRequest
+                    {
+                        LocalizationCode = LocalizationHelper.LocalizationCode,
+                        LocalizationFile = LocalizationHelper.XmlFileName,
+                        Environment = environment,
+                        SourceKind = _selectedSource.ToString(),
+                        PackageLocation = _selectedPackageLocation.Value,
+                        PackageIsLocal = _selectedPackageLocation.IsLocalFile,
+                        PackageName = _selectedRelease.Asset.Name,
+                        ExpectedSize = _selectedRelease.Asset.Size,
+                        ExpectedDigest = _selectedRelease.Asset.Digest,
+                        InstalledVersion = AppConfigHelper.LocalVersion,
+                        TargetVersion = _selectedRelease.Version
+                    };
+
+                    requestPath = UpdateExecutionRequestFile.Write(request);
+
+                    var infoExe = new ProcessStartInfo
+                    {
+                        FileName = executeName,
+                        WorkingDirectory = $@"{Application.StartupPath}\",
+                        Arguments = $"--request \"{requestPath}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Normal
+                    };
+
+                    Process.Start(infoExe);
+                }
+                catch (Exception ex)
+                {
+                    UpdateExecutionRequestFile.TryDelete(requestPath);
+
+                    var message = LocalizationHelper.GetLanguageString
+                    (
+                        "Unable to start Updater. No update files were applied.",
+                        "form",
+                        GetType().Name,
+                        "msg",
+                        "UpdaterLaunchFailed",
+                        "Text"
+                    );
+
+                    MessageBox.Show
+                    (
+                        $"{message}\r\n\r\n{ex.Message}",
+                        AppConfigHelper.JasonQueryVersion,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+
+                    return;
+                }
 
                 if (string.IsNullOrWhiteSpace(DatabaseSqlExecutor.DbConnectionString))
                 {
@@ -441,10 +536,38 @@ namespace JasonQuery.UI.Forms
             }
             else
             {
-                var fileNotFoundMessage = LocalizationHelper.GetLanguageString("File not found:", "form", GetType().Name, "msg", "UpdaterNotFound", "Text");
+                var fileNotFoundMessage = File.Exists(executeName)
+                                          ? LocalizationHelper.GetLanguageString("No verified update package is available.", "form", GetType().Name, "msg", "VerifiedPackageUnavailable", "Text")
+                                          : LocalizationHelper.GetLanguageString("File not found:", "form", GetType().Name, "msg", "UpdaterNotFound", "Text");
 
-                MessageBox.Show($"{fileNotFoundMessage}\r\n\r\n{executeName}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                var details = File.Exists(executeName) ? string.Empty : $"\r\n\r\n{executeName}";
+
+                MessageBox.Show($"{fileNotFoundMessage}{details}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        private static bool IsUpdaterRunning(string updaterPath)
+        {
+            foreach (var process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(updaterPath)))
+            {
+                try
+                {
+                    if (string.Equals(process.MainModule?.FileName, updaterPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+                catch
+                {
+                    // A process that cannot be inspected is not assumed to be this installation's Updater.
+                }
+                finally
+                {
+                    process.Dispose();
+                }
+            }
+
+            return false;
         }
 
         private static string ResolveUpdateEnvironment(UpdateChannel channel)

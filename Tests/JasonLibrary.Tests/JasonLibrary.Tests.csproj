@@ -29,9 +29,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\JasonLibrary\JasonLibrary.csproj" />
+    <ProjectReference Include="..\..\Updater\Updater\Updater.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
