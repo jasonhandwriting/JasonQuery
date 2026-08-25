@@ -389,6 +389,7 @@ try
         $trackedFiles | Where-Object {
             $_ -imatch "(^|/)(bin|obj|TestResults|ValidationReports)/" -or
             $_ -imatch "\.(dll|exe|pdb|zip|7z)$" -or
+            $_ -imatch "\.bak$" -or
             $_ -imatch "^JasonQuery[.]db$" -or
             $_ -imatch "^JasonQuery/Files/(newSQLCipher|newSQLite3)[.]db$" -or
             $_ -imatch "^gitleaks-report.*[.]json$"
@@ -397,7 +398,7 @@ try
 
     if ($trackedGeneratedFiles.Count -eq 0)
     {
-        Add-ValidationResult "PASS" "Generated file guard" "No forbidden build output, archive, or local database file is tracked."
+        Add-ValidationResult "PASS" "Generated file guard" "No forbidden build output, archive, backup, or local database file is tracked."
     }
     else
     {
@@ -409,6 +410,7 @@ try
         "IconLibrary/IconLibrary.csproj",
         "JasonQuery/$unreleasedDirectoryName/sample.cs",
         "Build/ValidationReports/sample.txt",
+        "Nested/WinMerge/OptionsForm.cs.bak",
         "JasonQuery.db",
         "JasonQuery/Files/newSQLCipher.db",
         "JasonQuery/Files/newSQLite3.db"

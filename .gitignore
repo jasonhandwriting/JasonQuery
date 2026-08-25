@@ -62,6 +62,10 @@ artifacts/
 *.tlh
 *.tmp
 *.tmp_proj
+
+# WinMerge and editor backup files
+*.[Bb][Aa][Kk]
+
 *.log
 *.vspscc
 *.vssscc

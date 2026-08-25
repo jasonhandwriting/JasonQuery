@@ -208,6 +208,25 @@ try {
     Assert-Equal -Expected "keep-this" -Actual ([System.IO.File]::ReadAllText($corruptLegacy)) -Message "jq.txt changed after corrupt metadata rejection."
     Complete-Test -Name "Corrupt existing metadata rejection is non-destructive"
 
+    $reportPath = Join-Path $testRoot "publish-report.txt"
+    [System.IO.File]::WriteAllText($reportPath, "Existing report" + [Environment]::NewLine, (New-Object System.Text.UTF8Encoding($false)))
+
+    & $generatorPath `
+        -Channel Production `
+        -Version "0.96.0" `
+        -PackagePath $productionPackagePath `
+        -MetadataPath $metadataPath `
+        -LegacyVersionPath $legacyPath `
+        -ReportPath $reportPath
+
+    $reportText = [System.IO.File]::ReadAllText($reportPath, [System.Text.Encoding]::UTF8)
+    Assert-True -Condition ($reportText.StartsWith("Existing report")) -Message "The existing publish report content was not preserved."
+    Assert-True -Condition ($reportText -like "*Update Metadata*") -Message "The update metadata report section is missing."
+    Assert-True -Condition ($reportText.Contains("[PASS] Channel - Production")) -Message "The report channel result is missing."
+    Assert-True -Condition ($reportText.Contains("[PASS] Version - 0.96.0")) -Message "The report version result is missing."
+    Assert-True -Condition ($reportText.Contains("[PASS] Package SHA-256 -")) -Message "The report SHA-256 result is missing."
+    Complete-Test -Name "Windows PowerShell 5.1 report append compatibility"
+
     $utf8Bytes = [System.IO.File]::ReadAllBytes($metadataPath)
     $hasUtf8Bom = $utf8Bytes.Length -ge 3 -and $utf8Bytes[0] -eq 0xEF -and $utf8Bytes[1] -eq 0xBB -and $utf8Bytes[2] -eq 0xBF
     Assert-True -Condition (-not $hasUtf8Bom) -Message "Generated metadata must use UTF-8 without BOM."
