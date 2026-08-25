@@ -92,8 +92,9 @@
     <Compile Include="Core\Events\ValueUpdatedEventArgs.cs" />
     <Compile Include="Core\Update\UpdateChannel.cs" />
     <Compile Include="Core\Update\UpdateDigestValidator.cs" />
-    <Compile Include="Core\Update\UpdateMetadataContracts.cs" />
+    <Compile Include="Core\Update\UpdateExecutionRequest.cs" />
     <Compile Include="Core\Update\UpdateMetadataLoadException.cs" />
+    <Compile Include="Core\Update\UpdateMetadataContracts.cs" />
     <Compile Include="Core\Update\UpdateMetadataParser.cs" />
     <Compile Include="Core\Update\UpdateMetadataProvider.cs" />
     <Compile Include="Core\Update\UpdateMetadataSettingsContract.cs" />

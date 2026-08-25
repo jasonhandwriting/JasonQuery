@@ -108,19 +108,6 @@
   <language category="form" class="UpdateForm" type="msg" id="TestVersion" attribute="Text" name="(Test Version)" />
   <language category="form" class="UpdateForm" type="msg" id="CheckforUpdatesTitle" attribute="Text" name="Check for Updates" />
   <language category="form" class="UpdateForm" type="msg" id="CheckforUpdatesInfo" attribute="Text" name="check for updates on startup..." />
-  <language category="form" class="UpdateForm" type="msg" id="Recommended" attribute="Text" name="recommended" />
-  <language category="form" class="UpdateForm" type="msg" id="DownloadUpdate1" attribute="Text" name="Downloading Update" />
-  <language category="form" class="UpdateForm" type="msg" id="DownloadUpdate2" attribute="Text" name="Downloading update, please wait!" />
-  <language category="form" class="UpdateForm" type="msg" id="From" attribute="Text" name="From" />
-  <language category="form" class="UpdateForm" type="msg" id="To" attribute="Text" name="To" />
-  <language category="form" class="UpdateForm" type="msg" id="OpenWithBrowser" attribute="Text" name="Open the url with your default browser" />
-  <language category="form" class="UpdateForm" type="msg" id="DownloadWithJasonQuery" attribute="Text" name="Use JasonQuery to download the file directly" />
-  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate0" attribute="Text" name="How to manually update JasonQuery to the latest version:" />
-  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate1" attribute="Text" name="1. Download the latest JasonQuery64.zip" />
-  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate2" attribute="Text" name="2. Close all open JasonQuery" />
-  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate3" attribute="Text" name="3. Unzip &quot;JasonQuery x64&quot; or &quot;JasonQuery x86&quot; to the folder where JasonQuery is currently located (overwrite all, JasonQuery64.zip does not include JasonQuery.db)" />
-  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate4" attribute="Text" name="4. Run JasonQuery" />
-  <language category="form" class="UpdateForm" type="msg" id="UpdaterNotFound" attribute="Text" name="File not found:" />
   <language category="form" class="UpdateForm" type="msg" id="UpdateCheckFailed" attribute="Text" name="JasonQuery could not check for updates. Please verify the update source and try again." />
   <language category="form" class="UpdateForm" type="msg" id="UpdateCheckMethodLabel" attribute="Text" name="Update check method:" />
   <language category="form" class="UpdateForm" type="msg" id="UpdateCheckMethodOfficialWebsite" attribute="Text" name="JasonQuery Website" />
@@ -138,6 +125,22 @@
   <language category="form" class="UpdateForm" type="msg" id="UpdateContentInvalid" attribute="Text" name="The update information file contains invalid JSON or data." />
   <language category="form" class="UpdateForm" type="msg" id="UpdateFormatNotSupported" attribute="Text" name="The update information format is not supported by this version of JasonQuery." />
   <language category="form" class="UpdateForm" type="msg" id="UpdateUnexpectedError" attribute="Text" name="An unexpected error occurred while checking for updates." />
+  <language category="form" class="UpdateForm" type="msg" id="Recommended" attribute="Text" name="recommended" />
+  <language category="form" class="UpdateForm" type="msg" id="DownloadUpdate1" attribute="Text" name="Downloading Update" />
+  <language category="form" class="UpdateForm" type="msg" id="DownloadUpdate2" attribute="Text" name="Downloading update, please wait!" />
+  <language category="form" class="UpdateForm" type="msg" id="From" attribute="Text" name="From" />
+  <language category="form" class="UpdateForm" type="msg" id="To" attribute="Text" name="To" />
+  <language category="form" class="UpdateForm" type="msg" id="OpenWithBrowser" attribute="Text" name="Open the url with your default browser" />
+  <language category="form" class="UpdateForm" type="msg" id="DownloadWithJasonQuery" attribute="Text" name="Use JasonQuery to download the file directly" />
+  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate0" attribute="Text" name="How to manually update JasonQuery to the latest version:" />
+  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate1" attribute="Text" name="1. Download the latest JasonQuery64.zip" />
+  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate2" attribute="Text" name="2. Close all open JasonQuery" />
+  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate3" attribute="Text" name="3. Unzip &quot;JasonQuery x64&quot; to the folder where JasonQuery is currently located (overwrite all; JasonQuery64.zip does not include JasonQuery.db)" />
+  <language category="form" class="UpdateForm" type="msg" id="HowToUpdate4" attribute="Text" name="4. Run JasonQuery" />
+  <language category="form" class="UpdateForm" type="msg" id="UpdaterNotFound" attribute="Text" name="File not found:" />
+  <language category="form" class="UpdateForm" type="msg" id="VerifiedPackageUnavailable" attribute="Text" name="No verified update package is available." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdaterLaunchFailed" attribute="Text" name="Unable to start Updater. No update files were applied." />
+  <language category="form" class="UpdateForm" type="msg" id="UpdaterAlreadyRunning" attribute="Text" name="Updater is already running. Close it before starting another update." />
   <!-- SingleRecordViewerForm-->
   <language category="form" class="SingleRecordViewerForm" type="object" id="this" attribute="Text" name="Single Record Viewer" />
   <language category="form" class="SingleRecordViewerForm" type="object" id="btnFirst" attribute="ToolTipText" name="First Record" />
@@ -257,38 +260,55 @@
   <!-- UpdaterForm-->
   <language category="form" class="UpdaterForm" type="object" id="this" attribute="Text" name="Updater - JasonQuery" />
   <language category="form" class="UpdaterForm" type="object" id="lblTitle" attribute="Text" name="Download and Update" />
-  <language category="form" class="UpdaterForm" type="object" id="grpUpdateSource" attribute="Text" name="UpdateSource" />
-  <language category="form" class="UpdaterForm" type="object" id="rdoJasonQueryOfficial" attribute="Text" name="JasonQuery Official" />
-  <language category="form" class="UpdaterForm" type="object" id="rdoGitHubOfficial" attribute="Text" name="GitHub Official" />
-  <language category="form" class="UpdaterForm" type="object" id="rdoLocal" attribute="Text" name="Local:" />
-  <language category="form" class="UpdaterForm" type="object" id="lblStep1" attribute="Text" name="Step1: Manually close all running JasonQuery" />
-  <language category="form" class="UpdaterForm" type="object" id="lblStep2" attribute="Text" name="Step2: Download JasonQuery.zip to temporary folder" />
-  <language category="form" class="UpdaterForm" type="object" id="lblStep3" attribute="Text" name="Step3: Unzip JasonQuery.zip to temporary folder" />
-  <language category="form" class="UpdaterForm" type="object" id="lblStep4" attribute="Text" name="Step4: Update files and Delete temporary filles" />
+  <language category="form" class="UpdaterForm" type="object" id="grpUpdateSource" attribute="Text" name="Update Information Source" />
+  <language category="form" class="UpdaterForm" type="object" id="rdoJasonQueryOfficial" attribute="Text" name="JasonQuery Website" />
+  <language category="form" class="UpdaterForm" type="object" id="rdoGitHubOfficial" attribute="Text" name="GitHub Releases" />
+  <language category="form" class="UpdaterForm" type="object" id="rdoLocal" attribute="Text" name="Company Update Folder:" />
+  <language category="form" class="UpdaterForm" type="object" id="lblStep1" attribute="Text" name="Step 1: Manually close all running JasonQuery" />
+  <language category="form" class="UpdaterForm" type="object" id="lblStep2" attribute="Text" name="Step 2: Acquire and verify JasonQuery.zip" />
+  <language category="form" class="UpdaterForm" type="object" id="lblStep3" attribute="Text" name="Step 3: Safely extract JasonQuery.zip" />
+  <language category="form" class="UpdaterForm" type="object" id="lblStep4" attribute="Text" name="Step 4: Back up and update files; restore automatically on failure" />
   <language category="form" class="UpdaterForm" type="object" id="lblFrom" attribute="Text" name="From:" />
   <language category="form" class="UpdaterForm" type="object" id="lblTo" attribute="Text" name="To: (The path where JasonQuery.exe exists.)" />
   <language category="form" class="UpdaterForm" type="object" id="btnUpdate" attribute="Text" name="&amp;Update" />
-  <language category="form" class="UpdaterForm" type="msg" id="UpdateProduction" attribute="ToolTipText" name="Update to the Release version!" />
-  <language category="form" class="UpdaterForm" type="msg" id="UpdateBeta" attribute="ToolTipText" name="Update to the Preview version!" />
   <language category="form" class="UpdaterForm" type="object" id="btnDownload" attribute="Text" name="&amp;Download" />
-  <language category="form" class="UpdaterForm" type="msg" id="DownloadProduction" attribute="ToolTipText" name="Use default browser to download the &quot;Release version&quot; of JasonQuery zip file!&#x000A;http://www.jasonquery.org/JasonQueryUpdate/JasonQuery64.zip" />
-  <language category="form" class="UpdaterForm" type="msg" id="DownloadBeta" attribute="ToolTipText" name="Use default browser to download the &quot;Preview version&quot; of JasonQuery zip file!&#x000A;http://www.jasonquery.org/JasonQueryUpdate/JasonQuery64Test.zip" />
   <language category="form" class="UpdaterForm" type="object" id="grpVersion" attribute="Text" name="Version" />
   <language category="form" class="UpdaterForm" type="object" id="rdoRelease" attribute="Text" name="&amp;Release version" />
-  <language category="form" class="UpdaterForm" type="object" id="rdoPreview" attribute="Text" name="&amp;Preview version" />
+  <language category="form" class="UpdaterForm" type="object" id="rdoPreview" attribute="Text" name="&amp;Test version" />
   <language category="form" class="UpdaterForm" type="object" id="btnClose" attribute="Text" name="&amp;Close" />
   <language category="form" class="UpdaterForm" type="object" id="btnCancel" attribute="Text" name="Cancel" />
   <language category="form" class="UpdaterForm" type="object" id="grpComplete" attribute="Text" name="After the update is complete" />
   <language category="form" class="UpdaterForm" type="object" id="chkLaunchJQ" attribute="Text" name="Launch JasonQuery" />
   <language category="form" class="UpdaterForm" type="object" id="chkClose" attribute="Text" name="Close the program" />
-  <language category="form" class="UpdaterForm" type="msg" id="UpdateOK" attribute="Text" name="All files have been successfully updated!" />
   <language category="form" class="UpdaterForm" type="msg" id="CloseJQAutomatically" attribute="Text" name="Automatically close all executing JasonQuery?" />
   <language category="form" class="UpdaterForm" type="msg" id="CloseJQAutomatically2" attribute="Text" name="Please confirm whether you need to save or execute the &quot;Commit/Rollback&quot; command before pressing the &quot;Yes&quot; button!" />
   <language category="form" class="UpdaterForm" type="msg" id="UpdateCompleted" attribute="Text" name="Update completed!" />
   <language category="form" class="UpdaterForm" type="msg" id="PressOK" attribute="Text" name="Press OK to close the program." />
   <language category="form" class="UpdaterForm" type="msg" id="PressOKAndLaunchJasonQuery" attribute="Text" name="Press OK to close the program and automatically launch JasonQuery." />
   <language category="form" class="UpdaterForm" type="msg" id="UpdateFailed" attribute="Text" name="Update failed!" />
-  <language category="form" class="UpdaterForm" type="msg" id="FailedTryAgain" attribute="Text" name="Please try again or update manually by yourself!" />
+  <language category="form" class="UpdaterForm" type="msg" id="StartUpdaterFromJasonQuery" attribute="Text" name="Please start Updater from JasonQuery after selecting and verifying an available update." />
+  <language category="form" class="UpdaterForm" type="msg" id="VerifiedUpdateToolTip" attribute="ToolTipText" name="Install the selected JasonQuery version after verifying its size and SHA-256." />
+  <language category="form" class="UpdaterForm" type="msg" id="OpenPackageLocationToolTip" attribute="ToolTipText" name="Open the selected update package location:" />
+  <language category="form" class="UpdaterForm" type="msg" id="JasonQueryStillRunning" attribute="Text" name="JasonQuery is still running. Close it before starting the update." />
+  <language category="form" class="UpdaterForm" type="msg" id="PackageSizeMismatch" attribute="Text" name="The downloaded package size does not match the update metadata." />
+  <language category="form" class="UpdaterForm" type="msg" id="PackageDigestMismatch" attribute="Text" name="The downloaded package SHA-256 does not match the update metadata." />
+  <language category="form" class="UpdaterForm" type="msg" id="PackageNotFound" attribute="Text" name="The selected update package was not found." />
+  <language category="form" class="UpdaterForm" type="msg" id="PackageInvalid" attribute="Text" name="The update package is damaged or contains an unsafe archive path." />
+  <language category="form" class="UpdaterForm" type="msg" id="PackagePreparationFailed" attribute="Text" name="The update package could not be prepared." />
+  <language category="form" class="UpdaterForm" type="msg" id="UpdateWorkerFailed" attribute="Text" name="The update could not be started. No update files were intentionally applied." />
+  <language category="form" class="UpdaterForm" type="msg" id="ProtectedApplicationFile" attribute="Text" name="The update package contains a protected application file:" />
+  <language category="form" class="UpdaterForm" type="msg" id="WorkerPreparingUpdate" attribute="Text" name="Preparing the update. Please wait." />
+  <language category="form" class="UpdaterForm" type="msg" id="WorkerCreatingBackup" attribute="Text" name="Creating and verifying a backup of the previous version." />
+  <language category="form" class="UpdaterForm" type="msg" id="WorkerApplyingUpdate" attribute="Text" name="Installing and verifying the update files." />
+  <language category="form" class="UpdaterForm" type="msg" id="WorkerRestoringBackup" attribute="Text" name="The update failed. Restoring and verifying the previous version." />
+  <language category="form" class="UpdaterForm" type="msg" id="WorkerFinalizingUpdate" attribute="Text" name="Finalizing the update and organizing old backups." />
+  <language category="form" class="UpdaterForm" type="msg" id="WorkerDoNotClose" attribute="Text" name="Do not close this window or start JasonQuery until the update is complete." />
+  <language category="form" class="UpdaterForm" type="msg" id="VerifiedBackupLocation" attribute="Text" name="A verified backup of the previous version was saved at:" />
+  <language category="form" class="UpdaterForm" type="msg" id="VerifiedBackupLocationShort" attribute="Text" name="Verified backup location:" />
+  <language category="form" class="UpdaterForm" type="msg" id="AutomaticRecoveryCompleted" attribute="Text" name="The previous version was restored automatically and verified with SHA-256." />
+  <language category="form" class="UpdaterForm" type="msg" id="AutomaticRecoveryFailed" attribute="Text" name="Automatic recovery could not be completed. Do not start JasonQuery until the installation has been repaired." />
+  <language category="form" class="UpdaterForm" type="msg" id="UpdaterLogLocation" attribute="Text" name="Updater log:" />
+  <language category="form" class="UpdaterForm" type="msg" id="LaunchJasonQueryFailed" attribute="Text" name="The update completed, but JasonQuery could not be launched automatically." />
   <!-- ConnectionForm-->
   <language category="form" class="ConnectionForm" type="object" id="this" attribute="Text" name="Database Connection" />
   <language category="form" class="ConnectionForm" type="object" id="thisViewMode" attribute="Text" name="Database Connection - View Mode" />
@@ -1612,6 +1632,7 @@
   <language category="form" class="EditTableFormData" type="object" id="btnDuplicateCurrentRow" attribute="ToolTipText" name="Duplicate Current Row (Ctrl+Alt+Insert)" />
   <language category="form" class="EditTableFormData" type="object" id="btnDeleteCurrentRow" attribute="ToolTipText" name="Delete Current Row (Alt+Delete)" />
   <language category="form" class="EditTableFormData" type="object" id="btnSetNull" attribute="ToolTipText" name="Set to Null" />
+  <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="ToolTipText" name="Preview Insert/Update/Delete SQL statements" />
   <language category="form" class="EditTableFormData" type="object" id="btnApplyEdit" attribute="ToolTipText" name="Apply All Changes" />
   <language category="form" class="EditTableFormData" type="object" id="btnCancelEdit" attribute="ToolTipText" name="Cancel All Changes" />
   <language category="form" class="EditTableFormData" type="object" id="btnCommit" attribute="ToolTipText" name="Commit" />
@@ -1632,7 +1653,6 @@
   <language category="form" class="EditTableFormData" type="object" id="btnZoomIn" attribute="ToolTipText" name="Zoom In&#x000A;Ctrl+Mouse Wheel Up" />
   <language category="form" class="EditTableFormData" type="object" id="btnZoomOut" attribute="ToolTipText" name="Zoom Out&#x000A;Ctrl+Mouse Wheel Down" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="Text" name="SQL Preview" />
-  <language category="form" class="EditTableFormData" type="object" id="btnSqlPreview" attribute="ToolTipText" name="Preview Insert/Update/Delete SQL statements" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlSelectAll" attribute="ToolTipText" name="Select All" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlCopy" attribute="ToolTipText" name="Copy" />
   <language category="form" class="EditTableFormData" type="object" id="btnSqlSaveAs" attribute="ToolTipText" name="Save As" />

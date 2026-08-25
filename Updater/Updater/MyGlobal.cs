@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Xml;
-using System.IO;
 using System.Data;
+using System.IO;
 using System.Net;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace Updater
 {
@@ -26,7 +26,7 @@ namespace Updater
 
             foreach (Control control in sonControls)
             {
-                if ("`Label`C1Button`CheckBox`C1CheckBox`".Contains("`" + control.GetType().Name + "`"))
+                if ("`Label`Button`CheckBox`RadioButton`".Contains("`" + control.GetType().Name + "`"))
                 {
                     control.Text = GetLanguageString(control.Text, "form", frmForm.Name, "object", control.Name, "Text");
                 }
@@ -36,7 +36,7 @@ namespace Updater
 
                     foreach (Control ctrlInGroupBox in ((GroupBox)control).Controls)
                     {
-                        if ("`Label`CheckBox`C1CheckBox`RadioButton`".Contains("`" + ctrlInGroupBox.GetType().Name + "`"))
+                        if ("`Label`Button`CheckBox`RadioButton`".Contains("`" + ctrlInGroupBox.GetType().Name + "`"))
                         {
                             ctrlInGroupBox.Text = GetLanguageString(ctrlInGroupBox.Text, "form", frmForm.Name, "object", ctrlInGroupBox.Name, "Text");
                         }
