@@ -1,34 +1,15 @@
 {
   "schema_version": 1,
   "product": "JasonQuery",
-  "generated_at": "2026-08-09T06:00:00Z",
+  "generated_at": "2026-08-25T00:00:00Z",
   "releases": [
     {
-      "tag_name": "v0.92.0",
-      "name": "JasonQuery 0.92",
-      "body": "Production release notes.",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-08-09T06:00:00Z",
-      "html_url": "https://www.jasonquery.org/",
-      "assets": [
-        {
-          "name": "JasonQuery64.zip",
-          "state": "uploaded",
-          "content_type": "application/zip",
-          "size": 12345678,
-          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "browser_download_url": "https://www.jasonquery.org/JasonQueryUpdate/JasonQuery64.zip"
-        }
-      ]
-    },
-    {
-      "tag_name": "v0.92.1",
-      "name": "JasonQuery 0.92.1 Test",
-      "body": "Test release notes.",
+      "tag_name": "v0.95.1",
+      "name": "JasonQuery 0.95.1 Test",
+      "body": "",
       "draft": false,
       "prerelease": true,
-      "published_at": "2026-08-09T06:00:00Z",
+      "published_at": "2026-08-25T00:00:00Z",
       "html_url": "https://www.jasonquery.org/",
       "assets": [
         {
@@ -38,6 +19,25 @@
           "size": 12345678,
           "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "browser_download_url": "https://www.jasonquery.org/JasonQueryUpdate/JasonQuery64Test.zip"
+        }
+      ]
+    },
+    {
+      "tag_name": "v0.95.0",
+      "name": "JasonQuery 0.95.0",
+      "body": "",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-08-25T00:00:00Z",
+      "html_url": "https://www.jasonquery.org/",
+      "assets": [
+        {
+          "name": "JasonQuery64.zip",
+          "state": "uploaded",
+          "content_type": "application/zip",
+          "size": 12345678,
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "browser_download_url": "https://www.jasonquery.org/JasonQueryUpdate/JasonQuery64.zip"
         }
       ]
     }
