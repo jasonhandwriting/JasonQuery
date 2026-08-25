@@ -257,12 +257,14 @@ try
 
     $requiredRepositoryFiles = @(
         ".gitignore",
+        ".editorconfig",
         "README.md",
         "JasonQuery.sln",
         "JasonQuery\JasonQuery.csproj",
         "Publish-JasonQuery-Release.bat",
         "Publish-JasonQuery-Test.bat",
         "Build\Validate-Repository.ps1",
+        "Build\Normalize-FinalNewlines.ps1",
         "Build\Validate-Step3D-Release.ps1",
         ".github\pull_request_template.md",
         ".github\workflows\repository-guard.yml"
@@ -580,6 +582,29 @@ try
     else
     {
         Add-ValidationResult "WARN" "Working-tree line endings" "$($workingTreeMixedEolFiles.Count) unchanged tracked file(s) have legacy mixed working-tree line endings; the Git index is clean and no changed file is affected."
+    }
+
+    $finalNewlineScriptPath = Join-Path $repositoryRootPath "Build\Normalize-FinalNewlines.ps1"
+
+    if ([System.IO.File]::Exists($finalNewlineScriptPath))
+    {
+        try
+        {
+            & $finalNewlineScriptPath `
+                -RepositoryRoot $repositoryRootPath `
+                -Check `
+                -Quiet
+
+            Add-ValidationResult "PASS" "Final newlines" "All canonical tracked text files end with exactly one CRLF or LF sequence."
+        }
+        catch
+        {
+            Add-ValidationResult "FAIL" "Final newlines" $_.Exception.Message
+        }
+    }
+    else
+    {
+        Add-ValidationResult "FAIL" "Final newlines" "Build\Normalize-FinalNewlines.ps1 was not found."
     }
 
     $conflictMarkers = Invoke-GitCommand @("grep", "-n", "-I", "-E", "^(<<<<<<< |>>>>>>> )")

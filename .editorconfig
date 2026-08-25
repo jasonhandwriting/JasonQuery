@@ -1,0 +1,14 @@
+root = true
+
+[*]
+insert_final_newline = true
+
+[*.cs]
+csharp_prefer_braces = true:suggestion
+csharp_indent_case_contents = true
+csharp_indent_case_contents_when_block = true
+csharp_indent_switch_labels = true
+
+# JasonQuery convention:
+# Every switch section uses an explicit block statement.
+# Stock Roslyn EditorConfig rules cannot enforce this convention.
