@@ -46,7 +46,7 @@ namespace JasonQuery.UI.Forms
 
         private void btnHelp_Log_Click(object sender, EventArgs e)
         {
-            var message = LocalizationHelper.GetLanguageString("When enabled, JasonQuery records important execution information for debugging purposes or for analyzing long-running operations.\r\n\r\nThis option is not required for normal usage.\r\nEnabling it may slightly impact performance.\r\n\r\nLog files are stored in the \"Log\" folder under the JasonQuery executable directory. The full file name is as follows:\r\n", "form", GetType().Name, "msg", "Help_Log", "Text");
+            var message = LocalizationHelper.GetLanguageString("When enabled, JasonQuery records important execution information for debugging purposes or for analyzing long-running operations.\r\n\r\nThis option is not required for normal usage.\r\nEnabling it may slightly impact performance.\r\n\r\nLog files are stored in the \"log\" folder under the JasonQuery executable directory. The full file name is as follows:\r\n", "form", GetType().Name, "msg", "Help_Log", "Text");
 
             MessageBoxHelper.ShowNearCursor($"{message}{AppConfigHelper.LogFileName}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
