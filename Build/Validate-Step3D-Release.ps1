@@ -202,6 +202,8 @@ try
 
     $requiredFiles = @(
         "JasonQuery.exe",
+        "Updater.exe",
+        "Updater.pdb",
         "IconLibrary.dll",
         "IconLibrary.pdb",
         "SQL.Formatter.dll",
