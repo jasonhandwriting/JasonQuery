@@ -1397,6 +1397,28 @@
       <Project>{22ae2386-60f1-476e-9303-61cdb0aac4cf}</Project>
       <Name>ScintillaNET</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Updater\Updater\Updater.csproj">
+      <Project>{f59b1571-e69b-44c5-9f8b-1dbdfc526129}</Project>
+      <Name>Updater</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="CopyUpdaterArtifactsToOutput" AfterTargets="Build">
+    <PropertyGroup>
+      <UpdaterOutputDirectory>$(MSBuildProjectDirectory)\..\Updater\Updater\bin\$(Configuration)</UpdaterOutputDirectory>
+      <UpdaterExecutable>$(UpdaterOutputDirectory)\Updater.exe</UpdaterExecutable>
+      <UpdaterSymbols>$(UpdaterOutputDirectory)\Updater.pdb</UpdaterSymbols>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(UpdaterExecutable)')" Text="Required Updater output was not found: $(UpdaterExecutable). Rebuild Updater for $(Configuration)|$(Platform)." />
+    <Error Condition="!Exists('$(UpdaterSymbols)')" Text="Required Updater symbols were not found: $(UpdaterSymbols). Rebuild Updater for $(Configuration)|$(Platform)." />
+    <ItemGroup>
+      <UpdaterArtifact Include="$(UpdaterExecutable)" />
+      <UpdaterArtifact Include="$(UpdaterSymbols)" />
+    </ItemGroup>
+    <Copy SourceFiles="@(UpdaterArtifact)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <FileWrites Include="@(UpdaterArtifact->'$(TargetDir)%(Filename)%(Extension)')" />
+    </ItemGroup>
+  </Target>
 </Project>
