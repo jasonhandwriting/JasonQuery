@@ -165,13 +165,13 @@ namespace JasonQuery.UI.Forms
 
                 //20250615 log 的路徑及檔名
                 #region
-                var logPath = $@"{Application.StartupPath}\Log";
+                var logPath = Path.Combine(Application.StartupPath, "log");
 
                 if (!Directory.Exists(logPath))
                 {
                     try
                     {
-                        Directory.CreateDirectory($@"{Application.StartupPath}\Log");
+                        Directory.CreateDirectory(logPath);
                     }
                     catch
                     {
@@ -1311,7 +1311,7 @@ namespace JasonQuery.UI.Forms
             AppConfigHelper.IsBackupFile = GetBool("BackupFile", true);
             AppConfigHelper.AskBeforeOpenUnsavedFiles = GetBool("AskMeBeforeOpenUnsavedFiles", false);
 
-            var temp01 = Path.Combine(Application.StartupPath, "Backup");
+            var temp01 = Path.Combine(Application.StartupPath, "backup");
 
             //備份路徑
             AppConfigHelper.BackupPath = $"{temp01}{Path.DirectorySeparatorChar}";

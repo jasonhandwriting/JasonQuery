@@ -607,7 +607,7 @@ namespace Updater
 
         private static void ConfigureLog()
         {
-            var logPath = Path.Combine(Application.StartupPath, "Log");
+            var logPath = Path.Combine(Application.StartupPath, "log");
 
             try
             {
