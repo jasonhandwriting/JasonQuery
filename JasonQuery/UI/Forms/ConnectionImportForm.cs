@@ -25,7 +25,7 @@ namespace JasonQuery.UI.Forms
             try
             {
                 LocalizationHelper.ApplyLanguageInfo(this);
-                
+
                 //20260726 變更前景顏色
                 lblRemember.ForeColor = Color.DarkRed;
 

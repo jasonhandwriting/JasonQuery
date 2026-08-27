@@ -4641,7 +4641,7 @@ namespace JasonQuery.UI.Forms
                     check = $"ALTER TABLE {cboSchema.Text}.{txtTableName.Text} ADD\r\n(";
 
                     for (var i = 0; i < _dtCheckData.Rows.Count; i++)
-                    { 
+                    {
                         var dr = _dtCheckData.Rows[i];
                         var checkName = dr.GetSafeString(CheckColumn.CheckName);
 

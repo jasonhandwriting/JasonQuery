@@ -1,14 +1,38 @@
 # Normalize text files in the Git repository.
 * text=auto
 
-# Windows-specific project and script files.
+# Canonical Windows text files.
+*.cs text eol=crlf
+*.csproj text eol=crlf
 *.sln text eol=crlf
+*.props text eol=crlf
+*.targets text eol=crlf
+*.config text eol=crlf
+*.xml text eol=crlf
+*.resx text eol=crlf
+*.settings text eol=crlf
+*.licx text eol=crlf
+*.md text eol=crlf
+*.txt text eol=crlf
+*.ps1 text eol=crlf
 *.bat text eol=crlf
 *.cmd text eol=crlf
-*.ps1 text eol=crlf
+*.yml text eol=crlf
+*.yaml text eol=crlf
+*.json text eol=crlf
+*.sql text eol=crlf
+*.example text eol=crlf
+.editorconfig text eol=crlf
+.gitattributes text eol=crlf
+.gitignore text eol=crlf
 
 # Unix shell scripts.
 *.sh text eol=lf
+
+# Preserve third-party source trees as received from upstream.
+MagicLibrary/** text=auto !eol
+ScintillaNET/** text=auto !eol
+JasonLibrary/UI/Controls/HexBox/** text=auto !eol
 
 # Binary files.
 *.ico binary

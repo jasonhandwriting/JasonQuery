@@ -609,7 +609,7 @@ namespace JasonQuery.UI.Helpers
             copiedDataTable = dt.Copy();
             return true;
         }
-        
+
         /// <summary>
          /// 將 C1TrueDBGrid 的目前列移到 DataTable DataSource 的最後一筆。
          /// Grid 為 null、DataSource 不是 DataTable、Rows.Count = 0 時，回傳 false。

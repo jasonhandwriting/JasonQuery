@@ -1,8 +1,8 @@
-using JasonLibrary.Core.Database.Enums;
+ï»¿using JasonLibrary.Core.Database.Enums;
 using System;
 
-//²Î¤@«Ø¥ß request¡B°õ¦æ engine¡A¨Ã¦b¥¢±Ñ®É«O¯d­ì©l SQL
-//SQL Server ScriptDOM »P PostgreSQL Hogimn ªº `UNION ALL` ªÅ¥Õ¦æ¦^Âk´ú¸Õ
+//çµ±ä¸€å»ºç«‹ requestã€åŸ·è¡Œ engineï¼Œä¸¦åœ¨å¤±æ•—æ™‚ä¿ç•™åŸå§‹ SQL
+//SQL Server ScriptDOM èˆ‡ PostgreSQL Hogimn çš„ `UNION ALL` ç©ºç™½è¡Œå›æ­¸æ¸¬è©¦
 namespace JasonLibrary.Core.Text.Formatting
 {
     public sealed class SqlFormatterCoordinator

@@ -898,7 +898,7 @@ namespace JasonQuery.UI.Forms
                             for (var i = 0; i < c1Grid.RowCount; i++)
                             {
                                 var columnName = c1Grid[i, "Column_Name"].ToString();
-                                
+
                                 if (!columnInfoCollector.TryGet(columnName, out var columnInfo))
                                 {
                                     continue;

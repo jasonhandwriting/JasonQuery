@@ -672,7 +672,7 @@ namespace JasonQuery.UI.Forms
                 chkEnableAutoReplace.Checked = MyLibrary.EnableAutoReplace;
                 #endregion
 
-                //載入 Data Grid 設定            
+                //載入 Data Grid 設定
                 #region 載入 Data Grid 設定
                 cboResultCopyQuotingWith.Text = MyLibrary.GridQuotationMarks;
                 cboResultCopyFieldSeparator.Text = MyLibrary.GridFieldSeparator;
@@ -6279,7 +6279,7 @@ namespace JasonQuery.UI.Forms
         private void btnHelp_AppendQueryResult_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("This feature is enabled by default.\r\n\r\nWhen Paging is enabled and a query completes successfully, pressing \"Next Page\" will re-execute the previous query to retrieve the next set of rows.\r\n\r\nIf enabled, the new results will be appended to the existing results.\r\nIf disabled, only the latest page of results will be displayed.", "form", GetType().Name, "msg", "Help_AppendQueryResult", "Text");
-            
+
             MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -6335,7 +6335,7 @@ namespace JasonQuery.UI.Forms
         private void btnHelp_AutoListMembers_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("When enabled, JasonQuery analyzes the current SQL context while you type and automatically lists available database objects or column members.\r\n\r\nFor example:\r\n• After typing an alias followed by a dot (\".\"), members of the corresponding table, view, or subquery are listed.\r\n• After keywords such as FROM, UPDATE, DELETE, or INSERT INTO, tables or views matching the current input are suggested.\r\n\r\nTo provide accurate suggestions, JasonQuery may query schema information from the database during SQL editing.", "form", GetType().Name, "msg", "Help_AutoListMembers", "Text");
-            
+
             MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 

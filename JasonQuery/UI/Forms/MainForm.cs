@@ -4364,7 +4364,7 @@ namespace JasonQuery.UI.Forms
 
                 PasteFromSchemaBrowser(info);
             }
-            else if (newValue.StartsWith("UpdateSchemaInformation`", StringComparison.Ordinal)) //20241013 
+            else if (newValue.StartsWith("UpdateSchemaInformation`", StringComparison.Ordinal)) //20241013
             {
                 var sbInfo = new StringBuilder();
                 var temp = newValue.Replace("UpdateSchemaInformation`", string.Empty); //忽略呼叫方
@@ -4424,7 +4424,7 @@ namespace JasonQuery.UI.Forms
                     MyGlobal.InfoFromMDIForm = string.Empty;
                 }
             }
-            else if (newValue.StartsWith("UpdateSchemaBrowserInformation`", StringComparison.Ordinal)) //20241013 
+            else if (newValue.StartsWith("UpdateSchemaBrowserInformation`", StringComparison.Ordinal)) //20241013
             {
                 var sbInfo = new StringBuilder();
                 var temp = newValue.Replace("UpdateSchemaBrowserInformation`", string.Empty); //忽略呼叫方

@@ -353,7 +353,7 @@ namespace JasonQuery.Core.Database.CreateScript.PostgreSql
             }
 
             createHeader = createStatement.Substring(0, openParen).TrimEnd();
-            
+
             var body = createStatement.Substring(openParen + 1, closeParen - openParen - 1);
 
             statementTail = createStatement.Substring(closeParen + 1).Trim();

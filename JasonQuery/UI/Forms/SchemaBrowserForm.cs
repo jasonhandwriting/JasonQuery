@@ -1334,7 +1334,7 @@ namespace JasonQuery.UI.Forms
 
             c1Grid.DataSource = _dtTableData;
             _dtOriginalTableData = _dtTableData.Copy();
-            
+
             if (!isTop)
             {
                 foreach (C1DisplayColumn col in c1Grid.Splits[0].DisplayColumns)
