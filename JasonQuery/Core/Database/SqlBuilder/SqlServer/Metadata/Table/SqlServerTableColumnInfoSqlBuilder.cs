@@ -46,7 +46,7 @@ namespace JasonQuery.Core.Database.SqlBuilder.SqlServer.Metadata.Table
 
             SqlTraceHelper.AppendHeader(sbSql, "---Get Column Information");
 
-            //取得所有欄位資訊 (包含 DefaultValue)    //u.Table_Catalog AS BaseSchemaNode, u.Table_Schema AS BaseSchemaName, u.Table_Name AS BaseTableName, 
+            //取得所有欄位資訊 (包含 DefaultValue)    //u.Table_Catalog AS BaseSchemaNode, u.Table_Schema AS BaseSchemaName, u.Table_Name AS BaseTableName,
             sbSql.AppendLine($"SELECT u.*, u.Column_Name AS ColumnName, u.Is_Nullable AS Nullable, u.Column_Default AS DefaultValue FROM {schemaNode}.Information_Schema.Columns u");
             sbSql.AppendLine($" WHERE Table_Schema = '{schemaDbo}'");
             sbSql.AppendLine($"   AND Table_Name = '{schemaName}'");

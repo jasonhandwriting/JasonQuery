@@ -1,8 +1,8 @@
-using System;
+ï»¿using System;
 using JasonLibrary.Core.Text.Formatting;
 using JasonQuery.Core.Database.Connection;
 
-//¤­ºØ¸ê®Æ®w¨Ó·½Ãş«¬¹ïÀ³¡B¦¨¥\¡ş¥¢±Ñ¡şªÅ¿é¥X¡ş¥¼ÅÜ§ó¿é¥X¡B¿ï¨ú½d³ò»P engine override
+//äº”ç¨®è³‡æ–™åº«ä¾†æºé¡å‹å°æ‡‰ã€æˆåŠŸï¼å¤±æ•—ï¼ç©ºè¼¸å‡ºï¼æœªè®Šæ›´è¼¸å‡ºã€é¸å–ç¯„åœèˆ‡ engine override
 namespace JasonQuery.Core.QueryEngine.Editor.Editing
 {
     internal sealed class EditorSqlFormatterService

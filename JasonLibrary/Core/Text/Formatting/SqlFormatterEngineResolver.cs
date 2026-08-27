@@ -1,17 +1,17 @@
-using JasonLibrary.Core.Database.Enums;
+ï»¿using JasonLibrary.Core.Database.Enums;
 using JasonLibrary.Core.Text.Formatting.Engines;
 using System;
 using System.Collections.Generic;
 
-//¸ÑªR¹w³]©Î©ú½T«ü©wªº formatter engine
+//è§£æé è¨­æˆ–æ˜ç¢ºæŒ‡å®šçš„ formatter engine
 /*
-| DatabaseProviderKind | ¹w³] engine |
-| --- | --- |
-| Oracle | Hogimn |
-| PostgreSql | Hogimn |
-| SqlServer | Microsoft ScriptDOM |
-| MySql | Hogimn |
-| Sqlite | Hogimn (¨Ñ¥¼¨Ó¨Ï¥Î) |
+| DatabaseProviderKind | é è¨­ engine         |
+| -------------------- | ------------------- |
+| Oracle               | Hogimn              |
+| PostgreSql           | Hogimn              |
+| SqlServer            | Microsoft ScriptDOM |
+| MySql                | Hogimn              |
+| Sqlite               | Hogimn (ä¾›æœªä¾†ä½¿ç”¨) |
  */
 namespace JasonLibrary.Core.Text.Formatting
 {

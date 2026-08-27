@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -20,7 +20,7 @@ namespace Updater
         private static extern bool SetForegroundWindow(IntPtr windowHandle);
 
         /// <summary>
-        /// À³¥Îµ{¦¡ªº¥D­n¶i¤JÂI¡C
+        /// æ‡‰ç”¨ç¨‹å¼çš„ä¸»è¦é€²å…¥é»ã€‚
         /// </summary>
         [STAThread]
         private static void Main(string[] args)

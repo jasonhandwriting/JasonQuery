@@ -719,7 +719,7 @@ namespace JasonQuery.Tests.Core.Database.DmlPreview
         public void Build_SuccessClearsFailureKind()
         {
             var rows = CreateCurrentAndOriginalRows("PK", "new", "old");
-            
+
             var result = Build
             (
                 DataSourceType.Oracle,

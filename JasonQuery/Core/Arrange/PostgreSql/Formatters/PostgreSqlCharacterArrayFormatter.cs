@@ -42,7 +42,7 @@ namespace JasonQuery.Core.Arrange.PostgreSql.Formatters
             for (var i = 0; i < parts.Length; i++)
             {
                 var part = parts[i];
-                
+
                 if (part.IndexOf('\\') >= 0)
                 {
                     if (!part.StartsWith("\"", StringComparison.Ordinal))

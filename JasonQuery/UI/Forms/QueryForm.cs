@@ -4463,7 +4463,7 @@ namespace JasonQuery.UI.Forms
         {
             var c1Grid = GetWhichGrid();
             var count = GridHelper.CountGridOccurrence(c1Grid, cboFindGrid.Text, _splitsIndex);
-            
+
             if (!showAlertOnError)
             {
                 return count;
@@ -6838,7 +6838,7 @@ namespace JasonQuery.UI.Forms
                 nudQueryTimeout.Value = 30;
             }
 
-           
+
             if (nudQueryTimeout.Value < 30 && nudQueryTimeout.Value != 0) //20250109 允許輸入 0
             {
                 nudQueryTimeout.Value = 30;

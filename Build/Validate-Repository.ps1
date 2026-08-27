@@ -357,6 +357,78 @@ try
     Assert-GitSuccess $trackedResult "Listing tracked files"
     $trackedFiles = @($trackedResult.Output | ForEach-Object { $_.ToString().Replace("\", "/") })
 
+    $firstPartyEditableCSharpFiles = @(
+        $trackedFiles | Where-Object {
+            $_ -imatch "\.cs$" -and
+            $_ -inotmatch "^(MagicLibrary|ScintillaNET)/" -and
+            $_ -inotmatch "^JasonLibrary/UI/Controls/HexBox/" -and
+            $_ -inotmatch "\.Designer\.cs$"
+        }
+    )
+    $cSharpTabFiles = New-Object System.Collections.Generic.List[string]
+    $cSharpTrailingWhitespaceFiles = New-Object System.Collections.Generic.List[string]
+    $invalidUtf8CSharpFiles = New-Object System.Collections.Generic.List[string]
+    $strictUtf8 = New-Object System.Text.UTF8Encoding($false, $true)
+
+    foreach ($relativePath in $firstPartyEditableCSharpFiles)
+    {
+        $fullPath = Join-Path $repositoryRootPath $relativePath
+        $bytes = [System.IO.File]::ReadAllBytes($fullPath)
+
+        if ($bytes -contains [byte]0x09)
+        {
+            $cSharpTabFiles.Add($relativePath)
+        }
+
+        try
+        {
+            $text = $strictUtf8.GetString($bytes)
+        }
+        catch
+        {
+            $invalidUtf8CSharpFiles.Add($relativePath)
+            continue
+        }
+
+        if (
+            [System.Text.RegularExpressions.Regex]::IsMatch(
+                $text,
+                "[ `t]+(?=`r?$)",
+                [System.Text.RegularExpressions.RegexOptions]::Multiline
+            )
+        )
+        {
+            $cSharpTrailingWhitespaceFiles.Add($relativePath)
+        }
+    }
+
+    if ($cSharpTabFiles.Count -eq 0)
+    {
+        Add-ValidationResult "PASS" "C# indentation" "$($firstPartyEditableCSharpFiles.Count) first-party editable C# files contain no tab characters."
+    }
+    else
+    {
+        Add-ValidationResult "FAIL" "C# indentation" ("Tab characters found: " + ($cSharpTabFiles -join ", "))
+    }
+
+    if ($cSharpTrailingWhitespaceFiles.Count -eq 0)
+    {
+        Add-ValidationResult "PASS" "C# trailing whitespace" "$($firstPartyEditableCSharpFiles.Count) first-party editable C# files contain no trailing whitespace."
+    }
+    else
+    {
+        Add-ValidationResult "FAIL" "C# trailing whitespace" ("Trailing whitespace found: " + ($cSharpTrailingWhitespaceFiles -join ", "))
+    }
+
+    if ($invalidUtf8CSharpFiles.Count -eq 0)
+    {
+        Add-ValidationResult "PASS" "C# UTF-8 encoding" "$($firstPartyEditableCSharpFiles.Count) first-party editable C# files are valid UTF-8, with or without BOM."
+    }
+    else
+    {
+        Add-ValidationResult "FAIL" "C# UTF-8 encoding" ("Invalid UTF-8 files: " + ($invalidUtf8CSharpFiles -join ", "))
+    }
+
     $trackedPrivateFiles = @(
         $trackedFiles | Where-Object {
             $_ -imatch "^\.local/" -or $_ -imatch "^IconLibrary/"
@@ -582,6 +654,30 @@ try
     else
     {
         Add-ValidationResult "WARN" "Working-tree line endings" "$($workingTreeMixedEolFiles.Count) unchanged tracked file(s) have legacy mixed working-tree line endings; the Git index is clean and no changed file is affected."
+    }
+
+    $nonCrLfFirstPartyCSharpFiles = @(
+        foreach ($entry in $eolResult.Output)
+        {
+            $relativePath = Get-EolFilePath $entry
+
+            if (
+                $firstPartyEditableCSharpFiles -icontains $relativePath -and
+                $entry.ToString() -notmatch "(^|\s)w/crlf(\s|$)"
+            )
+            {
+                $relativePath
+            }
+        }
+    )
+
+    if ($nonCrLfFirstPartyCSharpFiles.Count -eq 0)
+    {
+        Add-ValidationResult "PASS" "C# line endings" "$($firstPartyEditableCSharpFiles.Count) first-party editable C# files use CRLF line endings."
+    }
+    else
+    {
+        Add-ValidationResult "FAIL" "C# line endings" ("Non-CRLF files: " + ($nonCrLfFirstPartyCSharpFiles -join ", "))
     }
 
     $finalNewlineScriptPath = Join-Path $repositoryRootPath "Build\Normalize-FinalNewlines.ps1"

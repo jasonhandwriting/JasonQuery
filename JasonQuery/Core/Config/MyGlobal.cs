@@ -204,7 +204,7 @@ namespace JasonQuery.Core.Config
             }
 
             AddAutoCompleteDataCore(dtAutoCompleteForAll, objectName, objectSource);
-        } 
+        }
 
         public static void AddAutoCompleteDataRange(IEnumerable<string> objectNames, string objectSource)
         {

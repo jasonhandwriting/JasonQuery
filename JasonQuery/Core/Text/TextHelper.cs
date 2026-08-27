@@ -1527,7 +1527,7 @@ namespace JasonQuery.Core.Text
                 values.Where(s => !string.IsNullOrWhiteSpace(s))
             );
         }
-        
+
         /// <summary>
          /// 移除包住整個字串的外層成對小括號。
          /// 例如：(getdate()) -> getdate()，((1)) -> 1。
