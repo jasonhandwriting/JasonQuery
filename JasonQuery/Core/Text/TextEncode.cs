@@ -559,6 +559,10 @@ namespace JasonQuery.Core.Text
                         break;
                     }
                 case DetectedTextEncoding.Utf8Bom:
+                    {
+                        textEncode = "UTF-8 BOM";
+                        break;
+                    }
                 case DetectedTextEncoding.Utf8NoBom:
                     {
                         textEncode = "UTF-8";

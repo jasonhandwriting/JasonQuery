@@ -22,7 +22,7 @@ namespace JasonQuery.Core.Text
 
             if (assumeUtf8WindowsLineEnding)
             {
-                result.EncodingName = "UTF-8";
+                result.EncodingName = "UTF-8 BOM";
                 result.EndOfLineStyle = "Windows (CR LF)";
             }
             else
@@ -67,6 +67,7 @@ namespace JasonQuery.Core.Text
         {
             switch (encodingName)
             {
+                case "UTF-8 BOM":
                 case "UTF-8":
                 case "ASCII":
                     {
