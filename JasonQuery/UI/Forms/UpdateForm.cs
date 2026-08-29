@@ -49,6 +49,18 @@ namespace JasonQuery.UI.Forms
 
                 toolTip1.SetToolTip(btnHelp_HowToUpdate, manualUpdateHelpToolTip);
 
+                var companyUpdatePackageToolTip = LocalizationHelper.GetLanguageString
+                (
+                    "For IT administrators: contains jasonquery-update.json, JasonQuery64.zip, and deployment instructions for an internal update folder.",
+                    "form",
+                    GetType().Name,
+                    "object",
+                    "lnkDownloadCompanyUpdatePackage",
+                    "ToolTipText"
+                );
+
+                toolTip1.SetToolTip(lnkDownloadCompanyUpdatePackage, companyUpdatePackageToolTip);
+
                 ConfigureMetadataLink
                 (
                     UpdateSourceResolver.ResolveMetadata
@@ -60,6 +72,7 @@ namespace JasonQuery.UI.Forms
 
                 lnkDownloadJasonQuery64.Enabled = false;
                 lnkDownloadJasonQuery64Test.Enabled = false;
+                lnkDownloadCompanyUpdatePackage.Enabled = false;
                 btnUpdateNow.Enabled = false;
 
                 lblLength.Text = grpDownloadInfo.Text;
@@ -151,13 +164,17 @@ namespace JasonQuery.UI.Forms
 
                 ConfigureMetadataLink(metadataLocation);
 
+                var latestProductionRelease = selector.FindLatest(manifest, UpdateChannel.Production);
+
                 ConfigurePackageLink
                 (
                     lnkDownloadJasonQuery64,
                     source,
                     localFolder,
-                    selector.FindLatest(manifest, UpdateChannel.Production)
+                    latestProductionRelease
                 );
+
+                ConfigureCompanyUpdatePackageLink(latestProductionRelease);
 
                 if (_selectedRelease != null)
                 {
@@ -392,6 +409,35 @@ namespace JasonQuery.UI.Forms
             link.Enabled = true;
         }
 
+        private void ConfigureCompanyUpdatePackageLink(UpdateReleaseSelection productionRelease)
+        {
+            lnkDownloadCompanyUpdatePackage.Tag = null;
+            lnkDownloadCompanyUpdatePackage.Enabled = false;
+
+            if (productionRelease == null)
+            {
+                return;
+            }
+
+            var versionComparer = new UpdateVersionComparer();
+
+            if (versionComparer.Compare(productionRelease.Version, UpdateMetadataSettingsContract.CompanyUpdatePackageMinimumVersion) < 0)
+            {
+                return;
+            }
+
+            var fileName = $"{UpdateMetadataSettingsContract.CompanyUpdatePackageFileNamePrefix}{productionRelease.Version}.zip";
+            var location = new UpdateContentLocation
+            (
+                $"{UpdateMetadataSettingsContract.OfficialWebsiteBaseUrl}/JasonQueryUpdate/{Uri.EscapeDataString(fileName)}",
+                false
+            );
+
+            lnkDownloadCompanyUpdatePackage.Text = fileName;
+            lnkDownloadCompanyUpdatePackage.Tag = location;
+            lnkDownloadCompanyUpdatePackage.Enabled = true;
+        }
+
         private static UpdateContentLocation ResolveAvailablePackageLocation(UpdateMetadataSourceKind source, string localFolder, UpdateReleaseSelection selection)
         {
             if (selection == null)
@@ -425,6 +471,12 @@ namespace JasonQuery.UI.Forms
         {
             lnkDownloadJasonQuery64Test.LinkVisited = true;
             OpenContentLocation(lnkDownloadJasonQuery64Test);
+        }
+
+        private void lnkDownloadCompanyUpdatePackage_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            lnkDownloadCompanyUpdatePackage.LinkVisited = true;
+            OpenContentLocation(lnkDownloadCompanyUpdatePackage);
         }
 
         private void btnHelp_HowToUpdate_Click(object sender, EventArgs e)

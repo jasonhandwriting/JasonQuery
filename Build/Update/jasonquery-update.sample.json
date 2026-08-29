@@ -10,7 +10,7 @@
       "draft": false,
       "prerelease": true,
       "published_at": "2026-08-25T00:00:00Z",
-      "html_url": "https://www.jasonquery.org/",
+      "html_url": "https://jasonquery.org/",
       "assets": [
         {
           "name": "JasonQuery64Test.zip",
@@ -18,7 +18,7 @@
           "content_type": "application/zip",
           "size": 12345678,
           "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-          "browser_download_url": "https://www.jasonquery.org/JasonQueryUpdate/JasonQuery64Test.zip"
+          "browser_download_url": "https://jasonquery.org/JasonQueryUpdate/JasonQuery64Test.zip"
         }
       ]
     },
@@ -29,7 +29,7 @@
       "draft": false,
       "prerelease": false,
       "published_at": "2026-08-25T00:00:00Z",
-      "html_url": "https://www.jasonquery.org/",
+      "html_url": "https://jasonquery.org/",
       "assets": [
         {
           "name": "JasonQuery64.zip",
@@ -37,7 +37,7 @@
           "content_type": "application/zip",
           "size": 12345678,
           "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "browser_download_url": "https://www.jasonquery.org/JasonQueryUpdate/JasonQuery64.zip"
+          "browser_download_url": "https://jasonquery.org/JasonQueryUpdate/JasonQuery64.zip"
         }
       ]
     }

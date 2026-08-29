@@ -1,4 +1,4 @@
-using JasonLibrary.Core.Update;
+﻿using JasonLibrary.Core.Update;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -128,7 +128,7 @@ namespace JasonLibrary.Tests.Core.Update
                 var selection = await LoadSelectionAsync(scenario);
                 var packageLocation = ResolvePackage(scenario, selection);
 
-                var exception = Assert.ThrowsException<UpdatePackageVerificationException>
+                var exception = Assert.ThrowsExactly<UpdatePackageVerificationException>
                 (
                     () => UpdatePackageVerifier.Verify
                     (
@@ -180,7 +180,7 @@ namespace JasonLibrary.Tests.Core.Update
                     scenario.ExtractionRoot
                 );
 
-                var exception = Assert.ThrowsException<ProtectedUpdatePathException>
+                var exception = Assert.ThrowsExactly<ProtectedUpdatePathException>
                 (
                     () => new FileUpdateTransaction().Execute
                     (
@@ -333,7 +333,7 @@ namespace JasonLibrary.Tests.Core.Update
                     Draft = false,
                     Prerelease = false,
                     PublishedAt = DateTimeOffset.UtcNow.ToString("O"),
-                    HtmlUrl = "https://www.jasonquery.org/",
+                    HtmlUrl = "https://jasonquery.org/",
                     Assets = new List<UpdateAssetMetadata>
                     {
                         new UpdateAssetMetadata
@@ -343,7 +343,7 @@ namespace JasonLibrary.Tests.Core.Update
                             ContentType = "application/zip",
                             Size = packageInfo.Length,
                             Digest = "sha256:" + Sha256Digest.ComputeFile(scenario.PackagePath),
-                            BrowserDownloadUrl = "https://www.jasonquery.org/JasonQueryUpdate/JasonQuery64.zip"
+                            BrowserDownloadUrl = "https://jasonquery.org/JasonQueryUpdate/JasonQuery64.zip"
                         }
                     }
                 }

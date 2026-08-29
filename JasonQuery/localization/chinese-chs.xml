@@ -98,6 +98,9 @@
   <language category="form" class="UpdateForm" type="object" id="grpCheckInfo" attribute="Text" name="手动检查更新" />
   <language category="form" class="UpdateForm" type="object" id="grpDownloadInfo" attribute="Text" name="手动下载最新版本" />
   <language category="form" class="UpdateForm" type="object" id="lblDownloadInfoWithout" attribute="Text" name="zip 压缩文件：免安装版本, 多国语言" />
+  <language category="form" class="UpdateForm" type="object" id="lblCompanyUpdatePackage" attribute="Text" name="IT 管理员专用离线更新包：" />
+  <language category="form" class="UpdateForm" type="object" id="lnkDownloadCompanyUpdatePackage" attribute="Text" name="正式版本 0.95.0 以上提供" />
+  <language category="form" class="UpdateForm" type="object" id="lnkDownloadCompanyUpdatePackage" attribute="ToolTipText" name="供 IT 管理员使用：包含 jasonquery-update.json、JasonQuery64.zip，以及公司内部更新文件夹的部署说明。" />
   <language category="form" class="UpdateForm" type="object" id="btnCheckForUpdates" attribute="Text" name="立刻检查更新" />
   <language category="form" class="UpdateForm" type="object" id="btnClose" attribute="Text" name="关闭(&amp;C)" />
   <language category="form" class="UpdateForm" type="object" id="btnHelp_HowToUpdate" attribute="ToolTipText" name="如何手动更新" />
@@ -1953,7 +1956,7 @@
   <language category="form" class="OptionsForm" type="object" id="lblLargeBinary" attribute="Text" name="二进制字段只显示摘要，例如：(BLOB)(27,500 bytes)。&#x000A;双击单元格可在 Cell Viewer 中查看完整内容。" />
   <language category="form" class="OptionsForm" type="object" id="grpUpdateInformationSource" attribute="Text" name="更新信息来源" />
   <language category="form" class="OptionsForm" type="object" id="rdoUpdateSourceOfficialWebsite" attribute="Text" name="JasonQuery 官网 (建议)" />
-  <language category="form" class="OptionsForm" type="object" id="lblOfficialWebsiteUpdateUrl" attribute="Text" name="https://www.jasonquery.org/JasonQueryUpdate/jasonquery-update.json" />
+  <language category="form" class="OptionsForm" type="object" id="lblOfficialWebsiteUpdateUrl" attribute="Text" name="https://jasonquery.org/JasonQueryUpdate/jasonquery-update.json" />
   <language category="form" class="OptionsForm" type="object" id="rdoUpdateSourceGitHub" attribute="Text" name="GitHub Releases" />
   <language category="form" class="OptionsForm" type="object" id="lblGitHubUpdateUrl" attribute="Text" name="https://api.github.com/repos/JasonHandwriting/JasonQuery/releases?per_page=20" />
   <language category="form" class="OptionsForm" type="object" id="rdoUpdateSourceLocal" attribute="Text" name="公司内部更新文件夹:" />
@@ -2068,7 +2071,7 @@
   <language category="form" class="OptionsForm" type="msg" id="SelectCompanyUpdateFolderTitle" attribute="Text" name="选择公司内部更新文件夹…" />
   <language category="form" class="OptionsForm" type="msg" id="CompanyUpdateFolderNotFound" attribute="Text" name="找不到指定的公司内部更新文件夹：" />
   <language category="form" class="OptionsForm" type="msg" id="UpdateMetadataFileNotFound" attribute="Text" name="找不到更新信息文件：" />
-  <language category="form" class="OptionsForm" type="msg" id="Help_CompanyUpdateFolder" attribute="Text" name="如果公司内的计算机无法连接外部更新网站，IT 管理员可以维护一个公司内部更新文件夹。&#x000A;&#x000A;请将以下文件放在同一个文件夹：&#x000A;• jasonquery-update.json&#x000A;• JasonQuery64.zip&#x000A;• JasonQuery64Test.zip (提供测试版更新时)&#x000A;&#x000A;支持本地磁盘路径及 \\server\share\JasonQueryUpdate 形式的 UNC 网络路径。选择此来源后，JasonQuery 只会从这个文件夹读取更新信息与更新压缩包，不会连接外部更新网站。" />
+  <language category="form" class="OptionsForm" type="msg" id="Help_CompanyUpdateFolder" attribute="Text" name="“公司内部更新文件夹”适用于无法连接外部更新网站的计算机。&#x000A;&#x000A;IT 管理员部署步骤：&#x000A;1. 从 https://jasonquery.org/JasonQueryUpdate/ 下载 JasonQuery-Company-Update-v&lt;版本&gt;.zip，例如 JasonQuery-Company-Update-v0.95.0.zip。&#x000A;2. 将 ZIP 解压缩至本地文件夹或 UNC 网络共享路径。&#x000A;3. 授予 JasonQuery 用户对该文件夹的只读权限。&#x000A;4. 请用户在 JasonQuery 中选择 [工具] &gt; [选项] &gt; [更新设置] &gt; [公司内部更新文件夹]，并指定第 2 步所使用的完整路径。&#x000A;&#x000A;请将以下解压缩后的文件保存在同一个文件夹：&#x000A;• jasonquery-update.json&#x000A;• JasonQuery64.zip&#x000A;• README-Company-Update.txt&#x000A;&#x000A;支持本地磁盘路径以及 \server\share\JasonQueryUpdate 形式的 UNC 路径。JasonQuery 只会从所选文件夹读取更新信息与更新压缩包，不会连接外部更新网站。公司离线更新包仅包含正式版本更新。" />
   <!-- MainFormForm-->
   <language category="form" class="MainForm" type="menu" id="mnuFile" attribute="Text" name="文件(&amp;F)" />
   <language category="form" class="MainForm" type="menu" id="mnuNewConnection" attribute="Text" name="新的连线" />

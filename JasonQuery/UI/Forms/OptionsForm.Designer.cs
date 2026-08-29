@@ -7049,6 +7049,8 @@ namespace JasonQuery.UI.Forms
             // 
             // grpUpdateInformationSource
             // 
+            this.grpUpdateInformationSource.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.grpUpdateInformationSource.BackColor = System.Drawing.Color.Transparent;
             this.grpUpdateInformationSource.Controls.Add(this.btnHelp_LocalUpdateFolder);
             this.grpUpdateInformationSource.Controls.Add(this.lblGitHubUpdateUrl);
@@ -7094,7 +7096,7 @@ namespace JasonQuery.UI.Forms
             this.lblOfficialWebsiteUpdateUrl.Name = "lblOfficialWebsiteUpdateUrl";
             this.lblOfficialWebsiteUpdateUrl.Size = new System.Drawing.Size(416, 16);
             this.lblOfficialWebsiteUpdateUrl.TabIndex = 320;
-            this.lblOfficialWebsiteUpdateUrl.Text = "https://www.jasonquery.org/JasonQueryUpdate/jasonquery-update.json";
+            this.lblOfficialWebsiteUpdateUrl.Text = "https://jasonquery.org/JasonQueryUpdate/jasonquery-update.json";
             // 
             // btnLocalFolderOpenFolder
             // 
@@ -7142,7 +7144,6 @@ namespace JasonQuery.UI.Forms
             this.rdoUpdateSourceLocal.Name = "rdoUpdateSourceLocal";
             this.rdoUpdateSourceLocal.Size = new System.Drawing.Size(168, 20);
             this.rdoUpdateSourceLocal.TabIndex = 2;
-            this.rdoUpdateSourceLocal.TabStop = true;
             this.rdoUpdateSourceLocal.Text = "Company Update Folder:";
             this.rdoUpdateSourceLocal.UseVisualStyleBackColor = true;
             this.rdoUpdateSourceLocal.CheckedChanged += new System.EventHandler(this.UpdateMetadataSource_CheckedChanged);
@@ -7150,11 +7151,11 @@ namespace JasonQuery.UI.Forms
             // rdoUpdateSourceGitHub
             // 
             this.rdoUpdateSourceGitHub.AutoSize = true;
+            this.rdoUpdateSourceGitHub.Enabled = false;
             this.rdoUpdateSourceGitHub.Location = new System.Drawing.Point(20, 76);
             this.rdoUpdateSourceGitHub.Name = "rdoUpdateSourceGitHub";
             this.rdoUpdateSourceGitHub.Size = new System.Drawing.Size(117, 20);
             this.rdoUpdateSourceGitHub.TabIndex = 1;
-            this.rdoUpdateSourceGitHub.TabStop = true;
             this.rdoUpdateSourceGitHub.Text = "GitHub Releases";
             this.rdoUpdateSourceGitHub.UseVisualStyleBackColor = true;
             this.rdoUpdateSourceGitHub.CheckedChanged += new System.EventHandler(this.UpdateMetadataSource_CheckedChanged);
@@ -7162,6 +7163,7 @@ namespace JasonQuery.UI.Forms
             // rdoUpdateSourceOfficialWebsite
             // 
             this.rdoUpdateSourceOfficialWebsite.AutoSize = true;
+            this.rdoUpdateSourceOfficialWebsite.Checked = true;
             this.rdoUpdateSourceOfficialWebsite.Location = new System.Drawing.Point(20, 22);
             this.rdoUpdateSourceOfficialWebsite.Name = "rdoUpdateSourceOfficialWebsite";
             this.rdoUpdateSourceOfficialWebsite.Size = new System.Drawing.Size(239, 20);

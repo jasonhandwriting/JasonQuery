@@ -5658,12 +5658,12 @@ namespace JasonQuery.UI.Forms
                 case "zh-TW":
                 case "zh-CN":
                     {
-                        Process.Start("http://www.jasonquery.org/releasenotes_cht.html");
+                        Process.Start("https://jasonquery.org/releasenotes_cht.html");
                         break;
                     }
                 default: //English
                     {
-                        Process.Start("http://www.jasonquery.org/releasenotes.html");
+                        Process.Start("https://jasonquery.org/releasenotes.html");
                         break;
                     }
             }
@@ -5671,7 +5671,7 @@ namespace JasonQuery.UI.Forms
 
         private void mnuReportBugs_Click(object sender, EventArgs e)
         {
-            Process.Start("http://www.jasonquery.org/reportbugs.html");
+            Process.Start("https://jasonquery.org/reportbugs.html");
         }
 
         private void mnuMainForm_MouseEnter(object sender, EventArgs e)

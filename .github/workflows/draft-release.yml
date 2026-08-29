@@ -10,7 +10,7 @@ on:
       package_url:
         description: "HTTPS URL of the already validated official ZIP"
         required: true
-        default: "https://www.jasonquery.org/JasonQueryUpdate/JasonQuery64.zip"
+        default: "https://jasonquery.org/JasonQueryUpdate/JasonQuery64.zip"
         type: string
       package_sha256:
         description: "Expected SHA-256 from the trusted Windows VM"

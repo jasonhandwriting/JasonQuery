@@ -1,4 +1,4 @@
-using JasonLibrary.Core.Update;
+﻿using JasonLibrary.Core.Update;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -21,6 +21,7 @@ namespace JasonLibrary.Tests.Core.Update
 
             Assert.IsFalse(location.IsLocalFile);
             Assert.AreEqual(UpdateMetadataSettingsContract.OfficialWebsiteMetadataUrl, location.Value);
+            Assert.AreEqual("https://jasonquery.org/JasonQueryUpdate/jasonquery-update.json", location.Value);
         }
 
         [TestMethod]
@@ -68,7 +69,7 @@ namespace JasonLibrary.Tests.Core.Update
             var asset = new UpdateAssetMetadata
             {
                 Name = "JasonQuery64.zip",
-                BrowserDownloadUrl = "https://www.jasonquery.org/JasonQueryUpdate/JasonQuery64.zip"
+                BrowserDownloadUrl = "https://jasonquery.org/JasonQueryUpdate/JasonQuery64.zip"
             };
 
             var location = UpdateSourceResolver.ResolvePackage
@@ -93,7 +94,7 @@ namespace JasonLibrary.Tests.Core.Update
                 BrowserDownloadUrl = "http://example.test/JasonQuery64.zip"
             };
 
-            Assert.ThrowsException<FormatException>
+            Assert.ThrowsExactly<FormatException>
             (
                 () => UpdateSourceResolver.ResolvePackage
                 (
@@ -111,7 +112,7 @@ namespace JasonLibrary.Tests.Core.Update
         {
             var asset = new UpdateAssetMetadata { Name = @"..\JasonQuery64.zip" };
 
-            Assert.ThrowsException<FormatException>
+            Assert.ThrowsExactly<FormatException>
             (
                 () => UpdateSourceResolver.ResolvePackage
                 (

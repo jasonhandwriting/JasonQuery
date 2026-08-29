@@ -1,9 +1,9 @@
 [CmdletBinding()]
 param
 (
-    [string]$WebsiteUrl = "https://www.jasonquery.org/",
+    [string]$WebsiteUrl = "https://jasonquery.org/",
 
-    [string]$MetadataUrl = "https://www.jasonquery.org/JasonQueryUpdate/jasonquery-update.json",
+    [string]$MetadataUrl = "https://jasonquery.org/JasonQueryUpdate/jasonquery-update.json",
 
     [string]$ReportPath = "Build/ValidationReports/Public-Endpoint-Monitor.txt",
 

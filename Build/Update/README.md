@@ -75,10 +75,10 @@ Publish files in this order so metadata never points to a package that is not ye
 
 The official website paths are:
 
-- `https://www.jasonquery.org/JasonQueryUpdate/JasonQuery64.zip`
-- `https://www.jasonquery.org/JasonQueryUpdate/JasonQuery64Test.zip`
-- `https://www.jasonquery.org/JasonQueryUpdate/jasonquery-update.json`
-- `https://www.jasonquery.org/JasonQueryUpdate/jq.txt`
+- `https://jasonquery.org/JasonQueryUpdate/JasonQuery64.zip`
+- `https://jasonquery.org/JasonQueryUpdate/JasonQuery64Test.zip`
+- `https://jasonquery.org/JasonQueryUpdate/jasonquery-update.json`
+- `https://jasonquery.org/JasonQueryUpdate/jq.txt`
 
 For a company update folder, copy `jasonquery-update.json` and the package or packages named in its `assets` entries into the same folder. Do not hand-edit `size` or `digest`.
 
@@ -102,3 +102,20 @@ Run the generator self-test before committing publishing changes:
 The self-test does not use release binaries and does not change repository or Desktop files.
 
 SHA-256 verifies package integrity against the selected metadata. It does not replace HTTPS or independently prove publisher identity if an attacker can replace both the metadata and package.
+
+
+## IT administrator offline update package
+
+The official Production workflow also creates:
+
+- `JasonQuery-Company-Update-v<version>.zip`
+
+This archive is intended for an IT administrator who maintains an internal update share for computers that cannot access external update websites. It contains exactly:
+
+- `jasonquery-update.json` with the latest Production release only.
+- `JasonQuery64.zip`.
+- `README-Company-Update.txt`.
+
+The archive does not contain `JasonQuery64Test.zip`; company packages are Production-only. Extract the three files into one local folder or UNC share, grant users read-only access, and select that folder under **Options > Update Settings > Company Update Folder**.
+
+The generator validates the metadata schema, product, Production channel, minimum supported company-package version, package size, SHA-256 digest, and canonical `https://jasonquery.org/...` URLs before it writes the archive.

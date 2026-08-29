@@ -17,9 +17,9 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$LegacyVersionPath,
 
-    [string]$WebsiteBaseUrl = "https://www.jasonquery.org/JasonQueryUpdate",
+    [string]$WebsiteBaseUrl = "https://jasonquery.org/JasonQueryUpdate",
 
-    [string]$ReleasePageUrl = "https://www.jasonquery.org/",
+    [string]$ReleasePageUrl = "https://jasonquery.org/",
 
     [string]$ReportPath
 )

@@ -5,6 +5,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $generatorPath = Join-Path $PSScriptRoot "New-JasonQueryUpdateMetadata.ps1"
+$companyPackageGeneratorPath = Join-Path $PSScriptRoot "New-JasonQueryCompanyUpdatePackage.ps1"
 $testRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("JasonQuery-Step5-" + [guid]::NewGuid().ToString("N"))
 $metadataPath = Join-Path $testRoot "jasonquery-update.json"
 $legacyPath = Join-Path $testRoot "jq.txt"
@@ -99,6 +100,10 @@ try {
         throw "Generator was not found: $generatorPath"
     }
 
+    if (-not [System.IO.File]::Exists($companyPackageGeneratorPath)) {
+        throw "Company package generator was not found: $companyPackageGeneratorPath"
+    }
+
     [System.IO.Directory]::CreateDirectory($testRoot) | Out-Null
     [System.IO.File]::WriteAllBytes($productionPackagePath, [byte[]](1..64))
     [System.IO.File]::WriteAllBytes($testPackagePath, [byte[]](65..128))
@@ -109,8 +114,43 @@ try {
     Assert-Equal -Expected 1 -Actual (@($metadata.releases).Count) -Message "A first production publish must create one release."
     Assert-Equal -Expected 1 -Actual $productionRelease.Count -Message "The production release is missing."
     Assert-Equal -Expected $false -Actual ([bool]$productionRelease[0].prerelease) -Message "The production release must not be a prerelease."
+    Assert-Equal -Expected "https://jasonquery.org/" -Actual ([string]$productionRelease[0].html_url) -Message "The release page URL is not canonical."
+    Assert-Equal -Expected "https://jasonquery.org/JasonQueryUpdate/JasonQuery64.zip" -Actual ([string]@($productionRelease[0].assets)[0].browser_download_url) -Message "The Production download URL is not canonical."
     Assert-Equal -Expected '```0.95```0.95.0' -Actual ([System.IO.File]::ReadAllText($legacyPath)) -Message "The initial jq.txt value is incorrect."
     Complete-Test -Name "Production metadata initialization"
+
+    $companyOutputDirectory = Join-Path $testRoot "company-output"
+    $companyPackagePath = & $companyPackageGeneratorPath `
+        -MetadataPath $metadataPath `
+        -ProductionPackagePath $productionPackagePath `
+        -OutputDirectory $companyOutputDirectory
+
+    Assert-True -Condition ([System.IO.File]::Exists($companyPackagePath)) -Message "The company update package was not created."
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+    $companyArchive = [System.IO.Compression.ZipFile]::OpenRead($companyPackagePath)
+    try {
+        $entryNames = @($companyArchive.Entries | ForEach-Object { $_.FullName } | Sort-Object)
+        $expectedEntryNames = @("JasonQuery64.zip", "README-Company-Update.txt", "jasonquery-update.json") | Sort-Object
+        Assert-Equal -Expected ($expectedEntryNames -join "|") -Actual ($entryNames -join "|") -Message "The company update package contents are incorrect."
+
+        $metadataEntry = $companyArchive.GetEntry("jasonquery-update.json")
+        $metadataReader = New-Object System.IO.StreamReader($metadataEntry.Open(), [System.Text.Encoding]::UTF8)
+        try {
+            $companyMetadata = $metadataReader.ReadToEnd() | ConvertFrom-Json
+        }
+        finally {
+            $metadataReader.Dispose()
+        }
+
+        Assert-Equal -Expected 1 -Actual (@($companyMetadata.releases).Count) -Message "The company metadata must contain one Production release only."
+        Assert-Equal -Expected "v0.95.0" -Actual ([string]@($companyMetadata.releases)[0].tag_name) -Message "The company metadata contains the wrong Production release."
+    }
+    finally {
+        $companyArchive.Dispose()
+    }
+
+    Complete-Test -Name "Production-only company update package"
 
     Invoke-Generator -Channel Test -Version "0.95.1" -PackagePath $testPackagePath
     $metadata = Read-Metadata

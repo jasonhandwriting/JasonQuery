@@ -1489,7 +1489,9 @@ namespace JasonQuery.UI.Forms
                 //Update Information Source
                 ControlLayoutHelper.PlaceRightOf(btnHelp_LocalUpdateFolder, rdoUpdateSourceLocal, 3);
                 ControlLayoutHelper.PlaceRightOf(txtLocalFolder, btnHelp_LocalUpdateFolder, 5);
-                txtLocalFolder.Width = Math.Max(120, btnBrowseLocalFolder.Left - txtLocalFolder.Left - 6);
+                txtLocalFolder.Width = grpUpdateInformationSource.Width - txtLocalFolder.Left - btnBrowseLocalFolder.Width - btnLocalFolderOpenFolder.Width - 24;
+                ControlLayoutHelper.PlaceRightOf(btnBrowseLocalFolder, txtLocalFolder, 5);
+                ControlLayoutHelper.PlaceRightOf(btnLocalFolderOpenFolder, btnBrowseLocalFolder, 5);
 
                 //Auto Complete GroupBox：CheckBox 疊在 GroupBox 邊框上
                 ControlLayoutHelper.AdjustGroupBoxBorderForCheckbox(grpAutoComplete, chkEnableAutoComplete, 7);
@@ -6083,7 +6085,7 @@ namespace JasonQuery.UI.Forms
             {
                 case UpdateMetadataSourceKind.GitHub:
                     {
-                        rdoUpdateSourceGitHub.Checked = true;
+                        rdoUpdateSourceOfficialWebsite.Checked = true;
                         break;
                     }
                 case UpdateMetadataSourceKind.LocalFolder:
@@ -6103,11 +6105,6 @@ namespace JasonQuery.UI.Forms
 
         private UpdateMetadataSourceKind GetSelectedUpdateMetadataSource()
         {
-            if (rdoUpdateSourceGitHub.Checked)
-            {
-                return UpdateMetadataSourceKind.GitHub;
-            }
-
             return rdoUpdateSourceLocal.Checked ? UpdateMetadataSourceKind.LocalFolder : UpdateMetadataSourceKind.OfficialWebsite;
         }
 
@@ -6483,7 +6480,7 @@ namespace JasonQuery.UI.Forms
         {
             var message = LocalizationHelper.GetLanguageString
             (
-                "For computers that cannot access external update websites, an IT administrator can maintain an internal update folder.\r\n\r\nPlace these files in the same folder:\r\n• jasonquery-update.json\r\n• JasonQuery64.zip\r\n• JasonQuery64Test.zip (when test updates are provided)\r\n\r\nLocal disk paths and UNC network paths such as \\\\server\\share\\JasonQueryUpdate are supported. When this source is selected, JasonQuery reads both update metadata and packages from this folder without connecting to external update websites.",
+                "Company Update Folder is intended for computers that cannot access external update websites.\r\n\r\nIT administrator deployment steps:\r\n1. Download JasonQuery-Company-Update-v<version>.zip from https://jasonquery.org/JasonQueryUpdate/. For example: JasonQuery-Company-Update-v0.95.0.zip.\r\n2. Extract the ZIP to a local folder or UNC network share.\r\n3. Grant JasonQuery users read-only access to the folder.\r\n4. In JasonQuery, select [Tools] > [Options] > [Update Settings] > [Company Update Folder] and specify the full path used in step 2.\r\n\r\nKeep these extracted files together:\r\n• jasonquery-update.json\r\n• JasonQuery64.zip\r\n• README-Company-Update.txt\r\n\r\nLocal disk paths and UNC paths such as \\\\server\\share\\JasonQueryUpdate are supported. JasonQuery reads update metadata and packages only from the selected folder and does not connect to external update websites. The company offline update package contains Production updates only.",
                 "form",
                 GetType().Name,
                 "msg",

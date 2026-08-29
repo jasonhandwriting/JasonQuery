@@ -98,6 +98,9 @@
   <language category="form" class="UpdateForm" type="object" id="grpCheckInfo" attribute="Text" name="Check for updates manually" />
   <language category="form" class="UpdateForm" type="object" id="grpDownloadInfo" attribute="Text" name="Download latest version manually" />
   <language category="form" class="UpdateForm" type="object" id="lblDownloadInfoWithout" attribute="Text" name="zip package: portable, multilingual" />
+  <language category="form" class="UpdateForm" type="object" id="lblCompanyUpdatePackage" attribute="Text" name="IT administrator offline update package:" />
+  <language category="form" class="UpdateForm" type="object" id="lnkDownloadCompanyUpdatePackage" attribute="Text" name="Available with Production version 0.95.0 or later" />
+  <language category="form" class="UpdateForm" type="object" id="lnkDownloadCompanyUpdatePackage" attribute="ToolTipText" name="For IT administrators: contains jasonquery-update.json, JasonQuery64.zip, and deployment instructions for an internal update folder." />
   <language category="form" class="UpdateForm" type="object" id="btnCheckForUpdates" attribute="Text" name="Check for updates now" />
   <language category="form" class="UpdateForm" type="object" id="btnClose" attribute="Text" name="&amp;Close" />
   <language category="form" class="UpdateForm" type="object" id="btnHelp_HowToUpdate" attribute="ToolTipText" name="How to update manually" />
@@ -1953,7 +1956,7 @@
   <language category="form" class="OptionsForm" type="object" id="lblLargeBinary" attribute="Text" name="Show a summary only for binary fields, for example: (BLOB)(27,500 bytes).&#x000A;Double-click the cell to view the full content in the Cell Viewer." />
   <language category="form" class="OptionsForm" type="object" id="grpUpdateInformationSource" attribute="Text" name="Update Information Source" />
   <language category="form" class="OptionsForm" type="object" id="rdoUpdateSourceOfficialWebsite" attribute="Text" name="JasonQuery Website (Recommended)" />
-  <language category="form" class="OptionsForm" type="object" id="lblOfficialWebsiteUpdateUrl" attribute="Text" name="https://www.jasonquery.org/JasonQueryUpdate/jasonquery-update.json" />
+  <language category="form" class="OptionsForm" type="object" id="lblOfficialWebsiteUpdateUrl" attribute="Text" name="https://jasonquery.org/JasonQueryUpdate/jasonquery-update.json" />
   <language category="form" class="OptionsForm" type="object" id="rdoUpdateSourceGitHub" attribute="Text" name="GitHub Releases" />
   <language category="form" class="OptionsForm" type="object" id="lblGitHubUpdateUrl" attribute="Text" name="https://api.github.com/repos/JasonHandwriting/JasonQuery/releases?per_page=20" />
   <language category="form" class="OptionsForm" type="object" id="rdoUpdateSourceLocal" attribute="Text" name="Company Update Folder:" />
@@ -2068,7 +2071,7 @@
   <language category="form" class="OptionsForm" type="msg" id="SelectCompanyUpdateFolderTitle" attribute="Text" name="Select Company Update Folder…" />
   <language category="form" class="OptionsForm" type="msg" id="CompanyUpdateFolderNotFound" attribute="Text" name="The company update folder does not exist:" />
   <language category="form" class="OptionsForm" type="msg" id="UpdateMetadataFileNotFound" attribute="Text" name="The update metadata file was not found:" />
-  <language category="form" class="OptionsForm" type="msg" id="Help_CompanyUpdateFolder" attribute="Text" name="For computers that cannot access external update websites, an IT administrator can maintain an internal update folder.&#x000A;&#x000A;Place these files in the same folder:&#x000A;• jasonquery-update.json&#x000A;• JasonQuery64.zip&#x000A;• JasonQuery64Test.zip (when test updates are provided)&#x000A;&#x000A;Local disk paths and UNC network paths such as \\server\share\JasonQueryUpdate are supported. When this source is selected, JasonQuery reads both update metadata and packages from this folder without connecting to external update websites." />
+  <language category="form" class="OptionsForm" type="msg" id="Help_CompanyUpdateFolder" attribute="Text" name="Company Update Folder is intended for computers that cannot access external update websites.&#x000A;&#x000A;IT administrator deployment steps:&#x000A;1. Download JasonQuery-Company-Update-v&lt;version&gt;.zip from https://jasonquery.org/JasonQueryUpdate/. For example: JasonQuery-Company-Update-v0.95.0.zip.&#x000A;2. Extract the ZIP to a local folder or UNC network share.&#x000A;3. Grant JasonQuery users read-only access to the folder.&#x000A;4. In JasonQuery, select [Tools] &gt; [Options] &gt; [Update Settings] &gt; [Company Update Folder] and specify the full path used in step 2.&#x000A;&#x000A;Keep these extracted files together:&#x000A;• jasonquery-update.json&#x000A;• JasonQuery64.zip&#x000A;• README-Company-Update.txt&#x000A;&#x000A;Local disk paths and UNC paths such as \server\share\JasonQueryUpdate are supported. JasonQuery reads update metadata and packages only from the selected folder and does not connect to external update websites. The company offline update package contains Production updates only." />
   <!-- MainFormForm-->
   <language category="form" class="MainForm" type="menu" id="mnuFile" attribute="Text" name="&amp;File" />
   <language category="form" class="MainForm" type="menu" id="mnuNewConnection" attribute="Text" name="New Connection" />
