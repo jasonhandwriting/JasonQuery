@@ -51,6 +51,7 @@ namespace Updater
             InitializeStatusDisplay();
 
             MyGlobal.ApplyLanguageInfo(this, false);
+            Text = $"{Text} {Application.ProductVersion}";
 
             lblStep2.Tag = lblStep2.Text;
             lblStep3.Tag = lblStep3.Text;
