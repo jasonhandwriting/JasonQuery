@@ -204,7 +204,7 @@ Test-TextContract "Draft Release workflow" ".github\workflows\draft-release.yml"
 )
 
 Test-TextContract "Public endpoint monitor" "Build\Test-PublicEndpoints.ps1" @(
-    "https://www.jasonquery.org/",
+    "https://jasonquery.org/",
     "jasonquery-update.json",
     "MinimumCertificateDays",
     "TLS certificate expired on",
@@ -213,6 +213,17 @@ Test-TextContract "Public endpoint monitor" "Build\Test-PublicEndpoints.ps1" @(
     "Test-ZipEndpoint",
     "ConvertFrom-Json",
     "ZIP PK signature"
+)
+
+Test-TextContract "Company update package generator" "Build\Update\New-JasonQueryCompanyUpdatePackage.ps1" @(
+    "JasonQuery-Company-Update-v",
+    "README-Company-Update.txt",
+    "Production updates only",
+    '$expectedPackageName = "JasonQuery64.zip"',
+    '$officialBaseUrl = "https://jasonquery.org"',
+    '$officialPackageUrl = "$officialBaseUrl/JasonQueryUpdate/$expectedPackageName"',
+    "Compress-Archive",
+    "SHA256"
 )
 
 Test-TextContract "Draft release creator" "Build\New-DraftRelease.ps1" @(

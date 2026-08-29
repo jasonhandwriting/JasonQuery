@@ -12,6 +12,7 @@ set "SEVENZIP=C:\Program Files\7-Zip\7z.exe"
 set "REPOSITORY_VALIDATOR=%REPOSITORY_ROOT%\Build\Validate-Repository.ps1"
 set "PACKAGE_VALIDATOR=%REPOSITORY_ROOT%\Build\Validate-Step3D-Release.ps1"
 set "UPDATE_METADATA_GENERATOR=%REPOSITORY_ROOT%\Build\Update\New-JasonQueryUpdateMetadata.ps1"
+set "COMPANY_UPDATE_PACKAGE_GENERATOR=%REPOSITORY_ROOT%\Build\Update\New-JasonQueryCompanyUpdatePackage.ps1"
 set "UPDATE_METADATA=%USERPROFILE%\Desktop\jasonquery-update.json"
 set "LEGACY_UPDATE_METADATA=%USERPROFILE%\Desktop\jq.txt"
 set "REPORT_DIRECTORY=%REPOSITORY_ROOT%\Build\ValidationReports"
@@ -42,7 +43,7 @@ set "CURRENT_STEP=Checking prerequisites"
 call :CheckPrerequisites
 if errorlevel 1 goto :Failed
 
-echo [1/8] Validating the repository...
+echo [1/9] Validating the repository...
 set "CURRENT_STEP=Repository validation"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%REPOSITORY_VALIDATOR%" -RepositoryRoot "%REPOSITORY_ROOT%" -ReportPath "%REPORT%" -RequireCleanWorkingTree -ExpectedBranch "main"
 if errorlevel 1 (
@@ -50,14 +51,14 @@ if errorlevel 1 (
     goto :Failed
 )
 
-echo [2/8] Preparing a clean staging directory...
+echo [2/9] Preparing a clean staging directory...
 set "CURRENT_STEP=Preparing the staging directory"
 call :MirrorRelease
 if errorlevel 1 goto :Failed
 call :CleanStaging
 if errorlevel 1 goto :Failed
 
-echo [3/8] Starting JasonQuery for the final manual smoke test...
+echo [3/9] Starting JasonQuery for the final manual smoke test...
 echo Close JasonQuery after the test is complete.
 set "CURRENT_STEP=Manual smoke test"
 pushd "%STAGING%"
@@ -86,17 +87,17 @@ if errorlevel 2 (
 >> "%REPORT%" echo =================
 >> "%REPORT%" echo [PASS] Manual smoke test - Maintainer confirmed that JasonQuery started and ran correctly.
 
-echo [4/8] Restoring a clean staging directory after the smoke test...
+echo [4/9] Restoring a clean staging directory after the smoke test...
 set "CURRENT_STEP=Restoring the staging directory"
 call :MirrorRelease
 if errorlevel 1 goto :Failed
 
-echo [5/8] Removing runtime and legacy files...
+echo [5/9] Removing runtime and legacy files...
 set "CURRENT_STEP=Cleaning the staging directory"
 call :CleanStaging
 if errorlevel 1 goto :Failed
 
-echo [6/8] Creating %OUTPUT%...
+echo [6/9] Creating %OUTPUT%...
 set "CURRENT_STEP=Creating the official ZIP"
 if exist "%OUTPUT%" del /F /Q "%OUTPUT%"
 if exist "%OUTPUT%" (
@@ -111,7 +112,7 @@ if errorlevel 1 (
     goto :Failed
 )
 
-echo [7/8] Validating the Release directory and ZIP package...
+echo [7/9] Validating the Release directory and ZIP package...
 set "CURRENT_STEP=Package validation"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PACKAGE_VALIDATOR%" -ReleaseDirectory "%SOURCE%" -ReleaseZip "%OUTPUT%" -ReportPath "%REPORT%" -PackageKind "Official" -AppendReport
 if errorlevel 1 (
@@ -119,7 +120,7 @@ if errorlevel 1 (
     goto :Failed
 )
 
-echo [8/8] Generating jasonquery-update.json and jq.txt...
+echo [8/9] Generating jasonquery-update.json and jq.txt...
 set "CURRENT_STEP=Generating update metadata"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UPDATE_METADATA_GENERATOR%" ^
     -Channel "Production" ^
@@ -133,6 +134,18 @@ if errorlevel 1 (
     goto :Failed
 )
 
+echo [9/9] Creating the IT administrator offline update package...
+set "CURRENT_STEP=Creating the company update package"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%COMPANY_UPDATE_PACKAGE_GENERATOR%" ^
+    -MetadataPath "%UPDATE_METADATA%" ^
+    -ProductionPackagePath "%OUTPUT%" ^
+    -OutputDirectory "%USERPROFILE%\Desktop" ^
+    -ReportPath "%REPORT%"
+if errorlevel 1 (
+    echo ERROR: Company update package generation failed.
+    goto :Failed
+)
+
 >> "%REPORT%" echo.
 >> "%REPORT%" echo Publish Workflow
 >> "%REPORT%" echo ================
@@ -143,6 +156,7 @@ echo SUCCESS: Official package created and validated.
 echo Package:  %OUTPUT%
 echo Metadata: %UPDATE_METADATA%
 echo Legacy:   %LEGACY_UPDATE_METADATA%
+echo Company:  %USERPROFILE%\Desktop\JasonQuery-Company-Update-v*.zip
 echo Report:   %REPORT%
 pause
 exit /B 0
@@ -200,6 +214,11 @@ if not exist "%PACKAGE_VALIDATOR%" (
 
 if not exist "%UPDATE_METADATA_GENERATOR%" (
     echo ERROR: Update metadata generator was not found in: %UPDATE_METADATA_GENERATOR%
+    exit /B 1
+)
+
+if not exist "%COMPANY_UPDATE_PACKAGE_GENERATOR%" (
+    echo ERROR: Company update package generator was not found in: %COMPANY_UPDATE_PACKAGE_GENERATOR%
     exit /B 1
 )
 

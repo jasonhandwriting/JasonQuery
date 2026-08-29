@@ -266,6 +266,7 @@ try
         "Build\Validate-Repository.ps1",
         "Build\Normalize-FinalNewlines.ps1",
         "Build\Validate-Step3D-Release.ps1",
+        "Build\Update\New-JasonQueryCompanyUpdatePackage.ps1",
         ".github\pull_request_template.md",
         ".github\workflows\repository-guard.yml"
     )
