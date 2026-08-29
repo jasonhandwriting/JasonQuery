@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param()
 
 Set-StrictMode -Version Latest
@@ -145,6 +145,38 @@ try {
 
         Assert-Equal -Expected 1 -Actual (@($companyMetadata.releases).Count) -Message "The company metadata must contain one Production release only."
         Assert-Equal -Expected "v0.95.0" -Actual ([string]@($companyMetadata.releases)[0].tag_name) -Message "The company metadata contains the wrong Production release."
+
+        $readmeEntry = $companyArchive.GetEntry("README-Company-Update.txt")
+        Assert-True -Condition ($null -ne $readmeEntry) -Message "The company README is missing."
+
+        $strictUtf8 = New-Object System.Text.UTF8Encoding($false, $true)
+        $readmeReader = New-Object System.IO.StreamReader($readmeEntry.Open(), $strictUtf8, $false)
+        try {
+            $readmeText = $readmeReader.ReadToEnd()
+        }
+        finally {
+            $readmeReader.Dispose()
+        }
+
+        Assert-True `
+            -Condition ($readmeText.Contains("將三個檔案解壓縮至同一個公司內部資料夾。")) `
+            -Message "The company README Traditional Chinese content is invalid."
+
+        Assert-True `
+            -Condition ($readmeText.Contains("将三个文件解压缩至同一个公司内部文件夹。")) `
+            -Message "The company README Simplified Chinese content is invalid."
+
+        Assert-True `
+            -Condition ($readmeText.Contains("本更新包僅包含正式版本。")) `
+            -Message "The company README Traditional Chinese Production statement is invalid."
+
+        Assert-True `
+            -Condition ($readmeText.Contains("本更新包仅包含正式版本。")) `
+            -Message "The company README Simplified Chinese Production statement is invalid."
+
+        Assert-True `
+            -Condition (-not $readmeText.Contains([char]0xFFFD)) `
+            -Message "The company README contains an invalid Unicode replacement character."
     }
     finally {
         $companyArchive.Dispose()
