@@ -249,7 +249,9 @@ function Test-ZipEndpoint
             throw "$AssetName returned HTTP $([int]$response.StatusCode) ($($response.ReasonPhrase))."
         }
 
-        if ($response.Content.Headers.ContentLength.HasValue -and $response.Content.Headers.ContentLength.Value -le 0)
+        $contentLengthValue = $response.Content.Headers.ContentLength
+
+        if ($null -ne $contentLengthValue -and [long]$contentLengthValue -le 0)
         {
             throw "$AssetName returned an empty package."
         }
@@ -263,9 +265,9 @@ function Test-ZipEndpoint
             throw "$AssetName does not begin with a ZIP PK signature."
         }
 
-        $contentLength = if ($response.Content.Headers.ContentLength.HasValue)
+        $contentLength = if ($null -ne $contentLengthValue)
         {
-            "$($response.Content.Headers.ContentLength.Value) byte(s)"
+            "$([long]$contentLengthValue) byte(s)"
         }
         else
         {
