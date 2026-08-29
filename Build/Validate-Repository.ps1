@@ -749,8 +749,18 @@ try
                 $checkoutResult = Invoke-GitCommand @("checkout-index", "--all", "--force", "--prefix=$snapshotPrefix")
                 Assert-GitSuccess $checkoutResult "Exporting the Git index for gitleaks"
 
-                $gitleaksOutput = @(& $gitleaksCommand.Source dir --no-banner --redact $snapshotRoot 2>&1)
-                $gitleaksExitCode = $LASTEXITCODE
+                $previousErrorActionPreference = $ErrorActionPreference
+
+                try
+                {
+                    $ErrorActionPreference = "Continue"
+                    $gitleaksOutput = @(& $gitleaksCommand.Source dir --no-banner --redact $snapshotRoot 2>&1)
+                    $gitleaksExitCode = $LASTEXITCODE
+                }
+                finally
+                {
+                    $ErrorActionPreference = $previousErrorActionPreference
+                }
 
                 if ($gitleaksExitCode -eq 0)
                 {
