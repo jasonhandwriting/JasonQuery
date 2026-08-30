@@ -6,6 +6,7 @@ using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.Database.Transactions;
 using JasonQuery.Core.Database.Transactions.LockingQueries;
 using JasonQuery.Core.Localization;
+using JasonQuery.Core.Logging;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.UI.Forms;
@@ -492,15 +493,27 @@ namespace JasonQuery.Database.Providers.Readers
                 _command.Connection = _conn;
 
                 //20260717 只取得完整 Schema, KeyInfo (比照 ExecuteQueryPaged 的兩階段設計，因為 ExecutePageReader(KeyInfo, 0, x) 所建立的分頁結果集，沒有正確保留底層主鍵的 IsKey Metadata)
+                var schemaContext = new TraceLogContext { Category = "Database", RequestedRows = 0, Message = "Two-phase paged query" };
+
+                using (TraceLogger.Time("Database", "ExecutePageReader.KeyInfo", schemaContext))
                 using (var schemaReader = _command.ExecutePageReader(CommandBehavior.KeyInfo, 0, 0))
                 {
                     dtSchema = schemaReader.GetSchemaTable();
+                    schemaContext.ColumnCount = dtSchema?.Rows.Count;
                 }
 
                 //20260717 只負責讀取實際分頁資料
-                using (var dataReader = _command.ExecutePageReader(CommandBehavior.Default, startRow, pageLength))
+                if (pageLength > 0)
                 {
-                    dtData.Load(dataReader);
+                    var dataContext = new TraceLogContext { Category = "Database", RequestedRows = pageLength, Message = "Two-phase paged query" };
+
+                    using (TraceLogger.Time("Database", "ExecutePageReader.DataPage", dataContext))
+                    using (var dataReader = _command.ExecutePageReader(CommandBehavior.Default, startRow, pageLength))
+                    {
+                        dtData.Load(dataReader);
+                        dataContext.ReturnedRows = dtData.Rows.Count;
+                        dataContext.ColumnCount = dtData.Columns.Count;
+                    }
                 }
 
                 rowsCount = dtData.Rows.Count;

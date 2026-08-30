@@ -36,42 +36,14 @@ namespace JasonQuery.UI.Forms
         {
             if (selection == null || !selection.CanDisplayObject)
             {
+                _currentSchemaBrowserSelection = null;
+                _schemaBrowserLazyLoadState.Reset(string.Empty);
                 return false;
             }
 
             ApplySchemaExplorerSelectionToFormState(selection);
-
-            var shouldClearDisplayPane = false;
-
-            switch (selection.SourceType)
-            {
-                case DataSourceType.Oracle:
-                    {
-                        shouldClearDisplayPane = DisplayInfo_Oracle(selection);
-                        break;
-                    }
-                case DataSourceType.PostgreSql:
-                    {
-                        shouldClearDisplayPane = DisplayInfo_PostgreSql(selection);
-                        break;
-                    }
-                case DataSourceType.SqlServer:
-                    {
-                        shouldClearDisplayPane = DisplayInfo_SqlServer(selection);
-                        break;
-                    }
-                case DataSourceType.MySql:
-                    {
-                        shouldClearDisplayPane = DisplayInfo_MySql(selection);
-                        break;
-                    }
-                default:
-                    {
-                        return false;
-                    }
-            }
-
-            return !shouldClearDisplayPane;
+            ConfigureSchemaBrowserLazySelection(selection);
+            return true;
         }
 
         private void ApplySchemaExplorerSelectionToFormState(SchemaExplorerSelectionInfo selection)

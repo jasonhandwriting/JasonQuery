@@ -36,16 +36,11 @@ namespace JasonQuery.UI.Forms
 
         private void DisplaySchemaInfo(int displayRowIndex)
         {
-            Cursor = Cursors.WaitCursor;
-
-            MessageForm form = null;
             var message = string.Empty;
 
             try
             {
                 PrepareDisplaySchemaInfoStart();
-
-                form = CreateAndShowSchemaInfoLoadingForm();
                 cboFind.Text = string.Empty;
 
                 var selectedTabName = GetCurrentSchemaBrowserTabName();
@@ -55,16 +50,13 @@ namespace JasonQuery.UI.Forms
                 var selection = ResolveSchemaExplorerSelection(displayRowIndex);
                 var canDisplayObject = DisplaySchemaExplorerSelection(selection);
 
-                if (canDisplayObject)
-                {
-                    ScrollDataGridToLeft();
-                }
-                else
+                if (!canDisplayObject)
                 {
                     ClearSchemaObjectDisplayPane();
                 }
 
                 RestoreSchemaBrowserSelectedTab(selectedTabName);
+                EnsureSelectedSchemaBrowserTabLoaded();
             }
             catch (Exception ex)
             {
@@ -74,9 +66,8 @@ namespace JasonQuery.UI.Forms
             }
             finally
             {
-                ApplyGridNullDisplayStyle();
-                DisposeSchemaInfoLoadingForm(form);
-                ResetDisplaySchemaInfoUiState();
+                Cursor = Cursors.Default;
+                c1GridSchemaBrowser.Cursor = Cursors.Default;
             }
         }
 
@@ -153,58 +144,92 @@ namespace JasonQuery.UI.Forms
 
         private void RestoreSchemaBrowserSelectedTab(string selectedTabName)
         {
-            switch (selectedTabName)
+            _isRestoringSchemaBrowserTab = true;
+
+            try
             {
-                case "tabSqlPane":
-                    {
-                        tabSchemaBrowser.SelectedTab = tabSqlPane;
-                        break;
-                    }
-                case "tabTableStructure":
-                    {
-                        if (tabTableStructure.TabVisible)
+                switch (selectedTabName)
+                {
+                    case "tabSqlPane":
                         {
-                            tabSchemaBrowser.SelectedTab = tabTableStructure;
+                            tabSchemaBrowser.SelectedTab = tabSqlPane;
+                            break;
                         }
-
-                        break;
-                    }
-                case "tabView100RowsTop":
-                    {
-                        if (tabView100RowsTop.TabVisible)
+                    case "tabTableStructure":
                         {
-                            tabSchemaBrowser.SelectedTab = tabView100RowsTop;
-                        }
+                            if (tabTableStructure.TabVisible)
+                            {
+                                tabSchemaBrowser.SelectedTab = tabTableStructure;
+                            }
+                            else
+                            {
+                                tabSchemaBrowser.SelectedTab = tabSqlPane;
+                            }
 
-                        break;
-                    }
-                case "tabData":
-                    {
-                        if (tabData.TabVisible)
+                            break;
+                        }
+                    case "tabView100RowsTop":
                         {
-                            tabSchemaBrowser.SelectedTab = tabData;
-                        }
+                            if (tabView100RowsTop.TabVisible)
+                            {
+                                tabSchemaBrowser.SelectedTab = tabView100RowsTop;
+                            }
+                            else
+                            {
+                                tabSchemaBrowser.SelectedTab = tabSqlPane;
+                            }
 
-                        break;
-                    }
-                case "tabSettings":
-                    {
-                        if (tabSettings.TabVisible)
+                            break;
+                        }
+                    case "tabData":
                         {
-                            tabSchemaBrowser.SelectedTab = tabData;
-                        }
+                            if (tabData.TabVisible)
+                            {
+                                tabSchemaBrowser.SelectedTab = tabData;
+                            }
+                            else
+                            {
+                                tabSchemaBrowser.SelectedTab = tabSqlPane;
+                            }
 
-                        break;
-                    }
-                case "tabSqlPreview":
-                    {
-                        if (tabSqlPreview.TabVisible)
+                            break;
+                        }
+                    case "tabSettings":
                         {
-                            tabSchemaBrowser.SelectedTab = tabSqlPreview;
-                        }
+                            if (tabSettings.TabVisible)
+                            {
+                                tabSchemaBrowser.SelectedTab = tabData;
+                            }
+                            else
+                            {
+                                tabSchemaBrowser.SelectedTab = tabSqlPane;
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
+                    case "tabSqlPreview":
+                        {
+                            if (tabSqlPreview.TabVisible)
+                            {
+                                tabSchemaBrowser.SelectedTab = tabSqlPreview;
+                            }
+                            else
+                            {
+                                tabSchemaBrowser.SelectedTab = tabSqlPane;
+                            }
+
+                            break;
+                        }
+                    default:
+                        {
+                            tabSchemaBrowser.SelectedTab = tabSqlPane;
+                            break;
+                        }
+                }
+            }
+            finally
+            {
+                _isRestoringSchemaBrowserTab = false;
             }
         }
 
