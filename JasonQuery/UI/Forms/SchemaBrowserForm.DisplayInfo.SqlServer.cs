@@ -5,13 +5,13 @@ using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.Database.Metadata;
 using JasonQuery.Core.Database.SqlBuilder.SqlServer.Metadata.Table;
 using JasonQuery.Core.Localization;
+using JasonQuery.Core.SchemaExplorer.LazyLoading;
 using JasonQuery.Core.SchemaExplorer.Selection;
 using JasonQuery.Core.Text;
 using JasonQuery.UI.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -32,10 +32,6 @@ namespace JasonQuery.UI.Forms
 
             tabSettings.TabVisible = false;
             tabSqlPreview.TabVisible = false;
-
-            editorSqlPane.ReadOnly = false;
-            editorSqlPane.Text = string.Empty;
-            editorSqlPane.ReadOnly = true;
 
             lblTableName01.Text = schemaName;
             lblTableName02.Text = schemaName;
@@ -71,12 +67,21 @@ namespace JasonQuery.UI.Forms
                             btnFilterData.Tag = string.Empty;
                         }
 
+                        if (IsLazyTab(SchemaBrowserLazyTab.SqlPane))
+                        {
+                            script = DatabaseSqlExecutor.GetCreateScript_SqlServer(schemaType, schemaNode, schemaDbo, schemaNameWithoutSchemaDbo);
+                            break;
+                        }
+
                         CreateTableSchemaTable();
 
                         //查詢前 500筆資料
-                        sql = BuildTableDataPreviewSql(selection, TextHelper.GetSafeString(btnFilterData.Tag));
+                        var dataFilter = IsLazyTab(SchemaBrowserLazyTab.TableData) ? TextHelper.GetSafeString(btnFilterData.Tag) : string.Empty;
 
-                        var errorMessage = ExecuteQuery100Rows(sql, 0, 500, false, true);
+                        sql = BuildTableDataPreviewSql(selection, dataFilter);
+
+                        var pageLength = IsLazyTab(SchemaBrowserLazyTab.TableData) ? 500 : 0;
+                        var errorMessage = ExecuteQuery100Rows(sql, 0, pageLength, false, true);
 
                         if (!string.IsNullOrEmpty(errorMessage))
                         {
@@ -95,33 +100,10 @@ namespace JasonQuery.UI.Forms
                         }
                         else
                         {
-                            tsData.Enabled = true;
-
-                            #region 20240602 for 編輯 Table 資料
-                            CheckButtonsStatus(); //檢查按鈕狀態
-                            c1SuperTooltip1.Hide(); //隱藏 Tips 提示
-                            cboFind.Enabled = c1GridData.HasDataTableRows(); //20240608 依查詢筆數，決定 cboFind.Enabled
-
-                            var dtColumns = new DataTable(); //20240518 整理此 Table 的所有欄位 for c1GridColumns
-
-                            dtColumns.Columns.Add("ColumnName");
-
-                            foreach (DataRow dr in _dtRawSchemaTable?.AsEnumerable() ?? Enumerable.Empty<DataRow>())
+                            if (IsLazyTab(SchemaBrowserLazyTab.TableData))
                             {
-                                var row = dtColumns.NewRow();
-
-                                row["ColumnName"] = dr.GetSafeString("ColumnName");
-                                dtColumns.Rows.Add(row);
+                                PrepareLoadedTableDataForEditing();
                             }
-
-                            c1GridColumns.DataSource = dtColumns;
-                            GridHelper.ReplaceColumnCaptionByLanguageInfo(c1GridColumns, GetType().Name, true, "gridheader");
-                            GridHelper.ResizeGridColumnWidth(c1GridColumns);
-                            lblColumnNamePosition.Text = LocalizationHelper.GetLanguageString("Column Name", "form", GetType().Name, "gridheader", "ColumnName", "Text");
-                            lblColumnNamePosition.Font = c1GridColumns.HeadingStyle.Font;
-                            btnHelp_ColumnName.Location = new Point(lblColumnNamePosition.Left + lblColumnNamePosition.Width, btnHelp_ColumnName.Top);
-                            AutoResizeGridColumnWidthForColumns();
-                            #endregion
 
                             //取得 Constraint 資訊
                             sql = SqlServerTableSqlBuilder.BuildGetTableConstraintsSql(schemaNode, schemaNameWithoutSchemaDbo, schemaDbo);
@@ -227,10 +209,10 @@ namespace JasonQuery.UI.Forms
                                 GridHelper.ResizeGridColumnWidth(c1GridData);
                                 GridHelper.SetGridHeaderLine(c1GridData);
 
-                                SetGridFormat();
-
-                                //取得指定的 Table Creation Script
-                                script = DatabaseSqlExecutor.GetCreateScript_SqlServer(schemaType, schemaNode, schemaDbo, schemaNameWithoutSchemaDbo);
+                                if (IsLazyTab(SchemaBrowserLazyTab.TableData))
+                                {
+                                    SetGridFormat();
+                                }
                             }
                         }
 
@@ -241,16 +223,19 @@ namespace JasonQuery.UI.Forms
                         tabView100RowsTop.Tag = schemaName;
                         tabView100RowsTop.TabVisible = true;
 
-                        script = DatabaseSqlExecutor.GetCreateScript_SqlServer(schemaType, schemaNode, schemaDbo, schemaName);
-                        sbSql.Clear();
+                        if (IsLazyTab(SchemaBrowserLazyTab.SqlPane))
+                        {
+                            script = DatabaseSqlExecutor.GetCreateScript_SqlServer(schemaType, schemaNode, schemaDbo, schemaName);
+                        }
+                        else if (IsLazyTab(SchemaBrowserLazyTab.ViewData))
+                        {
+                            sbSql.Clear();
+                            SqlTraceHelper.AppendHeader(sbSql, "---Get the First 100 Records (Using Devart ExecutePageReader)");
+                            sbSql.Append($"SELECT * FROM {schemaNameWithoutSchemaDbo}");
+                            sql = sbSql.ToString();
+                            ExecuteQuery100Rows(sql, 0, 100);
+                        }
 
-                        SqlTraceHelper.AppendHeader(sbSql, "---Get the First 100 Records (Using Devart ExecutePageReader)");
-
-                        //取得指定 View 的前 100 筆資料
-                        sbSql.Append($"SELECT * FROM {schemaNameWithoutSchemaDbo}");
-
-                        sql = sbSql.ToString();
-                        ExecuteQuery100Rows(sql, 0, 100);
                         break;
                     }
                 case SchemaObjectNames.Functions:
@@ -263,10 +248,13 @@ namespace JasonQuery.UI.Forms
                     }
             }
 
-            editorSqlPane.ReadOnly = false;
-            editorSqlPane.Text = script;
-            editorSqlPane.ReadOnly = true;
-            editorSqlPane.Focus();
+            if (IsLazyTab(SchemaBrowserLazyTab.SqlPane))
+            {
+                editorSqlPane.ReadOnly = false;
+                editorSqlPane.Text = script;
+                editorSqlPane.ReadOnly = true;
+                editorSqlPane.Focus();
+            }
 
             return false;
         }

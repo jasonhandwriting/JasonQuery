@@ -14,6 +14,7 @@ using JasonQuery.Core.Data.Schema;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.Localization;
+using JasonQuery.Core.Logging;
 using JasonQuery.Core.Schema;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
@@ -929,6 +930,14 @@ namespace JasonQuery.UI.Forms
         {
             var errorMessage = string.Empty;
 
+            var queryContext = new TraceLogContext
+            {
+                Category = "SchemaBrowser",
+                ObjectType = _currentSchemaBrowserSelection?.SchemaType,
+                ObjectName = _currentSchemaBrowserSelection?.SchemaName,
+                RequestedRows = pageLength
+            };
+
             switch (_currentSourceType)
             {
                 case DataSourceType.Oracle:
@@ -937,13 +946,25 @@ namespace JasonQuery.UI.Forms
 
                         oracleReader.EnsureConnectionOpen();
 
-                        _dtTableData = oracleReader.ExecuteQueryPaged100Rows(sql, startRow, pageLength, out errorMessage, out _dtRawSchemaTable);
+                        using (TraceLogger.Time("SchemaBrowser", "Query.Total", queryContext))
+                        {
+                            _dtTableData = oracleReader.ExecuteQueryPaged100Rows(sql, startRow, pageLength, out errorMessage, out _dtRawSchemaTable);
+                            queryContext.ReturnedRows = _dtTableData?.Rows.Count;
+                            queryContext.ColumnCount = _dtTableData?.Columns.Count;
+                        }
 
                         if (_dtTableData != null && string.IsNullOrEmpty(errorMessage)) //20250304
                         {
                             try
                             {
-                                ArrangeDataTable(isTop100Rows ? c1Grid100RowsTop : c1GridData, _dtTableData, _dtRawSchemaTable, isTop100Rows);
+                                if (pageLength == 0)
+                                {
+                                    PrepareSchemaColumnInfoCollector(_dtRawSchemaTable);
+                                }
+                                else
+                                {
+                                    ArrangeDataTable(isTop100Rows ? c1Grid100RowsTop : c1GridData, _dtTableData, _dtRawSchemaTable, isTop100Rows);
+                                }
                             }
                             catch (ArgumentOutOfRangeException ex)
                             {
@@ -976,20 +997,33 @@ namespace JasonQuery.UI.Forms
 
                         var errorCode = string.Empty;
 
-                        _dtTableData = postgreSqlReader.ExecuteQueryPaged100Rows(sql, startRow, pageLength, out bool isRollback, out bool isPermissionDenied, out errorMessage, out errorCode, out _dtRawSchemaTable);
+                        bool isRollback;
+                        bool isPermissionDenied;
 
-                        if (isRollback)
+                        using (TraceLogger.Time("SchemaBrowser", "Query.Total", queryContext))
                         {
-                            errorMessage = string.Empty;
-                            errorCode = string.Empty;
-                            _dtTableData = MyGlobal.PostgreSqlReader.ExecuteQueryPaged100Rows(sql, startRow, pageLength, out isRollback, out isPermissionDenied, out errorMessage, out errorCode, out _dtRawSchemaTable);
+                            _dtTableData = postgreSqlReader.ExecuteQueryPaged100Rows(sql, startRow, pageLength, out isRollback, out isPermissionDenied, out errorMessage, out errorCode, out _dtRawSchemaTable);
+
+                            if (isRollback)
+                            {
+                                errorMessage = string.Empty;
+                                errorCode = string.Empty;
+                                _dtTableData = MyGlobal.PostgreSqlReader.ExecuteQueryPaged100Rows(sql, startRow, pageLength, out isRollback, out isPermissionDenied, out errorMessage, out errorCode, out _dtRawSchemaTable);
+                            }
+
+                            queryContext.ReturnedRows = _dtTableData?.Rows.Count;
+                            queryContext.ColumnCount = _dtTableData?.Columns.Count;
                         }
 
                         if (_dtTableData != null && string.IsNullOrEmpty(errorMessage)) //20250304
                         {
                             try
                             {
-                                if (isPermissionDenied)
+                                if (pageLength == 0)
+                                {
+                                    PrepareSchemaColumnInfoCollector(_dtRawSchemaTable);
+                                }
+                                else if (isPermissionDenied)
                                 {
                                     ArrangeDataTable(isTop100Rows ? c1Grid100RowsTop : c1GridData, _dtRawSchemaTable, _dtRawSchemaTable, isTop100Rows);
                                 }
@@ -1031,13 +1065,25 @@ namespace JasonQuery.UI.Forms
 
                         sqlServerReader.EnsureConnectionOpen();
 
-                        _dtTableData = sqlServerReader.ExecuteQueryPaged100Rows(sql, startRow, pageLength, out errorMessage, out _dtRawSchemaTable);
+                        using (TraceLogger.Time("SchemaBrowser", "Query.Total", queryContext))
+                        {
+                            _dtTableData = sqlServerReader.ExecuteQueryPaged100Rows(sql, startRow, pageLength, out errorMessage, out _dtRawSchemaTable);
+                            queryContext.ReturnedRows = _dtTableData?.Rows.Count;
+                            queryContext.ColumnCount = _dtTableData?.Columns.Count;
+                        }
 
                         if (_dtTableData != null && string.IsNullOrEmpty(errorMessage)) //20250304
                         {
                             try
                             {
-                                ArrangeDataTable(isTop100Rows ? c1Grid100RowsTop : c1GridData, _dtTableData, _dtRawSchemaTable, isTop100Rows);
+                                if (pageLength == 0)
+                                {
+                                    PrepareSchemaColumnInfoCollector(_dtRawSchemaTable);
+                                }
+                                else
+                                {
+                                    ArrangeDataTable(isTop100Rows ? c1Grid100RowsTop : c1GridData, _dtTableData, _dtRawSchemaTable, isTop100Rows);
+                                }
                             }
                             catch (ArgumentOutOfRangeException ex)
                             {
@@ -1068,13 +1114,25 @@ namespace JasonQuery.UI.Forms
 
                         mySqlReader.EnsureConnectionOpen();
 
-                        _dtTableData = mySqlReader.ExecuteQueryPaged100Rows(sql, startRow, pageLength, out errorMessage, out _dtRawSchemaTable);
+                        using (TraceLogger.Time("SchemaBrowser", "Query.Total", queryContext))
+                        {
+                            _dtTableData = mySqlReader.ExecuteQueryPaged100Rows(sql, startRow, pageLength, out errorMessage, out _dtRawSchemaTable);
+                            queryContext.ReturnedRows = _dtTableData?.Rows.Count;
+                            queryContext.ColumnCount = _dtTableData?.Columns.Count;
+                        }
 
                         if (_dtTableData != null && string.IsNullOrEmpty(errorMessage)) //20250304
                         {
                             try
                             {
-                                ArrangeDataTable(isTop100Rows ? c1Grid100RowsTop : c1GridData, _dtTableData, _dtRawSchemaTable, isTop100Rows);
+                                if (pageLength == 0)
+                                {
+                                    PrepareSchemaColumnInfoCollector(_dtRawSchemaTable);
+                                }
+                                else
+                                {
+                                    ArrangeDataTable(isTop100Rows ? c1Grid100RowsTop : c1GridData, _dtTableData, _dtRawSchemaTable, isTop100Rows);
+                                }
                             }
                             catch (ArgumentOutOfRangeException ex)
                             {
@@ -1282,81 +1340,98 @@ namespace JasonQuery.UI.Forms
 
         private void ArrangeDataTable(C1TrueDBGrid c1Grid, DataTable dtData, DataTable dtSchemaTable, bool isTop = true)
         {
+            var traceContext = new TraceLogContext
+            {
+                Category = "SchemaBrowser",
+                ObjectType = _currentSchemaBrowserSelection?.SchemaType,
+                ObjectName = _currentSchemaBrowserSelection?.SchemaName,
+                ReturnedRows = dtData?.Rows.Count,
+                ColumnCount = dtData?.Columns.Count,
+                Message = isTop ? "ViewData" : "TableData"
+            };
+
+            using (TraceLogger.Time("SchemaBrowser", "Grid.ArrangeDataTable", traceContext))
+            {
+                PrepareSchemaColumnInfoCollector(dtSchemaTable);
+
+                var context = new ArrangeContext
+                {
+                    SourceData = dtData,
+                    SchemaTable = dtSchemaTable,
+                    ShowColumnType = true,
+                    ShowColumnComments = true,
+                    ShowColumnDefaultValue = true,
+                    columnInfoCollector = _columnInfoCollector,
+                    DateFormat = MyLibrary.DateFormat,
+                    DateTimeFormat = $"{MyLibrary.DateFormat} HH:mm:ss",
+                    NullDisplayText = string.Equals(MyLibrary.GridNullShowAs, "NONE", StringComparison.OrdinalIgnoreCase) ? string.Empty : MyLibrary.GridNullShowAs,
+                    LargeTextPreviewLength = AppConfigHelper.LargeTextPreviewLength,
+                    TruncatedText = LocalizationHelper.GetLanguageString("…(truncated)", "Global", "Global", "msg", "Truncated…", "Text")
+                };
+
+                var strategy = ArrangeStrategyFactory.Create(_currentSourceType);
+
+                //收集 context 訊息 (執行對應的 ArrangeStrategy)
+                strategy.Execute(context);
+
+                _dtTableData = context.SortedData.Copy();
+
+                //20240604 for 編輯資料用，末欄新增一個識別欄位
+                if (!isTop)
+                {
+                    for (var i = 0; i < _dtTableData.Columns.Count; i++)
+                    {
+                        _dtTableData.Columns[i].AllowDBNull = true;
+                        _dtTableData.Columns[i].ReadOnly = false;
+                    }
+
+                    DataTableColumnHelper.SafeAddColumn(_dtTableData, _identifyColumnName);
+                }
+
+                c1Grid.DataSource = _dtTableData;
+                _dtOriginalTableData = _dtTableData.Copy();
+
+                if (!isTop)
+                {
+                    foreach (C1DisplayColumn col in c1Grid.Splits[0].DisplayColumns)
+                    {
+                        var columnName = col.DataColumn.DataField;
+
+                        if (string.Equals(columnName, MyGlobal.Row_Id_PK_JQ, StringComparison.OrdinalIgnoreCase))
+                        {
+                            col.Visible = false; //20231003 隱藏 ROWID_PK_JQ
+                            col.Frozen = true;
+                        }
+
+                        if (string.Equals(columnName, _identifyColumnName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            col.Visible = false; //20240604 隱藏識別欄位
+                            col.Frozen = true;
+                            break;
+                        }
+                    }
+                }
+
+                GridHelper.ResizeGridColumnWidth(c1Grid);
+            }
+        }
+
+        private void PrepareSchemaColumnInfoCollector(DataTable dtSchemaTable)
+        {
             DataTableColumnHelper.SafeAddColumn(dtSchemaTable, "Comment");
 
             if (_currentSourceType == DataSourceType.PostgreSql)
             {
-                DataTableColumnHelper.SafeAddColumn(dtSchemaTable, "UsedProviderFallback"); //20260306 新增 UsedProviderFallback 欄位
+                DataTableColumnHelper.SafeAddColumn(dtSchemaTable, "UsedProviderFallback");
             }
 
             if (_currentSourceType == DataSourceType.MySql)
             {
-                DataTableColumnHelper.SafeAddColumn(dtSchemaTable, "UsedProviderFallback"); //20260306 新增 UsedProviderFallback 欄位
-                DataTableColumnHelper.SafeAddColumn(dtSchemaTable, "DataType2"); //20260322 新增 DataType2 欄位
+                DataTableColumnHelper.SafeAddColumn(dtSchemaTable, "UsedProviderFallback");
+                DataTableColumnHelper.SafeAddColumn(dtSchemaTable, "DataType2");
             }
 
-            //針對不同資料庫來源類型，建立對應的 ColumnInfoCollector
             _columnInfoCollector = SchemaColumnInfoBuilder.Build(_currentSourceType, dtSchemaTable);
-
-            var context = new ArrangeContext
-            {
-                SourceData = dtData,
-                SchemaTable = dtSchemaTable,
-                ShowColumnType = true,
-                ShowColumnComments = true,
-                ShowColumnDefaultValue = true,
-                columnInfoCollector = _columnInfoCollector,
-                DateFormat = MyLibrary.DateFormat,
-                DateTimeFormat = $"{MyLibrary.DateFormat} HH:mm:ss",
-                NullDisplayText = string.Equals(MyLibrary.GridNullShowAs, "NONE", StringComparison.OrdinalIgnoreCase) ? string.Empty : MyLibrary.GridNullShowAs,
-                LargeTextPreviewLength = AppConfigHelper.LargeTextPreviewLength,
-                TruncatedText = LocalizationHelper.GetLanguageString("…(truncated)", "Global", "Global", "msg", "Truncated…", "Text")
-            };
-
-            var strategy = ArrangeStrategyFactory.Create(_currentSourceType);
-
-            //收集 context 訊息 (執行對應的 ArrangeStrategy)
-            strategy.Execute(context);
-
-            _dtTableData = context.SortedData.Copy();
-
-            //20240604 for 編輯資料用，末欄新增一個識別欄位
-            if (!isTop)
-            {
-                for (var i = 0; i < _dtTableData.Columns.Count; i++)
-                {
-                    _dtTableData.Columns[i].AllowDBNull = true;
-                    _dtTableData.Columns[i].ReadOnly = false;
-                }
-
-                DataTableColumnHelper.SafeAddColumn(_dtTableData, _identifyColumnName);
-            }
-
-            c1Grid.DataSource = _dtTableData;
-            _dtOriginalTableData = _dtTableData.Copy();
-
-            if (!isTop)
-            {
-                foreach (C1DisplayColumn col in c1Grid.Splits[0].DisplayColumns)
-                {
-                    var columnName = col.DataColumn.DataField;
-
-                    if (string.Equals(columnName, MyGlobal.Row_Id_PK_JQ, StringComparison.OrdinalIgnoreCase))
-                    {
-                        col.Visible = false; //20231003 隱藏 ROWID_PK_JQ
-                        col.Frozen = true;
-                    }
-
-                    if (string.Equals(columnName, _identifyColumnName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        col.Visible = false; //20240604 隱藏識別欄位
-                        col.Frozen = true;
-                        break;
-                    }
-                }
-            }
-
-            GridHelper.ResizeGridColumnWidth(c1Grid);
         }
 
         private void c1Grid_KeyDown(object sender, KeyEventArgs e)

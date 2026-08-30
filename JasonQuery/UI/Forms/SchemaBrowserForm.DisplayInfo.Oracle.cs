@@ -7,12 +7,12 @@ using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.Database.Metadata;
 using JasonQuery.Core.Database.SqlBuilder.Oracle.Metadata.Table;
 using JasonQuery.Core.Localization;
+using JasonQuery.Core.SchemaExplorer.LazyLoading;
 using JasonQuery.Core.SchemaExplorer.Selection;
 using JasonQuery.Core.Text;
 using JasonQuery.UI.Helpers;
 using System;
 using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -30,10 +30,6 @@ namespace JasonQuery.UI.Forms
 
             tabSettings.TabVisible = false;
             tabSqlPreview.TabVisible = false;
-
-            editorSqlPane.ReadOnly = false;
-            editorSqlPane.Text = string.Empty;
-            editorSqlPane.ReadOnly = true;
 
             lblTableName01.Text = schemaName;
             lblTableName02.Text = schemaName;
@@ -68,12 +64,40 @@ namespace JasonQuery.UI.Forms
                             btnFilterData.Tag = string.Empty;
                         }
 
+                        if (IsLazyTab(SchemaBrowserLazyTab.SqlPane))
+                        {
+                            sbSql.Clear();
+                            SqlTraceHelper.AppendHeader(sbSql, "---Get Table Creation Information");
+                            sbSql.AppendLine("SELECT Object_Name AS Function_Name, Status, Created");
+                            sbSql.AppendLine("  FROM All_Objects");
+                            sbSql.AppendLine(" WHERE Object_Type = 'TABLE'");
+                            sbSql.AppendLine($"   AND UPPER(Owner) = '{DatabaseSqlExecutor.DbUserUppercase}'");
+                            sbSql.AppendLine($"   AND Object_Name = '{schemaName}'");
+                            sql = sbSql.ToString();
+
+                            var dtTableCreationInfo = new DataTable();
+
+                            DatabaseSqlExecutor.ExecuteQueryToDataTable(sql, ref dtTableCreationInfo);
+
+                            if (dtTableCreationInfo?.Rows.Count > 0)
+                            {
+                                var createDate = dtTableCreationInfo.Rows[0].GetSafeDateTimeText("Created", $"{MyLibrary.DateFormat} HH:mm:ss");
+
+                                scriptHeader = $"--Table: \"{DatabaseSqlExecutor.DbUserUppercase}\".\"{schemaName}\"\r\n--Status: {dtTableCreationInfo.Rows[0]["Status"]}\r\n--Created: {createDate}\r\n\r\n";
+                            }
+
+                            break;
+                        }
+
                         CreateTableSchemaTable();
 
                         //查詢前 500筆資料
-                        sql = BuildTableDataPreviewSql(selection, TextHelper.GetSafeString(btnFilterData.Tag));
+                        var dataFilter = IsLazyTab(SchemaBrowserLazyTab.TableData) ? TextHelper.GetSafeString(btnFilterData.Tag) : string.Empty;
 
-                        var errorMessage = ExecuteQuery100Rows(sql, 0, 500, false, true);
+                        sql = BuildTableDataPreviewSql(selection, dataFilter);
+
+                        var pageLength = IsLazyTab(SchemaBrowserLazyTab.TableData) ? 500 : 0;
+                        var errorMessage = ExecuteQuery100Rows(sql, 0, pageLength, false, true);
 
                         if (!string.IsNullOrEmpty(errorMessage))
                         {
@@ -92,33 +116,10 @@ namespace JasonQuery.UI.Forms
                         }
                         else
                         {
-                            tsData.Enabled = true;
-
-                            #region 20240602 for 編輯 Table 資料
-                            CheckButtonsStatus(); //檢查按鈕狀態
-                            c1SuperTooltip1.Hide(); //隱藏 Tips 提示
-                            cboFind.Enabled = c1GridData.HasDataTableRows(); //20240608 依查詢筆數，決定 cboFind.Enabled
-
-                            var dtColumns = new DataTable(); //20240518 整理此 Table 的所有欄位 for c1GridColumns
-
-                            dtColumns.Columns.Add("ColumnName");
-
-                            foreach (DataRow dr in _dtRawSchemaTable?.AsEnumerable() ?? Enumerable.Empty<DataRow>())
+                            if (IsLazyTab(SchemaBrowserLazyTab.TableData))
                             {
-                                var row = dtColumns.NewRow();
-
-                                row["ColumnName"] = dr.GetSafeString("ColumnName");
-                                dtColumns.Rows.Add(row);
+                                PrepareLoadedTableDataForEditing();
                             }
-
-                            c1GridColumns.DataSource = dtColumns;
-                            GridHelper.ReplaceColumnCaptionByLanguageInfo(c1GridColumns, GetType().Name, true, "gridheader");
-                            GridHelper.ResizeGridColumnWidth(c1GridColumns);
-                            lblColumnNamePosition.Text = LocalizationHelper.GetLanguageString("Column Name", "form", GetType().Name, "gridheader", "ColumnName", "Text");
-                            lblColumnNamePosition.Font = c1GridColumns.HeadingStyle.Font;
-                            btnHelp_ColumnName.Location = new Point(lblColumnNamePosition.Left + lblColumnNamePosition.Width, btnHelp_ColumnName.Top);
-                            AutoResizeGridColumnWidthForColumns();
-                            #endregion
 
                             //取得 Constraint 資訊
                             sql = OracleTableSqlBuilder.BuildGetTableConstraintsSql(DatabaseSqlExecutor.DbUserUppercase, schemaName);
@@ -193,7 +194,15 @@ namespace JasonQuery.UI.Forms
                                 GridHelper.SetGridHeaderLine(c1GridData);
                             }
 
-                            SetGridFormat();
+                            if (IsLazyTab(SchemaBrowserLazyTab.TableData))
+                            {
+                                SetGridFormat();
+                            }
+
+                            if (IsLazyTab(SchemaBrowserLazyTab.TableStructure) || IsLazyTab(SchemaBrowserLazyTab.TableData))
+                            {
+                                break;
+                            }
 
                             sbSql.Clear();
 
@@ -276,6 +285,16 @@ namespace JasonQuery.UI.Forms
                         tabView100RowsTop.Tag = schemaName;
                         tabView100RowsTop.TabVisible = true;
 
+                        if (IsLazyTab(SchemaBrowserLazyTab.ViewData))
+                        {
+                            sbSql.Clear();
+                            SqlTraceHelper.AppendHeader(sbSql, "---Get the First 100 Records (Using Devart ExecutePageReader)");
+                            sbSql.Append($"SELECT * FROM {schemaName}");
+                            sql = sbSql.ToString();
+                            ExecuteQuery100Rows(sql, 0, 100);
+                            break;
+                        }
+
                         SqlTraceHelper.AppendHeader(sbSql, "---Get View Creation Information");
 
                         sbSql.AppendLine("SELECT os.Object_Name AS View_Name, vs.Text_Length, os.Status, os.Created");
@@ -304,16 +323,6 @@ namespace JasonQuery.UI.Forms
                             var createDate = dtViewInfo.Rows[0].GetSafeDateTimeText("Created", $"{MyLibrary.DateFormat} HH:mm:ss");
 
                             scriptHeader = $"--View: \"{DatabaseSqlExecutor.DbUserUppercase}\".\"{schemaName}\"\r\n--Status: {dtViewInfo.Rows[0]["Status"]}\r\n--Created: {createDate}\r\n\r\n";
-
-                            sbSql.Clear();
-
-                            SqlTraceHelper.AppendHeader(sbSql, "---Get the First 100 Records (Using Devart ExecutePageReader)");
-
-                            //取得指定 View 的前 100 筆資料
-                            sbSql.Append($"SELECT * FROM {schemaName}");
-
-                            sql = sbSql.ToString();
-                            ExecuteQuery100Rows(sql, 0, 100);
                         }
 
                         break;
@@ -371,6 +380,11 @@ namespace JasonQuery.UI.Forms
 
                         break;
                     }
+            }
+
+            if (!IsLazyTab(SchemaBrowserLazyTab.SqlPane))
+            {
+                return false;
             }
 
             var type = schemaType.Substring(0, schemaType.Length - 1).ToUpper(); //去除末碼 s
@@ -466,10 +480,13 @@ namespace JasonQuery.UI.Forms
                     }
                 }
 
-                editorSqlPane.ReadOnly = false;
-                editorSqlPane.Text = $"{scriptHeader}{script}";
-                editorSqlPane.ReadOnly = true;
-                editorSqlPane.Focus();
+                if (IsLazyTab(SchemaBrowserLazyTab.SqlPane))
+                {
+                    editorSqlPane.ReadOnly = false;
+                    editorSqlPane.Text = $"{scriptHeader}{script}";
+                    editorSqlPane.ReadOnly = true;
+                    editorSqlPane.Focus();
+                }
             }
 
             return false;

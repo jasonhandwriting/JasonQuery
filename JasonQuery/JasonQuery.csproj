@@ -826,6 +826,9 @@
     <Compile Include="UI\Forms\SchemaBrowserForm.LayoutAndStyle.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="UI\Forms\SchemaBrowserForm.LazyLoading.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\Forms\SchemaBrowserForm.Navigation.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -975,6 +978,7 @@
     <Compile Include="Core\Text\TextEngine.cs" />
     <Compile Include="Core\Text\TextHelper.cs" />
     <Compile Include="Core\Logging\TraceCsvFormatter.cs" />
+    <Compile Include="Core\SchemaExplorer\LazyLoading\SchemaBrowserLazyLoadState.cs" />
     <Compile Include="Core\Logging\TraceLogContext.cs" />
     <Compile Include="Core\Logging\TraceLogEntry.cs" />
     <Compile Include="Core\Logging\TraceLogFileManager.cs" />

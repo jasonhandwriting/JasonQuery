@@ -40,6 +40,8 @@ namespace JasonQuery.UI.Forms
 
         private void tabSchemaBrowser_TabClick(object sender, EventArgs e)
         {
+            EnsureSelectedSchemaBrowserTabLoaded();
+
             var focusMap = new Dictionary<string, Action>
             {
                 { "tabSqlPane", () => editorSqlPane.Focus() },
