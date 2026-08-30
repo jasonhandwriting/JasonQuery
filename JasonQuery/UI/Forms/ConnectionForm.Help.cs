@@ -1,5 +1,6 @@
 ﻿using JasonQuery.Core.Config;
 using JasonQuery.Core.Localization;
+using JasonQuery.Core.Logging;
 using JasonQuery.UI.Helpers;
 using System;
 using System.Drawing;
@@ -46,9 +47,10 @@ namespace JasonQuery.UI.Forms
 
         private void btnHelp_Log_Click(object sender, EventArgs e)
         {
-            var message = LocalizationHelper.GetLanguageString("When enabled, JasonQuery records important execution information for debugging purposes or for analyzing long-running operations.\r\n\r\nThis option is not required for normal usage.\r\nEnabling it may slightly impact performance.\r\n\r\nLog files are stored in the \"log\" folder under the JasonQuery executable directory. The full file name is as follows:\r\n", "form", GetType().Name, "msg", "Help_Log", "Text");
+            var message = LocalizationHelper.GetLanguageString("When enabled, JasonQuery records structured runtime information for debugging and performance analysis.\r\n\r\nEach logging session creates a separate CSV file that can be opened or imported in Excel. Log files older than 7 days are deleted automatically.\r\n\r\nLogs may include the database type and version, connection name, and object names. JasonQuery does not intentionally record passwords, connection strings, SQL parameter values, or row data.\r\n\r\nThis option is not required for normal usage. Enabling it may slightly affect performance.\r\n\r\nThe current log file or log folder is shown below:\r\n", "form", GetType().Name, "msg", "Help_Log", "Text");
+            var logLocation = TraceLogger.IsEnabled && !string.IsNullOrWhiteSpace(TraceLogger.CurrentLogFilePath) ? TraceLogger.CurrentLogFilePath : TraceLogger.LogDirectoryPath;
 
-            MessageBoxHelper.ShowNearCursor($"{message}{AppConfigHelper.LogFileName}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor($"{message}{logLocation}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_MainFormIconStyle_Click(object sender, EventArgs e)

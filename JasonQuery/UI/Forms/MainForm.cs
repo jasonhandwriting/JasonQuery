@@ -157,44 +157,8 @@ namespace JasonQuery.UI.Forms
         {
             try
             {
-                //20250622 for LOG file，載入設定值前，使用預設的日期格式
-                MyLibrary.DateFormat = string.Empty;
-
                 //20250413 暗紅色
                 lblPrompt4NewConnection.ForeColor = Color.FromArgb(192, 0, 0);
-
-                //20250615 log 的路徑及檔名
-                #region
-                var logPath = Path.Combine(Application.StartupPath, "log");
-
-                if (!Directory.Exists(logPath))
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(logPath);
-                    }
-                    catch
-                    {
-                        logPath = Application.StartupPath;
-                    }
-                }
-
-                AppConfigHelper.LogFileName = $@"{logPath}\JasonQuery.log";
-
-                if (File.Exists(AppConfigHelper.LogFileName))
-                {
-                    try
-                    {
-                        File.Delete(AppConfigHelper.LogFileName);
-                    }
-                    catch
-                    {
-                        var now = $"{DateTime.Now:yyyyMMddHHmmss}";
-
-                        AppConfigHelper.LogFileName = $@"{logPath}\JasonQuery_{now}.log";
-                    }
-                }
-                #endregion
 
                 SystemEvents.SessionEnding += SystemEvents_SessionEnding;
 
@@ -351,10 +315,7 @@ namespace JasonQuery.UI.Forms
                     EnableCloseTabMenu(false);
                 }
 
-                using (TraceLogger.Time("Load Connection Form"))
-                {
-                    LoadConnectionForm();
-                }
+                LoadConnectionForm();
 
                 AppConfigHelper.JasonQueryVersion = $"{Tag} {AppConfigHelper.LocalVersion}, {DatabaseSqlExecutor.DatabaseVersionDisplayText}";
 

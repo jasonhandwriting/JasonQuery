@@ -1,4 +1,6 @@
 ﻿using JasonQuery.Core.Config;
+using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.Logging;
 using JasonQuery.UI.Forms;
 using JasonQuery.UI.Helpers;
@@ -40,6 +42,10 @@ namespace JasonQuery
                 }
             }
 
+            TraceLogger.Initialize(Application.StartupPath);
+            TraceLogger.SetContextProvider(CreateTraceLogContext);
+            TraceLogger.SetEnabled(AppConfigHelper.HasGenerateLogFile);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
@@ -57,6 +63,7 @@ namespace JasonQuery
             finally
             {
                 Application.Idle -= Application_Idle;
+                TraceLogger.Shutdown();
             }
         }
 
@@ -64,6 +71,16 @@ namespace JasonQuery
         {
             //此處只作為低優先級檢查時機；MemoryHelper 會限制檢查及 Full GC 的頻率
             MemoryHelper.ClearMemory();
+        }
+
+        private static TraceLogContext CreateTraceLogContext()
+        {
+            return new TraceLogContext
+            {
+                DatabaseType = DatabaseSqlExecutor.CurrentDataSource == DataSourceType.None ? string.Empty : DatabaseSqlExecutor.CurrentDataSource.ToString(),
+                DatabaseVersion = DatabaseSqlExecutor.DatabaseVersionDisplayText,
+                ConnectionName = DatabaseSqlExecutor.DbConnectionName
+            };
         }
 
         private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
@@ -82,6 +99,8 @@ namespace JasonQuery
             {
                 return;
             }
+
+            TraceLogger.LogError("UnhandledException", ex);
 
             //20250526 將錯誤訊息中，有包含 "xxxx.cs" 的訊息顯示出來
             var result = TraceLogger.GetStackTraceContent(ex.StackTrace);

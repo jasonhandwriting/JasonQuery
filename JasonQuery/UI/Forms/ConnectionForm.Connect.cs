@@ -38,7 +38,19 @@ namespace JasonQuery.UI.Forms
                 _password2 = _password1;
                 SetCurrentPasswordText(_password2);
 
-                AppConfigHelper.HasGenerateLogFile = chkLog.Checked;
+                if (!TraceLogger.SetEnabled(chkLog.Checked) && chkLog.Checked)
+                {
+                    chkLog.Checked = false;
+
+                    var message = LocalizationHelper.GetLanguageString("Unable to create the runtime log file. JasonQuery will continue without runtime logging.", "form", GetType().Name, "msg", "LogFileCreateFailed", "Text");
+
+                    if (!string.IsNullOrWhiteSpace(TraceLogger.LastWriteError))
+                    {
+                        message += $"\r\n\r\n{TraceLogger.LastWriteError}";
+                    }
+
+                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
 
                 chkShowColumnInfo.Checked = MyGlobal.IsShowColumnInfo; //還原使用者是否有勾選
                 ConnectToDatabase();
