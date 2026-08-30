@@ -182,6 +182,7 @@ namespace JasonQuery.UI.Forms
                 ConfigureDataSourceComboBox(); //20260415 重構
                 InitializeSupportInfo();
                 ApplyLocalizationSetting(true);
+                chkLog.Checked = TraceLogger.IsEnabled;
 
                 if (IsViewMode)
                 {

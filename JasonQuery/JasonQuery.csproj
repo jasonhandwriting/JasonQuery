@@ -974,6 +974,10 @@
     <Compile Include="Core\Text\TextEncode.cs" />
     <Compile Include="Core\Text\TextEngine.cs" />
     <Compile Include="Core\Text\TextHelper.cs" />
+    <Compile Include="Core\Logging\TraceCsvFormatter.cs" />
+    <Compile Include="Core\Logging\TraceLogContext.cs" />
+    <Compile Include="Core\Logging\TraceLogEntry.cs" />
+    <Compile Include="Core\Logging\TraceLogFileManager.cs" />
     <Compile Include="Core\Logging\TraceLogger.cs" />
     <Compile Include="UI\Helpers\UIHelper.cs" />
     <Compile Include="UI\Helpers\MessageBoxHelper.cs" />
