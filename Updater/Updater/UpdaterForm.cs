@@ -51,6 +51,7 @@ namespace Updater
             InitializeStatusDisplay();
 
             MyGlobal.ApplyLanguageInfo(this, false);
+            Text = $"{Text} {Application.ProductVersion}";
 
             lblStep2.Tag = lblStep2.Text;
             lblStep3.Tag = lblStep3.Text;
@@ -59,6 +60,7 @@ namespace Updater
             txtTo.ReadOnly = true;
             txtUpdateSource.ReadOnly = true;
             btnBrowseLocalFolder.Visible = false;
+            ConfigureUpdateSourceLayout();
 
             rdoJasonQueryOfficial.AutoCheck = false;
             rdoGitHubOfficial.AutoCheck = false;
@@ -586,6 +588,21 @@ namespace Updater
         private void frmUpdater_FormClosing(object sender, FormClosingEventArgs e)
         {
             MessageBoxManager.Unregister();
+        }
+
+        private void ConfigureUpdateSourceLayout()
+        {
+            const int horizontalGap = 2;
+            const int rightPadding = 14;
+            const int minimumTextBoxWidth = 100;
+
+            var left = rdoLocal.Right + horizontalGap;
+            var right = btnBrowseLocalFolder.Visible
+                ? btnBrowseLocalFolder.Left - horizontalGap
+                : grpUpdateSource.ClientSize.Width - rightPadding;
+
+            txtUpdateSource.Left = left;
+            txtUpdateSource.Width = Math.Max(minimumTextBoxWidth, right - left);
         }
 
         private void InitializeStatusDisplay()
