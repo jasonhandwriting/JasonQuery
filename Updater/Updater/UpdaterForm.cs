@@ -592,7 +592,7 @@ namespace Updater
 
         private void ConfigureUpdateSourceLayout()
         {
-            const int horizontalGap = 8;
+            const int horizontalGap = 2;
             const int rightPadding = 14;
             const int minimumTextBoxWidth = 100;
 
