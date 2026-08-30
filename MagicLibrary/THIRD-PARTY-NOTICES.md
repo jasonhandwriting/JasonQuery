@@ -21,6 +21,8 @@ when this source is redistributed. This directory is included only as part of
 JasonQuery and must not be presented or distributed as a standalone Magic
 Library product.
 
+The original Magic Library license terms are reproduced in [LICENSE.txt](LICENSE.txt).
+
 ## Required application acknowledgement
 
 JasonQuery includes the following acknowledgement in its About dialog:
