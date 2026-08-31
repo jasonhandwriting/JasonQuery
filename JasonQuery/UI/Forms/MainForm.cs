@@ -12,6 +12,7 @@ using JasonQuery.Core.Database.Transactions;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
 using JasonQuery.Core.QueryEngine.Editor.Editing;
+using JasonQuery.Core.SystemInfo;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.UI.Helpers;
@@ -220,7 +221,12 @@ namespace JasonQuery.UI.Forms
 
                 //尚未登入前，標題列顯示的內容
                 Text = $"{Tag}{version}";
-                AppConfigHelper.MessageBoxCaption = $"{Tag} {AppConfigHelper.LocalVersion}";
+
+                AppConfigHelper.MessageBoxCaption = MessageBoxCaptionBuilder.Build
+                (
+                    $"{Tag} {AppConfigHelper.LocalVersion}",
+                    WindowsVersionInfoProvider.Current.ShortName
+                );
 
                 if (JasonQueryRepository.CheckDBPassword(string.Empty))
                 {
@@ -317,7 +323,12 @@ namespace JasonQuery.UI.Forms
 
                 LoadConnectionForm();
 
-                AppConfigHelper.MessageBoxCaption = $"{Tag} {AppConfigHelper.LocalVersion}, {DatabaseSqlExecutor.DatabaseVersionDisplayText}";
+                AppConfigHelper.MessageBoxCaption = MessageBoxCaptionBuilder.Build
+                (
+                    $"{Tag} {AppConfigHelper.LocalVersion}",
+                    DatabaseSqlExecutor.DatabaseVersionDisplayText,
+                    WindowsVersionInfoProvider.Current.ShortName
+                );
 
                 AppConfigHelper.MainFormLeft = Left;
                 AppConfigHelper.MainFormTop = Top;
