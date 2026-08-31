@@ -282,7 +282,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -318,7 +318,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -341,7 +341,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -659,7 +659,7 @@ namespace JasonQuery.UI.Forms
                                   ? GetAddColumnExecutionMessage(true)
                                   : LocalizationHelper.GetLanguageString("", "form", GetType().Name, "msg", $"{EditMode}OK", "Text").Replace("{0}", ColumnName).Replace("{1}", txtNewColumnName.Text);
 
-                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
@@ -669,7 +669,7 @@ namespace JasonQuery.UI.Forms
                                   ? GetAddColumnExecutionMessage(false)
                                   : LocalizationHelper.GetLanguageString("", "form", GetType().Name, "msg", $"{EditMode}NG", "Text").Replace("{0}", ColumnName).Replace("{1}", txtNewColumnName.Text);
 
-                    MessageBox.Show($"{message}\r\n\r\n{errorMessage}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show($"{message}\r\n\r\n{errorMessage}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
 
                 var messageFinal = completionDecision.Succeeded ? string.Empty : $"\r\n{errorMessage}";
@@ -683,7 +683,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             _isFormClosing = false;

@@ -106,7 +106,7 @@ namespace JasonQuery
             var result = TraceLogger.GetStackTraceContent(ex.StackTrace);
             var message = $"{MyGlobal.AnUnexpectedErrorHasOccurred}\r\n{ex.Message}\r\n\r\n{MyGlobal.StackTrace}\r\n{result}";
 
-            MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

@@ -152,7 +152,7 @@ namespace JasonQuery.UI.Forms
                 "Help_ColumnName",
                 "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

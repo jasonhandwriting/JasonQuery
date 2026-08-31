@@ -537,7 +537,7 @@ namespace JasonQuery.UI.Helpers
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -628,7 +628,7 @@ namespace JasonQuery.UI.Helpers
                     {
                         var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                        MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }
                 };
 
@@ -994,7 +994,7 @@ namespace JasonQuery.UI.Helpers
                     {
                         var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                        MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }
                 };
 
@@ -1352,7 +1352,7 @@ namespace JasonQuery.UI.Helpers
                     {
                         var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                        MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }
                 };
 
@@ -1718,7 +1718,7 @@ namespace JasonQuery.UI.Helpers
                     {
                         var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                        MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }
                 };
 

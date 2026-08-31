@@ -266,7 +266,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -364,7 +364,7 @@ namespace JasonQuery.UI.Forms
             _languageText = LocalizationHelper.GetLanguageString("You must re-enter your password.", "form", GetType().Name, "msg", "ReEnter", "Text");
             message += _languageText;
 
-            MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private void RestorePasswordFromGrid(string encryptedPassword, Control passwordControl)

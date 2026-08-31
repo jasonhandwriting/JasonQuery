@@ -350,7 +350,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -823,7 +823,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -834,7 +834,7 @@ namespace JasonQuery.UI.Forms
                 var temp1 = LocalizationHelper.GetLanguageString("All selected records will be deleted!", "form", GetType().Name, "msg", "AllWillBeDeleted", "Text");
                 var temp2 = LocalizationHelper.GetLanguageString("Are you sure you want to continue?", "form", GetType().Name, "msg", "WantToContinue", "Text");
 
-                if (MessageBox.Show($"{temp1}\r\n\r\n{temp2}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.OK)
+                if (MessageBox.Show($"{temp1}\r\n\r\n{temp2}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.OK)
                 {
                     Cursor = Cursors.WaitCursor;
 
@@ -874,11 +874,11 @@ namespace JasonQuery.UI.Forms
                     if (string.IsNullOrEmpty(message))
                     {
                         temp1 = LocalizationHelper.GetLanguageString("All selected records have been deleted!", "form", GetType().Name, "msg", "AllHaveBeenDeleted", "Text");
-                        MessageBoxHelper.ShowNearCursor(temp1, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBoxHelper.ShowNearCursor(temp1, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     else
                     {
-                        MessageBoxHelper.ShowNearCursor($"{MyGlobal.AnErrorHasOccurred}\r\n\r\n{message}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBoxHelper.ShowNearCursor($"{MyGlobal.AnErrorHasOccurred}\r\n\r\n{message}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }
                 }
 
@@ -888,7 +888,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1069,7 +1069,7 @@ namespace JasonQuery.UI.Forms
             }
             catch (Exception ex) //20250816 此處沒有取得行號
             {
-                MessageBox.Show($"{MyGlobal.AnErrorHasOccurred}\r\n\r\n{ex.Message}\r\n\r\n{MyGlobal.PleaseTryAgain}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show($"{MyGlobal.AnErrorHasOccurred}\r\n\r\n{ex.Message}\r\n\r\n{MyGlobal.PleaseTryAgain}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 

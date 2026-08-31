@@ -122,7 +122,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             return result;
@@ -237,7 +237,7 @@ namespace JasonQuery.UI.Forms
                     MessageBox.Show
                     (
                         $"{createSavePoint}\r\n\r\n{savePointResult}",
-                        AppConfigHelper.JasonQueryVersion,
+                        AppConfigHelper.MessageBoxCaption,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Exclamation
                     );
@@ -309,7 +309,7 @@ namespace JasonQuery.UI.Forms
             //有錯誤！
             if (!string.IsNullOrEmpty(errorMessage))
             {
-                MessageBox.Show($"{MyGlobal.AnErrorHasOccurred}\r\n\r\n{errorMessageFinal}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show($"{MyGlobal.AnErrorHasOccurred}\r\n\r\n{errorMessageFinal}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
                 if (hasSavePoint) //20260705 有成功建立 Save Point，才執行 Rollback To Save Point
                 {
@@ -429,7 +429,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             finally
             {
@@ -803,7 +803,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -960,7 +960,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             finally
             {

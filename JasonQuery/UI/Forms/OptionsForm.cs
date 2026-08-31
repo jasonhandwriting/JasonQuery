@@ -1003,7 +1003,7 @@ namespace JasonQuery.UI.Forms
 
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             finally
             {
@@ -2225,7 +2225,7 @@ namespace JasonQuery.UI.Forms
 
             _languageText += $"\r\n\r\n{sTemp}";
 
-            var result = MessageBox.Show(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            var result = MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result != DialogResult.Yes)
             {
@@ -2258,7 +2258,7 @@ namespace JasonQuery.UI.Forms
             JasonQueryRepository.ExecNonQuery(sql);
 
             _languageText = LocalizationHelper.GetLanguageString("The settings have been copied. Please restart JasonQuery!", "Global", "Global", "msg", "CopyOK", "Text");
-            MessageBox.Show(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             var temp1 = LocalizationHelper.GetLanguageString("All settings have been changed.", "Global", "Global", "msg", "SettingsChanged", "Text");
             var temp2 = LocalizationHelper.GetLanguageString("You need to restart JasonQuery!", "Global", "Global", "msg", "RequireToRestart", "Text");
@@ -2273,7 +2273,7 @@ namespace JasonQuery.UI.Forms
         {
             _languageText = LocalizationHelper.GetLanguageString("Are you sure you want to restore all default settings except \"Global\"? ", "Global", "Global", "msg", "RestoreDefault", "Text");
 
-            var result = MessageBox.Show(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            var result = MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result != DialogResult.Yes)
             {
@@ -2295,7 +2295,7 @@ namespace JasonQuery.UI.Forms
             pnlCopySettings.Enabled = false;
 
             _languageText = LocalizationHelper.GetLanguageString("The settings have been restored. Please restart JasonQuery!", "Global", "Global", "msg", "RestoreOK", "Text");
-            MessageBox.Show(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             var sTemp1 = LocalizationHelper.GetLanguageString("All settings have been changed.", "Global", "Global", "msg", "SettingsChanged", "Text");
             var sTemp2 = LocalizationHelper.GetLanguageString("You need to restart JasonQuery!", "Global", "Global", "msg", "RequireToRestart", "Text");
@@ -2891,12 +2891,12 @@ namespace JasonQuery.UI.Forms
             if (!MyLibrary.IsDarkMode && TextHelper.GetSafeString(chkDarkMode.Tag) == "1")
             {
                 _languageText = LocalizationHelper.GetLanguageString("Changing the color theme from dark to normal requires restarting JasonQuery for the best display.", "form", GetType().Name, "msg", "ChangeColorTheme", "Text");
-                MessageBox.Show(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else if (MyLibrary.IsDarkMode && TextHelper.GetSafeString(chkDarkMode.Tag) == "0")
             {
                 _languageText = LocalizationHelper.GetLanguageString("Changing the color theme from normal to dark requires restarting JasonQuery for the best display.", "form", GetType().Name, "msg", "ChangeColorThemeN2D", "Text");
-                MessageBox.Show(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
             //20260620 改為全域變數
@@ -3408,7 +3408,7 @@ namespace JasonQuery.UI.Forms
             if (string.IsNullOrWhiteSpace(txtKeyword.Text))
             {
                 _languageText = LocalizationHelper.GetLanguageString("Please input \"Keyword\"!", "form", GetType().Name, "msg", "InputKeyword", "Text");
-                MessageBox.Show(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 txtKeyword.Focus();
                 return;
             }
@@ -3416,7 +3416,7 @@ namespace JasonQuery.UI.Forms
             if (string.IsNullOrWhiteSpace(editorAutoReplace.Text))
             {
                 _languageText = LocalizationHelper.GetLanguageString("Please input \"Replacement\"!", "form", GetType().Name, "msg", "InputReplacement", "Text");
-                MessageBox.Show(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 editorAutoReplace.Focus();
                 return;
             }
@@ -3438,7 +3438,7 @@ namespace JasonQuery.UI.Forms
                 else
                 {
                     _languageText = LocalizationHelper.GetLanguageString("The Keyword already exists!", "form", GetType().Name, "msg", "ReplacementKeywordExist", "Text");
-                    MessageBox.Show(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     return;
                 }
             }
@@ -4807,7 +4807,7 @@ namespace JasonQuery.UI.Forms
         {
             if (TextHelper.GetSafeString(cboFindGrid.Tag) == "0")
             {
-                MessageBoxHelper.ShowNearCursor($"Can't find the text \"{cboFindGrid.Text}\"", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBoxHelper.ShowNearCursor($"Can't find the text \"{cboFindGrid.Text}\"", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
 
@@ -4904,7 +4904,7 @@ namespace JasonQuery.UI.Forms
         {
             if (TextHelper.GetSafeString(cboFindGrid.Tag) == "0")
             {
-                MessageBoxHelper.ShowNearCursor($"Can't find the text \"{cboFindGrid.Text}\"", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBoxHelper.ShowNearCursor($"Can't find the text \"{cboFindGrid.Text}\"", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
 
@@ -5027,7 +5027,7 @@ namespace JasonQuery.UI.Forms
 
             if (TextHelper.GetSafeString(cboFindGrid.Tag) == "0")
             {
-                MessageBoxHelper.ShowNearCursor($"Can't find the text \"{cboFindGrid.Text}\"", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBoxHelper.ShowNearCursor($"Can't find the text \"{cboFindGrid.Text}\"", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
 
@@ -5100,7 +5100,7 @@ namespace JasonQuery.UI.Forms
             var temp2 = LocalizationHelper.GetLanguageString("Count:", "form", GetType().Name, "msg", "Count", "Text");
             var temp3 = LocalizationHelper.GetLanguageString("matches.", "form", GetType().Name, "msg", "matches", "Text");
 
-            MessageBoxHelper.ShowNearCursor($"{temp1} {cboFindGrid.Text}\r\n\r\n{temp2} {count} {temp3}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor($"{temp1} {cboFindGrid.Text}\r\n\r\n{temp2} {count} {temp3}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
             return count;
         }
 
@@ -5219,7 +5219,7 @@ namespace JasonQuery.UI.Forms
 
             if (FindCount(sText, sSearchText) == 0)
             {
-                MessageBoxHelper.ShowNearCursor($"Can't find the text \"{sSearchText}\"", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBoxHelper.ShowNearCursor($"Can't find the text \"{sSearchText}\"", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
 
@@ -5334,7 +5334,7 @@ namespace JasonQuery.UI.Forms
 
             if (FindCount(sText, sSearchText) == 0)
             {
-                MessageBoxHelper.ShowNearCursor($"Can't find the text \"{sSearchText}\"", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBoxHelper.ShowNearCursor($"Can't find the text \"{sSearchText}\"", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
 
@@ -5421,7 +5421,7 @@ namespace JasonQuery.UI.Forms
                     {
                         var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                        MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }
                 }
 
@@ -5465,7 +5465,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             return i;
@@ -5737,7 +5737,7 @@ namespace JasonQuery.UI.Forms
 
             var message = LocalizationHelper.GetLanguageString("Localization file not found!", "Global", "Global", "msg", "LocalizationNotFound", "Text");
 
-            MessageBox.Show($"{message}\r\n\r\n{fileName}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            MessageBox.Show($"{message}\r\n\r\n{fileName}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             return false;
         }
 
@@ -6185,7 +6185,7 @@ namespace JasonQuery.UI.Forms
 
             c1DockingTab.SelectedTab = tabGlobal;
             c1DockingTab4.SelectedTab = tabUpdateSettings;
-            MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             txtLocalFolder.Focus();
         }
 
@@ -6263,98 +6263,98 @@ namespace JasonQuery.UI.Forms
         {
             var message = LocalizationHelper.GetLanguageString("This feature is only effective when querying a single table.", "Global", "Global", "msg", "Help_ColumnName", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_RawDataMode_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("\"Raw Data Mode\" significantly improves data display performance.\r\n\r\nWhen enabled, query results are displayed exactly as returned by the database, without any additional formatting or processing.\r\n\r\nAs a result, the following display-related settings will not be applied:\\r\\n1. Date formatting\\r\\n2. Null value style\\r\\n3. Column type display\\r\\n4. Column comment display\\r\\n5. Auto-fit column width\r\n\r\nNote:\\r\\nIf the query result contains large text or binary data, this mode may be temporarily disabled for the current query to prevent performance or stability issues.", "Global", "Global", "msg", "Help_RawDataMode", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_AppendQueryResult_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("This feature is enabled by default.\r\n\r\nWhen Paging is enabled and a query completes successfully, pressing \"Next Page\" will re-execute the previous query to retrieve the next set of rows.\r\n\r\nIf enabled, the new results will be appended to the existing results.\r\nIf disabled, only the latest page of results will be displayed.", "form", GetType().Name, "msg", "Help_AppendQueryResult", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_EnableAutoComplete_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("When this option is enabled, JasonQuery analyzes your SQL input while typing and automatically displays a list of matching members when the conditions are met.\r\n\r\nThe minimum fragment length controls how many characters are required before Auto Complete is triggered, helping to avoid excessive popups.\r\n\r\nThe options below allow you to specify which types of members are included in Auto Complete, such as built-in keywords, functions, or user-defined database objects.", "form", GetType().Name, "msg", "Help_AutoComplete", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_EnableAutoReplace_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("Auto Replace allows you to bind frequently used query fragments to short keywords.\r\n\r\nAfter typing a keyword and pressing the space key, JasonQuery automatically expands it into the predefined replacement.\r\n\r\nThis feature is useful for:\r\n• Frequently used query templates\r\n• Repetitive SQL structures\r\n• Quickly inserting long statements or clauses\r\n\r\nYou can press Ctrl+Z at any time to undo the replacement.", "form", GetType().Name, "msg", "Help_AutoReplace", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_Symbol_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("Insert the ^ symbol in the replacement text.\r\nAfter Auto Replace is applied, the cursor will be positioned at ^, and the symbol will be removed automatically.\r\n\r\nThis is useful for quickly continuing SQL input after expansion.", "form", GetType().Name, "msg", "Help_Symbol", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_PagedQuery_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("When enabled, JasonQuery executes queries in paging mode, returning a limited number of rows per execution.\\r\\n\\r\\nAfter a query completes successfully, you can retrieve the next page of data by clicking the \"Next Page\" button or by navigating to the last row in the result grid.", "form", GetType().Name, "msg", "Help_PagedQuery", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_DarkMode_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("You cannot change this setting unless you restart JasonQuery.", "Global", "Global", "msg", "Help_RequestToRestart", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_SelectCurrentSqlBlock_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("This option controls how SQL blocks are selected when using Ctrl+Enter.\r\n\r\nIf enabled, lines containing only whitespace are treated as part of the current SQL block, and JasonQuery continues selecting the full SQL statement.\r\n\r\nIf disabled, selection stops when a blank line is encountered.", "form", GetType().Name, "msg", "Help_SelectCurrentSqlBlock", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_ShowColumnInfo_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("Display column information for Tables and Views in the Query Editor's \"Schema Information\".\r\n\r\nWhen enabled, JasonQuery retrieves all column names and data types while loading the schema information.\r\n\r\nIf the database contains a large number of Tables or Views, the schema initialization time may increase significantly.\r\n\r\nIf you only need to browse object names, disabling this option can improve loading performance.\r\n\r\nYou can change the setting from [Tools] > [Options] > [Query Editor].", "Global", "Global", "msg", "Help_ShowColumnInfo", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_AutoListMembers_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("When enabled, JasonQuery analyzes the current SQL context while you type and automatically lists available database objects or column members.\r\n\r\nFor example:\r\n• After typing an alias followed by a dot (\".\"), members of the corresponding table, view, or subquery are listed.\r\n• After keywords such as FROM, UPDATE, DELETE, or INSERT INTO, tables or views matching the current input are suggested.\r\n\r\nTo provide accurate suggestions, JasonQuery may query schema information from the database during SQL editing.", "form", GetType().Name, "msg", "Help_AutoListMembers", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_UseSavePoint_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("In PostgreSQL, JasonQuery automatically creates a savepoint before executing subqueries required for \"Auto List Members\".\r\n\r\nIf a subquery execution fails, for example when the subquery is incomplete or cannot be executed independently, JasonQuery restores the savepoint to prevent affecting the current transaction state.\r\n\r\nIf the subquery executes successfully, the savepoint is automatically released.\r\n\r\nThis mechanism applies only to PostgreSQL, as any SQL error in PostgreSQL causes the current transaction to enter a failed state.\r\n\r\nThis setting affects only helper queries during SQL editing and does not impact user-executed SQL statements.", "form", GetType().Name, "msg", "Help_UseSavePoint", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_DisconnectAfterSelect_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("[Disconnect immediately after SELECT queries]\r\n\r\nAfter a simple SELECT query is executed, JasonQuery immediately disconnects from the database to avoid holding unnecessary connections.\r\n\r\nIf there is a pending transaction, JasonQuery keeps the connection open so you can still execute Commit or Rollback.", "form", GetType().Name, "msg", "Help_DisconnectAfterSelect", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_PendingWarning_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("[Pending transaction warning]\r\n\r\nWhen JasonQuery detects a pending transaction, it shows \"Not yet committed or rolled back!\" at the bottom of the window, followed by an elapsed-time timer.\r\n\r\nJasonQuery shows the first reminder dialog 5 minutes after the pending transaction starts.\r\n\r\nIf the transaction is still not committed or rolled back after you click OK, JasonQuery will show the reminder again every 5 minutes.", "form", GetType().Name, "msg", "Help_PendingWarning", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void lblStyle_Click(object sender, EventArgs e)
@@ -6488,7 +6488,7 @@ namespace JasonQuery.UI.Forms
                 "Text"
             );
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void cboDirection_SelectedIndexChanged(object sender, EventArgs e)

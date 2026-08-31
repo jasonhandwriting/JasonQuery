@@ -105,7 +105,7 @@ namespace JasonQuery.UI.Forms
                 return true;
             }
 
-            MessageBox.Show(result, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            MessageBox.Show(result, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             return false;
         }
     }

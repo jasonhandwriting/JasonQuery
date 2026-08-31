@@ -66,7 +66,7 @@ namespace JasonQuery.Core.Localization
             {
                 var message = ExceptionDialogService.BuildMessage(ex);
 
-                MessageBox.Show(text: $"An error has occurred while loading localization file:\r\n\r\n{fileName}\r\n\r\n{message}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(text: $"An error has occurred while loading localization file:\r\n\r\n{fileName}\r\n\r\n{message}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             return dt;

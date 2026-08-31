@@ -46,7 +46,7 @@ namespace JasonQuery.UI.Forms
             }
 
             _languageText = LocalizationHelper.GetLanguageString(defaultText, "form", GetType().Name, "msg", messageKey, "Text");
-            MessageBox.Show(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             if (focusControl != null)
             {

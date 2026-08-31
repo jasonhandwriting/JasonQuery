@@ -97,7 +97,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             finally
             {
@@ -197,7 +197,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -250,7 +250,7 @@ namespace JasonQuery.UI.Forms
             message += LocalizationHelper.GetLanguageString("Numbers 0-9", "form", GetType().Name, "msg", "PasswordHelp4", "Text") + "\r\n";
             message += LocalizationHelper.GetLanguageString("Special characters", "form", GetType().Name, "msg", "PasswordHelp5", "Text").Trim() + " `~!@#$%^&*()_-+=[{]}|\\;:'\",<.>/?";
 
-            MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnClose_Click(object sender, EventArgs e)
@@ -267,7 +267,7 @@ namespace JasonQuery.UI.Forms
                 if (string.IsNullOrEmpty(txtFileName.Text))
                 {
                     message = LocalizationHelper.GetLanguageString("Please select the file name to export!", "form", GetType().Name, "msg", "NoneExportToFileName", "Text");
-                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     btnBrowseFile.Focus();
                     return;
                 }
@@ -275,7 +275,7 @@ namespace JasonQuery.UI.Forms
                 if (string.IsNullOrEmpty(txtEncryptPassword.Text))
                 {
                     message = LocalizationHelper.GetLanguageString("Please enter password.", "form", GetType().Name, "msg", "NonePassword", "Text");
-                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     txtEncryptPassword.Focus();
                     return;
                 }
@@ -295,7 +295,7 @@ namespace JasonQuery.UI.Forms
                 if (count == 0)
                 {
                     message = LocalizationHelper.GetLanguageString("You must select at least one connection information!", "form", GetType().Name, "msg", "SelectOne", "Text");
-                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     return;
                 }
 
@@ -424,13 +424,13 @@ namespace JasonQuery.UI.Forms
                 TextEngine.WriteBinaryFile(txtFileName.Text, inData);
 
                 message = LocalizationHelper.GetLanguageString("All the connection information you specified has been exported to", "form", GetType().Name, "msg", "ExportOK", "Text");
-                MessageBox.Show($"{message}\r\n{txtFileName.Text}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"{message}\r\n{txtFileName.Text}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -470,7 +470,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
     }

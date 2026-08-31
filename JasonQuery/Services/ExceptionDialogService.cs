@@ -16,14 +16,14 @@ namespace JasonQuery.UI.Services
         {
             var message = ExceptionMessageFormatter.BuildExceptionDisplayMessage(ex);
 
-            MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
 
         public static void Show(IWin32Window owner, Exception ex, bool errorMessageOnly = false)
         {
             var message = ExceptionMessageFormatter.BuildExceptionDisplayMessage(ex, errorMessageOnly);
 
-            MessageBox.Show(owner, message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            MessageBox.Show(owner, message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
     }
 }

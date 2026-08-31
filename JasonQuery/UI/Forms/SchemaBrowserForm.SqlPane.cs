@@ -229,7 +229,7 @@ namespace JasonQuery.UI.Forms
                 {
                     var temp = LocalizationHelper.GetLanguageString("Please check if this file is opened in another program.", "form", GetType().Name, "msg", "SaveFailedCheck", "Text");
 
-                    MessageBox.Show($"{temp}\r\n\r\n{sf.FileName}\r\n\r\n{ex.Message}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"{temp}\r\n\r\n{sf.FileName}\r\n\r\n{ex.Message}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
