@@ -1,4 +1,5 @@
 ﻿using JasonQuery.Core.Config;
+using JasonQuery.Core.Security.Database;
 using JasonQuery.Core.Text;
 using JasonQuery.UI.Services;
 using System;
@@ -13,10 +14,10 @@ namespace JasonQuery.Database.Internal.Repositories
     public static class JasonQueryRepository //for JasonQuery.db
     {
         public static string DbConnectionString = string.Empty;
-        public static string DbConnectionPassword = "ytec1688"; //20221107 連線至 JasonQuery.db 的密碼
-        public static string DbConnectionPasswordPrefix = "jasonquery1231"; //20221107 連線至 JasonQuery.db 的密碼
-        public static string DbConnectionPasswordSuffix = "encryptDB!nf0"; //20221107 連線至 JasonQuery.db 的密碼
-        public static string DbConnectionExportPasswordSuffix = "exportDB!nf0"; //20221107 連線至 JasonQuery.db 的密碼
+        public static string DbConnectionPassword = LegacyDatabaseSecurity.LegacyDefaultDatabasePassword; //Legacy default; V2 overwrites this at startup.
+        public static string DbConnectionPasswordPrefix = "jasonquery1231"; //Legacy custom-password format; removed from V2.
+        public static string DbConnectionPasswordSuffix = "encryptDB!nf0"; //Legacy custom-password format; removed from V2.
+        public static string DbConnectionExportPasswordSuffix = "exportDB!nf0"; //Legacy .jqc encryption format; replaced in a later step.
         public static string DbMotherPid = string.Empty;
         public static string DbFileName = string.Empty;
 
@@ -25,27 +26,27 @@ namespace JasonQuery.Database.Internal.Repositories
         {
             password = string.IsNullOrWhiteSpace(password) ? DbConnectionPassword : password;
 
-            var conn = new SQLiteConnection { ConnectionString = DbConnectionString };
+            var connection = new SQLiteConnection { ConnectionString = DbConnectionString };
 
             try
             {
-                if (conn.State == ConnectionState.Open)
+                if (connection.State == ConnectionState.Open)
                 {
-                    conn.Close();
+                    connection.Close();
                 }
 
-                conn.SetPassword(password);
-                conn.Open();
+                connection.SetPassword(password);
+                connection.Open();
 
                 if (!string.IsNullOrWhiteSpace(newPassword))
                 {
                     DbConnectionPassword = $"{DbConnectionPasswordPrefix}{newPassword}{DbConnectionPasswordSuffix}";
-                    conn.ChangePassword(DbConnectionPassword);
+                    connection.ChangePassword(DbConnectionPassword);
                 }
                 else if (isUseDefaultPassword && string.IsNullOrWhiteSpace(newPassword))
                 {
-                    conn.ChangePassword("ytec1688");
-                    DbConnectionPassword = "ytec1688";
+                    connection.ChangePassword(LegacyDatabaseSecurity.LegacyDefaultDatabasePassword);
+                    DbConnectionPassword = LegacyDatabaseSecurity.LegacyDefaultDatabasePassword;
                 }
             }
             catch (Exception ex)
@@ -53,54 +54,60 @@ namespace JasonQuery.Database.Internal.Repositories
                 ExceptionDialogService.Show(ex);
             }
 
-            return conn;
+            return connection;
         }
 
-        //是否使用預設密碼？
+        //Legacy：驗證舊版預設密碼或舊版自訂密碼。
         public static bool CheckDBPassword(string password)
         {
-            password = string.IsNullOrWhiteSpace(password) ? string.Empty : $"{DbConnectionPasswordPrefix}{password}{DbConnectionPasswordSuffix}";
+            var legacyDatabasePassword = string.IsNullOrWhiteSpace(password) ? DbConnectionPassword : $"{DbConnectionPasswordPrefix}{password}{DbConnectionPasswordSuffix}";
 
-            var isResult = true;
-            var conn = OleDbOpenConn(password);
-            var myDataTable = new DataTable();
-            var da = new SQLiteDataAdapter("SELECT * FROM SystemConfig WHERE 1 = 2", conn);
-            var ds = new DataSet();
+            return CanOpenDatabase(legacyDatabasePassword);
+        }
 
-            try
+        //V2：驗證目前已解析完成的資料庫密碼，不套用任何 Legacy prefix/suffix。
+        public static bool CheckCurrentDatabasePassword()
+        {
+            return CanOpenDatabase(DbConnectionPassword);
+        }
+
+        private static bool CanOpenDatabase(string databasePassword)
+        {
+            using (var connection = new SQLiteConnection { ConnectionString = DbConnectionString })
             {
-                ds.Clear();
-                da.Fill(ds);
-                myDataTable = ds.Tables[0];
-            }
-            catch (Exception)
-            {
-                //密碼錯誤！
-                isResult = false;
-            }
+                try
+                {
+                    connection.SetPassword(databasePassword);
+                    connection.Open();
 
-            if (conn.State == ConnectionState.Open)
-            {
-                conn.Close();
-            }
+                    using (var command = new SQLiteCommand("SELECT 1 FROM SystemConfig WHERE 1 = 2", connection))
+                    {
+                        command.ExecuteScalar();
+                    }
 
-            return isResult;
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
         }
 
         //變更密碼！
         public static string ResetDBPassword(string oldPassword, string newPassword, bool isUseDefaultPassword)
         {
             var result = string.Empty;
-            var mdbConn = OleDbOpenConn(oldPassword, newPassword, isUseDefaultPassword);
-            var myDataTable = new DataTable();
-            var da = new SQLiteDataAdapter("SELECT * FROM SystemConfig WHERE 1 = 2", mdbConn);
-            var ds = new DataSet();
+            var connection = OleDbOpenConn(oldPassword, newPassword, isUseDefaultPassword);
+            var dataTable = new DataTable();
+            var dataAdapter = new SQLiteDataAdapter("SELECT * FROM SystemConfig WHERE 1 = 2", connection);
+            var dataSet = new DataSet();
 
             try
             {
-                ds.Clear();
-                da.Fill(ds);
-                myDataTable = ds.Tables[0];
+                dataSet.Clear();
+                dataAdapter.Fill(dataSet);
+                dataTable = dataSet.Tables[0];
             }
             catch (Exception ex)
             {
@@ -108,9 +115,9 @@ namespace JasonQuery.Database.Internal.Repositories
                 result = ex.Message;
             }
 
-            if (mdbConn.State == ConnectionState.Open)
+            if (connection.State == ConnectionState.Open)
             {
-                mdbConn.Close();
+                connection.Close();
             }
 
             return result;
@@ -119,43 +126,44 @@ namespace JasonQuery.Database.Internal.Repositories
         //取得資料表:
         public static DataTable ExecQuery(string sql)
         {
-            var conn = OleDbOpenConn();
-            var myDataTable = new DataTable();
-            var da = new SQLiteDataAdapter(sql, conn);
-            var ds = new DataSet();
+            var connection = OleDbOpenConn();
+            var dataTable = new DataTable();
+            var dataAdapter = new SQLiteDataAdapter(sql, connection);
+            var dataSet = new DataSet();
 
             try
             {
-                ds.Clear();
-                da.Fill(ds);
-                myDataTable = ds.Tables[0];
+                dataSet.Clear();
+                dataAdapter.Fill(dataSet);
+                dataTable = dataSet.Tables[0];
             }
             catch (Exception ex)
             {
                 ExceptionDialogService.Show(ex);
             }
 
-            if (conn.State == ConnectionState.Open)
+            if (connection.State == ConnectionState.Open)
             {
-                conn.Close();
+                connection.Close();
             }
 
-            return myDataTable;
+            return dataTable;
         }
 
         //對資料表進行新增、修改及刪除等功能:
         public static void ExecNonQuery(string sql, bool showAlertOnError = true)
         {
-            var conn = OleDbOpenConn();
+            var connection = OleDbOpenConn();
 
             try
             {
-                var cmd = new SQLiteCommand(sql, conn);
-                var count = cmd.ExecuteNonQuery();
+                var command = new SQLiteCommand(sql, connection);
 
-                if (conn.State == ConnectionState.Open)
+                command.ExecuteNonQuery();
+
+                if (connection.State == ConnectionState.Open)
                 {
-                    conn.Close();
+                    connection.Close();
                 }
             }
             catch (Exception ex)
@@ -172,17 +180,17 @@ namespace JasonQuery.Database.Internal.Repositories
         public static string BatchDeleteRecord(string sqls)
         {
             var result = string.Empty;
-            var conn = OleDbOpenConn();
+            var connection = OleDbOpenConn();
 
             try
             {
-                var sql = sqls.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+                var sqlStatements = sqls.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
 
-                foreach (var t in sql)
+                foreach (var sqlStatement in sqlStatements)
                 {
-                    var cmd = new SQLiteCommand(t, conn);
+                    var command = new SQLiteCommand(sqlStatement, connection);
 
-                    cmd.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
                 }
             }
             catch (Exception ex)
@@ -190,9 +198,9 @@ namespace JasonQuery.Database.Internal.Repositories
                 result = ExceptionDialogService.BuildMessage(ex);
             }
 
-            if (conn.State == ConnectionState.Open)
+            if (connection.State == ConnectionState.Open)
             {
-                conn.Close();
+                connection.Close();
             }
 
             return result;
@@ -318,9 +326,9 @@ namespace JasonQuery.Database.Internal.Repositories
                 sql = sbSql.ToString();
 
                 //依據資料是否存在，進行 Update / Insert
-                var dtTemp = ExecQuery(sql);
+                var dataTable = ExecQuery(sql);
 
-                if (dtTemp?.Rows.Count > 0)
+                if (dataTable?.Rows.Count > 0)
                 {
                     sbSql.Clear();
 
