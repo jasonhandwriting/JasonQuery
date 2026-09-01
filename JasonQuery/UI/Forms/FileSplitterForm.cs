@@ -42,7 +42,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -215,7 +215,7 @@ namespace JasonQuery.UI.Forms
             }
 
             languageText = LocalizationHelper.GetLanguageString("The following file could not be opened because it contains characters that could not be interpreted.", "form", GetType().Name, "msg", "FileContainsBinaryData", "Text");
-            MessageBox.Show($"{languageText}\r\n\r\n{temp}{fileName}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show($"{languageText}\r\n\r\n{temp}{fileName}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return "ERROR";
         }
 
@@ -227,7 +227,7 @@ namespace JasonQuery.UI.Forms
             {
                 var languageText = LocalizationHelper.GetLanguageString("Please select an existing source file.", "form", GetType().Name, "msg", "SelectSource", "Text");
 
-                MessageBox.Show(languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 btnBrowseFile.Focus();
                 return false;
             }
@@ -236,7 +236,7 @@ namespace JasonQuery.UI.Forms
             {
                 var languageText = LocalizationHelper.GetLanguageString("You must indicate a destination folder for your piece files.", "form", GetType().Name, "msg", "SelectFolder", "Text");
 
-                MessageBox.Show(languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 btnBrowseFolder.Focus();
                 return false;
             }
@@ -245,7 +245,7 @@ namespace JasonQuery.UI.Forms
             {
                 var languageText = LocalizationHelper.GetLanguageString("Please select an existing destination folder.", "form", GetType().Name, "msg", "SelectExistingFolder", "Text");
 
-                MessageBox.Show(languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 btnBrowseFolder.Focus();
                 return false;
             }
@@ -254,7 +254,7 @@ namespace JasonQuery.UI.Forms
             {
                 var languageText = LocalizationHelper.GetLanguageString("Please define the size of a piece file.", "form", GetType().Name, "msg", "DefineSize", "Text");
 
-                MessageBox.Show(languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 txtSplitSize.Focus();
                 return false;
             }
@@ -274,7 +274,7 @@ namespace JasonQuery.UI.Forms
 
             var languageText2 = LocalizationHelper.GetLanguageString("Please decrease the size of blocked pieces so it is lower than the size of the original file.", "form", GetType().Name, "msg", "DecreaseSize", "Text");
 
-            MessageBox.Show(languageText2, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            MessageBox.Show(languageText2, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             txtSplitSize.Focus();
             return false;
         }
@@ -337,7 +337,7 @@ namespace JasonQuery.UI.Forms
                 temp2 = LocalizationHelper.GetLanguageString("Some of the them will be deleted!", "form", GetType().Name, "msg", "SomeWillBeDelete", "Text");
 
                 var temp3 = LocalizationHelper.GetLanguageString("Continue anyway?", "form", GetType().Name, "msg", "ContinueAnyway", "Text");
-                var result0 = MessageBox.Show($"{languageText}\r\n{temp2}\r\n\r\n{temp3}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                var result0 = MessageBox.Show($"{languageText}\r\n{temp2}\r\n\r\n{temp3}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 if (result0 == DialogResult.No)
                 {
@@ -412,7 +412,7 @@ namespace JasonQuery.UI.Forms
 
                                 temp2 = LocalizationHelper.GetLanguageString("Skip this file and continue anyway?", "form", GetType().Name, "msg", "SkipAndContinue", "Text");
 
-                                var result1 = MessageBox.Show($"{languageText}\r\n\r\n{temp1}\r\n\r\n{temp2}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                                var result1 = MessageBox.Show($"{languageText}\r\n\r\n{temp1}\r\n\r\n{temp2}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                                 if (result1 == DialogResult.No)
                                 {
@@ -450,7 +450,7 @@ namespace JasonQuery.UI.Forms
 
                         temp2 = LocalizationHelper.GetLanguageString("Skip this file and continue anyway?", "form", GetType().Name, "msg", "SkipAndContinue", "Text");
 
-                        var result2 = MessageBox.Show($"{languageText}\r\n\r\n{temp1}\r\n\r\n{temp2}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                        var result2 = MessageBox.Show($"{languageText}\r\n\r\n{temp1}\r\n\r\n{temp2}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                         if (result2 == DialogResult.No)
                         {
@@ -463,7 +463,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             finally
             {
@@ -476,7 +476,7 @@ namespace JasonQuery.UI.Forms
 
             temp2 = LocalizationHelper.GetLanguageString("Would you like to open the destination folder?", "form", GetType().Name, "msg", "OpenDestinationFolder", "Text");
 
-            var result = MessageBox.Show($"{languageText2}\r\n\r\n{temp2}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+            var result = MessageBox.Show($"{languageText2}\r\n\r\n{temp2}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Information);
 
             if (result != DialogResult.Yes)
             {
@@ -497,7 +497,7 @@ namespace JasonQuery.UI.Forms
                 var languageText = LocalizationHelper.GetLanguageString("The following file could not be found.", "form", GetType().Name, "msg", "FollowingFileNotFound", "Text");
 
                 temp2 = LocalizationHelper.GetLanguageString("Please check the file name and try again.", "form", GetType().Name, "msg", "CheckFileAndTry", "Text");
-                MessageBox.Show($"{languageText}\r\n{temp2}\r\n\r\n{temp1}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{languageText}\r\n{temp2}\r\n\r\n{temp1}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

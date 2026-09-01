@@ -164,7 +164,7 @@ namespace JasonQuery.Database.Internal.Repositories
 
                 if (showAlertOnError)
                 {
-                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

@@ -3,7 +3,7 @@ namespace JasonQuery.Core.Config
     public static class AppConfigHelper
     {
         public static string LocalVersion = string.Empty; //JasonQuery.exe 的版本號碼
-        public static string JasonQueryVersion = "JasonQuery";
+        public static string MessageBoxCaption = "JasonQuery";
         public static string SupportInfo = string.Empty;
         public static string LogFileName = string.Empty; //20260830 目前記錄工作階段的 CSV 檔案完整路徑
         public static string BackupPath = string.Empty; //20240301 for 定時備份

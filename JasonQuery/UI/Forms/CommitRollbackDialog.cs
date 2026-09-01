@@ -41,7 +41,7 @@ namespace JasonQuery.UI.Forms
                 btnCommit.Location = new Point(btnCancel.Left - btnCommit.Width - btnRollback.Width - 50, btnCommit.Top);
                 btnRollback.Location = new Point(btnCommit.Left + btnCommit.Width + 15, btnRollback.Top);
 
-                Text = $"{AppConfigHelper.JasonQueryVersion} - {Text}";
+                Text = $"{AppConfigHelper.MessageBoxCaption} - {Text}";
                 lblConnection.Text += DatabaseSqlExecutor.DbConnectionTitle;
                 lblInfo.Text = lblInfo.Text.Replace("{DBType}", DatabaseSqlExecutor.DataSourceDisplayName);
                 btnCancel.Focus();
@@ -105,7 +105,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 

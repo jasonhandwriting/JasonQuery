@@ -479,7 +479,7 @@ namespace JasonQuery.Core.Text
                         var message = LocalizationHelper.GetLanguageString(defaultMessage, "Global", "Global", "msg", "CopyToClipboardError", "Text");
                         var languageText = $"{MyGlobal.AnUnexpectedErrorHasOccurred}\r\n\r\n{message}\r\n\r\n{MyGlobal.PleaseTryAgain}";
 
-                        MessageBox.Show(languageText, $"{AppConfigHelper.JasonQueryVersion} - CopyTextToClipboard {key}", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBox.Show(languageText, $"{AppConfigHelper.MessageBoxCaption} - CopyTextToClipboard {key}", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }
                 }
                 catch
@@ -1494,7 +1494,7 @@ namespace JasonQuery.Core.Text
             temp = LocalizationHelper.GetLanguageString("You can change the variable name from [Tools] > [Options] > [SQL to Code] > \"Variable Name\".", "form", formName, "msg", "Sql2Code4ChangeVariable", "Text");
             languageText += $"\r\n{temp}";
 
-            MessageBox.Show(languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         /// <summary>

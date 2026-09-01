@@ -253,7 +253,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -262,7 +262,7 @@ namespace JasonQuery.UI.Forms
             if (btnApplyEdit.Enabled)
             {
                 //20240910 尚未套用就離開！
-                //MessageBox.Show("?", AppConfigHelper.sJasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Question);
+                //MessageBox.Show("?", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Question);
             }
         }
 
@@ -442,7 +442,7 @@ namespace JasonQuery.UI.Forms
                     var columnLabel = LocalizationHelper.GetLanguageString("Column", "Global", "Global", "msg", "Column", "Text");
                     var confirmMessage = $"{confirmText}\r\n\r\n{columnLabel}: {_columnInfo.ColumnName}\r\n{fileLabel}: {fileInfo.Name}\r\n{sizeLabel}: {fileInfo.Length:N0} bytes";
 
-                    if (MessageBox.Show(confirmMessage, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
+                    if (MessageBox.Show(confirmMessage, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
                     {
                         return;
                     }
@@ -472,7 +472,7 @@ namespace JasonQuery.UI.Forms
                             errorText = $"{errorText}\r\nAffected rows: {affectedRows:N0}".Trim();
                         }
 
-                        MessageBox.Show($"{failedText}\r\n\r\n{errorText}".Trim(), AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBox.Show($"{failedText}\r\n\r\n{errorText}".Trim(), AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         return;
                     }
 
@@ -494,14 +494,14 @@ namespace JasonQuery.UI.Forms
 
                     var successText = LocalizationHelper.GetLanguageString("The file you specified has been loaded!", "form", Name, "msg", "FileLoadedOK", "Text");
 
-                    MessageBox.Show(successText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(successText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             finally
             {
@@ -549,7 +549,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -836,7 +836,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             finally
             {

@@ -109,7 +109,7 @@ namespace JasonQuery.UI.Forms
 
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
                 if (IsCheckOnStartup)
                 {
@@ -240,7 +240,7 @@ namespace JasonQuery.UI.Forms
 
                 var message = BuildUpdateCheckFailureMessage(ex, source, metadataLocation);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
                 if (IsCheckOnStartup)
                 {
@@ -487,7 +487,7 @@ namespace JasonQuery.UI.Forms
             var extractPackageStep = LocalizationHelper.GetLanguageString("3. Unzip \"JasonQuery x64\" to the folder where JasonQuery is currently located (overwrite all; JasonQuery64.zip does not include JasonQuery.db)", "form", GetType().Name, "msg", "HowToUpdate3", "Text") + "\r\n";
             var runJasonQueryStep = LocalizationHelper.GetLanguageString("4. Run JasonQuery", "form", GetType().Name, "msg", "HowToUpdate4", "Text");
 
-            MessageBox.Show($"{manualUpdateTitle}{downloadPackageStep}{closeJasonQueryStep}{extractPackageStep}{runJasonQueryStep}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"{manualUpdateTitle}{downloadPackageStep}{closeJasonQueryStep}{extractPackageStep}{runJasonQueryStep}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnUpdateNow_Click(object sender, EventArgs e)
@@ -511,7 +511,7 @@ namespace JasonQuery.UI.Forms
                     MessageBox.Show
                     (
                         alreadyRunning,
-                        AppConfigHelper.JasonQueryVersion,
+                        AppConfigHelper.MessageBoxCaption,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning
                     );
@@ -571,7 +571,7 @@ namespace JasonQuery.UI.Forms
                     MessageBox.Show
                     (
                         $"{message}\r\n\r\n{ex.Message}",
-                        AppConfigHelper.JasonQueryVersion,
+                        AppConfigHelper.MessageBoxCaption,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
                     );
@@ -594,7 +594,7 @@ namespace JasonQuery.UI.Forms
 
                 var details = File.Exists(executeName) ? string.Empty : $"\r\n\r\n{executeName}";
 
-                MessageBox.Show($"{fileNotFoundMessage}{details}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"{fileNotFoundMessage}{details}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -659,7 +659,7 @@ namespace JasonQuery.UI.Forms
                 MessageBox.Show
                 (
                     message,
-                    AppConfigHelper.JasonQueryVersion,
+                    AppConfigHelper.MessageBoxCaption,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Exclamation
                 );

@@ -1,5 +1,6 @@
 ﻿using JasonLibrary.Core;
 using JasonQuery.Core.Config;
+using JasonQuery.Core.SystemInfo;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -545,7 +546,7 @@ namespace JasonQuery.Core.Logging
         {
             var processArchitecture = IntPtr.Size == 8 ? "x64" : "x86";
 
-            return $"OS={Environment.OSVersion}; CLR={Environment.Version}; Process={processArchitecture}";
+            return $"OS={WindowsVersionInfoProvider.Current.FullName}; CLR={Environment.Version}; Process={processArchitecture}";
         }
 
         private static string BuildExceptionLogMessage(Exception exception, string contextMessage)

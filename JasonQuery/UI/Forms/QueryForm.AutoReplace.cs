@@ -304,7 +304,7 @@ namespace JasonQuery.UI.Forms
                 "Text"
             );
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void ResizeAutoReplaceReplacementColumn()

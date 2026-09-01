@@ -979,6 +979,8 @@
     <Compile Include="Core\Text\TextHelper.cs" />
     <Compile Include="Core\Logging\TraceCsvFormatter.cs" />
     <Compile Include="Core\SchemaExplorer\LazyLoading\SchemaBrowserLazyLoadState.cs" />
+    <Compile Include="Core\SystemInfo\MessageBoxCaptionBuilder.cs" />
+    <Compile Include="Core\SystemInfo\WindowsVersionInfo.cs" />
     <Compile Include="Core\Logging\TraceLogContext.cs" />
     <Compile Include="Core\Logging\TraceLogEntry.cs" />
     <Compile Include="Core\Logging\TraceLogFileManager.cs" />

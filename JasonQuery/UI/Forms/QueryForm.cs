@@ -4473,7 +4473,7 @@ namespace JasonQuery.UI.Forms
             var temp2 = LocalizationHelper.GetLanguageString("Count:", "form", GetType().Name, "msg", "Count", "Text");
             var temp3 = LocalizationHelper.GetLanguageString("matches.", "form", GetType().Name, "msg", "matches", "Text");
 
-            MessageBoxHelper.ShowNearCursor($"{temp1} {cboFindGrid.Text}\r\n\r\n{temp2} {count} {temp3}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor($"{temp1} {cboFindGrid.Text}\r\n\r\n{temp2} {count} {temp3}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
             return count;
         }
 
@@ -4494,7 +4494,7 @@ namespace JasonQuery.UI.Forms
             {
                 _languageText = LocalizationHelper.GetLanguageString("Can't find the text", "form", GetType().Name, "msg", "CantFindText", "Text");
 
-                MessageBoxHelper.ShowNearCursor($"{_languageText} \"{cboFindGrid.Text}\"", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBoxHelper.ShowNearCursor($"{_languageText} \"{cboFindGrid.Text}\"", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
 
@@ -4615,7 +4615,7 @@ namespace JasonQuery.UI.Forms
             if (TextHelper.GetSafeString(cboFindGrid.Tag) == "0")
             {
                 _languageText = LocalizationHelper.GetLanguageString("Can't find the text", "form", GetType().Name, "msg", "CantFindText", "Text");
-                MessageBoxHelper.ShowNearCursor($"{_languageText} \"{cboFindGrid.Text}\"", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBoxHelper.ShowNearCursor($"{_languageText} \"{cboFindGrid.Text}\"", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
 
@@ -4747,7 +4747,7 @@ namespace JasonQuery.UI.Forms
             if (TextHelper.GetSafeString(cboFindGrid.Tag) == "0")
             {
                 _languageText = LocalizationHelper.GetLanguageString("Can't find the text", "form", GetType().Name, "msg", "CantFindText", "Text");
-                MessageBoxHelper.ShowNearCursor($"{_languageText} \"{cboFindGrid.Text}\"", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBoxHelper.ShowNearCursor($"{_languageText} \"{cboFindGrid.Text}\"", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
 
@@ -6958,7 +6958,7 @@ namespace JasonQuery.UI.Forms
         {
             var message = LocalizationHelper.GetLanguageString("This setting specifies the maximum time (in seconds) to wait for a server response when executing a query command before generating an error.\r\n\r\nThe timeout is measured from the moment the query command is sent to the server.\r\nIt includes only the waiting time for the server response and does not include the time required to fetch data.\r\n\r\nThis is a connection-level setting and applies to all query editors created using this connection.\r\n\r\nThe timeout value set in a Query Editor toolbar affects only that editor and takes precedence over this setting.\r\n\r\nA value of 0 indicates no time limit.", "Global", "Global", "msg", "Help_QueryTimeout", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnSelectCurrentLine_Click(object sender, EventArgs e)

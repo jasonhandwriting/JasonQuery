@@ -12,6 +12,7 @@ using JasonQuery.Core.Database.Transactions;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
 using JasonQuery.Core.QueryEngine.Editor.Editing;
+using JasonQuery.Core.SystemInfo;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.UI.Helpers;
@@ -220,7 +221,12 @@ namespace JasonQuery.UI.Forms
 
                 //尚未登入前，標題列顯示的內容
                 Text = $"{Tag}{version}";
-                AppConfigHelper.JasonQueryVersion = $"{Tag} {AppConfigHelper.LocalVersion}";
+
+                AppConfigHelper.MessageBoxCaption = MessageBoxCaptionBuilder.Build
+                (
+                    $"{Tag} {AppConfigHelper.LocalVersion}",
+                    WindowsVersionInfoProvider.Current.ShortName
+                );
 
                 if (JasonQueryRepository.CheckDBPassword(string.Empty))
                 {
@@ -317,7 +323,12 @@ namespace JasonQuery.UI.Forms
 
                 LoadConnectionForm();
 
-                AppConfigHelper.JasonQueryVersion = $"{Tag} {AppConfigHelper.LocalVersion}, {DatabaseSqlExecutor.DatabaseVersionDisplayText}";
+                AppConfigHelper.MessageBoxCaption = MessageBoxCaptionBuilder.Build
+                (
+                    $"{Tag} {AppConfigHelper.LocalVersion}",
+                    DatabaseSqlExecutor.DatabaseVersionDisplayText,
+                    WindowsVersionInfoProvider.Current.ShortName
+                );
 
                 AppConfigHelper.MainFormLeft = Left;
                 AppConfigHelper.MainFormTop = Top;
@@ -333,7 +344,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -1386,7 +1397,7 @@ namespace JasonQuery.UI.Forms
                     sb.AppendLine();
                     sb.AppendLine(connectTo);
 
-                    MessageBox.Show(sb.ToString(), AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(sb.ToString(), AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     isConnectToDatabase = false;
                 }
             }
@@ -1639,7 +1650,7 @@ namespace JasonQuery.UI.Forms
                         {
                             var message = LocalizationHelper.GetLanguageString("Do you want to open \"All unsaved files\" ?\r\nThere are {QTY} file(s) in total.", "form", GetType().Name, "msg", "AskMeBeforeOpenUnsavedFiles", "Text").Replace("{QTY}", dtBackup.Rows.Count.ToString());
 
-                            if (MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                            if (MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                             {
                                 result = false;
                             }
@@ -2686,7 +2697,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -2836,7 +2847,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             finally
             {
@@ -3055,7 +3066,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -3109,7 +3120,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             return false;
@@ -3282,7 +3293,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -3414,7 +3425,7 @@ namespace JasonQuery.UI.Forms
                 {
                     var message = LocalizationHelper.GetLanguageString("Are you sure you want to empty \"My Favorite\" ?", "form", GetType().Name, "msg", "EmptyMyFavorite", "Text");
 
-                    if (MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                    if (MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                     {
                         return;
                     }
@@ -3431,7 +3442,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -3621,7 +3632,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -3643,7 +3654,7 @@ namespace JasonQuery.UI.Forms
                 {
                     var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
 
                 return;
@@ -3663,7 +3674,7 @@ namespace JasonQuery.UI.Forms
                 {
                     var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
 
                 return;
@@ -4015,7 +4026,7 @@ namespace JasonQuery.UI.Forms
                 {
                     var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
             }
             else if (newValue.StartsWith("CloseEmptyTab`", StringComparison.Ordinal))
@@ -4183,7 +4194,7 @@ namespace JasonQuery.UI.Forms
                 {
                     var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
 
                 if (newValue.Length > 25)
@@ -4198,7 +4209,7 @@ namespace JasonQuery.UI.Forms
                     {
                         var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                        MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }
                 }
                 else
@@ -4211,7 +4222,7 @@ namespace JasonQuery.UI.Forms
                     {
                         var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                        MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }
 
                     var sbInfo = new StringBuilder();
@@ -4262,7 +4273,7 @@ namespace JasonQuery.UI.Forms
                     {
                         var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                        MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }
 
                     var info = sbInfo.ToString();
@@ -4316,7 +4327,7 @@ namespace JasonQuery.UI.Forms
                 {
                     var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
             }
             else if (newValue.StartsWith("TransferSelectSQL`", StringComparison.Ordinal)) //傳遞 SQL (建立新的 Tab)
@@ -4660,7 +4671,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             var k = 0;
@@ -4775,7 +4786,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -4801,7 +4812,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -4820,7 +4831,7 @@ namespace JasonQuery.UI.Forms
 
                 message = LocalizationHelper.GetLanguageString(message, "form", GetType().Name, "msg", "EmptyRecentFiles", "Text");
 
-                if (MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                if (MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 {
                     return;
                 }
@@ -4838,7 +4849,7 @@ namespace JasonQuery.UI.Forms
         {
             if (!string.IsNullOrEmpty(MyGlobal.RequireToRestart))
             {
-                MessageBox.Show(MyGlobal.RequireToRestart, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(MyGlobal.RequireToRestart, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -4874,7 +4885,7 @@ namespace JasonQuery.UI.Forms
 
                 _languageText = $"for SQL Server 2000 (or lower)\r\n{temp}";
 
-                MessageBox.Show(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 return;
             }
@@ -5132,7 +5143,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             return result;
@@ -5148,7 +5159,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -5214,7 +5225,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = LocalizationHelper.GetLanguageString("File not found:", "form", GetType().Name, "msg", "UpdaterNotFound", "Text");
 
-                MessageBox.Show($"{message}\r\n\r\n{executeName}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"{message}\r\n\r\n{executeName}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -5275,7 +5286,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -5559,7 +5570,7 @@ namespace JasonQuery.UI.Forms
 
                         if (!string.IsNullOrEmpty(result))
                         {
-                            MessageBox.Show(result, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                            MessageBox.Show(result, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         }
 
                         break;
@@ -5570,7 +5581,7 @@ namespace JasonQuery.UI.Forms
 
                         if (!string.IsNullOrEmpty(result))
                         {
-                            MessageBox.Show(result, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                            MessageBox.Show(result, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         }
 
                         break;
@@ -5581,7 +5592,7 @@ namespace JasonQuery.UI.Forms
 
                         if (!string.IsNullOrEmpty(result))
                         {
-                            MessageBox.Show(result, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                            MessageBox.Show(result, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         }
 
                         break;
@@ -5592,7 +5603,7 @@ namespace JasonQuery.UI.Forms
 
                         if (!string.IsNullOrEmpty(result))
                         {
-                            MessageBox.Show(result, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                            MessageBox.Show(result, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         }
 
                         break;
@@ -5787,13 +5798,13 @@ namespace JasonQuery.UI.Forms
                 Application.UseWaitCursor = false;
 
                 _languageText = LocalizationHelper.GetLanguageString("The database has been switched to {db} successfully!", "form", GetType().Name, "msg", "SwitchedDatabase", "Text").Replace("{db}", tag);
-                MessageBox.Show(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -5900,7 +5911,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             Application.UseWaitCursor = false;
@@ -6009,7 +6020,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
             Application.UseWaitCursor = false;
@@ -6058,7 +6069,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -6128,7 +6139,7 @@ namespace JasonQuery.UI.Forms
                 {
                     var message = LocalizationHelper.GetLanguageString("Path not found!", "Global", "Global", "msg", "PathNotFound", "Text");
 
-                    MessageBox.Show($"{message}\r\n\r\n{path}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show($"{message}\r\n\r\n{path}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
             else

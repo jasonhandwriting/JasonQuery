@@ -129,7 +129,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             finally
             {
@@ -287,7 +287,7 @@ namespace JasonQuery.UI.Forms
                 {
                     var temp = LocalizationHelper.GetLanguageString("Please check if this file is opened in another program.", "SaveFailedCheck", GetType().Name, "msg", "SaveFailed1", "Text");
 
-                    MessageBox.Show($"{temp}\r\n\r\n{sf.FileName}\r\n\r\n{ex.Message}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"{temp}\r\n\r\n{sf.FileName}\r\n\r\n{ex.Message}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

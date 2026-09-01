@@ -320,7 +320,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -356,7 +356,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -480,56 +480,56 @@ namespace JasonQuery.UI.Forms
         {
             var message = LocalizationHelper.GetLanguageString("Remove the table and all the object(s) that depend on it.", "form", GetType().Name, "msg", "Help_DropDependent", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_CascadeConstraints_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("If specified, all referential integrity constraints will be dropped as well.", "form", GetType().Name, "msg", "Help_CascadeConstraints", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_PurgeSpace_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("If specified, the table and its dependent objects will be purged from the recycle bin and you will not be able to recover the table.", "form", GetType().Name, "msg", "Help_PurgeSpace", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_Only_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("If ONLY is specified before the table name, only that table is truncated. If ONLY is not specified, the table and all its descendant tables (if any) are truncated. Optionally, * can be specified after the table name to explicitly indicate that descendant tables are included.", "form", GetType().Name, "msg", "Help_Only", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_Restart_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("Automatically restart sequences owned by columns of the truncated table(s).", "form", GetType().Name, "msg", "Help_Restart", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_TruncateCascade_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("Automatically truncate all tables that have foreign-key references to any of the named tables, or to any tables added to the group due to CASCADE.", "form", GetType().Name, "msg", "Help_TruncateCascade", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_DefaultDrop_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("Deallocates the storage used by the rows and returns the space to the free space pool. This is the default.", "form", GetType().Name, "msg", "Help_DefaultDrop", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHelp_Reuse_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("Retains the space used by the deleted rows. This is useful if the table or cluster will be reloaded with data.", "form", GetType().Name, "msg", "Help_Reuse", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnSelectAll_Click(object sender, EventArgs e)
@@ -713,13 +713,13 @@ namespace JasonQuery.UI.Forms
 
                     var languageText = LocalizationHelper.GetLanguageString("", "form", GetType().Name, "msg", $"{EditMode}OK", "Text").Replace("{0}", TableName).Replace("{1}", txtNewTableName.Text);
 
-                    MessageBox.Show(languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
                     var languageText = LocalizationHelper.GetLanguageString("", "form", GetType().Name, "msg", $"{EditMode}NG", "Text").Replace("{0}", TableName).Replace("{1}", txtNewTableName.Text);
 
-                    MessageBox.Show($"{languageText}\r\n\r\n{errorMessage}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show($"{languageText}\r\n\r\n{errorMessage}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
 
                 var lineBreak = completionDecision.Succeeded ? string.Empty : $"\r\n{errorMessage}";
@@ -733,7 +733,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -894,7 +894,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 

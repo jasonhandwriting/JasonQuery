@@ -49,7 +49,7 @@ namespace JasonQuery.UI.Forms
                         message += $"\r\n\r\n{TraceLogger.LastWriteError}";
                     }
 
-                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
 
                 chkShowColumnInfo.Checked = MyGlobal.IsShowColumnInfo; //還原使用者是否有勾選
@@ -59,7 +59,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -78,7 +78,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             finally
             {
@@ -465,7 +465,7 @@ namespace JasonQuery.UI.Forms
         {
             var message = LocalizationHelper.GetLanguageString("Test connection succeeded.", "Global", "Global", "msg", "TestOK", "Text");
 
-            MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private string BuildTestConnectionFailedMessage(string connectTo, string serverDisplayText, bool includeTestFailedTitle, bool appendSqlServerTcpHint = false)
@@ -501,7 +501,7 @@ namespace JasonQuery.UI.Forms
         {
             var message = BuildTestConnectionFailedMessage(connectTo, serverDisplayText, includeTestFailedTitle, appendSqlServerTcpHint);
 
-            MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private bool TryHandleConnectOrTestMode(bool isTestMode, Action testAction)

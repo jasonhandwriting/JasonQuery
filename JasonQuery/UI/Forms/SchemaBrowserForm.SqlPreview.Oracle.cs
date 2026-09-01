@@ -457,7 +457,7 @@ namespace JasonQuery.UI.Forms
             }
 
             Cursor = Cursors.Default;
-            MessageBox.Show(messageFull, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            MessageBox.Show(messageFull, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             FocusOracleInvalidCell(rowIndex, columnIndex);
 
             return false;
@@ -565,7 +565,7 @@ namespace JasonQuery.UI.Forms
             editorSqlPreview.ReadOnly = true;
 
             Cursor = Cursors.Default;
-            MessageBox.Show(messageFull, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            MessageBox.Show(messageFull, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             FocusOracleInvalidCell(rowIndex, columnIndex);
         }
 

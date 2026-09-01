@@ -38,7 +38,7 @@ namespace JasonQuery.UI.Forms
             {
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -101,7 +101,7 @@ namespace JasonQuery.UI.Forms
             if (string.IsNullOrEmpty(txtFileName.Text))
             {
                 message = LocalizationHelper.GetLanguageString("Please select the file name to import!", "form", GetType().Name, "msg", "NoneImportFromFileName", "Text");
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 btnBrowseFile.Focus();
                 return;
             }
@@ -109,7 +109,7 @@ namespace JasonQuery.UI.Forms
             if (string.IsNullOrEmpty(txtEncryptPassword.Text))
             {
                 message = LocalizationHelper.GetLanguageString("Please enter password.", "form", GetType().Name, "msg", "NonePassword", "Text");
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 txtEncryptPassword.Focus();
                 return;
             }
@@ -150,7 +150,7 @@ namespace JasonQuery.UI.Forms
                 {
                     message = LocalizationHelper.GetLanguageString("Wrong password!", "form", "ConnectionForm", "msg", "WrongPassword", "Text") + "\r\n";
                     message += LocalizationHelper.GetLanguageString("You must re-enter your password.", "form", "ConnectionForm", "msg", "ReEnter", "Text");
-                    MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     txtEncryptPassword.Focus();
                     isOpenNG = false;
                 }
@@ -344,12 +344,12 @@ namespace JasonQuery.UI.Forms
                 JasonQueryRepository.ExecNonQuery(sql);
 
                 message = LocalizationHelper.GetLanguageString("{qty} connection information imported successfully!", "form", GetType().Name, "msg", "ImportOK", "Text").Replace("{qty}", count.ToString());
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
-                MessageBox.Show(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             finally
             {

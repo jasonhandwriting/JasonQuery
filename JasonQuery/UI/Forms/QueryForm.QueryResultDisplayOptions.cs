@@ -552,7 +552,7 @@ namespace JasonQuery.UI.Forms
         {
             var message = LocalizationHelper.GetLanguageString("Raw Data Mode significantly improves data display performance.\r\n\r\nWhen enabled, query results are displayed exactly as returned by the database, without any additional formatting or processing.\r\n\r\nAs a result, the following display-related settings will not be applied:\r\n1. Date formatting\r\n2. Null value style\r\n3. Column type display\r\n4. Column comment display\r\n5. Auto-fit column width\r\n\r\nNote:\r\nIf the query result contains large text or binary data, this mode may be temporarily disabled for the current query to prevent performance or stability issues.", "Global", "Global", "msg", "Help_RawDataMode", "Text");
 
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

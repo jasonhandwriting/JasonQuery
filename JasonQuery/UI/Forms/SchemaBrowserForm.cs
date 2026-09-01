@@ -977,14 +977,14 @@ namespace JasonQuery.UI.Forms
 
                             if (showAlertOnError && !string.IsNullOrEmpty(errorMessage))
                             {
-                                MessageBox.Show(errorMessage, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                                MessageBox.Show(errorMessage, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                             }
                         }
 
                         //20231014
                         if (showAlertOnError && !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("ORA-00942", StringComparison.Ordinal))
                         {
-                            MessageBox.Show(errorMessage, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                            MessageBox.Show(errorMessage, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         }
 
                         break;
@@ -1043,7 +1043,7 @@ namespace JasonQuery.UI.Forms
 
                             if (showAlertOnError && !string.IsNullOrEmpty(errorMessage))
                             {
-                                MessageBox.Show(errorMessage, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                                MessageBox.Show(errorMessage, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                             }
                         }
 
@@ -1054,7 +1054,7 @@ namespace JasonQuery.UI.Forms
                         //20231014
                         if (showAlertOnError && !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("42P01:", StringComparison.Ordinal))
                         {
-                            MessageBox.Show(errorMessage, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                            MessageBox.Show(errorMessage, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         }
 
                         break;
@@ -1096,14 +1096,14 @@ namespace JasonQuery.UI.Forms
 
                             if (showAlertOnError && !string.IsNullOrEmpty(errorMessage))
                             {
-                                MessageBox.Show(errorMessage, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                                MessageBox.Show(errorMessage, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                             }
                         }
 
                         //20231014
                         if (showAlertOnError && !string.IsNullOrEmpty(errorMessage))
                         {
-                            MessageBox.Show(errorMessage, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                            MessageBox.Show(errorMessage, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         }
 
                         break;
@@ -1145,14 +1145,14 @@ namespace JasonQuery.UI.Forms
 
                             if (showAlertOnError && !string.IsNullOrEmpty(errorMessage))
                             {
-                                MessageBox.Show(errorMessage, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                                MessageBox.Show(errorMessage, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                             }
                         }
 
                         //20231014
                         if (showAlertOnError && !string.IsNullOrEmpty(errorMessage))
                         {
-                            MessageBox.Show(errorMessage, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                            MessageBox.Show(errorMessage, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         }
 
                         break;
@@ -1335,7 +1335,7 @@ namespace JasonQuery.UI.Forms
 
             var copySelectedBlock = LocalizationHelper.GetLanguageString("The selected block has been copied to the clipboard!", "Global", "Global", "msg", "CopySelectedBlock", "Text");
 
-            MessageBox.Show(copySelectedBlock, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(copySelectedBlock, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void ArrangeDataTable(C1TrueDBGrid c1Grid, DataTable dtData, DataTable dtSchemaTable, bool isTop = true)
@@ -3099,7 +3099,7 @@ namespace JasonQuery.UI.Forms
             var temp2 = LocalizationHelper.GetLanguageString("Count:", "form", GetType().Name, "msg", "Count", "Text");
             var temp3 = LocalizationHelper.GetLanguageString("matches.", "form", GetType().Name, "msg", "matches", "Text");
 
-            MessageBoxHelper.ShowNearCursor($"{temp1} {cboFind.Text}\r\n\r\n{temp2} {count} {temp3}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor($"{temp1} {cboFind.Text}\r\n\r\n{temp2} {count} {temp3}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
             return count;
         }
 
@@ -3221,7 +3221,7 @@ namespace JasonQuery.UI.Forms
             if (TextHelper.GetSafeString(cboFind.Tag) == "0")
             {
                 _languageText = LocalizationHelper.GetLanguageString("Can't find the text", "form", GetType().Name, "msg", "CantFindText", "Text");
-                MessageBoxHelper.ShowNearCursor($"{_languageText} \"{cboFind.Text}\"", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBoxHelper.ShowNearCursor($"{_languageText} \"{cboFind.Text}\"", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
 
@@ -3346,7 +3346,7 @@ namespace JasonQuery.UI.Forms
             if (TextHelper.GetSafeString(cboFind.Tag) == "0")
             {
                 _languageText = LocalizationHelper.GetLanguageString("Can't find the text", "form", GetType().Name, "msg", "CantFindText", "Text");
-                MessageBoxHelper.ShowNearCursor($"{_languageText} \"{cboFind.Text}\"", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBoxHelper.ShowNearCursor($"{_languageText} \"{cboFind.Text}\"", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
 
@@ -3456,7 +3456,7 @@ namespace JasonQuery.UI.Forms
             var temp2 = LocalizationHelper.GetLanguageString("Count:", "form", GetType().Name, "msg", "Count", "Text");
             var temp3 = LocalizationHelper.GetLanguageString("matches.", "form", GetType().Name, "msg", "matches", "Text");
 
-            MessageBoxHelper.ShowNearCursor($"{temp1} {cboFind.Text}\r\n\r\n{temp2} {count} {temp3}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor($"{temp1} {cboFind.Text}\r\n\r\n{temp2} {count} {temp3}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnHighlight_Click(object sender, EventArgs e)
@@ -3473,7 +3473,7 @@ namespace JasonQuery.UI.Forms
             if (TextHelper.GetSafeString(cboFind.Tag) == "0")
             {
                 _languageText = LocalizationHelper.GetLanguageString("Can't find the text", "form", GetType().Name, "msg", "CantFindText", "Text");
-                MessageBoxHelper.ShowNearCursor($"{_languageText} \"{cboFind.Text}\"", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBoxHelper.ShowNearCursor($"{_languageText} \"{cboFind.Text}\"", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
 
@@ -3653,7 +3653,7 @@ namespace JasonQuery.UI.Forms
             {
                 var temp = LocalizationHelper.GetLanguageString("Please check if this file is opened in another program.", "form", GetType().Name, "msg", "SaveFailedCheck", "Text");
 
-                MessageBox.Show($"{temp}\r\n\r\n{sf.FileName}\r\n\r\n{ex.Message}", AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{temp}\r\n\r\n{sf.FileName}\r\n\r\n{ex.Message}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -3699,7 +3699,7 @@ namespace JasonQuery.UI.Forms
         private void btnHelp_ColumnName_Click(object sender, EventArgs e)
         {
             _languageText = LocalizationHelper.GetLanguageString("After clicking on the column name, you can quickly switch to the specified column.", "form", GetType().Name, "msg", "Help_ColumnName", "Text");
-            MessageBoxHelper.ShowNearCursor(_languageText, AppConfigHelper.JasonQueryVersion, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxHelper.ShowNearCursor(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnShowAllCharactersSqlPane_Click(object sender, EventArgs e)
