@@ -4039,10 +4039,14 @@ namespace JasonQuery.UI.Forms
 
                     while (true)
                     {
+                        Application.DoEvents();
+
                         if (DateTime.Now.Subtract(startTime).Milliseconds >= 150)
                         {
                             break;
                         }
+
+                        Application.DoEvents();
                     }
                 }
             };
