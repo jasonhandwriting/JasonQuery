@@ -228,27 +228,7 @@ namespace JasonQuery.UI.Forms
                     WindowsVersionInfoProvider.Current.ShortName
                 );
 
-                if (JasonQueryRepository.CheckDBPassword(string.Empty))
-                {
-                    //do nothing
-                }
-                else
-                {
-                    using (TraceLogger.Time("Load Localization XML file"))
-                    {
-                        LocalizationHelper.LoadLocalizationXML();
-                    }
-
-                    using (TraceLogger.Time("Apply Localization"))
-                    {
-                        ApplyLocalization();
-                    }
-
-                    using (var form = new CustomPasswordDialog())
-                    {
-                        form.ShowDialog();
-                    }
-                }
+                InitializeDatabaseSecurity(dbFilePath);
 
                 using (TraceLogger.Time("Load Global Setting"))
                 {

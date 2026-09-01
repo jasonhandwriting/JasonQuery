@@ -117,6 +117,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -176,6 +177,18 @@
     <Compile Include="Core\Arrange\SqlServer\SqlServerArrangeStrategy.cs" />
     <Compile Include="Core\Arrange\SqlServer\SqlServerSchemaPreparationStrategy.cs" />
     <Compile Include="Core\Config\AppConfigHelper.cs" />
+    <Compile Include="Core\Security\Database\CustomPasswordDatabaseKeyDeriver.cs" />
+    <Compile Include="Core\Security\Database\DatabaseKeyGenerator.cs" />
+    <Compile Include="Core\Security\Database\DatabaseSecurityBootstrapper.cs" />
+    <Compile Include="Core\Security\Database\DatabaseSecurityBootstrapResult.cs" />
+    <Compile Include="Core\Security\Database\DatabaseSecurityConstants.cs" />
+    <Compile Include="Core\Security\Database\DatabaseSecurityMetadata.cs" />
+    <Compile Include="Core\Security\Database\DatabaseSecurityMetadataStore.cs" />
+    <Compile Include="Core\Security\Database\DatabaseSecurityMode.cs" />
+    <Compile Include="Core\Security\Database\DatabaseSecurityStartupState.cs" />
+    <Compile Include="Core\Security\Database\DpapiDatabaseKeyProtector.cs" />
+    <Compile Include="Core\Security\Database\IDatabaseKeyProtector.cs" />
+    <Compile Include="Core\Security\Database\LegacyDatabaseSecurity.cs" />
     <Compile Include="Core\Database\Connection\DatabaseConnectionContext.cs" />
     <Compile Include="Core\Database\Connection\DatabaseConnectionGuard.cs" />
     <Compile Include="Core\Database\Connection\DatabaseConnectionOptions.cs" />
@@ -1160,6 +1173,10 @@
     </Compile>
     <Compile Include="UI\Forms\QueryForm.Designer.cs">
       <DependentUpon>QueryForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\MainForm.DatabaseSecurity.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\Forms\MainForm.cs">
       <SubType>Form</SubType>
