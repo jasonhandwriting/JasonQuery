@@ -1,6 +1,7 @@
 ﻿using JasonQuery.Core.Config;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
+using JasonQuery.Core.Security.Database;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
 using System;
@@ -24,6 +25,13 @@ namespace JasonQuery.UI.Forms
             {
                 LocalizationHelper.ApplyLanguageInfo(this, false);
 
+                if (!DatabaseSecurityRuntime.IsLegacy)
+                {
+                    MessageBox.Show("Database Encryption V2 password settings are not enabled in this security step.", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Close();
+                    return;
+                }
+
                 _width = Math.Max(Math.Max(500, lblChangeToDefaultPassword.Width + 70), lblCaution0.Width + 45);
                 lblOldPassword2.Location = new Point(rdoDefaultPassword.Left + rdoDefaultPassword.Width + 25, lblOldPassword2.Top);
                 txtOldPassword2.Location = new Point(lblOldPassword2.Left + lblOldPassword2.Width, txtOldPassword2.Top);
@@ -35,7 +43,7 @@ namespace JasonQuery.UI.Forms
                 txtConfirmNewPassword.Location = new Point(lblConfirmNewPassword.Left + lblConfirmNewPassword.Width, txtConfirmNewPassword.Top);
                 lblEncryptionMothed.Location = new Point(lblTitle.Left + lblTitle.Width - 1, lblEncryptionMothed.Top);
 
-                if (JasonQueryRepository.DbConnectionPassword == "ytec1688")
+                if (DatabaseSecurityRuntime.Mode == DatabaseSecurityRuntimeMode.LegacyDefault)
                 {
                     rdoChangeCustomPassword.Enabled = false;
                     lblOldPassword.Enabled = false;
@@ -55,14 +63,12 @@ namespace JasonQuery.UI.Forms
                 else
                 {
                     rdoCustomPassword.Enabled = false;
-                    txtCustomPassword.Text = JasonQueryRepository.DbConnectionPassword;
+                    txtCustomPassword.Text = string.Empty;
                     txtCustomPassword.Enabled = false;
                     btnCustomPasswordView.Visible = false;
                     txtOldPassword.Text = string.Empty;
-                    txtOldPassword.Tag = JasonQueryRepository.DbConnectionPassword.Substring(JasonQueryRepository.DbConnectionPasswordPrefix.Length, JasonQueryRepository.DbConnectionPassword.Length - 27);
                     txtOldPassword.Enabled = true;
                     txtOldPassword2.Text = string.Empty;
-                    txtOldPassword2.Tag = JasonQueryRepository.DbConnectionPassword.Substring(JasonQueryRepository.DbConnectionPasswordPrefix.Length, JasonQueryRepository.DbConnectionPassword.Length - 27);
                     lblChangeToDefaultPassword.Visible = true;
                     Size = new Size(_width, 355);
                     lblEncryptionMothed.Text = LocalizationHelper.GetLanguageString("Custom Password", "form", GetType().Name, "msg", "CustomPassword", "Text");
@@ -97,7 +103,7 @@ namespace JasonQuery.UI.Forms
                     {
                         Size = new Size(_width, 280);
 
-                        if (JasonQueryRepository.DbConnectionPassword == "ytec1688")
+                        if (DatabaseSecurityRuntime.Mode == DatabaseSecurityRuntimeMode.LegacyDefault)
                         {
                             enabled = false;
                         }
@@ -233,13 +239,12 @@ namespace JasonQuery.UI.Forms
                     }
                 }
 
-                if (rdoDefaultPassword.Checked && JasonQueryRepository.DbConnectionPassword == "ytec1688")
+                if (rdoDefaultPassword.Checked && DatabaseSecurityRuntime.Mode == DatabaseSecurityRuntimeMode.LegacyDefault)
                 {
                     Close();
                 }
-                else if (rdoDefaultPassword.Checked && JasonQueryRepository.DbConnectionPassword != "ytec1688")
+                else if (rdoDefaultPassword.Checked && DatabaseSecurityRuntime.Mode == DatabaseSecurityRuntimeMode.LegacyCustom)
                 {
-                    //檢查是否有輸入舊密碼
                     if (string.IsNullOrEmpty(txtOldPassword2.Text))
                     {
                         var languageText = LocalizationHelper.GetLanguageString("Please enter your old custom password.", "form", GetType().Name, "msg", "NoneOldPassword", "Text");
@@ -249,94 +254,62 @@ namespace JasonQuery.UI.Forms
                         return;
                     }
 
-                    //檢查舊密碼是否輸入正確
-                    if (txtOldPassword2.Text != TextHelper.GetSafeString(txtOldPassword2.Tag))
+                    if (!LegacyDatabaseSecurity.IsCustomDatabasePasswordMatch(JasonQueryRepository.DbConnectionPassword, txtOldPassword2.Text))
                     {
-                        //舊密碼不正確
-                        var languageText = LocalizationHelper.GetLanguageString("The old password is incorrect. Try again.", "form", GetType().Name, "msg", "ErrorOldPassword", "Text");
-
-                        MessageBox.Show(languageText, Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        txtOldPassword2.Focus();
+                        ShowIncorrectOldPassword(txtOldPassword2);
+                        return;
                     }
-                    else
-                    {
-                        //密碼改成預設值
-                        var result = JasonQueryRepository.ResetDBPassword(JasonQueryRepository.DbConnectionPassword, string.Empty, true);
 
-                        if (string.IsNullOrEmpty(result))
-                        {
-                            //密碼變更成功
-                            var languageText = LocalizationHelper.GetLanguageString("Your password has been changed.", "form", GetType().Name, "msg", "OKPasswordChanged1", "Text");
-
-                            MessageBox.Show(languageText, Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            Close();
-                        }
-                        else
-                        {
-                            //密碼變更失敗
-                            var languageText = LocalizationHelper.GetLanguageString("Password change failed!", "form", GetType().Name, "msg", "ErrorPasswordChanged", "Text");
-
-                            MessageBox.Show($"{languageText}\r\n\r\n{result}", Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                        }
-                    }
-                }
-                else if (rdoCustomPassword.Checked)
-                {
-                    //密碼由預設值改成自訂密碼
-                    var result = JasonQueryRepository.ResetDBPassword(JasonQueryRepository.DbConnectionPassword, txtCustomPassword.Text, false);
+                    var result = JasonQueryRepository.ResetDBPassword(JasonQueryRepository.DbConnectionPassword, string.Empty, true);
 
                     if (string.IsNullOrEmpty(result))
                     {
-                        var temp1 = LocalizationHelper.GetLanguageString("Your password has been changed.", "form", GetType().Name, "msg", "OKPasswordChanged1", "Text");
-                        var temp2 = LocalizationHelper.GetLanguageString("Please use the new password to start JasonQuery next time.", "form", GetType().Name, "msg", "OKPasswordChanged2", "Text");
+                        DatabaseSecurityRuntime.SetLegacyDefault();
 
-                        //密碼變更成功
-                        var languageText = $"{temp1}\r\n\r\n{temp2}";
+                        var languageText = LocalizationHelper.GetLanguageString("Your password has been changed.", "form", GetType().Name, "msg", "OKPasswordChanged1", "Text");
 
                         MessageBox.Show(languageText, Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
                         Close();
                     }
                     else
                     {
-                        //密碼變更失敗
-                        var languageText = LocalizationHelper.GetLanguageString("Password change failed!", "form", GetType().Name, "msg", "ErrorPasswordChanged", "Text");
+                        ShowPasswordChangeFailed(result);
+                    }
+                }
+                else if (rdoCustomPassword.Checked)
+                {
+                    var result = JasonQueryRepository.ResetDBPassword(JasonQueryRepository.DbConnectionPassword, txtCustomPassword.Text, false);
 
-                        MessageBox.Show($"{languageText}\r\n\r\n{result}", Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    if (string.IsNullOrEmpty(result))
+                    {
+                        DatabaseSecurityRuntime.SetLegacyCustom();
+                        ShowPasswordChangedForNextStart();
+                        Close();
+                    }
+                    else
+                    {
+                        ShowPasswordChangeFailed(result);
                     }
                 }
                 else if (rdoChangeCustomPassword.Checked)
                 {
-                    if (txtOldPassword.Text == TextHelper.GetSafeString(txtOldPassword.Tag))
+                    if (!LegacyDatabaseSecurity.IsCustomDatabasePasswordMatch(JasonQueryRepository.DbConnectionPassword, txtOldPassword.Text))
                     {
-                        //變更自訂密碼
-                        var result = JasonQueryRepository.ResetDBPassword(JasonQueryRepository.DbConnectionPassword, txtNewPassword.Text, false);
+                        ShowIncorrectOldPassword(txtOldPassword);
+                        return;
+                    }
 
-                        if (string.IsNullOrEmpty(result))
-                        {
-                            var temp1 = LocalizationHelper.GetLanguageString("Your password has been changed.", "form", GetType().Name, "msg", "OKPasswordChanged1", "Text");
-                            var temp2 = LocalizationHelper.GetLanguageString("Please use the new password to start JasonQuery next time.", "form", GetType().Name, "msg", "OKPasswordChanged2", "Text");
+                    var result = JasonQueryRepository.ResetDBPassword(JasonQueryRepository.DbConnectionPassword, txtNewPassword.Text, false);
 
-                            //密碼變更成功
-                            var languageText = $"{temp1}\r\n\r\n{temp2}";
-
-                            MessageBox.Show(languageText, Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            Close();
-                        }
-                        else
-                        {
-                            //密碼變更失敗
-                            var languageText = LocalizationHelper.GetLanguageString("Password change failed!", "form", GetType().Name, "msg", "ErrorPasswordChanged", "Text");
-
-                            MessageBox.Show($"{languageText}\r\n\r\n{result}", Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                        }
+                    if (string.IsNullOrEmpty(result))
+                    {
+                        DatabaseSecurityRuntime.SetLegacyCustom();
+                        ShowPasswordChangedForNextStart();
+                        Close();
                     }
                     else
                     {
-                        //舊密碼不正確
-                        var languageText = LocalizationHelper.GetLanguageString("The old password is incorrect. Try again.", "form", GetType().Name, "msg", "ErrorOldPassword", "Text");
-
-                        MessageBox.Show(languageText, Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        txtOldPassword.Focus();
+                        ShowPasswordChangeFailed(result);
                     }
                 }
             }
@@ -346,6 +319,30 @@ namespace JasonQuery.UI.Forms
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
+        }
+
+        private void ShowIncorrectOldPassword(Control control)
+        {
+            var languageText = LocalizationHelper.GetLanguageString("The old password is incorrect. Try again.", "form", GetType().Name, "msg", "ErrorOldPassword", "Text");
+
+            MessageBox.Show(languageText, Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            control.Focus();
+        }
+
+        private void ShowPasswordChangeFailed(string result)
+        {
+            var languageText = LocalizationHelper.GetLanguageString("Password change failed!", "form", GetType().Name, "msg", "ErrorPasswordChanged", "Text");
+
+            MessageBox.Show($"{languageText}\r\n\r\n{result}", Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+        }
+
+        private void ShowPasswordChangedForNextStart()
+        {
+            var changedMessage = LocalizationHelper.GetLanguageString("Your password has been changed.", "form", GetType().Name, "msg", "OKPasswordChanged1", "Text");
+            var nextStartMessage = LocalizationHelper.GetLanguageString("Please use the new password to start JasonQuery next time.", "form", GetType().Name, "msg", "OKPasswordChanged2", "Text");
+            var languageText = $"{changedMessage}\r\n\r\n{nextStartMessage}";
+
+            MessageBox.Show(languageText, Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void tmrNewPassword_Tick(object sender, EventArgs e)

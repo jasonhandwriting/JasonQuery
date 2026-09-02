@@ -6,6 +6,7 @@ using JasonQuery.Core.Config;
 using JasonQuery.Core.Data.DataRows;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
+using JasonQuery.Core.Security.Legacy;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.UI.Helpers;
@@ -374,24 +375,24 @@ namespace JasonQuery.UI.Forms
                         sheet[excelRowIndex, col].Value = dr.GetSafeString("WithPassword"); //O6
 
                         //20230930 以下欄位，後續有使用到，再依實際情況新增
-                        //iCol++;
-                        //sheet[iRowIndex, iCol].Value = dr.GetSafeString("O7");
-                        //iCol++;
-                        //sheet[iRowIndex, iCol].Value = dr.GetSafeString("O8");
-                        //iCol++;
-                        //sheet[iRowIndex, iCol].Value = dr.GetSafeString("O9");
-                        //iCol++;
-                        //sheet[iRowIndex, iCol].Value = dr.GetSafeString("O10");
-                        //iCol++;
-                        //sheet[iRowIndex, iCol].Value = dr.GetSafeString("O11");
-                        //iCol++;
-                        //sheet[iRowIndex, iCol].Value = dr.GetSafeString("O12");
-                        //iCol++;
-                        //sheet[iRowIndex, iCol].Value = dr.GetSafeString("O13");
-                        //iCol++;
-                        //sheet[iRowIndex, iCol].Value = dr.GetSafeString("O14");
-                        //iCol++;
-                        //sheet[iRowIndex, iCol].Value = dr.GetSafeString("O15");
+                        //col++;
+                        //sheet[excelRowIndex, col].Value = dr.GetSafeString("O7");
+                        //col++;
+                        //sheet[excelRowIndex, col].Value = dr.GetSafeString("O8");
+                        //col++;
+                        //sheet[excelRowIndex, col].Value = dr.GetSafeString("O9");
+                        //col++;
+                        //sheet[excelRowIndex, col].Value = dr.GetSafeString("O10");
+                        //col++;
+                        //sheet[excelRowIndex, col].Value = dr.GetSafeString("O11");
+                        //col++;
+                        //sheet[excelRowIndex, col].Value = dr.GetSafeString("O12");
+                        //col++;
+                        //sheet[excelRowIndex, col].Value = dr.GetSafeString("O13");
+                        //col++;
+                        //sheet[excelRowIndex, col].Value = dr.GetSafeString("O14");
+                        //col++;
+                        //sheet[excelRowIndex, col].Value = dr.GetSafeString("O15");
 
                         excelRowIndex++;
                     }
@@ -405,7 +406,7 @@ namespace JasonQuery.UI.Forms
 
                 zip.Create(txtFileName.Text);
                 zip.UseUtf8Encoding = true;
-                zip.Password = $"{JasonQueryRepository.DbConnectionPasswordPrefix}{txtEncryptPassword.Text}{JasonQueryRepository.DbConnectionExportPasswordSuffix}";
+                zip.Password = LegacyConnectionExportSecurity.CreateArchivePassword(txtEncryptPassword.Text);
                 zip.CompressionLevel = CompressionLevelEnum.BestCompression;
                 zip.Comment = "Connection Information - Exported by JasonQuery";
                 zip.Entries.Add(fileName);
