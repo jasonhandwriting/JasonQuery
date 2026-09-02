@@ -31,11 +31,14 @@ namespace JasonQuery.UI.Forms
                             throw new InvalidDataException("JasonQuery Database Encryption V2 metadata was loaded, " + "but the database could not be opened with the resolved key.");
                         }
 
+                        DatabaseSecurityRuntime.SetV2(bootstrapResult.Metadata.Mode);
                         return;
                     }
                 case DatabaseSecurityStartupState.V2CustomPasswordRequired:
                     {
-                        throw new NotSupportedException("This JasonQuery.db uses Database Encryption V2 with a custom password. " + "The V2 custom-password startup dialog will be connected in the next security step.");
+                        DatabaseSecurityRuntime.SetV2(DatabaseSecurityMode.CustomPassword);
+
+                        throw new NotSupportedException("This JasonQuery.db uses Database Encryption V2 with a custom password. " + "The V2 custom-password startup dialog will be connected in a later security step.");
                     }
                 case DatabaseSecurityStartupState.DatabaseMissing:
                     {
@@ -52,6 +55,7 @@ namespace JasonQuery.UI.Forms
         {
             if (JasonQueryRepository.CheckDBPassword(string.Empty))
             {
+                DatabaseSecurityRuntime.SetLegacyDefault();
                 return;
             }
 

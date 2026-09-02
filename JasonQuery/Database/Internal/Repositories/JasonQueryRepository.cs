@@ -15,17 +15,12 @@ namespace JasonQuery.Database.Internal.Repositories
     {
         public static string DbConnectionString = string.Empty;
         public static string DbConnectionPassword = LegacyDatabaseSecurity.LegacyDefaultDatabasePassword; //Legacy default; V2 overwrites this at startup.
-        public static string DbConnectionPasswordPrefix = "jasonquery1231"; //Legacy custom-password format; removed from V2.
-        public static string DbConnectionPasswordSuffix = "encryptDB!nf0"; //Legacy custom-password format; removed from V2.
-        public static string DbConnectionExportPasswordSuffix = "exportDB!nf0"; //Legacy .jqc encryption format; replaced in a later step.
         public static string DbMotherPid = string.Empty;
         public static string DbFileName = string.Empty;
 
         //資料庫初始化
-        private static SQLiteConnection OleDbOpenConn(string password = "", string newPassword = "", bool isUseDefaultPassword = false)
+        private static SQLiteConnection OleDbOpenConn()
         {
-            password = string.IsNullOrWhiteSpace(password) ? DbConnectionPassword : password;
-
             var connection = new SQLiteConnection { ConnectionString = DbConnectionString };
 
             try
@@ -35,19 +30,8 @@ namespace JasonQuery.Database.Internal.Repositories
                     connection.Close();
                 }
 
-                connection.SetPassword(password);
+                connection.SetPassword(DbConnectionPassword);
                 connection.Open();
-
-                if (!string.IsNullOrWhiteSpace(newPassword))
-                {
-                    DbConnectionPassword = $"{DbConnectionPasswordPrefix}{newPassword}{DbConnectionPasswordSuffix}";
-                    connection.ChangePassword(DbConnectionPassword);
-                }
-                else if (isUseDefaultPassword && string.IsNullOrWhiteSpace(newPassword))
-                {
-                    connection.ChangePassword(LegacyDatabaseSecurity.LegacyDefaultDatabasePassword);
-                    DbConnectionPassword = LegacyDatabaseSecurity.LegacyDefaultDatabasePassword;
-                }
             }
             catch (Exception ex)
             {
@@ -60,7 +44,7 @@ namespace JasonQuery.Database.Internal.Repositories
         //Legacy：驗證舊版預設密碼或舊版自訂密碼。
         public static bool CheckDBPassword(string password)
         {
-            var legacyDatabasePassword = string.IsNullOrWhiteSpace(password) ? DbConnectionPassword : $"{DbConnectionPasswordPrefix}{password}{DbConnectionPasswordSuffix}";
+            var legacyDatabasePassword = string.IsNullOrWhiteSpace(password) ? DbConnectionPassword : LegacyDatabaseSecurity.CreateCustomDatabasePassword(password);
 
             return CanOpenDatabase(legacyDatabasePassword);
         }
@@ -97,30 +81,65 @@ namespace JasonQuery.Database.Internal.Repositories
         //變更密碼！
         public static string ResetDBPassword(string oldPassword, string newPassword, bool isUseDefaultPassword)
         {
-            var result = string.Empty;
-            var connection = OleDbOpenConn(oldPassword, newPassword, isUseDefaultPassword);
-            var dataTable = new DataTable();
-            var dataAdapter = new SQLiteDataAdapter("SELECT * FROM SystemConfig WHERE 1 = 2", connection);
-            var dataSet = new DataSet();
+            string targetDatabasePassword;
 
             try
             {
-                dataSet.Clear();
-                dataAdapter.Fill(dataSet);
-                dataTable = dataSet.Tables[0];
+                targetDatabasePassword = isUseDefaultPassword ? LegacyDatabaseSecurity.LegacyDefaultDatabasePassword : LegacyDatabaseSecurity.CreateCustomDatabasePassword(newPassword);
             }
             catch (Exception ex)
             {
-                //密碼錯誤！
-                result = ex.Message;
+                return ExceptionDialogService.BuildMessage(ex);
             }
 
-            if (connection.State == ConnectionState.Open)
+            try
             {
-                connection.Close();
+                using (var connection = new SQLiteConnection { ConnectionString = DbConnectionString })
+                {
+                    connection.SetPassword(oldPassword);
+                    connection.Open();
+                    connection.ChangePassword(targetDatabasePassword);
+                }
+            }
+            catch (Exception ex)
+            {
+                return ExceptionDialogService.BuildMessage(ex);
             }
 
-            return result;
+            if (CanOpenDatabase(targetDatabasePassword))
+            {
+                DbConnectionPassword = targetDatabasePassword;
+                return string.Empty;
+            }
+
+            var restoreResult = TryRestoreDatabasePassword(targetDatabasePassword, oldPassword);
+
+            if (string.IsNullOrEmpty(restoreResult))
+            {
+                DbConnectionPassword = oldPassword;
+                return "The database password change could not be validated. The previous password was restored.";
+            }
+
+            return "The database password change could not be validated, and restoring the previous password also failed. " + restoreResult;
+        }
+
+        private static string TryRestoreDatabasePassword(string currentPassword, string previousPassword)
+        {
+            try
+            {
+                using (var connection = new SQLiteConnection { ConnectionString = DbConnectionString })
+                {
+                    connection.SetPassword(currentPassword);
+                    connection.Open();
+                    connection.ChangePassword(previousPassword);
+                }
+
+                return CanOpenDatabase(previousPassword) ? string.Empty : "The previous database password could not be validated after restoration.";
+            }
+            catch (Exception ex)
+            {
+                return ExceptionDialogService.BuildMessage(ex);
+            }
         }
 
         //取得資料表:

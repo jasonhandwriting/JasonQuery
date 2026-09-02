@@ -3,6 +3,7 @@ using C1.C1Zip;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
+using JasonQuery.Core.Security.Legacy;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
 using System;
@@ -136,7 +137,7 @@ namespace JasonQuery.UI.Forms
                 var zip = new C1ZipFile
                 {
                     UseUtf8Encoding = true,
-                    Password = $"{JasonQueryRepository.DbConnectionPasswordPrefix}{txtEncryptPassword.Text}{JasonQueryRepository.DbConnectionExportPasswordSuffix}"
+                    Password = LegacyConnectionExportSecurity.CreateArchivePassword(txtEncryptPassword.Text)
                 };
 
                 var isOpenNG = false;

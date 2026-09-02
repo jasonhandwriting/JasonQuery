@@ -80,17 +80,29 @@ namespace JasonQuery.Core.Security.Database
             }
 
             var salt = Convert.FromBase64String(metadata.Salt);
-            var databasePassword = CustomPasswordDatabaseKeyDeriver.DeriveDatabasePassword(customPassword, salt, metadata.Iterations);
 
-            return DatabaseSecurityBootstrapResult.V2Ready(metadata, databasePassword);
+            try
+            {
+                var databasePassword = CustomPasswordDatabaseKeyDeriver.DeriveDatabasePassword(customPassword, salt, metadata.Iterations);
+
+                return DatabaseSecurityBootstrapResult.V2Ready(metadata, databasePassword);
+            }
+            finally
+            {
+                Array.Clear(salt, 0, salt.Length);
+            }
         }
 
         private DatabaseSecurityBootstrapResult ResolveWindowsCurrentUser(DatabaseSecurityMetadata metadata)
         {
+            byte[] databaseKey = null;
+
             try
             {
-                var protectedDatabaseKey =Convert.FromBase64String(metadata.ProtectedDatabaseKey);
-                var databaseKey = _databaseKeyProtector.Unprotect(protectedDatabaseKey);
+                var protectedDatabaseKey = Convert.FromBase64String(metadata.ProtectedDatabaseKey);
+
+                databaseKey = _databaseKeyProtector.Unprotect(protectedDatabaseKey);
+
                 var databasePassword = DatabaseKeyGenerator.ToDatabasePassword(databaseKey);
 
                 return DatabaseSecurityBootstrapResult.V2Ready(metadata, databasePassword);
@@ -103,6 +115,13 @@ namespace JasonQuery.Core.Security.Database
                     "The database may belong to another Windows user or computer.",
                     ex
                 );
+            }
+            finally
+            {
+                if (databaseKey != null)
+                {
+                    Array.Clear(databaseKey, 0, databaseKey.Length);
+                }
             }
         }
     }

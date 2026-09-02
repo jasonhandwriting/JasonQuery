@@ -44,7 +44,14 @@ namespace JasonQuery.Core.Security.Database
         {
             var databaseKey = DeriveDatabaseKey(password, salt, iterations);
 
-            return DatabaseKeyGenerator.ToDatabasePassword(databaseKey);
+            try
+            {
+                return DatabaseKeyGenerator.ToDatabasePassword(databaseKey);
+            }
+            finally
+            {
+                Array.Clear(databaseKey, 0, databaseKey.Length);
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using JasonQuery.Core.Config;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
+using JasonQuery.Core.Security.Database;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.UI.Helpers;
@@ -94,7 +95,9 @@ namespace JasonQuery.UI.Forms
 
                 if (JasonQueryRepository.CheckDBPassword(txtEncryptPassword.Text))
                 {
-                    JasonQueryRepository.DbConnectionPassword = $"{JasonQueryRepository.DbConnectionPasswordPrefix}{txtEncryptPassword.Text}{JasonQueryRepository.DbConnectionPasswordSuffix}";
+                    JasonQueryRepository.DbConnectionPassword = LegacyDatabaseSecurity.CreateCustomDatabasePassword(txtEncryptPassword.Text);
+                    DatabaseSecurityRuntime.SetLegacyCustom();
+                    DialogResult = DialogResult.OK;
                     Close();
                 }
                 else

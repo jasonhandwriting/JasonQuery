@@ -185,10 +185,13 @@
     <Compile Include="Core\Security\Database\DatabaseSecurityMetadata.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityMetadataStore.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityMode.cs" />
+    <Compile Include="Core\Security\Database\DatabaseSecurityRuntime.cs" />
+    <Compile Include="Core\Security\Database\DatabaseSecurityRuntimeMode.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityStartupState.cs" />
     <Compile Include="Core\Security\Database\DpapiDatabaseKeyProtector.cs" />
     <Compile Include="Core\Security\Database\IDatabaseKeyProtector.cs" />
     <Compile Include="Core\Security\Database\LegacyDatabaseSecurity.cs" />
+    <Compile Include="Core\Security\Legacy\LegacyConnectionExportSecurity.cs" />
     <Compile Include="Core\Database\Connection\DatabaseConnectionContext.cs" />
     <Compile Include="Core\Database\Connection\DatabaseConnectionGuard.cs" />
     <Compile Include="Core\Database\Connection\DatabaseConnectionOptions.cs" />
