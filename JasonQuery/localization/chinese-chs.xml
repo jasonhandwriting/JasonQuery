@@ -91,6 +91,16 @@
   <language category="form" class="CellViewerForm" type="menueditor" id="SelectAll" attribute="Text" name="全选" />
   <language category="form" class="CellViewerForm" type="menueditor" id="Copy" attribute="Text" name="复制" />
   <language category="form" class="CellViewerForm" type="msg" id="OpenFile" attribute="Text" name="打开十六进制文件..." />
+  <!-- DatabaseSecurityStartupErrorForm-->
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="this" attribute="Text" name="JasonQuery.db 数据库安全性" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblTitle" attribute="Text" name="JasonQuery 无法安全地打开内部数据库。" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblMissingReason" attribute="Text" name="打开 JasonQuery.db 所需的数据库安全性信息丢失，或此数据库仍使用旧版 JasonQuery 创建的自定义密码。" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblMissingRecovery" attribute="Text" name="如果 JasonQuery.security.json 曾被移动或删除，请还原与此 JasonQuery.db 配对的文件。如果此 JasonQuery.db 仍使用旧版 JasonQuery 设置的自定义密码，请先使用该旧版 JasonQuery 将 JasonQuery.db 的密码切换回默认密码，再重新启动 JasonQuery。" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblGeneralReason" attribute="Text" name="JasonQuery 在检查内部数据库的安全性信息时发现问题。" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblGeneralRecovery" attribute="Text" name="为了保护数据库，JasonQuery 已停止启动。请从确认可用的备份还原配对的 JasonQuery.db 与 JasonQuery.security.json，或先联系支持人员再重试。" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblNoMigration" attribute="Text" name="本次未执行任何数据库迁移，也未修改 JasonQuery.db。" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="grpLocalization" attribute="Text" name="语言" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="btnExit" attribute="Text" name="退出 JasonQuery" />
   <!-- UpdateForm-->
   <language category="form" class="UpdateForm" type="object" id="this" attribute="Text" name="检查更新" />
   <language category="form" class="UpdateForm" type="object" id="lblInfoHasNewVersion" attribute="Text" name="有新版的 JasonQuery：" />
