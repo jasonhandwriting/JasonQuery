@@ -25,19 +25,19 @@ namespace JasonQuery.Core.Security.Database
             switch (mode)
             {
                 case DatabaseSecurityMode.WindowsCurrentUser:
-                //20260902
-                    Mode = DatabaseSecurityRuntimeMode.WindowsCurrentUser;
-                    break;
-
+                    {
+                        Mode = DatabaseSecurityRuntimeMode.WindowsCurrentUser;
+                        break;
+                    }
                 case DatabaseSecurityMode.CustomPassword:
-
-                    Mode = DatabaseSecurityRuntimeMode.CustomPassword;
-                    break;
-
+                    {
+                        Mode = DatabaseSecurityRuntimeMode.CustomPassword;
+                        break;
+                    }
                 default:
-
-                    throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unsupported database security mode.");
-
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unsupported database security mode.");
+                    }
             }
         }
     }

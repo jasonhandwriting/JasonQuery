@@ -5,7 +5,7 @@ using System.Text;
 
 namespace JasonQuery.Core.Security.Database
 {
-    public sealed class DatabaseSecurityMetadataStore
+    public sealed class DatabaseSecurityMetadataStore : IDatabaseSecurityMetadataStore
     {
         public DatabaseSecurityMetadataStore(string metadataFilePath)
         {
@@ -88,6 +88,14 @@ namespace JasonQuery.Core.Security.Database
                 {
                     File.Delete(temporaryPath);
                 }
+            }
+        }
+
+        public void Delete()
+        {
+            if (File.Exists(MetadataFilePath))
+            {
+                File.Delete(MetadataFilePath);
             }
         }
 

@@ -6,10 +6,10 @@ namespace JasonQuery.Core.Security.Database
 {
     public sealed class DatabaseSecurityBootstrapper
     {
-        private readonly DatabaseSecurityMetadataStore _metadataStore;
+        private readonly IDatabaseSecurityMetadataStore _metadataStore;
         private readonly IDatabaseKeyProtector _databaseKeyProtector;
 
-        public DatabaseSecurityBootstrapper(DatabaseSecurityMetadataStore metadataStore, IDatabaseKeyProtector databaseKeyProtector)
+        public DatabaseSecurityBootstrapper(IDatabaseSecurityMetadataStore metadataStore, IDatabaseKeyProtector databaseKeyProtector)
         {
             _metadataStore = metadataStore ?? throw new ArgumentNullException(nameof(metadataStore));
             _databaseKeyProtector = databaseKeyProtector ?? throw new ArgumentNullException(nameof(databaseKeyProtector));
@@ -41,8 +41,6 @@ namespace JasonQuery.Core.Security.Database
 
             if (!_metadataStore.Exists)
             {
-                //No V2 metadata means this is still a legacy database.
-                //Step 5 owns the one-time ytec1688 -> V2 migration.
                 return DatabaseSecurityBootstrapResult.Legacy();
             }
 

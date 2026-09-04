@@ -301,6 +301,14 @@ coverage*.json
 **/*.db-shm
 **/*.db-wal
 
+# JasonQuery database-security runtime files
+JasonQuery.security.json
+JasonQuery.security.json.*.tmp
+JasonQuery.db.database-encryption-v2-*
+
+# Local Database Encryption V2 manual-regression workspace
+/Step5-ManualRegression/
+
 # Local release archives stored in the repository root
 /*.zip
 

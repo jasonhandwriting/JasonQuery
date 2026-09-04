@@ -188,7 +188,6 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "CustomPasswordDialog";
-            this.ShowInTaskbar = false;
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Password Protection for JasonQuery.db";

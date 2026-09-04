@@ -1,7 +1,7 @@
-﻿using JasonQuery.Core.Localization;
-using JasonQuery.Core.Logging;
+﻿using JasonQuery.Core.Config;
 using JasonQuery.Core.Security.Database;
 using JasonQuery.Database.Internal.Repositories;
+using JasonQuery.Database.Internal.Security;
 using System;
 using System.IO;
 using System.Windows.Forms;
@@ -12,33 +12,92 @@ namespace JasonQuery.UI.Forms
     {
         private void InitializeDatabaseSecurity(string databaseFilePath)
         {
-            var bootstrapper = DatabaseSecurityBootstrapper.CreateDefault(Application.StartupPath);
+            try
+            {
+                InitializeDatabaseSecurityCore(databaseFilePath);
+            }
+            catch (DatabaseSecurityStartupException ex)
+            {
+                ShowDatabaseSecurityStartupError(ex.ErrorKind);
+                Environment.Exit(1);
+            }
+            catch (Exception)
+            {
+                ShowDatabaseSecurityStartupError(DatabaseSecurityStartupErrorKind.GeneralSecurityFailure);
+                Environment.Exit(1);
+            }
+        }
+
+        private static void ShowDatabaseSecurityStartupError(DatabaseSecurityStartupErrorKind errorKind)
+        {
+            try
+            {
+                using (var form = new DatabaseSecurityStartupErrorForm(errorKind))
+                {
+                    form.ShowDialog();
+                }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show
+                (
+                    "JasonQuery could not safely open its internal database. JasonQuery will now exit.",
+                    AppConfigHelper.MessageBoxCaption,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+            }
+        }
+
+        private void InitializeDatabaseSecurityCore(string databaseFilePath)
+        {
+            var metadataFilePath = Path.Combine(Application.StartupPath, DatabaseSecurityConstants.MetadataFileName);
+            var metadataStore = new DatabaseSecurityMetadataStore(metadataFilePath);
+            var databaseKeyProtector = new DpapiDatabaseKeyProtector();
+            var migrationDatabase = new SqliteDatabaseSecurityMigrationDatabase();
+            var migrator = new LegacyDatabaseSecurityMigrator(metadataStore, databaseKeyProtector, migrationDatabase);
+
+            migrator.RecoverInterruptedMigrationIfNeeded(databaseFilePath);
+
+            var bootstrapper = new DatabaseSecurityBootstrapper(metadataStore, databaseKeyProtector);
             var bootstrapResult = bootstrapper.Resolve(databaseFilePath);
 
             switch (bootstrapResult.State)
             {
                 case DatabaseSecurityStartupState.Legacy:
                     {
-                        InitializeLegacyDatabaseSecurity();
+                        var migrationResult = migrator.MigrateToWindowsCurrentUser(databaseFilePath);
+
+                        ApplyResolvedV2DatabaseSecurity
+                        (
+                            migrationResult.Metadata,
+                            migrationResult.DatabasePassword,
+                            migrator
+                        );
+
                         return;
                     }
                 case DatabaseSecurityStartupState.V2Ready:
                     {
-                        JasonQueryRepository.DbConnectionPassword = bootstrapResult.DatabasePassword;
+                        ApplyResolvedV2DatabaseSecurity
+                        (
+                            bootstrapResult.Metadata,
+                            bootstrapResult.DatabasePassword,
+                            migrator
+                        );
 
-                        if (!JasonQueryRepository.CheckCurrentDatabasePassword())
-                        {
-                            throw new InvalidDataException("JasonQuery Database Encryption V2 metadata was loaded, " + "but the database could not be opened with the resolved key.");
-                        }
-
-                        DatabaseSecurityRuntime.SetV2(bootstrapResult.Metadata.Mode);
                         return;
                     }
                 case DatabaseSecurityStartupState.V2CustomPasswordRequired:
                     {
                         DatabaseSecurityRuntime.SetV2(DatabaseSecurityMode.CustomPassword);
 
-                        throw new NotSupportedException("This JasonQuery.db uses Database Encryption V2 with a custom password. " + "The V2 custom-password startup dialog will be connected in a later security step.");
+                        throw new NotSupportedException
+                        (
+                            "This JasonQuery.db uses Database Encryption V2 with a custom password. " +
+                            "The V2 custom-password startup dialog will be connected in a later security step."
+                        );
+
                     }
                 case DatabaseSecurityStartupState.DatabaseMissing:
                     {
@@ -51,28 +110,21 @@ namespace JasonQuery.UI.Forms
             }
         }
 
-        private void InitializeLegacyDatabaseSecurity()
+        private static void ApplyResolvedV2DatabaseSecurity(DatabaseSecurityMetadata metadata, string databasePassword,
+                                                            LegacyDatabaseSecurityMigrator migrator)
         {
-            if (JasonQueryRepository.CheckDBPassword(string.Empty))
+            JasonQueryRepository.DbConnectionPassword = databasePassword;
+
+            if (!JasonQueryRepository.CheckCurrentDatabasePassword())
             {
-                DatabaseSecurityRuntime.SetLegacyDefault();
-                return;
+                throw new InvalidDataException
+                (
+                    "Database Encryption V2 metadata was resolved, but JasonQuery.db could not be opened with the resolved key."
+                );
             }
 
-            using (TraceLogger.Time("Load Localization XML file"))
-            {
-                LocalizationHelper.LoadLocalizationXML();
-            }
-
-            using (TraceLogger.Time("Apply Localization"))
-            {
-                ApplyLocalization();
-            }
-
-            using (var form = new CustomPasswordDialog())
-            {
-                form.ShowDialog();
-            }
+            DatabaseSecurityRuntime.SetV2(metadata.Mode);
+            migrator.CleanupCompletedMigrationBackup(JasonQueryRepository.DbFileName);
         }
     }
 }

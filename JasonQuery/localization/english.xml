@@ -91,6 +91,16 @@
   <language category="form" class="CellViewerForm" type="menueditor" id="SelectAll" attribute="Text" name="Select All" />
   <language category="form" class="CellViewerForm" type="menueditor" id="Copy" attribute="Text" name="Copy" />
   <language category="form" class="CellViewerForm" type="msg" id="OpenFile" attribute="Text" name="Open Hex File..." />
+  <!-- DatabaseSecurityStartupErrorForm-->
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="this" attribute="Text" name="Database Security for JasonQuery.db" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblTitle" attribute="Text" name="JasonQuery could not safely open its internal database." />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblMissingReason" attribute="Text" name="The database security information required to open JasonQuery.db is missing, or the database still uses a custom password created by an earlier version of JasonQuery." />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblMissingRecovery" attribute="Text" name="If JasonQuery.security.json was moved or deleted, restore the file that is paired with this JasonQuery.db. If this JasonQuery.db still uses a custom password from an earlier version of JasonQuery, use that earlier version to change the password for JasonQuery.db back to the default password, then restart JasonQuery." />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblGeneralReason" attribute="Text" name="JasonQuery detected a problem while checking the security information for its internal database." />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblGeneralRecovery" attribute="Text" name="JasonQuery has stopped to protect the database. Restore the matching JasonQuery.db and JasonQuery.security.json files from a known-good backup, or contact support before trying again." />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblNoMigration" attribute="Text" name="No database migration was performed and JasonQuery.db was not modified." />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="grpLocalization" attribute="Text" name="Localization" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="btnExit" attribute="Text" name="Exit JasonQuery" />
   <!-- UpdateForm-->
   <language category="form" class="UpdateForm" type="object" id="this" attribute="Text" name="Check for updates" />
   <language category="form" class="UpdateForm" type="object" id="lblInfoHasNewVersion" attribute="Text" name="A new version of JasonQuery is available:" />

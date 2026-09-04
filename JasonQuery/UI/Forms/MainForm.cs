@@ -209,6 +209,7 @@ namespace JasonQuery.UI.Forms
 
                 //新增語系時，此處要維護
                 LocalizationHelper.LocalizationList = "English;english.xml`Chinese (Traditional) - 中文繁體;chinese-cht.xml`Chinese (Simplified) - 中文简体;chinese-chs.xml";
+                LocalizationHelper.InitializeLocalizationMap(); //20260904 初始化語系 Map
                 JasonQueryRepository.DbFileName = dbFilePath;
                 JasonQueryRepository.DbConnectionString = $"Data Source={JasonQueryRepository.DbFileName};Version=3;New=False;Compress=True;";
 
@@ -450,15 +451,6 @@ namespace JasonQuery.UI.Forms
                             break;
                         }
                 }
-            }
-
-            LocalizationHelper.LocalizationMap = new Dictionary<string, string>();
-
-            var comboBoxString = LocalizationHelper.LocalizationList.Split(new[] { "`" }, StringSplitOptions.None);
-
-            foreach (var t in comboBoxString)
-            {
-                LocalizationHelper.LocalizationMap.Add(t.Split(';')[0], t.Split(';')[1]);
             }
 
             MyGlobal.dicWordWrapIndentMode = new Dictionary<string, string>();

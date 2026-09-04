@@ -322,6 +322,34 @@ namespace JasonQuery.Core.Localization
             }
         }
 
+        public static void InitializeLocalizationMap()
+        {
+            var localizationMap = new Dictionary<string, string>();
+            var items = (LocalizationList ?? string.Empty).Split(new[] { "`" }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var item in items)
+            {
+                var separatorIndex = item.IndexOf(';');
+
+                if (separatorIndex <= 0 || separatorIndex >= item.Length - 1)
+                {
+                    continue;
+                }
+
+                var localizationName = item.Substring(0, separatorIndex).Trim();
+                var xmlFileName = item.Substring(separatorIndex + 1).Trim();
+
+                if (string.IsNullOrWhiteSpace(localizationName) || string.IsNullOrWhiteSpace(xmlFileName))
+                {
+                    continue;
+                }
+
+                localizationMap[localizationName] = xmlFileName;
+            }
+
+            LocalizationMap = localizationMap;
+        }
+
         public static void LoadLocalizationXML()
         {
             if (!TryGetLocalizationXmlFileName(LocalizationList, Localization, out var resolvedXmlFileName))
