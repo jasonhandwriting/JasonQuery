@@ -4,12 +4,15 @@ using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.Database.Internal.Security;
 using System;
 using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace JasonQuery.UI.Forms
 {
     public partial class MainForm
     {
+        private const string DatabaseTemplateResourceName = "JasonQuery.Files.JasonQuery.template.db";
+
         private void InitializeDatabaseSecurity(string databaseFilePath)
         {
             try
@@ -56,8 +59,30 @@ namespace JasonQuery.UI.Forms
             var databaseKeyProtector = new DpapiDatabaseKeyProtector();
             var migrationDatabase = new SqliteDatabaseSecurityMigrationDatabase();
             var migrator = new LegacyDatabaseSecurityMigrator(metadataStore, databaseKeyProtector, migrationDatabase);
+            var freshInstallDatabase = new SqliteDatabaseSecurityFreshInstallDatabase();
+            var freshInitializer = new FreshDatabaseSecurityInitializer(metadataStore, databaseKeyProtector, freshInstallDatabase);
 
             migrator.RecoverInterruptedMigrationIfNeeded(databaseFilePath);
+            freshInitializer.RecoverInterruptedInitializationIfNeeded(databaseFilePath);
+
+            if (!File.Exists(databaseFilePath))
+            {
+                using (var templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(DatabaseTemplateResourceName))
+                {
+                    if (templateStream == null)
+                    {
+                        throw new InvalidDataException
+                        (
+                            $"The embedded JasonQuery database template '{DatabaseTemplateResourceName}' was not found."
+                        );
+                    }
+
+                    var initializationResult = freshInitializer.InitializeWindowsCurrentUser(databaseFilePath, templateStream);
+
+                    ApplyResolvedV2DatabaseSecurity(initializationResult.Metadata, initializationResult.DatabasePassword, null);
+                    return;
+                }
+            }
 
             var bootstrapper = new DatabaseSecurityBootstrapper(metadataStore, databaseKeyProtector);
             var bootstrapResult = bootstrapper.Resolve(databaseFilePath);
@@ -97,7 +122,6 @@ namespace JasonQuery.UI.Forms
                             "This JasonQuery.db uses Database Encryption V2 with a custom password. " +
                             "The V2 custom-password startup dialog will be connected in a later security step."
                         );
-
                     }
                 case DatabaseSecurityStartupState.DatabaseMissing:
                     {
@@ -124,7 +148,11 @@ namespace JasonQuery.UI.Forms
             }
 
             DatabaseSecurityRuntime.SetV2(metadata.Mode);
-            migrator.CleanupCompletedMigrationBackup(JasonQueryRepository.DbFileName);
+
+            if (migrator != null)
+            {
+                migrator.CleanupCompletedMigrationBackup(JasonQueryRepository.DbFileName);
+            }
         }
     }
 }

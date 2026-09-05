@@ -153,30 +153,16 @@ namespace JasonQuery.UI.Forms
             lblNotCommitYetTime.Text = elapsed.TotalHours >= 1 ? elapsed.ToString(@"hh\:mm\:ss") : elapsed.ToString(@"mm\:ss");
         }
 
-
         private void MainForm_Load(object sender, EventArgs e)
         {
             try
             {
-                //20250413 暗紅色
                 lblPrompt4NewConnection.ForeColor = Color.FromArgb(192, 0, 0);
 
                 SystemEvents.SessionEnding += SystemEvents_SessionEnding;
 
-                var isCreateDbFile = false; //是否為新建立的 JasonQuery.db (判斷後續主畫面呈現的位置)
                 var dbFilePath = Path.Combine(Application.StartupPath, "JasonQuery.db");
-
-                if (!File.Exists(dbFilePath))
-                {
-                    using (TraceLogger.Time("Create JasonQuery.db"))
-                    using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("JasonQuery.Files.JasonQuery.db"))
-                    using (var fileStream = new FileStream(dbFilePath, FileMode.CreateNew))
-                    {
-                        stream.CopyTo(fileStream);
-                    }
-
-                    isCreateDbFile = true;
-                }
+                var wasDatabaseMissingAtStartup = !File.Exists(dbFilePath); //啟動時 JasonQuery.db 是否不存在；僅用於決定第一次主畫面的起始位置
 
                 var noneExistFileList = string.Empty;
 
@@ -242,7 +228,7 @@ namespace JasonQuery.UI.Forms
                 }
                 else
                 {
-                    if (isCreateDbFile)
+                    if (wasDatabaseMissingAtStartup)
                     {
                         Location = (Point)new Size(400, 150);
                     }
