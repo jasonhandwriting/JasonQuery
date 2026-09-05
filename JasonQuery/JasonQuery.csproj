@@ -182,6 +182,7 @@
     <Compile Include="Core\Security\Database\DatabaseSecurityBootstrapper.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityBootstrapResult.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityConstants.cs" />
+    <Compile Include="Core\Security\Database\FreshDatabaseSecurityInitializer.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityMetadata.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityMetadataStore.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityMigrationResult.cs" />
@@ -194,6 +195,7 @@
     <Compile Include="Core\Security\Database\DpapiDatabaseKeyProtector.cs" />
     <Compile Include="Core\Security\Database\IDatabaseKeyProtector.cs" />
     <Compile Include="Core\Security\Database\IDatabaseSecurityMetadataStore.cs" />
+    <Compile Include="Core\Security\Database\IDatabaseSecurityFreshInstallDatabase.cs" />
     <Compile Include="Core\Security\Database\IDatabaseSecurityMigrationDatabase.cs" />
     <Compile Include="Core\Security\Database\LegacyDatabaseSecurity.cs" />
     <Compile Include="Core\Security\Database\LegacyDatabaseSecurityMigrator.cs" />
@@ -554,6 +556,7 @@
     <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlUpdateSetParser.cs" />
     <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlUpdateSetParseResult.cs" />
     <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlUpdateSetValueInfo.cs" />
+    <Compile Include="Database\Internal\Security\SqliteDatabaseSecurityFreshInstallDatabase.cs" />
     <Compile Include="Database\Internal\Security\SqliteDatabaseSecurityMigrationDatabase.cs" />
     <Compile Include="Infrastructure\Windows\WindowsShortcutHelper.cs" />
     <Compile Include="UI\Forms\CellEditorBinaryContracts.cs" />
@@ -1392,7 +1395,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="Files\JasonQuery.db" />
+    <EmbeddedResource Include="Files\JasonQuery.template.db" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
