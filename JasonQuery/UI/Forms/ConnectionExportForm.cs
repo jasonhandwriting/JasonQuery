@@ -338,7 +338,7 @@ namespace JasonQuery.UI.Forms
                         if (chkIncludeDBPassword.Checked)
                         {
                             var password = dr.GetSafeString("Password");
-                            var passwordResult = TextEngine.Decrypt(TextEngine.Decode(password), MyGlobal.DomainUser);
+                            var passwordResult = LegacyConnectionCredentialSecurity.Unprotect(password, MyGlobal.DomainUser);
 
                             sheet[excelRowIndex, col].Value = passwordResult;
                         }

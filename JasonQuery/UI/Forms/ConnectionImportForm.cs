@@ -239,7 +239,7 @@ namespace JasonQuery.UI.Forms
 
                     if (!string.IsNullOrEmpty(password))
                     {
-                        password = TextEngine.Encode(TextEngine.Encrypt(password, MyGlobal.DomainUser));
+                        password = LegacyConnectionCredentialSecurity.Protect(password, MyGlobal.DomainUser);
                     }
 
                     col++;

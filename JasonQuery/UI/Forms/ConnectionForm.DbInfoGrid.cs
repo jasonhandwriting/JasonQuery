@@ -5,6 +5,7 @@ using JasonQuery.Core.Config;
 using JasonQuery.Core.Data.DataRows;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
+using JasonQuery.Core.Security.Legacy;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.UI.Helpers;
@@ -376,7 +377,7 @@ namespace JasonQuery.UI.Forms
 
             if (!string.IsNullOrEmpty(encryptedPassword))
             {
-                passwordResult = TextEngine.Decrypt(TextEngine.Decode(encryptedPassword), MyGlobal.DomainUser);
+                passwordResult = LegacyConnectionCredentialSecurity.Unprotect(encryptedPassword, MyGlobal.DomainUser);
             }
 
             if (string.IsNullOrEmpty(encryptedPassword) && TextHelper.IsNullOrEmptyTag(passwordControl.Tag))
