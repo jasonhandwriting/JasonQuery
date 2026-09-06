@@ -1,4 +1,5 @@
-﻿using JasonQuery.Core.Security.Database;
+﻿using JasonQuery.Core.Security.ConnectionCredentials;
+using JasonQuery.Core.Security.Database;
 using System;
 using System.Data;
 using System.Data.SQLite;
@@ -8,6 +9,9 @@ namespace JasonQuery.Database.Internal.Security
 {
     public sealed class SqliteDatabaseSecurityFreshInstallDatabase : IDatabaseSecurityFreshInstallDatabase
     {
+        private static readonly IConnectionCredentialStorageVersionStore
+            CredentialStorageVersionStore = new SqliteConnectionCredentialStorageVersionStore();
+
         public void CreateEncryptedDatabase(Stream plaintextTemplateStream, string destinationDatabaseFilePath, string databasePassword)
         {
             if (plaintextTemplateStream == null)
@@ -17,7 +21,11 @@ namespace JasonQuery.Database.Internal.Security
 
             if (!plaintextTemplateStream.CanRead)
             {
-                throw new ArgumentException("The JasonQuery database template stream must be readable.", nameof(plaintextTemplateStream));
+                throw new ArgumentException
+                (
+                    "The JasonQuery database template stream must be readable.",
+                    nameof(plaintextTemplateStream)
+                );
             }
 
             ValidateDatabaseFilePath(destinationDatabaseFilePath);
@@ -25,12 +33,19 @@ namespace JasonQuery.Database.Internal.Security
 
             if (File.Exists(destinationDatabaseFilePath))
             {
-                throw new IOException("The fresh-install database destination already exists.");
+                throw new IOException
+                (
+                    "The fresh-install database destination already exists."
+                );
             }
 
             try
             {
-                CopyTemplateDurably(plaintextTemplateStream, destinationDatabaseFilePath);
+                CopyTemplateDurably
+                (
+                    plaintextTemplateStream,
+                    destinationDatabaseFilePath
+                );
 
                 if (!CanOpenWithoutPassword(destinationDatabaseFilePath))
                 {
@@ -41,9 +56,14 @@ namespace JasonQuery.Database.Internal.Security
                 }
 
                 using (var connection = OpenConnectionWithoutPassword(destinationDatabaseFilePath))
-                using (var command = new SQLiteCommand("SELECT 1 FROM SystemConfig WHERE 1 = 2", connection))
                 {
-                    command.ExecuteScalar();
+                    using (var command = new SQLiteCommand("SELECT 1 FROM SystemConfig WHERE 1 = 2", connection))
+                    {
+                        command.ExecuteScalar();
+                    }
+
+                    InitializeCurrentCredentialStorageVersion(connection);
+
                     connection.ChangePassword(databasePassword);
                 }
 
@@ -64,6 +84,12 @@ namespace JasonQuery.Database.Internal.Security
                         "The fresh JasonQuery database remained accessible without its generated database key."
                     );
                 }
+
+                ValidateCurrentCredentialStorageVersion
+                (
+                    destinationDatabaseFilePath,
+                    databasePassword
+                );
             }
             catch
             {
@@ -98,7 +124,10 @@ namespace JasonQuery.Database.Internal.Security
             }
         }
 
-        public bool CanOpenWithoutPassword(string databaseFilePath)
+        public bool CanOpenWithoutPassword
+        (
+            string databaseFilePath
+        )
         {
             ValidateDatabaseFilePath(databaseFilePath);
 
@@ -117,6 +146,55 @@ namespace JasonQuery.Database.Internal.Security
             }
         }
 
+        private static void InitializeCurrentCredentialStorageVersion(SQLiteConnection connection)
+        {
+            using (var transaction = connection.BeginTransaction())
+            {
+                try
+                {
+                    CredentialStorageVersionStore.WriteCurrentVersion
+                    (
+                        connection,
+                        transaction
+                    );
+
+                    transaction.Commit();
+                }
+                catch (Exception initializationException)
+                {
+                    try
+                    {
+                        transaction.Rollback();
+                    }
+                    catch (Exception rollbackException)
+                    {
+                        throw new InvalidDataException
+                        (
+                            "The fresh connection credential storage version could not be initialized, " +
+                            "and its transaction could not be rolled back safely.",
+                            new AggregateException
+                            (
+                                initializationException,
+                                rollbackException
+                            )
+                        );
+                    }
+
+                    throw;
+                }
+            }
+        }
+
+        private static void ValidateCurrentCredentialStorageVersion(string databaseFilePath, string databasePassword)
+        {
+            using (var connection = OpenConnection(databaseFilePath, databasePassword))
+            {
+                var persistedVersion = CredentialStorageVersionStore.ReadPersistedVersion(connection, null);
+
+                ConnectionCredentialStorageContract.EnsureV2Ready(persistedVersion);
+            }
+        }
+
         private static void CopyTemplateDurably(Stream plaintextTemplateStream, string destinationDatabaseFilePath)
         {
             var directory = Path.GetDirectoryName(Path.GetFullPath(destinationDatabaseFilePath));
@@ -131,8 +209,7 @@ namespace JasonQuery.Database.Internal.Security
                 plaintextTemplateStream.Position = 0;
             }
 
-            using (var fileStream = new FileStream(destinationDatabaseFilePath, FileMode.CreateNew, FileAccess.Write,
-                                                   FileShare.None, 81920, FileOptions.WriteThrough))
+            using (var fileStream = new FileStream(destinationDatabaseFilePath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, FileOptions.WriteThrough))
             {
                 plaintextTemplateStream.CopyTo(fileStream);
                 fileStream.Flush(true);
@@ -180,7 +257,7 @@ namespace JasonQuery.Database.Internal.Security
         {
             return new SQLiteConnection
             {
-                ConnectionString = $"Data Source={Path.GetFullPath(databaseFilePath)};Version=3;New=False;Compress=True;"
+                ConnectionString = $"Data Source={Path.GetFullPath(databaseFilePath)};" + "Version=3;New=False;Compress=True;"
             };
         }
 
@@ -188,7 +265,10 @@ namespace JasonQuery.Database.Internal.Security
         {
             if (connection.State != ConnectionState.Open)
             {
-                throw new InvalidOperationException("The JasonQuery database connection did not open.");
+                throw new InvalidOperationException
+                (
+                    "The JasonQuery database connection did not open."
+                );
             }
         }
 
@@ -196,7 +276,11 @@ namespace JasonQuery.Database.Internal.Security
         {
             if (string.IsNullOrWhiteSpace(databaseFilePath))
             {
-                throw new ArgumentException("A database file path is required.", nameof(databaseFilePath));
+                throw new ArgumentException
+                (
+                    "A database file path is required.",
+                    nameof(databaseFilePath)
+                );
             }
         }
 
@@ -204,7 +288,11 @@ namespace JasonQuery.Database.Internal.Security
         {
             if (string.IsNullOrWhiteSpace(databasePassword))
             {
-                throw new ArgumentException("A database password is required.", nameof(databasePassword));
+                throw new ArgumentException
+                (
+                    "A database password is required.",
+                    nameof(databasePassword)
+                );
             }
         }
     }

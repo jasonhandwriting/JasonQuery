@@ -178,7 +178,9 @@
     <Compile Include="Core\Arrange\SqlServer\SqlServerSchemaPreparationStrategy.cs" />
     <Compile Include="Core\Config\AppConfigHelper.cs" />
     <Compile Include="Core\Security\ConnectionCredentials\ConnectionCredentialStorageContract.cs" />
+    <Compile Include="Core\Security\ConnectionCredentials\ConnectionCredentialStorageMigrationBoundary.cs" />
     <Compile Include="Core\Security\ConnectionCredentials\ConnectionCredentialStorageVersion.cs" />
+    <Compile Include="Core\Security\ConnectionCredentials\IConnectionCredentialStorageVersionStore.cs" />
     <Compile Include="Core\Security\Database\CustomPasswordDatabaseKeyDeriver.cs" />
     <Compile Include="Core\Security\Database\DatabaseKeyGenerator.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityBootstrapper.cs" />
@@ -562,6 +564,7 @@
     <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlUpdateSetParser.cs" />
     <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlUpdateSetParseResult.cs" />
     <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlUpdateSetValueInfo.cs" />
+    <Compile Include="Database\Internal\Security\SqliteConnectionCredentialStorageVersionStore.cs" />
     <Compile Include="Database\Internal\Security\SqliteDatabaseSecurityFreshInstallDatabase.cs" />
     <Compile Include="Database\Internal\Security\SqliteDatabaseSecurityMigrationDatabase.cs" />
     <Compile Include="Infrastructure\Windows\WindowsShortcutHelper.cs" />
