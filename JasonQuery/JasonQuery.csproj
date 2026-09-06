@@ -177,6 +177,8 @@
     <Compile Include="Core\Arrange\SqlServer\SqlServerArrangeStrategy.cs" />
     <Compile Include="Core\Arrange\SqlServer\SqlServerSchemaPreparationStrategy.cs" />
     <Compile Include="Core\Config\AppConfigHelper.cs" />
+    <Compile Include="Core\Security\ConnectionCredentials\ConnectionCredentialStorageContract.cs" />
+    <Compile Include="Core\Security\ConnectionCredentials\ConnectionCredentialStorageVersion.cs" />
     <Compile Include="Core\Security\Database\CustomPasswordDatabaseKeyDeriver.cs" />
     <Compile Include="Core\Security\Database\DatabaseKeyGenerator.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityBootstrapper.cs" />
