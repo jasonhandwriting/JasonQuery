@@ -202,6 +202,7 @@
     <Compile Include="Core\Security\Database\IDatabaseSecurityMigrationDatabase.cs" />
     <Compile Include="Core\Security\Database\LegacyDatabaseSecurity.cs" />
     <Compile Include="Core\Security\Database\LegacyDatabaseSecurityMigrator.cs" />
+    <Compile Include="Core\Security\Legacy\LegacyConnectionCredentialSecurity.cs" />
     <Compile Include="Core\Security\Legacy\LegacyConnectionExportSecurity.cs" />
     <Compile Include="Core\Database\Connection\DatabaseConnectionContext.cs" />
     <Compile Include="Core\Database\Connection\DatabaseConnectionGuard.cs" />

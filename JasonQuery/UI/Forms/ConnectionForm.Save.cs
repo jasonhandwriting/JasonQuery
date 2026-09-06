@@ -1,7 +1,7 @@
 ﻿using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Logging;
-using JasonQuery.Core.Text;
+using JasonQuery.Core.Security.Legacy;
 using JasonQuery.Database.Internal.Repositories;
 using System;
 using System.Text;
@@ -106,7 +106,7 @@ namespace JasonQuery.UI.Forms
 
             if (chkSavePasswords.Checked)
             {
-                encryptedPassword = TextEngine.Encode(TextEngine.Encrypt(txtPassword_Oracle.Text, MyGlobal.DomainUser));
+                encryptedPassword = LegacyConnectionCredentialSecurity.Protect(txtPassword_Oracle.Text, MyGlobal.DomainUser);
             }
 
             var sbSql = new StringBuilder();
@@ -195,7 +195,7 @@ namespace JasonQuery.UI.Forms
 
             if (chkSavePasswords.Checked)
             {
-                encryptedPassword = TextEngine.Encode(TextEngine.Encrypt(txtPassword_PostgreSQL.Text, MyGlobal.DomainUser));
+                encryptedPassword = LegacyConnectionCredentialSecurity.Protect(txtPassword_PostgreSQL.Text, MyGlobal.DomainUser);
             }
 
             var sbSql = new StringBuilder();
@@ -289,7 +289,7 @@ namespace JasonQuery.UI.Forms
 
             if (chkSavePasswords.Checked)
             {
-                encryptedPassword = TextEngine.Encode(TextEngine.Encrypt(txtPassword_SQLServer.Text, MyGlobal.DomainUser));
+                encryptedPassword = LegacyConnectionCredentialSecurity.Protect(txtPassword_SQLServer.Text, MyGlobal.DomainUser);
             }
 
             var sbSql = new StringBuilder();
@@ -381,7 +381,7 @@ namespace JasonQuery.UI.Forms
 
             if (chkSavePasswords.Checked)
             {
-                encryptedPassword = TextEngine.Encode(TextEngine.Encrypt(txtPassword_MySQL.Text, MyGlobal.DomainUser));
+                encryptedPassword = LegacyConnectionCredentialSecurity.Protect(txtPassword_MySQL.Text, MyGlobal.DomainUser);
             }
 
             var sbSql = new StringBuilder();
