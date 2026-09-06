@@ -101,6 +101,8 @@
   <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblNoMigration" attribute="Text" name="本次未執行任何資料庫遷移，也未修改 JasonQuery.db。" />
   <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="grpLocalization" attribute="Text" name="語系" />
   <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="btnExit" attribute="Text" name="結束 JasonQuery(&amp;E)" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="msg" id="WindowsCurrentUserKeyUnavailableReason" attribute="Text" name="無法解鎖 JasonQuery.db 的 Windows 使用者保護金鑰。此狀況可能發生於移至其他電腦、改用其他 Windows 使用者設定檔，或重新安裝 Windows 之後。" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="msg" id="WindowsCurrentUserKeyUnavailableRecovery" attribute="Text" name="如果原本的 Windows 環境仍可使用，請先在該環境啟動 JasonQuery，將 JasonQuery.db 的保護方式切換為自訂密碼，再進行移轉。備份或移轉時，請務必將 JasonQuery.db 與 JasonQuery.security.json 一併備份或移轉。" />
   <!-- UpdateForm-->
   <language category="form" class="UpdateForm" type="object" id="this" attribute="Text" name="檢查更新" />
   <language category="form" class="UpdateForm" type="object" id="lblInfoHasNewVersion" attribute="Text" name="有新版的 JasonQuery：" />
@@ -488,19 +490,19 @@
   <language category="form" class="DatabaseSecurityForm" type="object" id="lblNewCustomPassword" attribute="Text" name="新的自訂密碼：" />
   <language category="form" class="DatabaseSecurityForm" type="object" id="lblConfirmPassword" attribute="Text" name="確認密碼：" />
   <language category="form" class="DatabaseSecurityForm" type="object" id="lblInfo1" attribute="Text" name="JasonQuery 無法復原自訂密碼。" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="lblInfo2" attribute="Text" name="每次啟動 JasonQuery 都必須輸入此密碼。" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblInfo2" attribute="Text" name="啟動時需輸入密碼。備份或移轉時，請將 JasonQuery.db 與 JasonQuery.security.json 一併備份或移轉。" />
   <language category="form" class="DatabaseSecurityForm" type="object" id="btnApply" attribute="Text" name="套用(&amp;A)" />
   <language category="form" class="DatabaseSecurityForm" type="object" id="btnClose" attribute="Text" name="關閉(&amp;C)" />
   <language category="form" class="DatabaseSecurityForm" type="object" id="grpLocalization" attribute="Text" name="語言" />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="ProtectionWindows" attribute="Text" name="Windows 使用者保護" />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="ProtectionCustom" attribute="Text" name="自訂密碼" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="WindowsProtectionInfo" attribute="Text" name="Windows Protected 會使用您目前的 Windows 使用者設定檔來儲存 JasonQuery.db 的加密金鑰。" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="WindowsProtectionInfo" attribute="Text" name="Windows 使用者保護綁定目前的 Windows 使用者設定檔。移轉至其他電腦、改用其他 Windows 使用者或重新安裝 Windows 前，請先切換為自訂密碼。" />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="MetadataMissing" attribute="Text" name="找不到 JasonQuery.db 的安全性中繼資料。" />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="UnsupportedMode" attribute="Text" name="不支援 JasonQuery.db 目前的安全性模式。" />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="NewPasswordRequired" attribute="Text" name="請輸入新的自訂密碼。" />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="PasswordMismatch" attribute="Text" name="新密碼與確認密碼不相符。" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmCustomPassword" attribute="Text" name="JasonQuery 無法復原自訂密碼。&#x000A;&#x000A;以後每次啟動 JasonQuery 都需要此密碼。&#x000A;&#x000A;是否繼續？" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmWindowsProtected" attribute="Text" name="是否要改用目前的 Windows 使用者保護 JasonQuery.db？&#x000A;&#x000A;變更後將不再需要自訂密碼。" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmCustomPassword" attribute="Text" name="JasonQuery 無法復原自訂密碼。&#x000A;&#x000A;每次啟動 JasonQuery 時都需要輸入此密碼。&#x000A;&#x000A;備份或移轉時，請務必將 JasonQuery.db 與 JasonQuery.security.json 一併備份或移轉。&#x000A;&#x000A;是否繼續？" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmWindowsProtected" attribute="Text" name="是否要使用目前的 Windows 使用者保護 JasonQuery.db？&#x000A;&#x000A;Windows 使用者保護綁定目前的 Windows 使用者設定檔。移轉至其他電腦、改用其他 Windows 使用者或重新安裝 Windows 前，請先切換為自訂密碼。&#x000A;&#x000A;完成變更後將不再需要自訂密碼。" />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="UpdateSuccess" attribute="Text" name="JasonQuery.db 的安全設定已成功更新。" />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="EnterCurrentPassword" attribute="Text" name="請輸入目前的自訂密碼。" />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="CurrentPasswordIncorrect" attribute="Text" name="目前的密碼不正確。" />

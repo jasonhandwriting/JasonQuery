@@ -73,12 +73,45 @@ namespace JasonQuery.UI.Forms
         private void ApplyErrorKindLayout()
         {
             var isMissingSecurityInformation = _errorKind == DatabaseSecurityStartupErrorKind.MissingSecurityInformationOrLegacyCustomPassword;
+            var isWindowsCurrentUserKeyUnavailable = _errorKind == DatabaseSecurityStartupErrorKind.WindowsCurrentUserKeyUnavailable;
 
             lblMissingReason.Visible = isMissingSecurityInformation;
             lblMissingRecovery.Visible = isMissingSecurityInformation;
             lblGeneralReason.Visible = !isMissingSecurityInformation;
             lblGeneralRecovery.Visible = !isMissingSecurityInformation;
             lblNoMigration.Visible = isMissingSecurityInformation;
+
+            if (isWindowsCurrentUserKeyUnavailable)
+            {
+                lblGeneralReason.Text = GetFormMessage
+                (
+                    "WindowsCurrentUserKeyUnavailableReason",
+                    "The Windows-protected key for JasonQuery.db could not be unlocked. " +
+                    "This can happen after moving JasonQuery to another computer, using a different Windows user profile, " +
+                    "or reinstalling Windows."
+                );
+
+                lblGeneralRecovery.Text = GetFormMessage
+                (
+                    "WindowsCurrentUserKeyUnavailableRecovery",
+                    "If the original Windows environment is still available, open JasonQuery there and switch " +
+                    "JasonQuery.db Security to Custom Password before moving it. " +
+                    "Always back up or move JasonQuery.db together with JasonQuery.security.json."
+                );
+            }
+        }
+
+        private string GetFormMessage(string id, string defaultText)
+        {
+            return LocalizationHelper.GetLanguageString
+            (
+                defaultText,
+                "form",
+                GetType().Name,
+                "msg",
+                id,
+                "Text"
+            );
         }
 
         private void ApplyVisualState()

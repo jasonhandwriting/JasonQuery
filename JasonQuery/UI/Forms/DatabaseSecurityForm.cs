@@ -227,7 +227,7 @@ namespace JasonQuery.UI.Forms
                 lblInfo2.Text = GetFormObjectText
                 (
                     "lblInfo2",
-                    "You must enter the password each time JasonQuery starts."
+                    "Enter the password at startup. Back up JasonQuery.db and JasonQuery.security.json together."
                 );
 
                 lblInfo1.Visible = true;
@@ -238,7 +238,9 @@ namespace JasonQuery.UI.Forms
                 lblInfo1.Text = GetFormMessage
                 (
                     "WindowsProtectionInfo",
-                    "Windows Protected stores the database key using your current Windows user profile."
+                    "Windows Protected is tied to your current Windows user profile. " +
+                    "Before moving JasonQuery to another computer, switching Windows users, or reinstalling Windows, " +
+                    "switch to Custom Password."
                 );
 
                 lblInfo1.Visible = true;
@@ -313,7 +315,9 @@ namespace JasonQuery.UI.Forms
                         (
                             "ConfirmCustomPassword",
                             "JasonQuery cannot recover a custom password.\r\n\r\n" +
-                            "You will need this password every time JasonQuery starts.\r\n\r\nContinue?"
+                            "You will need this password every time JasonQuery starts.\r\n\r\n" +
+                            "Back up or move JasonQuery.db together with JasonQuery.security.json.\r\n\r\n" +
+                            "Continue?"
                         ),
                         AppConfigHelper.MessageBoxCaption,
                         MessageBoxButtons.YesNo,
@@ -341,6 +345,9 @@ namespace JasonQuery.UI.Forms
                         (
                             "ConfirmWindowsProtected",
                             "Protect JasonQuery.db for the current Windows user?\r\n\r\n" +
+                            "Windows Protected is tied to the current Windows user profile. " +
+                            "Before moving JasonQuery to another computer, switching Windows users, or reinstalling Windows, " +
+                            "switch to Custom Password.\r\n\r\n" +
                             "The custom password will no longer be required after this change."
                         ),
                         AppConfigHelper.MessageBoxCaption,
