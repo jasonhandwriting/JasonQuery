@@ -126,8 +126,8 @@
             this.cboLocalization.Name = "cboLocalization";
             this.cboLocalization.Size = new System.Drawing.Size(289, 21);
             this.cboLocalization.TabIndex = 0;
-            this.cboLocalization.Tag = null;
             this.cboLocalization.TextDetached = true;
+            this.cboLocalization.Tag = null;
             this.cboLocalization.VisualStyleBaseStyle = C1.Win.C1Input.VisualStyle.Office2010Blue;
             this.cboLocalization.SelectedIndexChanged += new System.EventHandler(this.cboLocalization_SelectedIndexChanged);
             //

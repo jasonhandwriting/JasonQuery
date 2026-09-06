@@ -100,7 +100,7 @@
   <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblGeneralRecovery" attribute="Text" name="JasonQuery has stopped to protect the database. Restore the matching JasonQuery.db and JasonQuery.security.json files from a known-good backup, or contact support before trying again." />
   <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblNoMigration" attribute="Text" name="No database migration was performed and JasonQuery.db was not modified." />
   <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="grpLocalization" attribute="Text" name="Localization" />
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="btnExit" attribute="Text" name="Exit JasonQuery" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="btnExit" attribute="Text" name="&amp;Exit JasonQuery" />
   <!-- UpdateForm-->
   <language category="form" class="UpdateForm" type="object" id="this" attribute="Text" name="Check for updates" />
   <language category="form" class="UpdateForm" type="object" id="lblInfoHasNewVersion" attribute="Text" name="A new version of JasonQuery is available:" />
@@ -345,7 +345,7 @@
   <language category="form" class="ConnectionForm" type="object" id="btnDelete" attribute="Text" name="Delete" />
   <language category="form" class="ConnectionForm" type="object" id="btnExit" attribute="Text" name="Exit" />
   <language category="form" class="ConnectionForm" type="object" id="btnUpdateNow" attribute="Text" name="Update Now (One-Click update)" />
-  <language category="form" class="ConnectionForm" type="object" id="btnEncryptWithCustomPW" attribute="Text" name="Set Password Protection for JasonQuery.db" />
+  <language category="form" class="ConnectionForm" type="object" id="btnDatabaseSecurity" attribute="Text" name="JasonQuery.db Security..." />
   <language category="form" class="ConnectionForm" type="object" id="btnConnect" attribute="Text" name="Connect" />
   <language category="form" class="ConnectionForm" type="object" id="btnTest" attribute="Text" name="Test" />
   <language category="form" class="ConnectionForm" type="object" id="btnCopy" attribute="Text" name="Copy" />
@@ -468,49 +468,44 @@
   <language category="form" class="ConnectionImportForm" type="msg" id="NoneImportFromFileName" attribute="Text" name="Please select the file name to import!" />
   <language category="form" class="ConnectionImportForm" type="msg" id="NonePassword" attribute="Text" name="Please enter password." />
   <language category="form" class="ConnectionImportForm" type="msg" id="ImportOK" attribute="Text" name="{qty} connection information imported successfully!" />
-  <!-- CustomPasswordDialog-->
-  <language category="form" class="CustomPasswordDialog" type="object" id="this" attribute="Text" name="Password Protection for JasonQuery.db" />
-  <language category="form" class="CustomPasswordDialog" type="object" id="lblTitle" attribute="Text" name="Please enter your custom password to connect to JasonQuery.db:" />
-  <language category="form" class="CustomPasswordDialog" type="object" id="lblRemember" attribute="Text" name="(Remember that passwords are case-sensitive.)" />
-  <language category="form" class="CustomPasswordDialog" type="object" id="lblInfo" attribute="Text" name="Since you set a custom password, it must be entered when starting JasonQuery." />
-  <language category="form" class="CustomPasswordDialog" type="object" id="btnOK" attribute="Text" name="&amp;OK" />
-  <language category="form" class="CustomPasswordDialog" type="object" id="btnExit" attribute="Text" name="&amp;Exit JasonQuery" />
-  <language category="form" class="CustomPasswordDialog" type="object" id="grpLocalization" attribute="Text" name="Localization" />
-  <language category="form" class="CustomPasswordDialog" type="msg" id="NonePassword" attribute="Text" name="Please enter custom password." />
-  <language category="form" class="CustomPasswordDialog" type="msg" id="WrongPassword" attribute="Text" name="Wrong password!" />
-  <language category="form" class="CustomPasswordDialog" type="msg" id="ReEnter" attribute="Text" name="You must re-enter your password." />
-  <!-- EncryptionMethodForm-->
-  <language category="form" class="EncryptionMethodForm" type="object" id="this" attribute="Text" name="Set Password Protection for JasonQuery.db" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblTitle" attribute="Text" name="The current encryption of JasonQuery.db:" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="rdoDefaultPassword" attribute="Text" name="Default Password" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblOldPassword2" attribute="Text" name="Old Password:" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblChangeToDefaultPassword" attribute="Text" name="(You must enter your custom password before you can change the custom password to the default password.)" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="rdoCustomPassword" attribute="Text" name="Custom Password:" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="rdoChangeCustomPassword" attribute="Text" name="Change Custom Password" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblOldPassword" attribute="Text" name="Old Password:" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblNewPassword" attribute="Text" name="New Password:" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblConfirmNewPassword" attribute="Text" name="Confirm New Password:" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblCaution0" attribute="Text" name="You will need to enter the custom password each time you start JasonQuery in the future." />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblCaution1" attribute="Text" name="Caution: If you lose or forget the password, it cannot be recovered." />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblCaution2" attribute="Text" name="(Remember that passwords are case-sensitive.)" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="btnApply" attribute="Text" name="&amp;Apply &amp;&amp; Close" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="btnClose" attribute="Text" name="Cancel &amp;&amp; &amp;Close" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="DefaultPassword" attribute="Text" name="Default Password" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="CustomPassword" attribute="Text" name="Custom Password" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="NonePassword" attribute="Text" name="Please enter your custom password!" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="NoneOldPassword" attribute="Text" name="Please enter your old custom password!" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="NoneNewPassword" attribute="Text" name="Please enter your new password!" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="NoneConfirmNewPassword" attribute="Text" name="Please enter your confirm new password!" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="NoneMatchConfirmNewPassword" attribute="Text" name="The passwords you entered did not match." />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="ErrorOldPassword" attribute="Text" name="The old password is incorrect. Try again." />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="OKPasswordChanged1" attribute="Text" name="The password for JasonQuery.db has been changed." />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="OKPasswordChanged2" attribute="Text" name="Please use the new password to start JasonQuery next time." />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="ErrorPasswordChanged" attribute="Text" name="Password change failed!" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="PasswordHelp1" attribute="Text" name="A valid password can contain the following characters:" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="PasswordHelp2" attribute="Text" name="Lowercase characters a-z" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="PasswordHelp3" attribute="Text" name="Uppercase characters A-Z" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="PasswordHelp4" attribute="Text" name="Numbers 0-9" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="PasswordHelp5" attribute="Text" name="Special characters" />
+  <!-- DatabasePasswordDialog-->
+  <language category="form" class="DatabasePasswordDialog" type="object" id="this" attribute="Text" name="JasonQuery.db Password" />
+  <language category="form" class="DatabasePasswordDialog" type="object" id="lblInfo1" attribute="Text" name="JasonQuery.db is protected with a custom password." />
+  <language category="form" class="DatabasePasswordDialog" type="object" id="lblInfo2" attribute="Text" name="Enter the password to continue." />
+  <language category="form" class="DatabasePasswordDialog" type="object" id="lblCustomPassword" attribute="Text" name="Custom Password:" />
+  <language category="form" class="DatabasePasswordDialog" type="object" id="btnOK" attribute="Text" name="&amp;OK" />
+  <language category="form" class="DatabasePasswordDialog" type="object" id="btnExit" attribute="Text" name="&amp;Exit JasonQuery" />
+  <language category="form" class="DatabasePasswordDialog" type="object" id="grpLocalization" attribute="Text" name="Localization" />
+  <language category="form" class="DatabasePasswordDialog" type="msg" id="NonePassword" attribute="Text" name="Please enter the custom password." />
+  <language category="form" class="DatabasePasswordDialog" type="msg" id="WrongPassword" attribute="Text" name="The custom password is incorrect." />
+  <!-- DatabaseSecurityForm-->
+  <language category="form" class="DatabaseSecurityForm" type="object" id="this" attribute="Text" name="JasonQuery.db Security" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblCurrentProtection" attribute="Text" name="Current Protection:" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="grpProtection" attribute="Text" name="Protection" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="rdoWindowsProtected" attribute="Text" name="Windows Protected" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="rdoCustomPassword" attribute="Text" name="Custom Password" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblCurrentPassword" attribute="Text" name="Current Password:" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblNewCustomPassword" attribute="Text" name="New Custom Password:" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblConfirmPassword" attribute="Text" name="Confirm Password:" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblInfo1" attribute="Text" name="Custom passwords cannot be recovered by JasonQuery." />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblInfo2" attribute="Text" name="You must enter the password each time JasonQuery starts." />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="btnApply" attribute="Text" name="&amp;Apply" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="btnClose" attribute="Text" name="&amp;Close" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="grpLocalization" attribute="Text" name="Localization" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ProtectionWindows" attribute="Text" name="Windows Protected" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ProtectionCustom" attribute="Text" name="Custom Password" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="WindowsProtectionInfo" attribute="Text" name="Windows Protected stores the encryption key for JasonQuery.db using your current Windows user profile." />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="MetadataMissing" attribute="Text" name="Security metadata for JasonQuery.db is missing." />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="UnsupportedMode" attribute="Text" name="The current security mode for JasonQuery.db is not supported." />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="NewPasswordRequired" attribute="Text" name="Please enter a new custom password." />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="PasswordMismatch" attribute="Text" name="The new password and confirmation do not match." />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmCustomPassword" attribute="Text" name="JasonQuery cannot recover a custom password.&#x000A;&#x000A;You will need this password every time JasonQuery starts.&#x000A;&#x000A;Continue?" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmWindowsProtected" attribute="Text" name="Protect JasonQuery.db for the current Windows user?&#x000A;&#x000A;The custom password will no longer be required after this change." />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="UpdateSuccess" attribute="Text" name="JasonQuery.db security was updated successfully." />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="EnterCurrentPassword" attribute="Text" name="Enter the current custom password." />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="CurrentPasswordIncorrect" attribute="Text" name="The current password is incorrect." />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ReopenFailed" attribute="Text" name="JasonQuery.db could not be reopened after its security settings were updated." />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="UpdateFailed" attribute="Text" name="JasonQuery.db security could not be updated." />
   <!-- GenerateSqlForm-->
   <language category="form" class="GenerateSqlForm" type="object" id="this" attribute="Text" name="Generate SQL Statement" />
   <language category="form" class="GenerateSqlForm" type="object" id="lblDatabase" attribute="Text" name="Database:" />

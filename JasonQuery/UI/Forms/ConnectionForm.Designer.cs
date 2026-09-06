@@ -200,7 +200,7 @@
             this.picIconStyle0 = new System.Windows.Forms.PictureBox();
             this.rdoIconStyle0 = new System.Windows.Forms.RadioButton();
             this.btnHelp_DarkMode = new C1.Win.C1Input.C1Button();
-            this.btnEncryptWithCustomPW = new C1.Win.C1Input.C1Button();
+            this.btnDatabaseSecurity = new C1.Win.C1Input.C1Button();
             this.chkDarkMode = new C1.Win.C1Input.C1CheckBox();
             this.picSQLServer = new System.Windows.Forms.PictureBox();
             this.picPostgreSQL = new System.Windows.Forms.PictureBox();
@@ -340,7 +340,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.picIconStyle1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picIconStyle0)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.btnHelp_DarkMode)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.btnEncryptWithCustomPW)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.btnDatabaseSecurity)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chkDarkMode)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picSQLServer)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picPostgreSQL)).BeginInit();
@@ -387,7 +387,7 @@
             this.grpConnect.Controls.Add(this.btnHelp_MainFormIconStyle);
             this.grpConnect.Controls.Add(this.grpMainFormIconStyle);
             this.grpConnect.Controls.Add(this.btnHelp_DarkMode);
-            this.grpConnect.Controls.Add(this.btnEncryptWithCustomPW);
+            this.grpConnect.Controls.Add(this.btnDatabaseSecurity);
             this.grpConnect.Controls.Add(this.chkDarkMode);
             this.grpConnect.Controls.Add(this.picSQLServer);
             this.grpConnect.Controls.Add(this.picPostgreSQL);
@@ -2837,18 +2837,18 @@
             this.btnHelp_DarkMode.VisualStyleBaseStyle = C1.Win.C1Input.VisualStyle.Office2010Blue;
             this.btnHelp_DarkMode.Click += new System.EventHandler(this.btnHelp_DarkMode_Click);
             // 
-            // btnEncryptWithCustomPW
+            // btnDatabaseSecurity
             // 
-            this.btnEncryptWithCustomPW.Font = new System.Drawing.Font("微軟正黑體", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btnEncryptWithCustomPW.Location = new System.Drawing.Point(540, 201);
-            this.btnEncryptWithCustomPW.Name = "btnEncryptWithCustomPW";
-            this.btnEncryptWithCustomPW.Size = new System.Drawing.Size(295, 21);
-            this.btnEncryptWithCustomPW.TabIndex = 111;
-            this.btnEncryptWithCustomPW.Text = "Set Password Protection for JasonQuery.db";
-            this.c1ThemeController1.SetTheme(this.btnEncryptWithCustomPW, "(default)");
-            this.btnEncryptWithCustomPW.UseVisualStyleBackColor = true;
-            this.btnEncryptWithCustomPW.VisualStyleBaseStyle = C1.Win.C1Input.VisualStyle.Office2010Blue;
-            this.btnEncryptWithCustomPW.Click += new System.EventHandler(this.chkEncryptWithCustomPW_Click);
+            this.btnDatabaseSecurity.Font = new System.Drawing.Font("微軟正黑體", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btnDatabaseSecurity.Location = new System.Drawing.Point(540, 201);
+            this.btnDatabaseSecurity.Name = "btnDatabaseSecurity";
+            this.btnDatabaseSecurity.Size = new System.Drawing.Size(295, 21);
+            this.btnDatabaseSecurity.TabIndex = 111;
+            this.btnDatabaseSecurity.Text = "JasonQuery.db Security...";
+            this.c1ThemeController1.SetTheme(this.btnDatabaseSecurity, "(default)");
+            this.btnDatabaseSecurity.UseVisualStyleBackColor = true;
+            this.btnDatabaseSecurity.VisualStyleBaseStyle = C1.Win.C1Input.VisualStyle.Office2010Blue;
+            this.btnDatabaseSecurity.Click += new System.EventHandler(this.btnDatabaseSecurity_Click);
             // 
             // chkDarkMode
             // 
@@ -3426,7 +3426,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.picIconStyle1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picIconStyle0)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.btnHelp_DarkMode)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.btnEncryptWithCustomPW)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.btnDatabaseSecurity)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.chkDarkMode)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picSQLServer)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picPostgreSQL)).EndInit();
@@ -3617,7 +3617,7 @@
         private C1.Win.C1TrueDBGrid.C1TrueDBGrid c1GridPostgreSQL;
         private C1.Win.C1Input.C1Button btnImport;
         private C1.Win.C1Input.C1Button btnExport;
-        private C1.Win.C1Input.C1Button btnEncryptWithCustomPW;
+        private C1.Win.C1Input.C1Button btnDatabaseSecurity;
         private System.Windows.Forms.Label lblQueryTimeout_Oracle;
         private C1.Win.C1Input.C1Button btnHelp_QueryTimeout_Oracle;
         private System.Windows.Forms.Label lblSeconds_Oracle;

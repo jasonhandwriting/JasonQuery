@@ -182,6 +182,9 @@
     <Compile Include="Core\Security\Database\DatabaseSecurityBootstrapper.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityBootstrapResult.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityConstants.cs" />
+    <Compile Include="Core\Security\Database\DatabaseSecurityTransitionJournal.cs" />
+    <Compile Include="Core\Security\Database\DatabaseSecurityTransitionJournalStore.cs" />
+    <Compile Include="Core\Security\Database\DatabaseSecurityTransitionManager.cs" />
     <Compile Include="Core\Security\Database\FreshDatabaseSecurityInitializer.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityMetadata.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityMetadataStore.cs" />
@@ -1097,12 +1100,6 @@
     <Compile Include="UI\Forms\OracleCreateTableWizardForm.Designer.cs">
       <DependentUpon>OracleCreateTableWizardForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\Forms\CustomPasswordDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\Forms\CustomPasswordDialog.Designer.cs">
-      <DependentUpon>CustomPasswordDialog.cs</DependentUpon>
-    </Compile>
     <Compile Include="UI\Forms\CommitRollbackDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -1121,11 +1118,17 @@
     <Compile Include="UI\Forms\EditTableForm.Designer.cs">
       <DependentUpon>EditTableForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\Forms\EncryptionMethodForm.cs">
+    <Compile Include="UI\Forms\DatabasePasswordDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Forms\EncryptionMethodForm.Designer.cs">
-      <DependentUpon>EncryptionMethodForm.cs</DependentUpon>
+    <Compile Include="UI\Forms\DatabasePasswordDialog.Designer.cs">
+      <DependentUpon>DatabasePasswordDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\DatabaseSecurityForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\DatabaseSecurityForm.Designer.cs">
+      <DependentUpon>DatabaseSecurityForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\Forms\ExportToFileForm.cs">
       <SubType>Form</SubType>
@@ -1264,6 +1267,12 @@
     <Compile Include="UI\QueryEditor\KeyCommands\QueryEditorKeyCommandContext.cs" />
     <Compile Include="UI\QueryEditor\KeyCommands\QueryEditorKeyCommandHandler.cs" />
     <Compile Include="UI\SchemaExplorer\C1SchemaExplorerRowReader.cs" />
+    <EmbeddedResource Include="UI\Forms\DatabasePasswordDialog.resx">
+      <DependentUpon>DatabasePasswordDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\DatabaseSecurityForm.resx">
+      <DependentUpon>DatabaseSecurityForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\Forms\DatabaseSecurityStartupErrorForm.resx">
       <DependentUpon>DatabaseSecurityStartupErrorForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -1309,9 +1318,6 @@
     <EmbeddedResource Include="UI\Forms\OracleCreateTableWizardForm.resx">
       <DependentUpon>OracleCreateTableWizardForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Forms\CustomPasswordDialog.resx">
-      <DependentUpon>CustomPasswordDialog.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="UI\Forms\CommitRollbackDialog.resx">
       <DependentUpon>CommitRollbackDialog.cs</DependentUpon>
     </EmbeddedResource>
@@ -1320,9 +1326,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Forms\EditTableForm.resx">
       <DependentUpon>EditTableForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\Forms\EncryptionMethodForm.resx">
-      <DependentUpon>EncryptionMethodForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Forms\ExportToFileForm.resx">
       <DependentUpon>ExportToFileForm.cs</DependentUpon>

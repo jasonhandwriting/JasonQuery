@@ -328,3 +328,8 @@ JasonQuery.db.database-encryption-v2-*
 
 # Private and unreleased source drafts
 **/未上線/
+
+# Database-security transition recovery files
+JasonQuery.security-transition.json
+JasonQuery.security-transition.json.tmp
+JasonQuery.db.database-security-change-*

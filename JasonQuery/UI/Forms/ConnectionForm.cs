@@ -190,7 +190,7 @@ namespace JasonQuery.UI.Forms
                     pnlConnect.Enabled = false;
                     cboLocalization.Enabled = false;
                     btnUpdateNow.Enabled = false;
-                    btnEncryptWithCustomPW.Enabled = false;
+                    btnDatabaseSecurity.Enabled = false;
                     btnExit.Enabled = false;
                 }
 
@@ -488,9 +488,9 @@ namespace JasonQuery.UI.Forms
             }
         }
 
-        private void chkEncryptWithCustomPW_Click(object sender, EventArgs e)
+        private void btnDatabaseSecurity_Click(object sender, EventArgs e)
         {
-            using (var form = new EncryptionMethodForm())
+            using (var form = new DatabaseSecurityForm())
             {
                 form.ShowDialog();
             }
