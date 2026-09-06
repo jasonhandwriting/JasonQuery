@@ -22,9 +22,10 @@
     <SQLiteAssembliesPath
       Condition="'$(SQLiteAssembliesPath)' == ''">$(MSBuildThisFileDirectory).local\SQLite</SQLiteAssembliesPath>
 
-    <!-- JasonQuery 主程式使用 System.Data.SQLite 讀寫內部設定資料庫 -->
+    <!-- JasonQuery 主程式與 unit tests 使用 System.Data.SQLite 讀寫及驗證內部設定資料庫 -->
     <UseJasonQuerySQLiteReferences
-      Condition="'$(MSBuildProjectFile)' == 'JasonQuery.csproj'">true</UseJasonQuerySQLiteReferences>
+      Condition="'$(MSBuildProjectFile)' == 'JasonQuery.csproj'
+              Or '$(MSBuildProjectFile)' == 'JasonQuery.Tests.csproj'">true</UseJasonQuerySQLiteReferences>
 
     <UseJasonQuerySQLiteReferences
       Condition="'$(UseJasonQuerySQLiteReferences)' == ''">false</UseJasonQuerySQLiteReferences>
