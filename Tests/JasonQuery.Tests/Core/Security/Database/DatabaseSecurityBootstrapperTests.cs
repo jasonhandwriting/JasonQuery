@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
+using System.Security.Cryptography;
 
 namespace JasonQuery.Tests.Core.Security.Database
 {
@@ -111,6 +112,54 @@ namespace JasonQuery.Tests.Core.Security.Database
             }
         }
 
+        [TestMethod]
+        public void Resolve_WindowsCurrentUserKeyUnavailable_ThrowsSpecificStartupError()
+        {
+            var directory = CreateTemporaryDirectory();
+
+            try
+            {
+                var databasePath = Path.Combine(directory, "JasonQuery.db");
+
+                File.WriteAllBytes(databasePath, new byte[] { 1 });
+
+                var databaseKey = DatabaseKeyGenerator.Generate();
+                var metadataPath = Path.Combine(directory, DatabaseSecurityConstants.MetadataFileName);
+                var store = new DatabaseSecurityMetadataStore(metadataPath);
+
+                store.Save
+                (
+                    DatabaseSecurityMetadata.CreateWindowsCurrentUser
+                    (
+                        Convert.ToBase64String(databaseKey)
+                    )
+                );
+
+                var bootstrapper = new DatabaseSecurityBootstrapper
+                (
+                    store,
+                    new FailingKeyProtector()
+                );
+
+                var exception = Assert.ThrowsException<DatabaseSecurityStartupException>
+                (
+                    () => bootstrapper.Resolve(databasePath)
+                );
+
+                Assert.AreEqual
+                (
+                    DatabaseSecurityStartupErrorKind.WindowsCurrentUserKeyUnavailable,
+                    exception.ErrorKind
+                );
+
+                Assert.IsInstanceOfType(exception.InnerException, typeof(CryptographicException));
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+
         private static DatabaseSecurityBootstrapper CreateBootstrapper(string directory, IDatabaseKeyProtector keyProtector)
         {
             return new DatabaseSecurityBootstrapper
@@ -141,6 +190,19 @@ namespace JasonQuery.Tests.Core.Security.Database
             public byte[] Unprotect(byte[] protectedDatabaseKey)
             {
                 return (byte[])protectedDatabaseKey.Clone();
+            }
+        }
+
+        private sealed class FailingKeyProtector : IDatabaseKeyProtector
+        {
+            public byte[] Protect(byte[] databaseKey)
+            {
+                return (byte[])databaseKey.Clone();
+            }
+
+            public byte[] Unprotect(byte[] protectedDatabaseKey)
+            {
+                throw new CryptographicException("Simulated DPAPI failure.");
             }
         }
     }

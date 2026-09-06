@@ -101,6 +101,8 @@
   <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblNoMigration" attribute="Text" name="No database migration was performed and JasonQuery.db was not modified." />
   <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="grpLocalization" attribute="Text" name="Localization" />
   <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="btnExit" attribute="Text" name="&amp;Exit JasonQuery" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="msg" id="WindowsCurrentUserKeyUnavailableReason" attribute="Text" name="The Windows-protected key for JasonQuery.db could not be unlocked. This can happen after moving JasonQuery to another computer, using a different Windows user profile, or reinstalling Windows." />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="msg" id="WindowsCurrentUserKeyUnavailableRecovery" attribute="Text" name="If the original Windows environment is still available, open JasonQuery there and switch JasonQuery.db Security to Custom Password before moving it. Always back up or move JasonQuery.db together with JasonQuery.security.json." />
   <!-- UpdateForm-->
   <language category="form" class="UpdateForm" type="object" id="this" attribute="Text" name="Check for updates" />
   <language category="form" class="UpdateForm" type="object" id="lblInfoHasNewVersion" attribute="Text" name="A new version of JasonQuery is available:" />
@@ -488,19 +490,19 @@
   <language category="form" class="DatabaseSecurityForm" type="object" id="lblNewCustomPassword" attribute="Text" name="New Custom Password:" />
   <language category="form" class="DatabaseSecurityForm" type="object" id="lblConfirmPassword" attribute="Text" name="Confirm Password:" />
   <language category="form" class="DatabaseSecurityForm" type="object" id="lblInfo1" attribute="Text" name="Custom passwords cannot be recovered by JasonQuery." />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="lblInfo2" attribute="Text" name="You must enter the password each time JasonQuery starts." />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblInfo2" attribute="Text" name="Enter the password at startup. Back up JasonQuery.db and JasonQuery.security.json together." />
   <language category="form" class="DatabaseSecurityForm" type="object" id="btnApply" attribute="Text" name="&amp;Apply" />
   <language category="form" class="DatabaseSecurityForm" type="object" id="btnClose" attribute="Text" name="&amp;Close" />
   <language category="form" class="DatabaseSecurityForm" type="object" id="grpLocalization" attribute="Text" name="Localization" />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="ProtectionWindows" attribute="Text" name="Windows Protected" />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="ProtectionCustom" attribute="Text" name="Custom Password" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="WindowsProtectionInfo" attribute="Text" name="Windows Protected stores the encryption key for JasonQuery.db using your current Windows user profile." />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="WindowsProtectionInfo" attribute="Text" name="Windows Protected is tied to your current Windows user profile. Before moving JasonQuery to another computer, switching Windows users, or reinstalling Windows, switch to Custom Password." />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="MetadataMissing" attribute="Text" name="Security metadata for JasonQuery.db is missing." />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="UnsupportedMode" attribute="Text" name="The current security mode for JasonQuery.db is not supported." />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="NewPasswordRequired" attribute="Text" name="Please enter a new custom password." />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="PasswordMismatch" attribute="Text" name="The new password and confirmation do not match." />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmCustomPassword" attribute="Text" name="JasonQuery cannot recover a custom password.&#x000A;&#x000A;You will need this password every time JasonQuery starts.&#x000A;&#x000A;Continue?" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmWindowsProtected" attribute="Text" name="Protect JasonQuery.db for the current Windows user?&#x000A;&#x000A;The custom password will no longer be required after this change." />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmCustomPassword" attribute="Text" name="JasonQuery cannot recover a custom password.&#x000A;&#x000A;You will need this password every time JasonQuery starts.&#x000A;&#x000A;Back up or move JasonQuery.db together with JasonQuery.security.json.&#x000A;&#x000A;Continue?" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmWindowsProtected" attribute="Text" name="Protect JasonQuery.db for the current Windows user?&#x000A;&#x000A;Windows Protected is tied to the current Windows user profile. Before moving JasonQuery to another computer, switching Windows users, or reinstalling Windows, switch to Custom Password.&#x000A;&#x000A;The custom password will no longer be required after this change." />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="UpdateSuccess" attribute="Text" name="JasonQuery.db security was updated successfully." />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="EnterCurrentPassword" attribute="Text" name="Enter the current custom password." />
   <language category="form" class="DatabaseSecurityForm" type="msg" id="CurrentPasswordIncorrect" attribute="Text" name="The current password is incorrect." />

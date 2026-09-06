@@ -107,10 +107,12 @@ namespace JasonQuery.Core.Security.Database
             }
             catch (CryptographicException ex)
             {
-                throw new InvalidDataException
+                throw new DatabaseSecurityStartupException
                 (
+                    DatabaseSecurityStartupErrorKind.WindowsCurrentUserKeyUnavailable,
                     "The Windows-protected JasonQuery database key could not be unlocked. " +
-                    "The database may belong to another Windows user or computer.",
+                    "The database may belong to another Windows user profile or computer, " +
+                    "or Windows may have been reinstalled.",
                     ex
                 );
             }
