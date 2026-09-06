@@ -58,9 +58,33 @@ namespace JasonQuery.UI.Forms
             var metadataStore = new DatabaseSecurityMetadataStore(metadataFilePath);
             var databaseKeyProtector = new DpapiDatabaseKeyProtector();
             var migrationDatabase = new SqliteDatabaseSecurityMigrationDatabase();
+            var transitionJournalStore = new DatabaseSecurityTransitionJournalStore
+            (
+                DatabaseSecurityTransitionManager.GetJournalFilePath(databaseFilePath)
+            );
+            var transitionManager = new DatabaseSecurityTransitionManager
+            (
+                metadataStore,
+                databaseKeyProtector,
+                migrationDatabase,
+                transitionJournalStore
+            );
             var migrator = new LegacyDatabaseSecurityMigrator(metadataStore, databaseKeyProtector, migrationDatabase);
             var freshInstallDatabase = new SqliteDatabaseSecurityFreshInstallDatabase();
             var freshInitializer = new FreshDatabaseSecurityInitializer(metadataStore, databaseKeyProtector, freshInstallDatabase);
+
+            var transitionRecoveryResult = transitionManager.RecoverInterruptedChangeIfNeeded(databaseFilePath);
+
+            if (transitionRecoveryResult != null)
+            {
+                ApplyResolvedV2DatabaseSecurity
+                (
+                    transitionRecoveryResult.Metadata,
+                    transitionRecoveryResult.DatabasePassword,
+                    null
+                );
+                return;
+            }
 
             migrator.RecoverInterruptedMigrationIfNeeded(databaseFilePath);
             freshInitializer.RecoverInterruptedInitializationIfNeeded(databaseFilePath);
@@ -115,13 +139,22 @@ namespace JasonQuery.UI.Forms
                     }
                 case DatabaseSecurityStartupState.V2CustomPasswordRequired:
                     {
-                        DatabaseSecurityRuntime.SetV2(DatabaseSecurityMode.CustomPassword);
+                        using (var passwordDialog = new DatabasePasswordDialog(bootstrapper, bootstrapResult.Metadata, databaseFilePath))
+                        {
+                            if (passwordDialog.ShowDialog(this) != DialogResult.OK)
+                            {
+                                Environment.Exit(1);
+                                return;
+                            }
 
-                        throw new NotSupportedException
-                        (
-                            "This JasonQuery.db uses Database Encryption V2 with a custom password. " +
-                            "The V2 custom-password startup dialog will be connected in a later security step."
-                        );
+                            ApplyResolvedV2DatabaseSecurity
+                            (
+                                bootstrapResult.Metadata,
+                                passwordDialog.DatabasePassword,
+                                null
+                            );
+                            return;
+                        }
                     }
                 case DatabaseSecurityStartupState.DatabaseMissing:
                     {

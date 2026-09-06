@@ -33,7 +33,6 @@ namespace JasonQuery.UI.Forms
                 UIHelper.SetC1ComboBoxItemsFromDictionary(cboLocalization, LocalizationHelper.LocalizationMap, true);
 
                 cboLocalization.Text = DefaultLocalization;
-                cboLocalization.Tag = DefaultLocalization;
 
                 ApplyErrorKindLayout();
                 ApplyVisualState();
@@ -85,6 +84,7 @@ namespace JasonQuery.UI.Forms
         private void ApplyVisualState()
         {
             lblTitle.ForeColor = Color.Maroon;
+            lblNoMigration.ForeColor = Color.DarkGreen;
             Text = $"JasonQuery {AppConfigHelper.LocalVersion} - {Text}";
         }
 

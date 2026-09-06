@@ -100,7 +100,7 @@
   <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblGeneralRecovery" attribute="Text" name="为了保护数据库，JasonQuery 已停止启动。请从确认可用的备份还原配对的 JasonQuery.db 与 JasonQuery.security.json，或先联系支持人员再重试。" />
   <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblNoMigration" attribute="Text" name="本次未执行任何数据库迁移，也未修改 JasonQuery.db。" />
   <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="grpLocalization" attribute="Text" name="语言" />
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="btnExit" attribute="Text" name="退出 JasonQuery" />
+  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="btnExit" attribute="Text" name="退出 JasonQuery(&amp;E)" />
   <!-- UpdateForm-->
   <language category="form" class="UpdateForm" type="object" id="this" attribute="Text" name="检查更新" />
   <language category="form" class="UpdateForm" type="object" id="lblInfoHasNewVersion" attribute="Text" name="有新版的 JasonQuery：" />
@@ -345,7 +345,7 @@
   <language category="form" class="ConnectionForm" type="object" id="btnDelete" attribute="Text" name="删除" />
   <language category="form" class="ConnectionForm" type="object" id="btnExit" attribute="Text" name="离开" />
   <language category="form" class="ConnectionForm" type="object" id="btnUpdateNow" attribute="Text" name="立即更新 (一键更新)" />
-  <language category="form" class="ConnectionForm" type="object" id="btnEncryptWithCustomPW" attribute="Text" name="针对 JasonQuery.db 设置密码保护" />
+  <language category="form" class="ConnectionForm" type="object" id="btnDatabaseSecurity" attribute="Text" name="JasonQuery.db 安全设置..." />
   <language category="form" class="ConnectionForm" type="object" id="btnConnect" attribute="Text" name="连线" />
   <language category="form" class="ConnectionForm" type="object" id="btnTest" attribute="Text" name="测试" />
   <language category="form" class="ConnectionForm" type="object" id="btnCopy" attribute="Text" name="复制" />
@@ -468,49 +468,44 @@
   <language category="form" class="ConnectionImportForm" type="msg" id="NoneImportFromFileName" attribute="Text" name="请选择要导入的文件名称！" />
   <language category="form" class="ConnectionImportForm" type="msg" id="NonePassword" attribute="Text" name="请输入密码！" />
   <language category="form" class="ConnectionImportForm" type="msg" id="ImportOK" attribute="Text" name="已成功地导入 {qty} 笔连线信息！" />
-  <!-- CustomPasswordDialog-->
-  <language category="form" class="CustomPasswordDialog" type="object" id="this" attribute="Text" name="JasonQuery.db 的密码保护" />
-  <language category="form" class="CustomPasswordDialog" type="object" id="lblTitle" attribute="Text" name="请输入您的自定义密码以连接到 JasonQuery.db：" />
-  <language category="form" class="CustomPasswordDialog" type="object" id="lblRemember" attribute="Text" name="(请记住，密码是区分大小写的。)" />
-  <language category="form" class="CustomPasswordDialog" type="object" id="lblInfo" attribute="Text" name="由于您设置了自定义密码，因此在启动 JasonQuery 时您必须输入自定义密码。" />
-  <language category="form" class="CustomPasswordDialog" type="object" id="btnOK" attribute="Text" name="确定(&amp;O)" />
-  <language category="form" class="CustomPasswordDialog" type="object" id="btnExit" attribute="Text" name="离开 JasonQuery" />
-  <language category="form" class="CustomPasswordDialog" type="object" id="grpLocalization" attribute="Text" name="语言" />
-  <language category="form" class="CustomPasswordDialog" type="msg" id="NonePassword" attribute="Text" name="请输入自定义密码！" />
-  <language category="form" class="CustomPasswordDialog" type="msg" id="WrongPassword" attribute="Text" name="密码错误！" />
-  <language category="form" class="CustomPasswordDialog" type="msg" id="ReEnter" attribute="Text" name="您必须重新输入您的密码。" />
-  <!-- EncryptionMethodForm-->
-  <language category="form" class="EncryptionMethodForm" type="object" id="this" attribute="Text" name="针对 JasonQuery.db 设置密码保护" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblTitle" attribute="Text" name="目前 JasonQuery.db 的加密方式：" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="rdoDefaultPassword" attribute="Text" name="默认密码" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblOldPassword2" attribute="Text" name="自定义密码：" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblChangeToDefaultPassword" attribute="Text" name="(您必须先输入您的自定义密码，才可以将自定义密码变更为默认密码。)" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="rdoCustomPassword" attribute="Text" name="自定义密码：" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="rdoChangeCustomPassword" attribute="Text" name="变更自定义密码：" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblOldPassword" attribute="Text" name="旧密码：" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblNewPassword" attribute="Text" name="新密码：" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblConfirmNewPassword" attribute="Text" name="确认新密码：" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblCaution0" attribute="Text" name="以后每次启动 JasonQuery 都需要输入自定义密码。" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblCaution1" attribute="Text" name="警告：如果丢失或忘记密码，则无法将其恢复。" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="lblCaution2" attribute="Text" name="(请记住，密码是区分大小写的。)" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="btnApply" attribute="Text" name="套用并关闭(&amp;A)" />
-  <language category="form" class="EncryptionMethodForm" type="object" id="btnClose" attribute="Text" name="取消并关闭(&amp;C)" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="DefaultPassword" attribute="Text" name="默认密码" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="CustomPassword" attribute="Text" name="自定义密码" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="NonePassword" attribute="Text" name="请输入自定义密码！" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="NoneOldPassword" attribute="Text" name="请输入旧密码！" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="NoneNewPassword" attribute="Text" name="请输入新密码！" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="NoneConfirmNewPassword" attribute="Text" name="请输入确认新密码！" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="NoneMatchConfirmNewPassword" attribute="Text" name="您输入的密码不匹配！" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="ErrorOldPassword" attribute="Text" name="旧密码不正确，请再试一次！" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="OKPasswordChanged1" attribute="Text" name="JasonQuery.db 的密码设置成功！" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="OKPasswordChanged2" attribute="Text" name="下次请使用新密码启动 JasonQuery。" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="ErrorPasswordChanged" attribute="Text" name="密码设置失败！" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="PasswordHelp1" attribute="Text" name="有效密码可以包含以下字符：" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="PasswordHelp2" attribute="Text" name="小写字母 a-z" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="PasswordHelp3" attribute="Text" name="大写字母 A-Z" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="PasswordHelp4" attribute="Text" name="数字 0-9" />
-  <language category="form" class="EncryptionMethodForm" type="msg" id="PasswordHelp5" attribute="Text" name="特殊字符" />
+  <!-- DatabasePasswordDialog-->
+  <language category="form" class="DatabasePasswordDialog" type="object" id="this" attribute="Text" name="JasonQuery.db 密码" />
+  <language category="form" class="DatabasePasswordDialog" type="object" id="lblInfo1" attribute="Text" name="JasonQuery.db 目前使用自定义密码保护。" />
+  <language category="form" class="DatabasePasswordDialog" type="object" id="lblInfo2" attribute="Text" name="请输入密码以继续。" />
+  <language category="form" class="DatabasePasswordDialog" type="object" id="lblCustomPassword" attribute="Text" name="自定义密码：" />
+  <language category="form" class="DatabasePasswordDialog" type="object" id="btnOK" attribute="Text" name="确定(&amp;O)" />
+  <language category="form" class="DatabasePasswordDialog" type="object" id="btnExit" attribute="Text" name="退出 JasonQuery(&amp;E)" />
+  <language category="form" class="DatabasePasswordDialog" type="object" id="grpLocalization" attribute="Text" name="语言" />
+  <language category="form" class="DatabasePasswordDialog" type="msg" id="NonePassword" attribute="Text" name="请输入自定义密码。" />
+  <language category="form" class="DatabasePasswordDialog" type="msg" id="WrongPassword" attribute="Text" name="自定义密码不正确。" />
+  <!-- DatabaseSecurityForm-->
+  <language category="form" class="DatabaseSecurityForm" type="object" id="this" attribute="Text" name="JasonQuery.db 安全设置" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblCurrentProtection" attribute="Text" name="当前保护方式：" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="grpProtection" attribute="Text" name="保护方式" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="rdoWindowsProtected" attribute="Text" name="Windows 用户保护" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="rdoCustomPassword" attribute="Text" name="自定义密码" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblCurrentPassword" attribute="Text" name="当前密码：" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblNewCustomPassword" attribute="Text" name="新的自定义密码：" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblConfirmPassword" attribute="Text" name="确认密码：" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblInfo1" attribute="Text" name="JasonQuery 无法恢复自定义密码。" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="lblInfo2" attribute="Text" name="每次启动 JasonQuery 都必须输入此密码。" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="btnApply" attribute="Text" name="应用(&amp;A)" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="btnClose" attribute="Text" name="关闭(&amp;C)" />
+  <language category="form" class="DatabaseSecurityForm" type="object" id="grpLocalization" attribute="Text" name="语言" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ProtectionWindows" attribute="Text" name="Windows 用户保护" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ProtectionCustom" attribute="Text" name="自定义密码" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="WindowsProtectionInfo" attribute="Text" name="Windows Protected 会使用您当前的 Windows 用户配置文件来存储 JasonQuery.db 的加密密钥。" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="MetadataMissing" attribute="Text" name="找不到 JasonQuery.db 的安全性元数据。" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="UnsupportedMode" attribute="Text" name="不支持 JasonQuery.db 当前的安全性模式。" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="NewPasswordRequired" attribute="Text" name="请输入新的自定义密码。" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="PasswordMismatch" attribute="Text" name="新密码与确认密码不匹配。" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmCustomPassword" attribute="Text" name="JasonQuery 无法恢复自定义密码。&#x000A;&#x000A;以后每次启动 JasonQuery 都需要此密码。&#x000A;&#x000A;是否继续？" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmWindowsProtected" attribute="Text" name="是否要改用当前的 Windows 用户保护 JasonQuery.db？&#x000A;&#x000A;更改后将不再需要自定义密码。" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="UpdateSuccess" attribute="Text" name="JasonQuery.db 的安全设置已成功更新。" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="EnterCurrentPassword" attribute="Text" name="请输入当前的自定义密码。" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="CurrentPasswordIncorrect" attribute="Text" name="当前密码不正确。" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="ReopenFailed" attribute="Text" name="更新 JasonQuery.db 的安全设置后，无法重新打开 JasonQuery.db。" />
+  <language category="form" class="DatabaseSecurityForm" type="msg" id="UpdateFailed" attribute="Text" name="无法更新 JasonQuery.db 的安全设置。" />
   <!-- GenerateSqlForm-->
   <language category="form" class="GenerateSqlForm" type="object" id="this" attribute="Text" name="产生 SQL 语句" />
   <language category="form" class="GenerateSqlForm" type="object" id="lblDatabase" attribute="Text" name="数据库:" />
