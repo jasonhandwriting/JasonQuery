@@ -565,6 +565,7 @@
     <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlUpdateSetParseResult.cs" />
     <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlUpdateSetValueInfo.cs" />
     <Compile Include="Database\Internal\Security\SqliteConnectionCredentialStorageVersionStore.cs" />
+    <Compile Include="Database\Internal\Security\SqliteLegacyConnectionCredentialMigrator.cs" />
     <Compile Include="Database\Internal\Security\SqliteDatabaseSecurityFreshInstallDatabase.cs" />
     <Compile Include="Database\Internal\Security\SqliteDatabaseSecurityMigrationDatabase.cs" />
     <Compile Include="Infrastructure\Windows\WindowsShortcutHelper.cs" />
