@@ -11,22 +11,24 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
         public void RuntimeCredentialReadCallSites_UseV2ContractAndDoNotUseLegacyCredentialSecurity()
         {
             var repositoryRoot = FindRepositoryRoot();
+
             var dbInfoGridSource = ReadSource
-                                   (
-                                       repositoryRoot,
-                                       "JasonQuery",
-                                       "UI",
-                                       "Forms",
-                                       "ConnectionForm.DbInfoGrid.cs"
-                                   );
+            (
+                repositoryRoot,
+                "JasonQuery",
+                "UI",
+                "Forms",
+                "ConnectionForm.DbInfoGrid.cs"
+            );
+
             var exportSource = ReadSource
-                               (
-                                   repositoryRoot,
-                                   "JasonQuery",
-                                   "UI",
-                                   "Forms",
-                                   "ConnectionExportForm.cs"
-                               );
+            (
+                repositoryRoot,
+                "JasonQuery",
+                "UI",
+                "Forms",
+                "ConnectionExportForm.cs"
+            );
 
             StringAssert.Contains(dbInfoGridSource, "ConnectionCredentialStorageContract.FromV2StoredValue");
             StringAssert.Contains(exportSource, "ConnectionCredentialStorageContract.FromV2StoredValue");
@@ -48,22 +50,24 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
         public void RuntimeCredentialWriteCallSites_UseV2ContractAndParameterizedPassword()
         {
             var repositoryRoot = FindRepositoryRoot();
+
             var saveSource = ReadSource
-                             (
-                                 repositoryRoot,
-                                 "JasonQuery",
-                                 "UI",
-                                 "Forms",
-                                 "ConnectionForm.Save.cs"
-                             );
+            (
+                repositoryRoot,
+                "JasonQuery",
+                "UI",
+                "Forms",
+                "ConnectionForm.Save.cs"
+            );
+
             var importSource = ReadSource
-                               (
-                                   repositoryRoot,
-                                   "JasonQuery",
-                                   "UI",
-                                   "Forms",
-                                   "ConnectionImportForm.cs"
-                               );
+            (
+                repositoryRoot,
+                "JasonQuery",
+                "UI",
+                "Forms",
+                "ConnectionImportForm.cs"
+            );
 
             StringAssert.Contains(saveSource, "ConnectionCredentialStorageContract.ToV2StoredValue");
             StringAssert.Contains(saveSource, "Password = @Password");
@@ -90,36 +94,40 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
         public void StartupCredentialGate_RunsBeforeDatabaseRuntimeIsMarkedV2()
         {
             var repositoryRoot = FindRepositoryRoot();
+
             var databaseSecuritySource = ReadSource
-                                         (
-                                             repositoryRoot,
-                                             "JasonQuery",
-                                             "UI",
-                                             "Forms",
-                                             "MainForm.DatabaseSecurity.cs"
-                                         );
+            (
+                repositoryRoot,
+                "JasonQuery",
+                "UI",
+                "Forms",
+                "MainForm.DatabaseSecurity.cs"
+            );
+
             var mainFormSource = ReadSource
-                                 (
-                                     repositoryRoot,
-                                     "JasonQuery",
-                                     "UI",
-                                     "Forms",
-                                     "MainForm.cs"
-                                 );
+            (
+                repositoryRoot,
+                "JasonQuery",
+                "UI",
+                "Forms",
+                "MainForm.cs"
+            );
 
             var ensureReadyIndex = databaseSecuritySource.IndexOf
-                                   (
-                                       "credentialStorageStartupGate.EnsureReady(connection)",
-                                       StringComparison.Ordinal
-                                   );
+            (
+                "credentialStorageStartupGate.EnsureReady(connection)",
+                StringComparison.Ordinal
+            );
+
             var setV2Index = databaseSecuritySource.IndexOf
-                             (
-                                 "DatabaseSecurityRuntime.SetV2(metadata.Mode)",
-                                 StringComparison.Ordinal
-                             );
+            (
+                "DatabaseSecurityRuntime.SetV2(metadata.Mode)",
+                StringComparison.Ordinal
+            );
 
             Assert.IsTrue(ensureReadyIndex >= 0, "The credential storage startup gate call was not found.");
             Assert.IsTrue(setV2Index >= 0, "The Database Security V2 runtime marker call was not found.");
+
             Assert.IsTrue
             (
                 ensureReadyIndex < setV2Index,
@@ -127,29 +135,33 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
             );
 
             var initializeDatabaseSecurityIndex = mainFormSource.IndexOf
-                                                  (
-                                                      "InitializeDatabaseSecurity(dbFilePath);",
-                                                      StringComparison.Ordinal
-                                                  );
+            (
+                "InitializeDatabaseSecurity(dbFilePath);",
+                StringComparison.Ordinal
+            );
+
             var loadGlobalSettingIndex = mainFormSource.IndexOf
-                                         (
-                                             "LoadGlobalSetting();",
-                                             StringComparison.Ordinal
-                                         );
+            (
+                "LoadGlobalSetting();",
+                StringComparison.Ordinal
+            );
+
             var loadConnectionFormIndex = mainFormSource.IndexOf
-                                          (
-                                              "LoadConnectionForm();",
-                                              StringComparison.Ordinal
-                                          );
+            (
+                "LoadConnectionForm();",
+                StringComparison.Ordinal
+            );
 
             Assert.IsTrue(initializeDatabaseSecurityIndex >= 0, "InitializeDatabaseSecurity startup call was not found.");
             Assert.IsTrue(loadGlobalSettingIndex >= 0, "LoadGlobalSetting startup call was not found.");
             Assert.IsTrue(loadConnectionFormIndex >= 0, "LoadConnectionForm startup call was not found.");
+
             Assert.IsTrue
             (
                 initializeDatabaseSecurityIndex < loadGlobalSettingIndex,
                 "Database security and credential migration must finish before global settings access JasonQuery.db."
             );
+
             Assert.IsTrue
             (
                 loadGlobalSettingIndex < loadConnectionFormIndex,

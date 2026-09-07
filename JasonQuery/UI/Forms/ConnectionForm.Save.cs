@@ -117,9 +117,9 @@ namespace JasonQuery.UI.Forms
             }
 
             var storedPassword = ConnectionCredentialStorageContract.ToV2StoredValue
-                                 (
-                                     chkSavePasswords.Checked ? txtPassword_Oracle.Text : null
-                                 );
+            (
+                chkSavePasswords.Checked ? txtPassword_Oracle.Text : null
+            );
 
             var sbSql = new StringBuilder();
             var dataSourceDisplayText = GetSelectedDataSourceDisplayText().Replace("'", "''");
@@ -205,9 +205,9 @@ namespace JasonQuery.UI.Forms
             }
 
             var storedPassword = ConnectionCredentialStorageContract.ToV2StoredValue
-                                 (
-                                     chkSavePasswords.Checked ? txtPassword_PostgreSQL.Text : null
-                                 );
+            (
+                chkSavePasswords.Checked ? txtPassword_PostgreSQL.Text : null
+            );
 
             var sbSql = new StringBuilder();
             var dataSourceDisplayText = GetSelectedDataSourceDisplayText().Replace("'", "''");
@@ -298,9 +298,9 @@ namespace JasonQuery.UI.Forms
             }
 
             var storedPassword = ConnectionCredentialStorageContract.ToV2StoredValue
-                                 (
-                                     chkSavePasswords.Checked ? txtPassword_SQLServer.Text : null
-                                 );
+            (
+                chkSavePasswords.Checked ? txtPassword_SQLServer.Text : null
+            );
 
             var sbSql = new StringBuilder();
             var dataSourceDisplayText = GetSelectedDataSourceDisplayText().Replace("'", "''");
@@ -389,9 +389,9 @@ namespace JasonQuery.UI.Forms
             }
 
             var storedPassword = ConnectionCredentialStorageContract.ToV2StoredValue
-                                 (
-                                     chkSavePasswords.Checked ? txtPassword_MySQL.Text : null
-                                 );
+            (
+                chkSavePasswords.Checked ? txtPassword_MySQL.Text : null
+            );
 
             var sbSql = new StringBuilder();
             var dataSourceDisplayText = GetSelectedDataSourceDisplayText().Replace("'", "''");
