@@ -124,10 +124,7 @@ namespace JasonQuery.Database.Internal.Security
             }
         }
 
-        public bool CanOpenWithoutPassword
-        (
-            string databaseFilePath
-        )
+        public bool CanOpenWithoutPassword(string databaseFilePath)
         {
             ValidateDatabaseFilePath(databaseFilePath);
 
