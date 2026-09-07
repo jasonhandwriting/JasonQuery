@@ -1,9 +1,10 @@
 ﻿using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Logging;
-using JasonQuery.Core.Security.Legacy;
+using JasonQuery.Core.Security.ConnectionCredentials;
 using JasonQuery.Database.Internal.Repositories;
 using System;
+using System.Data.SQLite;
 using System.Text;
 using System.Windows.Forms;
 
@@ -93,21 +94,32 @@ namespace JasonQuery.UI.Forms
             c1GridDBInfo.Row = rowIndex; //指標切換到剛剛新增的那一筆的列數
         }
 
+        private static void ExecuteConnectionProfileWrite(string sql, string storedPassword)
+        {
+            JasonQueryRepository.ExecNonQuery
+            (
+                sql,
+                new[]
+                {
+                    new SQLiteParameter("@Password", storedPassword)
+                }
+            );
+        }
+
         private bool SaveConnectData_Oracle(bool isPureSave = false)
         {
             var result = false;
             string sql;
-            var encryptedPassword = string.Empty;
 
             if (!CheckData(isPureSave))
             {
                 return false;
             }
 
-            if (chkSavePasswords.Checked)
-            {
-                encryptedPassword = LegacyConnectionCredentialSecurity.Protect(txtPassword_Oracle.Text, MyGlobal.DomainUser);
-            }
+            var storedPassword = ConnectionCredentialStorageContract.ToV2StoredValue
+                                 (
+                                     chkSavePasswords.Checked ? txtPassword_Oracle.Text : null
+                                 );
 
             var sbSql = new StringBuilder();
             var dataSourceDisplayText = GetSelectedDataSourceDisplayText().Replace("'", "''");
@@ -123,7 +135,7 @@ namespace JasonQuery.UI.Forms
                 sql += $"   SET DataSource = '{dataSourceDisplayText}', DomainUser = '{lblDomainUser.Text}', ConnectionName = '{txtConnectionName_Oracle.Text}',\r\n";
                 sql += $"       Server = '{txtServer_Oracle.Text}', SID = '{txtSID_Oracle.Text}', DirectMode = '{(chkDirectMode_Oracle.Checked ? "1" : "0")}', Database = '', Port = '{txtPort_Oracle.Text}',\r\n";
                 sql += $"       TabBackColor = '{pnlBackColor.Tag}', TabActiveForeColor = '{pnlActiveForeColor.Tag}', TabInactiveForeColor = '{pnlInactiveForeColor.Tag}', User = '{txtUserID_Oracle.Text}', ConnectAs = '{cboConnectAs_Oracle.Text}', \r\n";
-                sql += $"       Password = '{encryptedPassword}',\r\n";
+                sql += "       Password = @Password,\r\n";
                 sql += $"       AutoRollback = '0', Unicode = '{unicode}', Remarks = '{remark}', O1 = '{pooling}', O2 = '', O3 = '{nudQueryTimeout_Oracle.Value}'";
 
                 if (!isPureSave)
@@ -132,7 +144,7 @@ namespace JasonQuery.UI.Forms
                 }
 
                 sql += $" WHERE PID = {lblPID.Text}";
-                JasonQueryRepository.ExecNonQuery(sql);
+                ExecuteConnectionProfileWrite(sql, storedPassword);
 
                 //重新載入 DBInfo 資料
                 ReloadDbInfoGrid();
@@ -158,7 +170,7 @@ namespace JasonQuery.UI.Forms
                 sql += $"VALUES ('{dataSourceDisplayText}', '{lblDomainUser.Text}', '{txtConnectionName_Oracle.Text}',\r\n";
                 sql += $"        '{txtServer_Oracle.Text}', '{txtSID_Oracle.Text}', '{(chkDirectMode_Oracle.Checked ? "1" : "0")}', '', '{txtPort_Oracle.Text}',\r\n";
                 sql += $"        '{pnlBackColor.Tag}', '{pnlActiveForeColor.Tag}', '{pnlInactiveForeColor.Tag}', '{txtUserID_Oracle.Text}', '{cboConnectAs_Oracle.Text}',\r\n";
-                sql += $"        '{encryptedPassword}',\r\n";
+                sql += "        @Password,\r\n";
                 sql += $"        '0', '{unicode}', '{remark}', '{pooling}', '', '{nudQueryTimeout_Oracle.Value}', '', '', ''";
 
                 if (!isPureSave)
@@ -168,7 +180,7 @@ namespace JasonQuery.UI.Forms
 
                 sql += ")";
 
-                JasonQueryRepository.ExecNonQuery(sql);
+                ExecuteConnectionProfileWrite(sql, storedPassword);
 
                 //重新載入 DBInfo 資料
                 ReloadDbInfoGrid();
@@ -186,17 +198,16 @@ namespace JasonQuery.UI.Forms
         {
             var result = false;
             string sql;
-            var encryptedPassword = string.Empty;
 
             if (!CheckData(isPureSave))
             {
                 return false;
             }
 
-            if (chkSavePasswords.Checked)
-            {
-                encryptedPassword = LegacyConnectionCredentialSecurity.Protect(txtPassword_PostgreSQL.Text, MyGlobal.DomainUser);
-            }
+            var storedPassword = ConnectionCredentialStorageContract.ToV2StoredValue
+                                 (
+                                     chkSavePasswords.Checked ? txtPassword_PostgreSQL.Text : null
+                                 );
 
             var sbSql = new StringBuilder();
             var dataSourceDisplayText = GetSelectedDataSourceDisplayText().Replace("'", "''");
@@ -213,7 +224,7 @@ namespace JasonQuery.UI.Forms
                 sql += $"   SET DataSource = '{dataSourceDisplayText}', DomainUser = '{lblDomainUser.Text}', ConnectionName = '{txtConnectionName_PostgreSQL.Text}',\r\n";
                 sql += $"       Server = '{txtServer_PostgreSQL.Text}', SID = '', DirectMode = '0', Database = '{cboDatabase_PostgreSQL.Text}', Port = '{txtPort_PostgreSQL.Text}',\r\n";
                 sql += $"       TabBackColor = '{pnlBackColor.Tag}', TabActiveForeColor = '{pnlActiveForeColor.Tag}', TabInactiveForeColor = '{pnlInactiveForeColor.Tag}', User = '{txtUserID_PostgreSQL.Text}', ConnectAs = '',\r\n";
-                sql += $"       Password = '{encryptedPassword}',\r\n";
+                sql += "       Password = @Password,\r\n";
                 sql += $"       AutoRollback = '{autoRollback}', Unicode = '{unicode}', Remarks = '{remark}', O1 = '{pooling}', O2 = '', O3 = '{nudQueryTimeout_PostgreSQL.Value}'";
 
                 if (!isPureSave)
@@ -222,7 +233,7 @@ namespace JasonQuery.UI.Forms
                 }
 
                 sql += $" WHERE PID = {lblPID.Text}";
-                JasonQueryRepository.ExecNonQuery(sql);
+                ExecuteConnectionProfileWrite(sql, storedPassword);
 
                 //重新載入 DBInfo 資料
                 ReloadDbInfoGrid();
@@ -253,7 +264,7 @@ namespace JasonQuery.UI.Forms
                 sql += $"VALUES ('{dataSourceDisplayText}', '{lblDomainUser.Text}', '{txtConnectionName_PostgreSQL.Text}',\r\n";
                 sql += $"        '{txtServer_PostgreSQL.Text}', '', '0', '{cboDatabase_PostgreSQL.Text}', '{txtPort_PostgreSQL.Text}',\r\n";
                 sql += $"        '{pnlBackColor.Tag}', '{pnlActiveForeColor.Tag}', '{pnlInactiveForeColor.Tag}', '{txtUserID_PostgreSQL.Text}', '',\r\n";
-                sql += $"        '{encryptedPassword}',\r\n";
+                sql += "        @Password,\r\n";
                 sql += $"        '{autoRollback}', '{unicode}', '{remark}', '{pooling}', '', '{nudQueryTimeout_PostgreSQL.Value}', '', '', ''";
 
                 if (!isPureSave)
@@ -262,7 +273,7 @@ namespace JasonQuery.UI.Forms
                 }
 
                 sql += ")";
-                JasonQueryRepository.ExecNonQuery(sql);
+                ExecuteConnectionProfileWrite(sql, storedPassword);
 
                 //重新載入 DBInfo 資料
                 ReloadDbInfoGrid();
@@ -280,17 +291,16 @@ namespace JasonQuery.UI.Forms
         {
             var result = false;
             string sql;
-            var encryptedPassword = string.Empty;
 
             if (!CheckData(isPureSave))
             {
                 return false;
             }
 
-            if (chkSavePasswords.Checked)
-            {
-                encryptedPassword = LegacyConnectionCredentialSecurity.Protect(txtPassword_SQLServer.Text, MyGlobal.DomainUser);
-            }
+            var storedPassword = ConnectionCredentialStorageContract.ToV2StoredValue
+                                 (
+                                     chkSavePasswords.Checked ? txtPassword_SQLServer.Text : null
+                                 );
 
             var sbSql = new StringBuilder();
             var dataSourceDisplayText = GetSelectedDataSourceDisplayText().Replace("'", "''");
@@ -306,7 +316,7 @@ namespace JasonQuery.UI.Forms
                 sql += $"   SET DataSource = '{dataSourceDisplayText}', DomainUser = '{lblDomainUser.Text}', ConnectionName = '{txtConnectionName_SQLServer.Text}',\r\n";
                 sql += $"       Server = '{txtServer_SQLServer.Text}', SID = '', DirectMode = '0', Database = '{cboDatabase_SQLServer.Text}', Port = '{txtPort_SQLServer.Text}',\r\n";
                 sql += $"       TabBackColor = '{pnlBackColor.Tag}', TabActiveForeColor = '{pnlActiveForeColor.Tag}', TabInactiveForeColor = '{pnlInactiveForeColor.Tag}', User = '{txtUserID_SQLServer.Text}', ConnectAs = '',\r\n";
-                sql += $"       Password = '{encryptedPassword}',\r\n";
+                sql += "       Password = @Password,\r\n";
                 sql += $"       AutoRollback = '0', Unicode = '0', Remarks = '{remark}', O1 = '{pooling}', O2 = '{excludeNativeObject}', O3 = '{nudQueryTimeout_SQLServer.Value}'";
 
                 if (!isPureSave)
@@ -315,7 +325,7 @@ namespace JasonQuery.UI.Forms
                 }
 
                 sql += $" WHERE PID = {lblPID.Text}";
-                JasonQueryRepository.ExecNonQuery(sql);
+                ExecuteConnectionProfileWrite(sql, storedPassword);
 
                 //重新載入 DBInfo 資料
                 ReloadDbInfoGrid();
@@ -345,7 +355,7 @@ namespace JasonQuery.UI.Forms
                 sql += $"VALUES ('{dataSourceDisplayText}', '{lblDomainUser.Text}', '{txtConnectionName_SQLServer.Text}', \r\n";
                 sql += $"        '{txtServer_SQLServer.Text}', '', '0', '{cboDatabase_SQLServer.Text}', '{txtPort_SQLServer.Text}', \r\n";
                 sql += $"        '{pnlBackColor.Tag}', '{pnlActiveForeColor.Tag}', '{pnlInactiveForeColor.Tag}', '{txtUserID_SQLServer.Text}', '', \r\n";
-                sql += $"        '{encryptedPassword}', \r\n";
+                sql += "        @Password, \r\n";
                 sql += $"        '0', '0', '{remark}', '{pooling}', '{excludeNativeObject}', '{nudQueryTimeout_SQLServer.Value}', '', '', ''";
 
                 if (!isPureSave)
@@ -354,7 +364,7 @@ namespace JasonQuery.UI.Forms
                 }
 
                 sql += ")";
-                JasonQueryRepository.ExecNonQuery(sql);
+                ExecuteConnectionProfileWrite(sql, storedPassword);
 
                 //重新載入 DBInfo 資料
                 ReloadDbInfoGrid();
@@ -372,17 +382,16 @@ namespace JasonQuery.UI.Forms
         {
             var result = false;
             string sql;
-            var encryptedPassword = string.Empty;
 
             if (!CheckData(isPureSave))
             {
                 return false;
             }
 
-            if (chkSavePasswords.Checked)
-            {
-                encryptedPassword = LegacyConnectionCredentialSecurity.Protect(txtPassword_MySQL.Text, MyGlobal.DomainUser);
-            }
+            var storedPassword = ConnectionCredentialStorageContract.ToV2StoredValue
+                                 (
+                                     chkSavePasswords.Checked ? txtPassword_MySQL.Text : null
+                                 );
 
             var sbSql = new StringBuilder();
             var dataSourceDisplayText = GetSelectedDataSourceDisplayText().Replace("'", "''");
@@ -398,7 +407,7 @@ namespace JasonQuery.UI.Forms
                 sql += $"   SET DataSource = '{dataSourceDisplayText}', DomainUser = '{lblDomainUser.Text}', ConnectionName = '{txtConnectionName_MySQL.Text}',\r\n";
                 sql += $"       Server = '{txtServer_MySQL.Text}', SID = '', DirectMode = '0', Database = '{cboDatabase_MySQL.Text}', Port = '{txtPort_MySQL.Text}',\r\n";
                 sql += $"       TabBackColor = '{pnlBackColor.Tag}', TabActiveForeColor = '{pnlActiveForeColor.Tag}', TabInactiveForeColor = '{pnlInactiveForeColor.Tag}', User = '{txtUserID_MySQL.Text}', ConnectAs = '',\r\n";
-                sql += $"       Password = '{encryptedPassword}',\r\n";
+                sql += "       Password = @Password,\r\n";
                 sql += $"       AutoRollback = '0', Unicode = '{unicode}', Remarks = '{remark}', O1 = '{pooling}', O2 = '', O3 = '{nudQueryTimeout_MySQL.Value}'";
 
                 if (!isPureSave)
@@ -407,7 +416,7 @@ namespace JasonQuery.UI.Forms
                 }
 
                 sql += $" WHERE PID = {lblPID.Text}";
-                JasonQueryRepository.ExecNonQuery(sql);
+                ExecuteConnectionProfileWrite(sql, storedPassword);
 
                 //重新載入 DBInfo 資料
                 ReloadDbInfoGrid();
@@ -437,7 +446,7 @@ namespace JasonQuery.UI.Forms
                 sql += $"VALUES ('{dataSourceDisplayText}', '{lblDomainUser.Text}', '{txtConnectionName_MySQL.Text}',\r\n";
                 sql += $"        '{txtServer_MySQL.Text}', '', '0', '{cboDatabase_MySQL.Text}', '{txtPort_MySQL.Text}',\r\n";
                 sql += $"        '{pnlBackColor.Tag}', '{pnlActiveForeColor.Tag}', '{pnlInactiveForeColor.Tag}', '{txtUserID_MySQL.Text}', '',\r\n";
-                sql += $"        '{encryptedPassword}',\r\n";
+                sql += "        @Password,\r\n";
                 sql += $"        '0', '{unicode}', '{remark}', '{pooling}', '', '{nudQueryTimeout_MySQL.Value}', '', '', ''";
 
                 if (!isPureSave)
@@ -446,7 +455,7 @@ namespace JasonQuery.UI.Forms
                 }
 
                 sql += ")";
-                JasonQueryRepository.ExecNonQuery(sql);
+                ExecuteConnectionProfileWrite(sql, storedPassword);
 
                 //重新載入 DBInfo 資料
                 ReloadDbInfoGrid();
