@@ -172,14 +172,15 @@ namespace JasonQuery.UI.Forms
         {
             JasonQueryRepository.DbConnectionPassword = databasePassword;
 
-            if (!JasonQueryRepository.CheckCurrentDatabasePassword())
+            using (var connection = JasonQueryRepository.OpenValidatedCurrentDatabaseConnection())
             {
-                throw new InvalidDataException
-                (
-                    "Database Encryption V2 metadata was resolved, but JasonQuery.db could not be opened with the resolved key."
-                );
+                var credentialStorageStartupGate = new SqliteConnectionCredentialStorageStartupGate();
+
+                credentialStorageStartupGate.EnsureReady(connection);
             }
 
+            //Runtime may interpret DBInfo.Password as a V2 logical value only after
+            //the database-wide credential migration gate has completed successfully.
             DatabaseSecurityRuntime.SetV2(metadata.Mode);
 
             if (migrator != null)
