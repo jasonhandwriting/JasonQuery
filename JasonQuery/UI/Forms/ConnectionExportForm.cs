@@ -6,6 +6,7 @@ using JasonQuery.Core.Config;
 using JasonQuery.Core.Data.DataRows;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
+using JasonQuery.Core.Security.ConnectionCredentials;
 using JasonQuery.Core.Security.Legacy;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
@@ -337,10 +338,10 @@ namespace JasonQuery.UI.Forms
 
                         if (chkIncludeDBPassword.Checked)
                         {
-                            var password = dr.GetSafeString("Password");
-                            var passwordResult = LegacyConnectionCredentialSecurity.Unprotect(password, MyGlobal.DomainUser);
+                            var storedPassword = dr.GetSafeString("Password");
+                            var logicalPassword = ConnectionCredentialStorageContract.FromV2StoredValue(storedPassword);
 
-                            sheet[excelRowIndex, col].Value = passwordResult;
+                            sheet[excelRowIndex, col].Value = logicalPassword;
                         }
                         else
                         {
