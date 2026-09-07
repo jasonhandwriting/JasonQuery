@@ -41,6 +41,36 @@ namespace JasonQuery.Database.Internal.Repositories
             return connection;
         }
 
+        //V2 startup：使用已解析完成的資料庫密碼開啟並驗證 JasonQuery.db。
+        //呼叫端負責 Dispose；成功回傳時 connection 必須保持 Open，供後續安全啟動 gate 使用。
+        internal static SQLiteConnection OpenValidatedCurrentDatabaseConnection()
+        {
+            var connection = new SQLiteConnection { ConnectionString = DbConnectionString };
+
+            try
+            {
+                connection.SetPassword(DbConnectionPassword);
+                connection.Open();
+
+                if (connection.State != ConnectionState.Open)
+                {
+                    throw new InvalidOperationException("The JasonQuery database connection did not open.");
+                }
+
+                using (var command = new SQLiteCommand("SELECT 1 FROM SystemConfig WHERE 1 = 2", connection))
+                {
+                    command.ExecuteScalar();
+                }
+
+                return connection;
+            }
+            catch
+            {
+                connection.Dispose();
+                throw;
+            }
+        }
+
         //Legacy：驗證舊版預設密碼或舊版自訂密碼。
         public static bool CheckDBPassword(string password)
         {
@@ -193,6 +223,43 @@ namespace JasonQuery.Database.Internal.Repositories
                 {
                     MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+        }
+
+        //Credential/runtime write path：敏感欄位一律以 SQLite parameter 寫入，避免 logical password 被拼接進 SQL literal。
+        public static void ExecNonQuery(string sql, SQLiteParameter[] parameters, bool showAlertOnError = true)
+        {
+            var connection = OleDbOpenConn();
+
+            try
+            {
+                using (var command = new SQLiteCommand(sql, connection))
+                {
+                    if (parameters != null && parameters.Length > 0)
+                    {
+                        command.Parameters.AddRange(parameters);
+                    }
+
+                    command.ExecuteNonQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                var message = ExceptionDialogService.BuildMessage(ex);
+
+                if (showAlertOnError)
+                {
+                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            finally
+            {
+                if (connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+
+                connection.Dispose();
             }
         }
 
