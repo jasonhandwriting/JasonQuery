@@ -5,7 +5,7 @@ using JasonQuery.Core.Config;
 using JasonQuery.Core.Data.DataRows;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
-using JasonQuery.Core.Security.Legacy;
+using JasonQuery.Core.Security.ConnectionCredentials;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.UI.Helpers;
@@ -353,49 +353,23 @@ namespace JasonQuery.UI.Forms
             return value;
         }
 
-        private void ShowWrongPasswordMessage()
+        private void RestorePasswordFromGrid(string storedPassword, Control passwordControl)
         {
-            _languageText = LocalizationHelper.GetLanguageString("Wrong password!", "form", GetType().Name, "msg", "WrongPassword", "Text");
-
-            var message = $"{_languageText}\r\n\r\n";
-
-            _languageText = LocalizationHelper.GetLanguageString("Could not resolve your password correctly.", "form", GetType().Name, "msg", "Resolve", "Text");
-            message += $"{_languageText}\r\n";
-
-            _languageText = LocalizationHelper.GetLanguageString("You must re-enter your password.", "form", GetType().Name, "msg", "ReEnter", "Text");
-            message += _languageText;
-
-            MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        private void RestorePasswordFromGrid(string encryptedPassword, Control passwordControl)
-        {
-            var passwordResult = string.Empty;
+            var logicalPassword = ConnectionCredentialStorageContract.FromV2StoredValue(storedPassword);
 
             //這裡改為各別判斷，才不會出現「先勾再取消」的「特殊狀況」
-            chkSavePasswords.Checked = !string.IsNullOrEmpty(encryptedPassword);
+            chkSavePasswords.Checked = !string.IsNullOrEmpty(logicalPassword);
 
-            if (!string.IsNullOrEmpty(encryptedPassword))
-            {
-                passwordResult = LegacyConnectionCredentialSecurity.Unprotect(encryptedPassword, MyGlobal.DomainUser);
-            }
-
-            if (string.IsNullOrEmpty(encryptedPassword) && TextHelper.IsNullOrEmptyTag(passwordControl.Tag))
+            if (string.IsNullOrEmpty(logicalPassword) && TextHelper.IsNullOrEmptyTag(passwordControl.Tag))
             {
                 passwordControl.Text = string.Empty;
-                passwordControl.Focus();
-            }
-            else if (string.IsNullOrEmpty(passwordResult) && !string.IsNullOrEmpty(encryptedPassword))
-            {
-                passwordControl.Text = string.Empty;
-                ShowWrongPasswordMessage();
                 passwordControl.Focus();
             }
             else
             {
                 var tag = TextHelper.GetSafeString(passwordControl.Tag);
 
-                passwordControl.Text = string.IsNullOrEmpty(passwordResult) ? tag : passwordResult;
+                passwordControl.Text = string.IsNullOrEmpty(logicalPassword) ? tag : logicalPassword;
             }
         }
 
