@@ -256,4 +256,35 @@ namespace JasonQuery.Database.Internal.Security
             }
         }
     }
+
+    /// <summary>
+    /// Startup gate for DBInfo.Password storage semantics.
+    /// The supplied JasonQuery.db connection must already be unlocked, validated,
+    /// and open. Runtime credential consumers are allowed to proceed only after
+    /// this gate confirms that the database-wide storage marker is V2.
+    /// </summary>
+    internal sealed class SqliteConnectionCredentialStorageStartupGate
+    {
+        private readonly IConnectionCredentialStorageVersionStore _versionStore;
+        private readonly SqliteLegacyConnectionCredentialMigrator _migrator;
+
+        public SqliteConnectionCredentialStorageStartupGate() : this(new SqliteConnectionCredentialStorageVersionStore())
+        {
+        }
+
+        internal SqliteConnectionCredentialStorageStartupGate(IConnectionCredentialStorageVersionStore versionStore)
+        {
+            _versionStore = versionStore ?? throw new ArgumentNullException(nameof(versionStore));
+            _migrator = new SqliteLegacyConnectionCredentialMigrator(_versionStore);
+        }
+
+        public bool EnsureReady(IDbConnection connection)
+        {
+            var migrated = _migrator.MigrateIfRequired(connection);
+            var persistedVersion = _versionStore.ReadPersistedVersion(connection, null);
+
+            ConnectionCredentialStorageContract.EnsureV2Ready(persistedVersion);
+            return migrated;
+        }
+    }
 }

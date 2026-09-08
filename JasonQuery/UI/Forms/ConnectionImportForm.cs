@@ -3,10 +3,13 @@ using C1.C1Zip;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
+using JasonQuery.Core.Security.ConnectionCredentials;
 using JasonQuery.Core.Security.Legacy;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
 using System;
+using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -116,6 +119,8 @@ namespace JasonQuery.UI.Forms
             }
 
             var book = new C1XLBook();
+            string fileNameZip = null;
+            string fileNameXls = null;
 
             try
             {
@@ -129,8 +134,8 @@ namespace JasonQuery.UI.Forms
                 inData[3] = 4; //04
                 inData[4] = 20; //14
 
-                var fileNameZip = Path.GetTempFileName();
-                var fileNameXls = Path.GetTempFileName();
+                fileNameZip = Path.GetTempFileName();
+                fileNameXls = Path.GetTempFileName();
 
                 TextEngine.WriteBinaryFile(fileNameZip, inData);
 
@@ -139,8 +144,6 @@ namespace JasonQuery.UI.Forms
                     UseUtf8Encoding = true,
                     Password = LegacyConnectionExportSecurity.CreateArchivePassword(txtEncryptPassword.Text)
                 };
-
-                var isOpenNG = false;
 
                 try
                 {
@@ -153,24 +156,20 @@ namespace JasonQuery.UI.Forms
                     message += LocalizationHelper.GetLanguageString("You must re-enter your password.", "form", "ConnectionForm", "msg", "ReEnter", "Text");
                     MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     txtEncryptPassword.Focus();
-                    isOpenNG = false;
+                    return;
                 }
                 finally
                 {
                     zip.Close();
                 }
 
-                if (isOpenNG)
+                if (!File.Exists(fileNameXls) || new FileInfo(fileNameXls).Length == 0)
                 {
-                    return;
-                }
-
-                if (!File.Exists(fileNameXls))
-                {
-                    return;
+                    throw new InvalidDataException("The extracted JasonQuery connection payload is missing or empty.");
                 }
 
                 var sbSql = new StringBuilder();
+                var passwordParameters = new List<SQLiteParameter>();
 
                 book.Load(fileNameXls);
 
@@ -235,12 +234,11 @@ namespace JasonQuery.UI.Forms
 
                     col++;
 
-                    var password = book.Sheets[0][i, col].Value == null ? string.Empty : book.Sheets[0][i, col].Value.ToString();
+                    var logicalPassword = book.Sheets[0][i, col].Value == null ? string.Empty : book.Sheets[0][i, col].Value.ToString();
+                    var storedPassword = ConnectionCredentialStorageContract.ToV2StoredValue(logicalPassword);
+                    var passwordParameterName = $"@Password{count}";
 
-                    if (!string.IsNullOrEmpty(password))
-                    {
-                        password = LegacyConnectionCredentialSecurity.Protect(password, MyGlobal.DomainUser);
-                    }
+                    passwordParameters.Add(new SQLiteParameter(passwordParameterName, storedPassword));
 
                     col++;
 
@@ -332,7 +330,7 @@ namespace JasonQuery.UI.Forms
                     sbSql.AppendLine("       TabInactiveForeColor, Remarks, O1, O2, O3, O4, O5, O6, O7, O8,");
                     sbSql.AppendLine("       O9, O10, O11, O12, O13, O14, O15)");
                     sbSql.AppendLine($"VALUES ('{MyGlobal.DomainUser}', '{connectionName}', '{dataSource}', '{server}', '{sid}',");
-                    sbSql.AppendLine($"        '{directMode}', '{database}', '{connectAs}', '{port}', '{user}', '{password}',");
+                    sbSql.AppendLine($"        '{directMode}', '{database}', '{connectAs}', '{port}', '{user}', {passwordParameterName},");
                     sbSql.AppendLine($"        '{autoRollback}', '{unicode}', '{tabBackColor}', '{tabActiveForeColor}',");
                     sbSql.AppendLine($"        '{tabInactiveForeColor}', '{remarks}', '{s1}', '{s2}', '{s3}', '{s4}', '{s5}', '{s6}', '{s7}', '{s8}',");
                     sbSql.AppendLine($"        '{s9}', '{s10}', '{s11}', '{s12}', '{s13}', '{s14}', '{s15}');");
@@ -342,7 +340,7 @@ namespace JasonQuery.UI.Forms
 
                 var sql = sbSql.ToString();
 
-                JasonQueryRepository.ExecNonQuery(sql);
+                JasonQueryRepository.ExecNonQuery(sql, passwordParameters.ToArray());
 
                 message = LocalizationHelper.GetLanguageString("{qty} connection information imported successfully!", "form", GetType().Name, "msg", "ImportOK", "Text").Replace("{qty}", count.ToString());
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -354,8 +352,37 @@ namespace JasonQuery.UI.Forms
             }
             finally
             {
-                book.Dispose();
-                Dispose();
+                try
+                {
+                    book.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    TraceLogger.LogError("ConnectionImportWorkbookDispose", ex);
+                }
+                finally
+                {
+                    DeleteTempFileIfExists(fileNameXls);
+                    DeleteTempFileIfExists(fileNameZip);
+                    Dispose();
+                }
+            }
+        }
+
+        private static void DeleteTempFileIfExists(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
+            {
+                return;
+            }
+
+            try
+            {
+                File.Delete(fileName);
+            }
+            catch (Exception ex)
+            {
+                TraceLogger.LogError("ConnectionImportTempCleanup", ex);
             }
         }
 

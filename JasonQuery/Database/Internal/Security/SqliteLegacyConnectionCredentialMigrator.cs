@@ -12,9 +12,9 @@ namespace JasonQuery.Database.Internal.Security
     /// Converts historical DBInfo.Password values to the V2 logical-value
     /// storage contract.
     ///
-    /// This class implements the one-time migration engine only. Runtime
-    /// activation is intentionally deferred until the credential save/load
-    /// call sites are switched to V2 semantics.
+    /// This class implements the one-time migration engine used by the startup
+    /// credential-storage gate. Legacy per-field crypto remains isolated here
+    /// after runtime save/load call sites switch to V2 semantics.
     /// </summary>
     internal sealed class SqliteLegacyConnectionCredentialMigrator
     {

@@ -3,9 +3,10 @@
 namespace JasonQuery.Core.Security.Legacy
 {
     /// <summary>
-    /// Compatibility boundary for the historical DBInfo.Password format.
-    /// This class preserves the legacy TextEngine behavior until stored
-    /// connection credentials are migrated to the current storage model.
+    /// Migration-only compatibility boundary for the historical DBInfo.Password
+    /// format. V2 runtime save/load paths must not call this class; it remains only
+    /// so the one-time legacy credential migrator can recover and validate existing
+    /// stored credentials.
     /// </summary>
     public static class LegacyConnectionCredentialSecurity
     {
