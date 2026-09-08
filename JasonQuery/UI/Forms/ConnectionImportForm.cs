@@ -119,6 +119,8 @@ namespace JasonQuery.UI.Forms
             }
 
             var book = new C1XLBook();
+            string fileNameZip = null;
+            string fileNameXls = null;
 
             try
             {
@@ -132,8 +134,8 @@ namespace JasonQuery.UI.Forms
                 inData[3] = 4; //04
                 inData[4] = 20; //14
 
-                var fileNameZip = Path.GetTempFileName();
-                var fileNameXls = Path.GetTempFileName();
+                fileNameZip = Path.GetTempFileName();
+                fileNameXls = Path.GetTempFileName();
 
                 TextEngine.WriteBinaryFile(fileNameZip, inData);
 
@@ -142,8 +144,6 @@ namespace JasonQuery.UI.Forms
                     UseUtf8Encoding = true,
                     Password = LegacyConnectionExportSecurity.CreateArchivePassword(txtEncryptPassword.Text)
                 };
-
-                var isOpenNG = false;
 
                 try
                 {
@@ -156,21 +156,16 @@ namespace JasonQuery.UI.Forms
                     message += LocalizationHelper.GetLanguageString("You must re-enter your password.", "form", "ConnectionForm", "msg", "ReEnter", "Text");
                     MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     txtEncryptPassword.Focus();
-                    isOpenNG = false;
+                    return;
                 }
                 finally
                 {
                     zip.Close();
                 }
 
-                if (isOpenNG)
+                if (!File.Exists(fileNameXls) || new FileInfo(fileNameXls).Length == 0)
                 {
-                    return;
-                }
-
-                if (!File.Exists(fileNameXls))
-                {
-                    return;
+                    throw new InvalidDataException("The extracted JasonQuery connection payload is missing or empty.");
                 }
 
                 var sbSql = new StringBuilder();
@@ -357,8 +352,37 @@ namespace JasonQuery.UI.Forms
             }
             finally
             {
-                book.Dispose();
-                Dispose();
+                try
+                {
+                    book.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    TraceLogger.LogError("ConnectionImportWorkbookDispose", ex);
+                }
+                finally
+                {
+                    DeleteTempFileIfExists(fileNameXls);
+                    DeleteTempFileIfExists(fileNameZip);
+                    Dispose();
+                }
+            }
+        }
+
+        private static void DeleteTempFileIfExists(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
+            {
+                return;
+            }
+
+            try
+            {
+                File.Delete(fileName);
+            }
+            catch (Exception ex)
+            {
+                TraceLogger.LogError("ConnectionImportTempCleanup", ex);
             }
         }
 

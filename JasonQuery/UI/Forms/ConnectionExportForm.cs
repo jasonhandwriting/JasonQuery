@@ -262,6 +262,11 @@ namespace JasonQuery.UI.Forms
 
         private void btnExport_Click(object sender, EventArgs e)
         {
+            C1XLBook book = null;
+            C1ZipFile zip = null;
+            string fileName = null;
+            string originalTempFileName = null;
+
             try
             {
                 var message = string.Empty;
@@ -301,7 +306,7 @@ namespace JasonQuery.UI.Forms
                     return;
                 }
 
-                var book = new C1XLBook();
+                book = new C1XLBook();
                 var sheet = book.Sheets[0];
                 var excelRowIndex = 0;
                 var dtData = c1GridDbInfo.GetDataTableSourceOrNull();
@@ -309,14 +314,14 @@ namespace JasonQuery.UI.Forms
                 for (var row = 0; row < dtData.Rows.Count; row++)
                 {
                     var dr = dtData.Rows[row];
-                    var value = dr.GetSafeString(" ");
+                    var value = c1GridDbInfo[row, " "].ToString();
 
                     if (value == "1") //20230930 改為有勾選的才要匯出
                     {
                         var col = 0;
 
-                        //sheet[iRowIndex, iCol].Value = "DomainUser"; //保持空值
-                        //iCol++;
+                        //sheet[excelRowIndex, col].Value = "DomainUser"; //保持空值
+                        //col++;
                         sheet[excelRowIndex, col].Value = dr.GetSafeString("ConnectionName");
                         col++;
                         sheet[excelRowIndex, col].Value = dr.GetSafeString("DataSource");
@@ -352,8 +357,8 @@ namespace JasonQuery.UI.Forms
                         sheet[excelRowIndex, col].Value = dr.GetSafeString("AutoRollback");
                         col++;
                         sheet[excelRowIndex, col].Value = dr.GetSafeString("Unicode");
-                        //iCol++;
-                        //sheet[iRowIndex, iCol].Value = dr.GetSafeString("LastConnect"); //保持空值
+                        //col++;
+                        //sheet[excelRowIndex, col].Value = dr.GetSafeString("LastConnect"); //保持空值
                         col++;
                         sheet[excelRowIndex, col].Value = dr.GetSafeString("TabBackColor");
                         col++;
@@ -399,11 +404,12 @@ namespace JasonQuery.UI.Forms
                     }
                 }
 
-                var fileName = Path.GetTempFileName().Replace(".tmp", ".xls");
+                originalTempFileName = Path.GetTempFileName();
+                fileName = Path.ChangeExtension(originalTempFileName, ".xls");
 
                 book.Save(fileName);
 
-                var zip = new C1ZipFile();
+                zip = new C1ZipFile();
 
                 zip.Create(txtFileName.Text);
                 zip.UseUtf8Encoding = true;
@@ -412,8 +418,7 @@ namespace JasonQuery.UI.Forms
                 zip.Comment = "Connection Information - Exported by JasonQuery";
                 zip.Entries.Add(fileName);
                 zip.Close();
-                File.Delete(fileName);
-                File.Delete(fileName.Replace(".xls", ".tmp"));
+                zip = null;
 
                 byte[] inData = null;
 
@@ -433,6 +438,48 @@ namespace JasonQuery.UI.Forms
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+            finally
+            {
+                try
+                {
+                    zip?.Close();
+                }
+                catch (Exception ex)
+                {
+                    TraceLogger.LogError("ConnectionExportArchiveClose", ex);
+                }
+
+                try
+                {
+                    book?.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    TraceLogger.LogError("ConnectionExportWorkbookDispose", ex);
+                }
+                finally
+                {
+                    DeleteTempFileIfExists(fileName);
+                    DeleteTempFileIfExists(originalTempFileName);
+                }
+            }
+        }
+
+        private static void DeleteTempFileIfExists(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
+            {
+                return;
+            }
+
+            try
+            {
+                File.Delete(fileName);
+            }
+            catch (Exception ex)
+            {
+                TraceLogger.LogError("ConnectionExportTempCleanup", ex);
             }
         }
 
