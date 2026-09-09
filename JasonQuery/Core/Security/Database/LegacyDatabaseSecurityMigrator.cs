@@ -25,7 +25,202 @@ namespace JasonQuery.Core.Security.Database
             return Path.GetFullPath(databaseFilePath) + BackupFileSuffix;
         }
 
+        public bool HasInterruptedMigrationBackup(string databaseFilePath)
+        {
+            ValidateDatabaseFilePath(databaseFilePath);
+            return File.Exists(GetBackupFilePath(databaseFilePath));
+        }
+
+        public bool CanRecoverInterruptedMigrationWithDefaultPassword(string databaseFilePath)
+        {
+            ValidateDatabaseFilePath(databaseFilePath);
+
+            if (_metadataStore.Exists)
+            {
+                return false;
+            }
+
+            var backupFilePath = GetBackupFilePath(databaseFilePath);
+
+            return File.Exists(backupFilePath) && _migrationDatabase.CanOpen(backupFilePath, LegacyDatabaseSecurity.LegacyDefaultDatabasePassword);
+        }
+
+        public bool CanOpenWithDefaultPassword(string databaseFilePath)
+        {
+            ValidateDatabaseFilePath(databaseFilePath);
+
+            return File.Exists(databaseFilePath) && _migrationDatabase.CanOpen(databaseFilePath, LegacyDatabaseSecurity.LegacyDefaultDatabasePassword);
+        }
+
+        public bool IsCustomPasswordValid(string databaseFilePath, string customPassword)
+        {
+            ValidateDatabaseFilePath(databaseFilePath);
+
+            if (_metadataStore.Exists || string.IsNullOrEmpty(customPassword))
+            {
+                return false;
+            }
+
+            var legacyDatabasePassword = LegacyDatabaseSecurity.CreateCustomDatabasePassword(customPassword);
+            var backupFilePath = GetBackupFilePath(databaseFilePath);
+            var databasePathToValidate = File.Exists(backupFilePath) ? backupFilePath : databaseFilePath;
+
+            return File.Exists(databasePathToValidate) && _migrationDatabase.CanOpen(databasePathToValidate, legacyDatabasePassword);
+        }
+
         public bool RecoverInterruptedMigrationIfNeeded(string databaseFilePath)
+        {
+            return RecoverInterruptedMigrationIfNeeded
+            (
+                databaseFilePath,
+                LegacyDatabaseSecurity.LegacyDefaultDatabasePassword
+            );
+        }
+
+        public DatabaseSecurityMigrationResult MigrateToWindowsCurrentUser(string databaseFilePath)
+        {
+            ValidateDatabaseFilePath(databaseFilePath);
+
+            if (_metadataStore.Exists)
+            {
+                throw new InvalidOperationException("Database Encryption V2 metadata already exists. Legacy migration cannot run.");
+            }
+
+            RecoverInterruptedMigrationIfNeeded
+            (
+                databaseFilePath,
+                LegacyDatabaseSecurity.LegacyDefaultDatabasePassword
+            );
+
+            if (!File.Exists(databaseFilePath))
+            {
+                throw new FileNotFoundException("The JasonQuery database file was not found.", databaseFilePath);
+            }
+
+            if (!_migrationDatabase.CanOpen(databaseFilePath, LegacyDatabaseSecurity.LegacyDefaultDatabasePassword))
+            {
+                throw new DatabaseSecurityStartupException
+                (
+                    DatabaseSecurityStartupErrorKind.MissingSecurityInformationOrLegacyCustomPassword,
+                    "The database security information is missing, and JasonQuery.db cannot be opened with the historical default database password."
+                );
+            }
+
+            byte[] databaseKey = null;
+            byte[] protectedDatabaseKey = null;
+
+            try
+            {
+                databaseKey = DatabaseKeyGenerator.Generate();
+
+                var databasePassword = DatabaseKeyGenerator.ToDatabasePassword(databaseKey);
+
+                protectedDatabaseKey = _databaseKeyProtector.Protect(databaseKey);
+
+                var metadata = DatabaseSecurityMetadata.CreateWindowsCurrentUser(Convert.ToBase64String(protectedDatabaseKey));
+
+                return MigrateCore
+                (
+                    databaseFilePath,
+                    LegacyDatabaseSecurity.LegacyDefaultDatabasePassword,
+                    databasePassword,
+                    metadata
+                );
+            }
+            finally
+            {
+                Clear(databaseKey);
+                Clear(protectedDatabaseKey);
+            }
+        }
+
+        public DatabaseSecurityMigrationResult MigrateToCustomPassword(string databaseFilePath, string customPassword)
+        {
+            ValidateDatabaseFilePath(databaseFilePath);
+
+            if (string.IsNullOrEmpty(customPassword))
+            {
+                throw new ArgumentException("A legacy custom password is required.", nameof(customPassword));
+            }
+
+            if (_metadataStore.Exists)
+            {
+                throw new InvalidOperationException("Database Encryption V2 metadata already exists. Legacy migration cannot run.");
+            }
+
+            var legacyDatabasePassword = LegacyDatabaseSecurity.CreateCustomDatabasePassword(customPassword);
+
+            RecoverInterruptedMigrationIfNeeded(databaseFilePath, legacyDatabasePassword);
+
+            if (!File.Exists(databaseFilePath))
+            {
+                throw new FileNotFoundException("The JasonQuery database file was not found.", databaseFilePath);
+            }
+
+            if (!_migrationDatabase.CanOpen(databaseFilePath, legacyDatabasePassword))
+            {
+                throw new DatabaseSecurityStartupException
+                (
+                    DatabaseSecurityStartupErrorKind.MissingSecurityInformationOrLegacyCustomPassword,
+                    "The legacy custom password could not unlock JasonQuery.db."
+                );
+            }
+
+            byte[] salt = null;
+
+            try
+            {
+                salt = CustomPasswordDatabaseKeyDeriver.CreateSalt();
+
+                var iterations = DatabaseSecurityConstants.DefaultPbkdf2Iterations;
+
+                var databasePassword = CustomPasswordDatabaseKeyDeriver.DeriveDatabasePassword
+                (
+                    customPassword,
+                    salt,
+                    iterations
+                );
+
+                var metadata = DatabaseSecurityMetadata.CreateCustomPassword(salt, iterations);
+
+                return MigrateCore
+                (
+                    databaseFilePath,
+                    legacyDatabasePassword,
+                    databasePassword,
+                    metadata
+                );
+            }
+            finally
+            {
+                Clear(salt);
+            }
+        }
+
+        public void CleanupCompletedMigrationBackup(string databaseFilePath)
+        {
+            ValidateDatabaseFilePath(databaseFilePath);
+
+            var backupFilePath = GetBackupFilePath(databaseFilePath);
+
+            if (!File.Exists(backupFilePath))
+            {
+                return;
+            }
+
+            if (!_metadataStore.Exists)
+            {
+                throw new InvalidDataException
+                (
+                    "A Database Encryption V2 migration backup exists without V2 metadata. " +
+                    "The backup cannot be deleted until interrupted migration recovery has completed."
+                );
+            }
+
+            File.Delete(backupFilePath);
+        }
+
+        private bool RecoverInterruptedMigrationIfNeeded(string databaseFilePath, string legacyDatabasePassword)
         {
             ValidateDatabaseFilePath(databaseFilePath);
 
@@ -41,35 +236,13 @@ namespace JasonQuery.Core.Security.Database
                 return false;
             }
 
-            RestoreLegacyDatabase(databaseFilePath, backupFilePath);
+            RestoreLegacyDatabase(databaseFilePath, backupFilePath, legacyDatabasePassword);
             return true;
         }
 
-        public DatabaseSecurityMigrationResult MigrateToWindowsCurrentUser(string databaseFilePath)
+        private DatabaseSecurityMigrationResult MigrateCore(string databaseFilePath, string sourceDatabasePassword,
+                                                            string targetDatabasePassword, DatabaseSecurityMetadata metadata)
         {
-            ValidateDatabaseFilePath(databaseFilePath);
-
-            if (!File.Exists(databaseFilePath))
-            {
-                throw new FileNotFoundException("The JasonQuery database file was not found.", databaseFilePath);
-            }
-
-            if (_metadataStore.Exists)
-            {
-                throw new InvalidOperationException("Database Encryption V2 metadata already exists. Legacy migration cannot run.");
-            }
-
-            RecoverInterruptedMigrationIfNeeded(databaseFilePath);
-
-            if (!_migrationDatabase.CanOpen(databaseFilePath, LegacyDatabaseSecurity.LegacyDefaultDatabasePassword))
-            {
-                throw new DatabaseSecurityStartupException
-                (
-                    DatabaseSecurityStartupErrorKind.MissingSecurityInformationOrLegacyCustomPassword,
-                    "The database security information is missing, and JasonQuery.db cannot be opened with the historical default database password."
-                );
-            }
-
             var backupFilePath = GetBackupFilePath(databaseFilePath);
 
             if (File.Exists(backupFilePath))
@@ -77,43 +250,43 @@ namespace JasonQuery.Core.Security.Database
                 throw new InvalidDataException("A previous database migration backup still exists and could not be safely resolved.");
             }
 
-            byte[] databaseKey = null;
-            byte[] protectedDatabaseKey = null;
             string candidateDatabaseFilePath = null;
             var metadataCommitted = false;
-            DatabaseSecurityMetadata metadata = null;
 
             try
             {
-                databaseKey = DatabaseKeyGenerator.Generate();
-
-                var databasePassword = DatabaseKeyGenerator.ToDatabasePassword(databaseKey);
-
-                protectedDatabaseKey = _databaseKeyProtector.Protect(databaseKey);
-                metadata = DatabaseSecurityMetadata.CreateWindowsCurrentUser(Convert.ToBase64String(protectedDatabaseKey));
-
                 candidateDatabaseFilePath = CreateTemporaryDatabaseFilePath(databaseFilePath, "candidate");
 
                 _migrationDatabase.CreateVerifiedCopy
                 (
                     databaseFilePath,
                     candidateDatabaseFilePath,
-                    LegacyDatabaseSecurity.LegacyDefaultDatabasePassword
+                    sourceDatabasePassword
                 );
 
                 _migrationDatabase.ChangePassword
                 (
                     candidateDatabaseFilePath,
-                    LegacyDatabaseSecurity.LegacyDefaultDatabasePassword,
-                    databasePassword
+                    sourceDatabasePassword,
+                    targetDatabasePassword
                 );
 
-                ValidateV2Candidate(candidateDatabaseFilePath, databasePassword);
+                ValidateV2Candidate
+                (
+                    candidateDatabaseFilePath,
+                    targetDatabasePassword,
+                    sourceDatabasePassword
+                );
 
                 File.Replace(candidateDatabaseFilePath, databaseFilePath, backupFilePath, true);
                 candidateDatabaseFilePath = null;
 
-                ValidateV2Candidate(databaseFilePath, databasePassword);
+                ValidateV2Candidate
+                (
+                    databaseFilePath,
+                    targetDatabasePassword,
+                    sourceDatabasePassword
+                );
 
                 _metadataStore.Save(metadata);
                 ValidateCommittedMetadata(metadata);
@@ -121,7 +294,7 @@ namespace JasonQuery.Core.Security.Database
 
                 CleanupCompletedMigrationBackup(databaseFilePath);
 
-                return new DatabaseSecurityMigrationResult(metadata, databasePassword);
+                return new DatabaseSecurityMigrationResult(metadata, targetDatabasePassword);
             }
             catch (Exception migrationException)
             {
@@ -129,7 +302,12 @@ namespace JasonQuery.Core.Security.Database
                 {
                     try
                     {
-                        RestoreLegacyDatabase(databaseFilePath, backupFilePath);
+                        RestoreLegacyDatabase
+                        (
+                            databaseFilePath,
+                            backupFilePath,
+                            sourceDatabasePassword
+                        );
 
                         if (_metadataStore.Exists)
                         {
@@ -158,41 +336,16 @@ namespace JasonQuery.Core.Security.Database
             finally
             {
                 DeleteFileIfExists(candidateDatabaseFilePath);
-                Clear(databaseKey);
-                Clear(protectedDatabaseKey);
             }
         }
 
-        public void CleanupCompletedMigrationBackup(string databaseFilePath)
+        private void RestoreLegacyDatabase(string databaseFilePath, string backupFilePath, string legacyDatabasePassword)
         {
-            ValidateDatabaseFilePath(databaseFilePath);
-
-            var backupFilePath = GetBackupFilePath(databaseFilePath);
-
-            if (!File.Exists(backupFilePath))
-            {
-                return;
-            }
-
-            if (!_metadataStore.Exists)
+            if (!_migrationDatabase.CanOpen(backupFilePath, legacyDatabasePassword))
             {
                 throw new InvalidDataException
                 (
-                    "A Database Encryption V2 migration backup exists without V2 metadata. " +
-                    "The backup cannot be deleted until interrupted migration recovery has completed."
-                );
-            }
-
-            File.Delete(backupFilePath);
-        }
-
-        private void RestoreLegacyDatabase(string databaseFilePath, string backupFilePath)
-        {
-            if (!_migrationDatabase.CanOpen(backupFilePath, LegacyDatabaseSecurity.LegacyDefaultDatabasePassword))
-            {
-                throw new InvalidDataException
-                (
-                    "The Database Encryption V2 migration backup cannot be opened with the historical default database password. " +
+                    "The Database Encryption V2 migration backup cannot be opened with the expected legacy database password. " +
                     "The current database was not overwritten."
                 );
             }
@@ -205,7 +358,7 @@ namespace JasonQuery.Core.Security.Database
                 (
                     backupFilePath,
                     restoreFilePath,
-                    LegacyDatabaseSecurity.LegacyDefaultDatabasePassword
+                    legacyDatabasePassword
                 );
 
                 if (File.Exists(databaseFilePath))
@@ -219,7 +372,7 @@ namespace JasonQuery.Core.Security.Database
                     restoreFilePath = null;
                 }
 
-                if (!_migrationDatabase.CanOpen(databaseFilePath, LegacyDatabaseSecurity.LegacyDefaultDatabasePassword))
+                if (!_migrationDatabase.CanOpen(databaseFilePath, legacyDatabasePassword))
                 {
                     throw new InvalidDataException("The restored legacy JasonQuery.db could not be validated.");
                 }
@@ -232,16 +385,16 @@ namespace JasonQuery.Core.Security.Database
             }
         }
 
-        private void ValidateV2Candidate(string databaseFilePath, string databasePassword)
+        private void ValidateV2Candidate(string databaseFilePath, string targetDatabasePassword, string sourceDatabasePassword)
         {
-            if (!_migrationDatabase.CanOpen(databaseFilePath, databasePassword))
+            if (!_migrationDatabase.CanOpen(databaseFilePath, targetDatabasePassword))
             {
                 throw new InvalidDataException("The migrated JasonQuery.db could not be opened with the generated V2 database key.");
             }
 
-            if (_migrationDatabase.CanOpen(databaseFilePath, LegacyDatabaseSecurity.LegacyDefaultDatabasePassword))
+            if (_migrationDatabase.CanOpen(databaseFilePath, sourceDatabasePassword))
             {
-                throw new InvalidDataException("The migrated JasonQuery.db still accepts the historical default database password.");
+                throw new InvalidDataException("The migrated JasonQuery.db still accepts the historical legacy database password.");
             }
         }
 
@@ -252,13 +405,20 @@ namespace JasonQuery.Core.Security.Database
                 throw new InvalidDataException("Database Encryption V2 metadata was not finalized.");
             }
 
+            expectedMetadata.Validate();
+
             var savedMetadata = _metadataStore.Load();
 
-            if (savedMetadata.Mode != DatabaseSecurityMode.WindowsCurrentUser ||
+            savedMetadata.Validate();
+
+            if (savedMetadata.Mode != expectedMetadata.Mode ||
                 savedMetadata.MetadataVersion != expectedMetadata.MetadataVersion ||
                 savedMetadata.EncryptionVersion != expectedMetadata.EncryptionVersion ||
                 !string.Equals(savedMetadata.Protection, expectedMetadata.Protection, StringComparison.Ordinal) ||
-                !string.Equals(savedMetadata.ProtectedDatabaseKey, expectedMetadata.ProtectedDatabaseKey, StringComparison.Ordinal))
+                !string.Equals(savedMetadata.ProtectedDatabaseKey, expectedMetadata.ProtectedDatabaseKey, StringComparison.Ordinal) ||
+                !string.Equals(savedMetadata.Kdf, expectedMetadata.Kdf, StringComparison.Ordinal) ||
+                savedMetadata.Iterations != expectedMetadata.Iterations ||
+                !string.Equals(savedMetadata.Salt, expectedMetadata.Salt, StringComparison.Ordinal))
             {
                 throw new InvalidDataException("Database Encryption V2 metadata validation failed after migration.");
             }
