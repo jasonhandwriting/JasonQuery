@@ -86,7 +86,23 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
-            migrator.RecoverInterruptedMigrationIfNeeded(databaseFilePath);
+            if (!metadataStore.Exists && migrator.HasInterruptedMigrationBackup(databaseFilePath))
+            {
+                if (migrator.CanRecoverInterruptedMigrationWithDefaultPassword(databaseFilePath))
+                {
+                    migrator.RecoverInterruptedMigrationIfNeeded(databaseFilePath);
+                }
+                else
+                {
+                    if (!TryMigrateLegacyCustomPassword(databaseFilePath, migrator))
+                    {
+                        Environment.Exit(1);
+                    }
+
+                    return;
+                }
+            }
+
             freshInitializer.RecoverInterruptedInitializationIfNeeded(databaseFilePath);
 
             if (!File.Exists(databaseFilePath))
@@ -115,14 +131,24 @@ namespace JasonQuery.UI.Forms
             {
                 case DatabaseSecurityStartupState.Legacy:
                     {
-                        var migrationResult = migrator.MigrateToWindowsCurrentUser(databaseFilePath);
+                        if (migrator.CanOpenWithDefaultPassword(databaseFilePath))
+                        {
+                            var migrationResult = migrator.MigrateToWindowsCurrentUser(databaseFilePath);
 
-                        ApplyResolvedV2DatabaseSecurity
-                        (
-                            migrationResult.Metadata,
-                            migrationResult.DatabasePassword,
-                            migrator
-                        );
+                            ApplyResolvedV2DatabaseSecurity
+                            (
+                                migrationResult.Metadata,
+                                migrationResult.DatabasePassword,
+                                migrator
+                            );
+
+                            return;
+                        }
+
+                        if (!TryMigrateLegacyCustomPassword(databaseFilePath, migrator))
+                        {
+                            Environment.Exit(1);
+                        }
 
                         return;
                     }
@@ -164,6 +190,41 @@ namespace JasonQuery.UI.Forms
                     {
                         throw new InvalidOperationException($"Unexpected database security startup state: {bootstrapResult.State}");
                     }
+            }
+        }
+
+        private bool TryMigrateLegacyCustomPassword(string databaseFilePath, LegacyDatabaseSecurityMigrator migrator)
+        {
+            using (var passwordDialog = new DatabasePasswordDialog(migrator, databaseFilePath))
+            {
+                if (passwordDialog.ShowDialog(this) != DialogResult.OK)
+                {
+                    return false;
+                }
+
+                var legacyCustomPassword = passwordDialog.CustomPassword;
+
+                try
+                {
+                    var migrationResult = migrator.MigrateToCustomPassword
+                    (
+                        databaseFilePath,
+                        legacyCustomPassword
+                    );
+
+                    ApplyResolvedV2DatabaseSecurity
+                    (
+                        migrationResult.Metadata,
+                        migrationResult.DatabasePassword,
+                        migrator
+                    );
+
+                    return true;
+                }
+                finally
+                {
+                    legacyCustomPassword = null;
+                }
             }
         }
 

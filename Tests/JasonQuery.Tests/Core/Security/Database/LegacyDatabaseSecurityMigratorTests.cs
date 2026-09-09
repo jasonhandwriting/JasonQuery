@@ -60,6 +60,196 @@ namespace JasonQuery.Tests.Core.Security.Database
         }
 
         [TestMethod]
+        public void MigrateToCustomPassword_LegacyCustom_RekeysDatabaseAndCreatesCustomMetadata()
+        {
+            var directory = CreateTemporaryDirectory();
+
+            try
+            {
+                const string customPassword = "Legacy-Custom-保留-123!";
+                var legacyDatabasePassword = LegacyDatabaseSecurity.CreateCustomDatabasePassword(customPassword);
+                var databasePath = CreateFakeDatabase(directory, legacyDatabasePassword);
+                var metadataStore = CreateMetadataStore(directory);
+                var migrationDatabase = new FakeMigrationDatabase();
+                var migrator = CreateMigrator(metadataStore, new PassThroughKeyProtector(), migrationDatabase);
+                var result = migrator.MigrateToCustomPassword(databasePath, customPassword);
+
+                Assert.AreEqual(DatabaseSecurityMode.CustomPassword, result.Metadata.Mode);
+                Assert.AreEqual(DatabaseSecurityConstants.Pbkdf2HmacSha256, result.Metadata.Kdf);
+                Assert.AreEqual(DatabaseSecurityConstants.DefaultPbkdf2Iterations, result.Metadata.Iterations);
+                Assert.IsFalse(string.IsNullOrWhiteSpace(result.Metadata.Salt));
+                Assert.IsTrue(metadataStore.Exists);
+
+                var salt = Convert.FromBase64String(result.Metadata.Salt);
+
+                try
+                {
+                    var expectedDatabasePassword = CustomPasswordDatabaseKeyDeriver.DeriveDatabasePassword
+                    (
+                        customPassword,
+                        salt,
+                        result.Metadata.Iterations
+                    );
+
+                    Assert.AreEqual(expectedDatabasePassword, result.DatabasePassword);
+                    Assert.AreEqual(expectedDatabasePassword, File.ReadAllText(databasePath, Encoding.UTF8));
+                }
+                finally
+                {
+                    Array.Clear(salt, 0, salt.Length);
+                }
+
+                Assert.IsFalse(migrationDatabase.CanOpen(databasePath, legacyDatabasePassword));
+                Assert.IsFalse(File.Exists(LegacyDatabaseSecurityMigrator.GetBackupFilePath(databasePath)));
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+
+        [TestMethod]
+        public void MigrateToCustomPassword_WrongPassword_FailsClosedWithoutMutation()
+        {
+            var directory = CreateTemporaryDirectory();
+
+            try
+            {
+                const string customPassword = "Legacy-Custom-Test";
+                var legacyDatabasePassword = LegacyDatabaseSecurity.CreateCustomDatabasePassword(customPassword);
+                var databasePath = CreateFakeDatabase(directory, legacyDatabasePassword);
+                var metadataStore = CreateMetadataStore(directory);
+                var migrator = CreateMigrator(metadataStore, new PassThroughKeyProtector(), new FakeMigrationDatabase());
+
+                var ex = Assert.ThrowsException<DatabaseSecurityStartupException>
+                (
+                    () => migrator.MigrateToCustomPassword(databasePath, "Wrong-Password")
+                );
+
+                Assert.AreEqual(DatabaseSecurityStartupErrorKind.MissingSecurityInformationOrLegacyCustomPassword, ex.ErrorKind);
+                Assert.AreEqual(legacyDatabasePassword, File.ReadAllText(databasePath, Encoding.UTF8));
+                Assert.IsFalse(metadataStore.Exists);
+                Assert.IsFalse(File.Exists(LegacyDatabaseSecurityMigrator.GetBackupFilePath(databasePath)));
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+
+        [TestMethod]
+        public void MigrateToCustomPassword_MetadataSaveFailure_RestoresLegacyDatabase()
+        {
+            var directory = CreateTemporaryDirectory();
+
+            try
+            {
+                const string customPassword = "Legacy-Custom-Test";
+                var legacyDatabasePassword = LegacyDatabaseSecurity.CreateCustomDatabasePassword(customPassword);
+                var databasePath = CreateFakeDatabase(directory, legacyDatabasePassword);
+                var metadataPath = Path.Combine(directory, DatabaseSecurityConstants.MetadataFileName);
+                var metadataStore = new ThrowingMetadataStore(metadataPath);
+                var migrator = CreateMigrator(metadataStore, new PassThroughKeyProtector(), new FakeMigrationDatabase());
+
+                var ex = Assert.ThrowsException<InvalidDataException>
+                (
+                    () => migrator.MigrateToCustomPassword(databasePath, customPassword)
+                );
+
+                StringAssert.Contains(ex.Message, "previous legacy JasonQuery.db was restored");
+                Assert.AreEqual(legacyDatabasePassword, File.ReadAllText(databasePath, Encoding.UTF8));
+                Assert.IsFalse(metadataStore.Exists);
+                Assert.IsFalse(File.Exists(LegacyDatabaseSecurityMigrator.GetBackupFilePath(databasePath)));
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+
+        [TestMethod]
+        public void MigrateToCustomPassword_InterruptedMigrationBackup_RestoresAndCompletesMigration()
+        {
+            var directory = CreateTemporaryDirectory();
+
+            try
+            {
+                const string customPassword = "Legacy-Custom-Recovery";
+                var legacyDatabasePassword = LegacyDatabaseSecurity.CreateCustomDatabasePassword(customPassword);
+                var databasePath = CreateFakeDatabase(directory, "Interrupted-V2-Candidate");
+                var backupPath = LegacyDatabaseSecurityMigrator.GetBackupFilePath(databasePath);
+
+                File.WriteAllText(backupPath, legacyDatabasePassword, Encoding.UTF8);
+
+                var metadataStore = CreateMetadataStore(directory);
+                var migrationDatabase = new FakeMigrationDatabase();
+                var migrator = CreateMigrator(metadataStore, new PassThroughKeyProtector(), migrationDatabase);
+
+                var result = migrator.MigrateToCustomPassword(databasePath, customPassword);
+
+                Assert.AreEqual(DatabaseSecurityMode.CustomPassword, result.Metadata.Mode);
+                Assert.AreEqual(result.DatabasePassword, File.ReadAllText(databasePath, Encoding.UTF8));
+                Assert.IsTrue(metadataStore.Exists);
+                Assert.IsFalse(migrationDatabase.CanOpen(databasePath, legacyDatabasePassword));
+                Assert.IsFalse(File.Exists(backupPath));
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+
+        [TestMethod]
+        public void IsCustomPasswordValid_InterruptedBackupExists_ValidatesBackupCredential()
+        {
+            var directory = CreateTemporaryDirectory();
+
+            try
+            {
+                const string customPassword = "Legacy-Custom-Recovery";
+                var legacyDatabasePassword = LegacyDatabaseSecurity.CreateCustomDatabasePassword(customPassword);
+                var databasePath = CreateFakeDatabase(directory, "Interrupted-V2-Candidate");
+                var backupPath = LegacyDatabaseSecurityMigrator.GetBackupFilePath(databasePath);
+
+                File.WriteAllText(backupPath, legacyDatabasePassword, Encoding.UTF8);
+
+                var metadataStore = CreateMetadataStore(directory);
+                var migrator = CreateMigrator(metadataStore, new PassThroughKeyProtector(), new FakeMigrationDatabase());
+
+                Assert.IsTrue(migrator.IsCustomPasswordValid(databasePath, customPassword));
+                Assert.IsFalse(migrator.IsCustomPasswordValid(databasePath, "Wrong-Password"));
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+
+        [TestMethod]
+        public void CanRecoverInterruptedMigrationWithDefaultPassword_DefaultBackup_ReturnsTrue()
+        {
+            var directory = CreateTemporaryDirectory();
+
+            try
+            {
+                var databasePath = CreateFakeDatabase(directory, "Interrupted-V2-Candidate");
+                var backupPath = LegacyDatabaseSecurityMigrator.GetBackupFilePath(databasePath);
+
+                File.WriteAllText(backupPath, LegacyDefaultPassword, Encoding.UTF8);
+
+                var metadataStore = CreateMetadataStore(directory);
+                var migrator = CreateMigrator(metadataStore, new PassThroughKeyProtector(), new FakeMigrationDatabase());
+
+                Assert.IsTrue(migrator.HasInterruptedMigrationBackup(databasePath));
+                Assert.IsTrue(migrator.CanRecoverInterruptedMigrationWithDefaultPassword(databasePath));
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+
+        [TestMethod]
         public void MigrateToWindowsCurrentUser_RekeyFailure_LeavesOriginalDatabaseUntouched()
         {
             var directory = CreateTemporaryDirectory();

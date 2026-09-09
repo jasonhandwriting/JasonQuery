@@ -18,6 +18,7 @@ namespace JasonQuery.UI.Forms
 
         private readonly DatabaseSecurityBootstrapper _bootstrapper;
         private readonly DatabaseSecurityMetadata _metadata;
+        private readonly LegacyDatabaseSecurityMigrator _legacyMigrator;
         private readonly string _databaseFilePath;
 
         private bool _isApplyingLocalization;
@@ -28,6 +29,23 @@ namespace JasonQuery.UI.Forms
             _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
             _databaseFilePath = databaseFilePath ?? throw new ArgumentNullException(nameof(databaseFilePath));
 
+            InitializeDialog();
+        }
+
+        public DatabasePasswordDialog(LegacyDatabaseSecurityMigrator legacyMigrator, string databaseFilePath)
+        {
+            _legacyMigrator = legacyMigrator ?? throw new ArgumentNullException(nameof(legacyMigrator));
+            _databaseFilePath = databaseFilePath ?? throw new ArgumentNullException(nameof(databaseFilePath));
+
+            InitializeDialog();
+        }
+
+        public string DatabasePassword { get; private set; }
+
+        public string CustomPassword { get; private set; }
+
+        private void InitializeDialog()
+        {
             InitializeComponent();
 
             btnOK.DialogResult = DialogResult.None;
@@ -39,8 +57,6 @@ namespace JasonQuery.UI.Forms
             txtCustomPassword.KeyDown += txtCustomPassword_KeyDown;
             cboLocalization.SelectedIndexChanged += cboLocalization_SelectedIndexChanged;
         }
-
-        public string DatabasePassword { get; private set; }
 
         private void Form_Load(object sender, EventArgs e)
         {
@@ -78,6 +94,13 @@ namespace JasonQuery.UI.Forms
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             txtCustomPassword.Clear();
+
+            if (DialogResult != DialogResult.OK)
+            {
+                DatabasePassword = null;
+                CustomPassword = null;
+            }
+
             base.OnFormClosed(e);
         }
 
@@ -137,6 +160,12 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
+            if (_legacyMigrator != null)
+            {
+                ResolveLegacyCustomPassword();
+                return;
+            }
+
             try
             {
                 var result = _bootstrapper.ResolveCustomPassword(_metadata, txtCustomPassword.Text);
@@ -149,6 +178,29 @@ namespace JasonQuery.UI.Forms
                 }
 
                 DatabasePassword = result.DatabasePassword;
+                CustomPassword = null;
+                txtCustomPassword.Clear();
+                DialogResult = DialogResult.OK;
+                Close();
+            }
+            catch (Exception)
+            {
+                ShowWrongPassword();
+            }
+        }
+
+        private void ResolveLegacyCustomPassword()
+        {
+            try
+            {
+                if (!_legacyMigrator.IsCustomPasswordValid(_databaseFilePath, txtCustomPassword.Text))
+                {
+                    ShowWrongPassword();
+                    return;
+                }
+
+                CustomPassword = txtCustomPassword.Text;
+                DatabasePassword = null;
                 txtCustomPassword.Clear();
                 DialogResult = DialogResult.OK;
                 Close();
@@ -163,6 +215,7 @@ namespace JasonQuery.UI.Forms
         {
             txtCustomPassword.Clear();
             DatabasePassword = null;
+            CustomPassword = null;
             DialogResult = DialogResult.Cancel;
             Close();
         }
