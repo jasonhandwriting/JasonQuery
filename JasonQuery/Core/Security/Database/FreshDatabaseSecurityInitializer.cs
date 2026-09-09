@@ -125,6 +125,8 @@ namespace JasonQuery.Core.Security.Database
                     Convert.ToBase64String(protectedDatabaseKey)
                 );
 
+                metadata.StorageFormatVersion = DatabaseStorageFormatContract.LegacyVersion;
+
                 _freshInstallDatabase.CreateEncryptedDatabase
                 (
                     plaintextTemplateStream,
@@ -231,6 +233,8 @@ namespace JasonQuery.Core.Security.Database
 
             if (savedMetadata.Mode != DatabaseSecurityMode.WindowsCurrentUser || savedMetadata.MetadataVersion != expectedMetadata.MetadataVersion
                 || savedMetadata.EncryptionVersion != expectedMetadata.EncryptionVersion
+                || DatabaseStorageFormatContract.ResolveVersion(savedMetadata.StorageFormatVersion)
+                   != DatabaseStorageFormatContract.ResolveVersion(expectedMetadata.StorageFormatVersion)
                 || !string.Equals(savedMetadata.Protection, expectedMetadata.Protection, StringComparison.Ordinal)
                 || !string.Equals(savedMetadata.ProtectedDatabaseKey, expectedMetadata.ProtectedDatabaseKey, StringComparison.Ordinal))
             {

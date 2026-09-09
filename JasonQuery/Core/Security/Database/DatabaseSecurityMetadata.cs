@@ -13,6 +13,9 @@ namespace JasonQuery.Core.Security.Database
         [JsonProperty("encryptionVersion")]
         public int EncryptionVersion { get; set; }
 
+        [JsonProperty("storageFormatVersion", NullValueHandling = NullValueHandling.Ignore)]
+        public int? StorageFormatVersion { get; set; }
+
         [JsonProperty("mode")]
         [JsonConverter(typeof(StringEnumConverter))]
         public DatabaseSecurityMode Mode { get; set; }
@@ -83,6 +86,8 @@ namespace JasonQuery.Core.Security.Database
             {
                 throw new NotSupportedException($"Database encryption version {EncryptionVersion} is not supported.");
             }
+
+            DatabaseStorageFormatContract.ResolveVersion(StorageFormatVersion);
 
             switch (Mode)
             {

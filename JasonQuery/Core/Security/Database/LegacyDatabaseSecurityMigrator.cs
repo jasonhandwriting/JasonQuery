@@ -119,6 +119,8 @@ namespace JasonQuery.Core.Security.Database
 
                 var metadata = DatabaseSecurityMetadata.CreateWindowsCurrentUser(Convert.ToBase64String(protectedDatabaseKey));
 
+                metadata.StorageFormatVersion = DatabaseStorageFormatContract.LegacyVersion;
+
                 return MigrateCore
                 (
                     databaseFilePath,
@@ -182,6 +184,8 @@ namespace JasonQuery.Core.Security.Database
                 );
 
                 var metadata = DatabaseSecurityMetadata.CreateCustomPassword(salt, iterations);
+
+                metadata.StorageFormatVersion = DatabaseStorageFormatContract.LegacyVersion;
 
                 return MigrateCore
                 (
@@ -414,6 +418,8 @@ namespace JasonQuery.Core.Security.Database
             if (savedMetadata.Mode != expectedMetadata.Mode ||
                 savedMetadata.MetadataVersion != expectedMetadata.MetadataVersion ||
                 savedMetadata.EncryptionVersion != expectedMetadata.EncryptionVersion ||
+                DatabaseStorageFormatContract.ResolveVersion(savedMetadata.StorageFormatVersion) !=
+                DatabaseStorageFormatContract.ResolveVersion(expectedMetadata.StorageFormatVersion) ||
                 !string.Equals(savedMetadata.Protection, expectedMetadata.Protection, StringComparison.Ordinal) ||
                 !string.Equals(savedMetadata.ProtectedDatabaseKey, expectedMetadata.ProtectedDatabaseKey, StringComparison.Ordinal) ||
                 !string.Equals(savedMetadata.Kdf, expectedMetadata.Kdf, StringComparison.Ordinal) ||
