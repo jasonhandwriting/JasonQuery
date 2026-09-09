@@ -21,6 +21,8 @@ namespace JasonQuery.Tests.Core.Security.Database
                 var result = scope.Manager.ChangeToCustomPassword(scope.DatabasePath, sourcePassword, "New Custom Password");
 
                 Assert.AreEqual(DatabaseSecurityMode.CustomPassword, result.Metadata.Mode);
+                Assert.IsTrue(result.Metadata.StorageFormatVersion.HasValue);
+                Assert.AreEqual(DatabaseStorageFormatContract.LegacyVersion, result.Metadata.StorageFormatVersion.Value);
                 Assert.IsTrue(scope.Database.CanOpen(scope.DatabasePath, result.DatabasePassword));
                 Assert.IsFalse(scope.Database.CanOpen(scope.DatabasePath, sourcePassword));
                 Assert.AreEqual(DatabaseSecurityMode.CustomPassword, scope.MetadataStore.Load().Mode);
@@ -37,6 +39,8 @@ namespace JasonQuery.Tests.Core.Security.Database
                 var result = scope.Manager.ChangeToWindowsCurrentUser(scope.DatabasePath, sourcePassword);
 
                 Assert.AreEqual(DatabaseSecurityMode.WindowsCurrentUser, result.Metadata.Mode);
+                Assert.IsTrue(result.Metadata.StorageFormatVersion.HasValue);
+                Assert.AreEqual(DatabaseStorageFormatContract.LegacyVersion, result.Metadata.StorageFormatVersion.Value);
                 Assert.IsTrue(scope.Database.CanOpen(scope.DatabasePath, result.DatabasePassword));
                 Assert.IsFalse(scope.Database.CanOpen(scope.DatabasePath, sourcePassword));
                 scope.AssertNoTransitionArtifacts();
@@ -55,6 +59,69 @@ namespace JasonQuery.Tests.Core.Security.Database
                 Assert.AreNotEqual(oldSalt, result.Metadata.Salt);
                 Assert.AreNotEqual(sourcePassword, result.DatabasePassword);
                 Assert.IsTrue(scope.Database.CanOpen(scope.DatabasePath, result.DatabasePassword));
+                scope.AssertNoTransitionArtifacts();
+            }
+        }
+
+        [TestMethod]
+        public void ChangeToCustomPassword_MissingStorageMarker_CanonicalizesLegacyVersion()
+        {
+            using (var scope = new TestScope())
+            {
+                const string sourcePassword = "SOURCE-WINDOWS-KEY";
+
+                scope.CreateWindowsSource(sourcePassword);
+
+                var sourceMetadata = scope.MetadataStore.Load();
+
+                sourceMetadata.StorageFormatVersion = null;
+
+                scope.MetadataStore.Save(sourceMetadata);
+
+                var persistedLegacyMetadata = scope.MetadataStore.Load();
+
+                Assert.IsFalse(persistedLegacyMetadata.StorageFormatVersion.HasValue);
+
+                var result = scope.Manager.ChangeToCustomPassword
+                (
+                    scope.DatabasePath,
+                    sourcePassword,
+                    "New Custom Password"
+                );
+
+                Assert.IsTrue
+                (
+                    result.Metadata.StorageFormatVersion.HasValue
+                );
+
+                Assert.AreEqual
+                (
+                    DatabaseStorageFormatContract.LegacyVersion,
+                    result.Metadata.StorageFormatVersion.Value
+                );
+
+                var committedMetadata = scope.MetadataStore.Load();
+
+                Assert.IsTrue
+                (
+                    committedMetadata.StorageFormatVersion.HasValue
+                );
+
+                Assert.AreEqual
+                (
+                    DatabaseStorageFormatContract.LegacyVersion,
+                    committedMetadata.StorageFormatVersion.Value
+                );
+
+                Assert.IsTrue
+                (
+                    scope.Database.CanOpen
+                    (
+                        scope.DatabasePath,
+                        result.DatabasePassword
+                    )
+                );
+
                 scope.AssertNoTransitionArtifacts();
             }
         }

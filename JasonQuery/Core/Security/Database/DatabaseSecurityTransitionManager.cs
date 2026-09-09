@@ -51,7 +51,8 @@ namespace JasonQuery.Core.Security.Database
 
         public DatabaseSecurityBootstrapResult ChangeToWindowsCurrentUser(string databaseFilePath, string currentDatabasePassword)
         {
-            ValidateCurrentDatabase(databaseFilePath, currentDatabasePassword);
+            var sourceMetadata = ValidateCurrentDatabase(databaseFilePath, currentDatabasePassword);
+            var sourceStorageFormatVersion = (int)DatabaseStorageFormatContract.ResolveVersion(sourceMetadata.StorageFormatVersion);
 
             byte[] targetDatabaseKey = null;
             byte[] protectedTargetDatabaseKey = null;
@@ -69,6 +70,8 @@ namespace JasonQuery.Core.Security.Database
                     Convert.ToBase64String(protectedTargetDatabaseKey)
                 );
 
+                targetMetadata.StorageFormatVersion = sourceStorageFormatVersion;
+
                 return ExecuteChange(databaseFilePath, currentDatabasePassword, targetDatabasePassword, targetMetadata);
             }
             finally
@@ -80,7 +83,8 @@ namespace JasonQuery.Core.Security.Database
 
         public DatabaseSecurityBootstrapResult ChangeToCustomPassword(string databaseFilePath, string currentDatabasePassword, string newCustomPassword)
         {
-            ValidateCurrentDatabase(databaseFilePath, currentDatabasePassword);
+            var sourceMetadata = ValidateCurrentDatabase(databaseFilePath, currentDatabasePassword);
+            var sourceStorageFormatVersion = (int)DatabaseStorageFormatContract.ResolveVersion(sourceMetadata.StorageFormatVersion);
 
             if (string.IsNullOrEmpty(newCustomPassword))
             {
@@ -103,6 +107,8 @@ namespace JasonQuery.Core.Security.Database
                 );
 
                 var targetMetadata = DatabaseSecurityMetadata.CreateCustomPassword(salt, iterations);
+
+                targetMetadata.StorageFormatVersion = sourceStorageFormatVersion;
 
                 return ExecuteChange(databaseFilePath, currentDatabasePassword, targetDatabasePassword, targetMetadata);
             }
@@ -324,7 +330,7 @@ namespace JasonQuery.Core.Security.Database
             _journalStore.DeleteTemporaryFileIfExists();
         }
 
-        private void ValidateCurrentDatabase(string databaseFilePath, string currentDatabasePassword)
+        private DatabaseSecurityMetadata ValidateCurrentDatabase(string databaseFilePath, string currentDatabasePassword)
         {
             ValidateDatabaseFilePath(databaseFilePath);
 
@@ -346,6 +352,8 @@ namespace JasonQuery.Core.Security.Database
             {
                 throw new InvalidDataException("JasonQuery.db cannot be opened with the current resolved database key.");
             }
+
+            return metadata;
         }
 
         private void SaveRecoveryJournal(DatabaseSecurityMetadata sourceMetadata, DatabaseSecurityMetadata targetMetadata,
@@ -458,6 +466,8 @@ namespace JasonQuery.Core.Security.Database
 
             return left.MetadataVersion == right.MetadataVersion
                    && left.EncryptionVersion == right.EncryptionVersion
+                   && DatabaseStorageFormatContract.ResolveVersion(left.StorageFormatVersion)
+                      == DatabaseStorageFormatContract.ResolveVersion(right.StorageFormatVersion)
                    && left.Mode == right.Mode
                    && string.Equals(left.Protection, right.Protection, StringComparison.Ordinal)
                    && string.Equals(left.ProtectedDatabaseKey, right.ProtectedDatabaseKey, StringComparison.Ordinal)
