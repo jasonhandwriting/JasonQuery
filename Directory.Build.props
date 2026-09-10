@@ -29,6 +29,22 @@
 
     <UseJasonQuerySQLiteReferences
       Condition="'$(UseJasonQuerySQLiteReferences)' == ''">false</UseJasonQuerySQLiteReferences>
+    <!--
+      Isolated historical SQLite runtime used only by
+      JasonQuery.LegacyDbMigration.exe.
+    -->
+    <LegacySQLiteAssembliesPath
+      Condition="'$(LegacySQLiteAssembliesPath)' == ''
+              And '$(JASONQUERY_LEGACY_SQLITE_DIR)' != ''">$(JASONQUERY_LEGACY_SQLITE_DIR)</LegacySQLiteAssembliesPath>
+
+    <LegacySQLiteAssembliesPath
+      Condition="'$(LegacySQLiteAssembliesPath)' == ''">$(MSBuildThisFileDirectory).local\SQLite\Legacy</LegacySQLiteAssembliesPath>
+
+    <UseJasonQueryLegacySQLiteReferences
+      Condition="'$(MSBuildProjectFile)' == 'JasonQuery.LegacyDbMigration.csproj'">true</UseJasonQueryLegacySQLiteReferences>
+
+    <UseJasonQueryLegacySQLiteReferences
+      Condition="'$(UseJasonQueryLegacySQLiteReferences)' == ''">false</UseJasonQueryLegacySQLiteReferences>
   </PropertyGroup>
 
   <Import
@@ -38,6 +54,9 @@
   <Import
     Project="$(MSBuildThisFileDirectory)Build\SQLite.References.props"
     Condition="'$(UseJasonQuerySQLiteReferences)' == 'true'" />
+  <Import
+    Project="$(MSBuildThisFileDirectory)Build\LegacySQLite.References.props"
+    Condition="'$(UseJasonQueryLegacySQLiteReferences)' == 'true'" />
 
   <Target Name="ValidateJasonQueryDevartAssemblies"
           BeforeTargets="ResolveReferences"
@@ -83,5 +102,22 @@
 
     <Error Condition="!Exists('$(SQLiteAssembliesPath)\SQLite.Interop.dll')"
            Text="Missing x64 SQLite.Interop.dll in $(SQLiteAssembliesPath)." />
+  </Target>
+  <Target Name="ValidateJasonQueryLegacySQLiteAssemblies"
+          BeforeTargets="ResolveReferences"
+          Condition="'$(UseJasonQueryLegacySQLiteReferences)' == 'true'">
+
+    <Message
+      Text="ProjectFile=$(MSBuildProjectFile); UseLegacySQLite=[$(UseJasonQueryLegacySQLiteReferences)]; LegacySQLitePath=[$(LegacySQLiteAssembliesPath)]"
+      Importance="High" />
+
+    <Error Condition="!Exists('$(LegacySQLiteAssembliesPath)\System.Data.SQLite.dll')"
+           Text="Missing legacy System.Data.SQLite.dll in $(LegacySQLiteAssembliesPath)." />
+
+    <Error Condition="!Exists('$(LegacySQLiteAssembliesPath)\System.Threading.Tasks.Extensions.dll')"
+           Text="Missing legacy System.Threading.Tasks.Extensions.dll in $(LegacySQLiteAssembliesPath)." />
+
+    <Error Condition="!Exists('$(LegacySQLiteAssembliesPath)\SQLite.Interop.dll')"
+           Text="Missing legacy x64 SQLite.Interop.dll in $(LegacySQLiteAssembliesPath)." />
   </Target>
 </Project>

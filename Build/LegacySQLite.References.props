@@ -1,0 +1,30 @@
+<Project>
+  <!--
+    Historical System.Data.SQLite runtime used only by the isolated
+    JasonQuery.db migration helper.
+
+    This runtime must never be referenced by the normal JasonQuery process.
+  -->
+  <ItemGroup Condition="'$(UseJasonQueryLegacySQLiteReferences)' == 'true'">
+    <Reference Include="System.Data.SQLite">
+      <HintPath>$(LegacySQLiteAssembliesPath)\System.Data.SQLite.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>true</Private>
+    </Reference>
+
+    <Reference Include="System.Threading.Tasks.Extensions">
+      <HintPath>$(LegacySQLiteAssembliesPath)\System.Threading.Tasks.Extensions.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- JasonQuery supports x64 only; copy the characterized legacy native codec. -->
+  <ItemGroup Condition="'$(UseJasonQueryLegacySQLiteReferences)' == 'true'">
+    <Content Include="$(LegacySQLiteAssembliesPath)\SQLite.Interop.dll">
+      <Link>SQLite.Interop.dll</Link>
+      <TargetPath>SQLite.Interop.dll</TargetPath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>
