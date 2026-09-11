@@ -170,7 +170,7 @@ namespace JasonQuery.Tests.Core.Security.Database
         }
 
         [TestMethod]
-        public void Load_UnknownStorageFormatVersion_ThrowsNotSupportedException()
+        public void Load_ModernStorageFormatVersion_ResolvesAsModern()
         {
             var directory = CreateTemporaryDirectory();
 
@@ -183,6 +183,59 @@ namespace JasonQuery.Tests.Core.Security.Database
                     $"  \"metadataVersion\": {DatabaseSecurityConstants.MetadataVersion}," + Environment.NewLine +
                     $"  \"encryptionVersion\": {DatabaseSecurityConstants.EncryptionVersion}," + Environment.NewLine +
                     "  \"storageFormatVersion\": 2," + Environment.NewLine +
+                    "  \"mode\": \"WindowsCurrentUser\"," + Environment.NewLine +
+                    "  \"protection\": \"DPAPI-CurrentUser\"," + Environment.NewLine +
+                    "  \"protectedDatabaseKey\": \"AQIDBA==\"" + Environment.NewLine +
+                    "}";
+
+                File.WriteAllText
+                (
+                    metadataPath,
+                    json
+                );
+
+                var store = new DatabaseSecurityMetadataStore(metadataPath);
+                var loaded = store.Load();
+
+                Assert.IsTrue
+                (
+                    loaded.StorageFormatVersion.HasValue
+                );
+
+                Assert.AreEqual
+                (
+                    DatabaseStorageFormatContract.ModernVersion,
+                    loaded.StorageFormatVersion.Value
+                );
+
+                Assert.AreEqual
+                (
+                    DatabaseStorageFormatVersion.SqlCipherCompatibility4,
+                    DatabaseStorageFormatContract.ResolveVersion
+                    (
+                        loaded.StorageFormatVersion
+                    )
+                );
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+        [TestMethod]
+        public void Load_UnknownStorageFormatVersion_ThrowsNotSupportedException()
+        {
+            var directory = CreateTemporaryDirectory();
+
+            try
+            {
+                var metadataPath = Path.Combine(directory, DatabaseSecurityConstants.MetadataFileName);
+
+                var json =
+                    "{" + Environment.NewLine +
+                    $"  \"metadataVersion\": {DatabaseSecurityConstants.MetadataVersion}," + Environment.NewLine +
+                    $"  \"encryptionVersion\": {DatabaseSecurityConstants.EncryptionVersion}," + Environment.NewLine +
+                    "  \"storageFormatVersion\": 3," + Environment.NewLine +
                     "  \"mode\": \"WindowsCurrentUser\"," + Environment.NewLine +
                     "  \"protection\": \"DPAPI-CurrentUser\"," + Environment.NewLine +
                     "  \"protectedDatabaseKey\": \"AQIDBA==\"" + Environment.NewLine +

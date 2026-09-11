@@ -13,6 +13,16 @@
         /// CryptoAPI-compatible encrypted SQLite codec characterized by
         /// JasonQuery.
         /// </summary>
-        LegacySystemDataSQLiteCryptoApi = 1
+        LegacySystemDataSQLiteCryptoApi = 1,
+
+        /// <summary>
+        /// Modern encrypted SQLite storage using the SQLCipher 4
+        /// on-disk compatibility family.
+        ///
+        /// The persisted value identifies the storage-format family.
+        /// SQLCipher, SQLite, OpenSSL, and managed-provider patch versions
+        /// are implementation details and are not encoded in this value.
+        /// </summary>
+        SqlCipherCompatibility4 = 2
     }
 }
