@@ -193,6 +193,10 @@
     <Compile Include="Core\Security\Database\DatabaseStorageMigrationSchemaObjectKind.cs" />
     <Compile Include="Core\Security\Database\DatabaseStorageMigrationStage.cs" />
     <Compile Include="Core\Security\Database\DatabaseStorageMigrationValueKind.cs" />
+    <Compile Include="Core\Security\Database\DatabaseStorageMigrationLogicalFrameKind.cs" />
+    <Compile Include="Core\Security\Database\DatabaseStorageMigrationLogicalSchema.cs" />
+    <Compile Include="Core\Security\Database\DatabaseStorageMigrationLogicalStreamContract.cs" />
+    <Compile Include="Core\Security\Database\DatabaseStorageMigrationLogicalStreamProtocol.cs" />
     <Compile Include="Core\Security\Database\DatabaseStorageMigrationWireProtocol.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityTransitionJournal.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityTransitionJournalStore.cs" />

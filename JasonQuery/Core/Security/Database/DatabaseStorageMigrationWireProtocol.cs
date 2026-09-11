@@ -172,6 +172,16 @@ namespace JasonQuery.Core.Security.Database
             );
         }
 
+        public static void WriteStorageV1LogicalStreamReadyResponse(Stream stream)
+        {
+            WriteResponse
+            (
+                stream,
+                DatabaseStorageMigrationWireResponseStatus.StorageV1LogicalStreamReady,
+                "Legacy Storage V1 logical stream ready."
+            );
+        }
+
         public static void WriteResponse(Stream stream, DatabaseStorageMigrationWireResponseStatus status, string message)
         {
             ValidateWritableStream(stream);
@@ -496,7 +506,9 @@ namespace JasonQuery.Core.Security.Database
     {
         ControlChannelReady = 1,
 
-        StorageV1Validated = 2
+        StorageV1Validated = 2,
+
+        StorageV1LogicalStreamReady = 3
     }
 
     public sealed class DatabaseStorageMigrationWireResponse

@@ -51,6 +51,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationLogicalFrameKind.cs">
+      <Link>DatabaseStorageMigrationLogicalFrameKind.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationLogicalSchema.cs">
+      <Link>DatabaseStorageMigrationLogicalSchema.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationLogicalStreamContract.cs">
+      <Link>DatabaseStorageMigrationLogicalStreamContract.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationLogicalStreamProtocol.cs">
+      <Link>DatabaseStorageMigrationLogicalStreamProtocol.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationSchemaObjectKind.cs">
+      <Link>DatabaseStorageMigrationSchemaObjectKind.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationValueKind.cs">
+      <Link>DatabaseStorageMigrationValueKind.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationWireProtocol.cs">
       <Link>DatabaseStorageMigrationWireProtocol.cs</Link>
     </Compile>
