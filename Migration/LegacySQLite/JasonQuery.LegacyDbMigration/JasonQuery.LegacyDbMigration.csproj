@@ -74,6 +74,7 @@
     </Compile>
     <Compile Include="LegacyStorageV1ReadOnlyValidator.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="LegacyStorageV1LogicalStreamer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
 

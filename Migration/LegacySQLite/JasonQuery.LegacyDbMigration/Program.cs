@@ -13,8 +13,7 @@ namespace JasonQuery.LegacyDbMigration
 
         private static int Main(string[] args)
         {
-            if (args == null ||
-                args.Length != 1 ||
+            if (args == null || args.Length != 1 ||
                 (!string.Equals(args[0], RuntimeInfoArgument, StringComparison.Ordinal) &&
                  !string.Equals(args[0], StreamStorageV1Argument, StringComparison.Ordinal)))
             {
@@ -99,6 +98,10 @@ namespace JasonQuery.LegacyDbMigration
                     );
 
                     output.Flush();
+
+                    var streamer = new LegacyStorageV1LogicalStreamer();
+
+                    streamer.Stream(request.DatabaseFilePath, request.DatabasePasswordUtf8, output);
                 }
 
                 return 0;
@@ -108,7 +111,7 @@ namespace JasonQuery.LegacyDbMigration
                 //STDERR is diagnostics-only. Never print request path, password/key material, row payloads, or SQL/data dumps here.
                 Console.Error.WriteLine
                 (
-                    "Legacy Storage V1 read-only validation failed."
+                    "Legacy Storage V1 read-only validation or logical streaming failed."
                 );
 
                 Console.Error.WriteLine
