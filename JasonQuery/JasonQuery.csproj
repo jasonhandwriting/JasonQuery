@@ -188,6 +188,11 @@
     <Compile Include="Core\Security\Database\DatabaseSecurityConstants.cs" />
     <Compile Include="Core\Security\Database\DatabaseStorageFormatContract.cs" />
     <Compile Include="Core\Security\Database\DatabaseStorageFormatVersion.cs" />
+    <Compile Include="Core\Security\Database\DatabaseStorageMigrationJournal.cs" />
+    <Compile Include="Core\Security\Database\DatabaseStorageMigrationProtocolContract.cs" />
+    <Compile Include="Core\Security\Database\DatabaseStorageMigrationSchemaObjectKind.cs" />
+    <Compile Include="Core\Security\Database\DatabaseStorageMigrationStage.cs" />
+    <Compile Include="Core\Security\Database\DatabaseStorageMigrationValueKind.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityTransitionJournal.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityTransitionJournalStore.cs" />
     <Compile Include="Core\Security\Database\DatabaseSecurityTransitionManager.cs" />
