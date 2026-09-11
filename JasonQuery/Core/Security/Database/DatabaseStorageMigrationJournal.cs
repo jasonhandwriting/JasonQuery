@@ -49,8 +49,7 @@ namespace JasonQuery.Core.Security.Database
                 );
             }
 
-            if (!Guid.TryParseExact(OperationId, "N", out var operationId) ||
-                operationId == Guid.Empty)
+            if (!Guid.TryParseExact(OperationId, "N", out var operationId) || operationId == Guid.Empty)
             {
                 throw new InvalidOperationException("Database storage-migration operationId is invalid.");
             }

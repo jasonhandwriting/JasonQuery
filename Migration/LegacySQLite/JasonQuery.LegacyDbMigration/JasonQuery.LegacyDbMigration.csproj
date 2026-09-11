@@ -54,6 +54,7 @@
     <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationWireProtocol.cs">
       <Link>DatabaseStorageMigrationWireProtocol.cs</Link>
     </Compile>
+    <Compile Include="LegacyStorageV1ReadOnlyValidator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

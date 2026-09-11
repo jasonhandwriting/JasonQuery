@@ -21,16 +21,13 @@ namespace JasonQuery.Core.Security.Database
 
         public const int ModernVersion = (int)DatabaseStorageFormatVersion.SqlCipherCompatibility4;
 
-        // Step 388 defines the V2 target contract only.
-        // Normal JasonQuery runtime remains on Legacy V1 until the dedicated
-        // migration/runtime-cutover steps are implemented and activated.
+        //Step 388 defines the V2 target contract only.
+        //Normal JasonQuery runtime remains on Legacy V1 until the dedicated
+        //migration/runtime-cutover steps are implemented and activated.
         public const int CurrentVersion = LegacyVersion;
 
-        // Storage V2 on-disk compatibility profile.
-        //
-        // These values describe SQLCipher's database-file compatibility
-        // parameters. They are intentionally separate from the user-password
-        // KDF stored in DatabaseSecurityMetadata.
+        //Storage V2 on-disk compatibility profile.
+        //These values describe SQLCipher's database-file compatibility parameters. They are intentionally separate from the user-password KDF stored in DatabaseSecurityMetadata.
         public const int ModernSqlCipherCompatibility = 4;
         public const int ModernCipherPageSize = 4096;
         public const int ModernKdfIterations = 256000;

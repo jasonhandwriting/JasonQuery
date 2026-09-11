@@ -49,14 +49,9 @@ namespace JasonQuery.LegacyDbMigration
         {
             try
             {
-                var assemblyVersion =
-                    typeof(SQLiteConnection).Assembly.GetName().Version.ToString();
-
-                var sqliteVersion =
-                    GetRequiredStaticStringProperty("SQLiteVersion");
-
-                var interopVersion =
-                    GetRequiredStaticStringProperty("InteropVersion");
+                var assemblyVersion = typeof(SQLiteConnection).Assembly.GetName().Version.ToString();
+                var sqliteVersion = GetRequiredStaticStringProperty("SQLiteVersion");
+                var interopVersion = GetRequiredStaticStringProperty("InteropVersion");
 
                 Console.WriteLine("RuntimeRole=LegacyDatabaseMigration");
                 Console.WriteLine("ProcessArchitecture=x64");
@@ -90,10 +85,15 @@ namespace JasonQuery.LegacyDbMigration
                 using (var output = Console.OpenStandardOutput())
                 using (var request = DatabaseStorageMigrationWireProtocol.ReadRequest(input))
                 {
-                    // Step 389C1 establishes only the private binary control
-                    // channel. Storage V1 database opening/validation is added
-                    // by Step 389C2.
-                    DatabaseStorageMigrationWireProtocol.WriteControlReadyResponse
+                    var validator = new LegacyStorageV1ReadOnlyValidator();
+
+                    validator.Validate
+                    (
+                        request.DatabaseFilePath,
+                        request.DatabasePasswordUtf8
+                    );
+
+                    DatabaseStorageMigrationWireProtocol.WriteStorageV1ValidatedResponse
                     (
                         output
                     );
@@ -105,16 +105,15 @@ namespace JasonQuery.LegacyDbMigration
             }
             catch (Exception ex)
             {
-                // STDERR is diagnostics-only. Never print request path,
-                // password/key material, row payloads, or SQL/data dumps here.
+                //STDERR is diagnostics-only. Never print request path, password/key material, row payloads, or SQL/data dumps here.
                 Console.Error.WriteLine
                 (
-                    "Legacy Storage V1 control-channel initialization failed."
+                    "Legacy Storage V1 read-only validation failed."
                 );
 
                 Console.Error.WriteLine
                 (
-                    ex.GetType().FullName + ": " + ex.Message
+                    ex.GetType().FullName
                 );
 
                 return 4;

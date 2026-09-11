@@ -41,8 +41,7 @@ namespace JasonQuery.Tests.Core.Security.Database
         [TestMethod]
         public void Request_RoundTripsPathAndSecretBytes()
         {
-            var passwordBytes =
-                Encoding.UTF8.GetBytes("Step389C1-Secret-密碼");
+            var passwordBytes = Encoding.UTF8.GetBytes("Step389C1-Secret-密碼");
 
             try
             {
@@ -57,8 +56,7 @@ namespace JasonQuery.Tests.Core.Security.Database
 
                     stream.Position = 0;
 
-                    using (var request =
-                        DatabaseStorageMigrationWireProtocol.ReadRequest(stream))
+                    using (var request = DatabaseStorageMigrationWireProtocol.ReadRequest(stream))
                     {
                         Assert.AreEqual
                         (
@@ -83,8 +81,7 @@ namespace JasonQuery.Tests.Core.Security.Database
         [TestMethod]
         public void Request_DisposeClearsOwnedSecretBytes()
         {
-            var passwordBytes =
-                Encoding.UTF8.GetBytes("Dispose-Me-389C1");
+            var passwordBytes = Encoding.UTF8.GetBytes("Dispose-Me-389C1");
 
             try
             {
@@ -99,9 +96,7 @@ namespace JasonQuery.Tests.Core.Security.Database
 
                     stream.Position = 0;
 
-                    var request =
-                        DatabaseStorageMigrationWireProtocol.ReadRequest(stream);
-
+                    var request = DatabaseStorageMigrationWireProtocol.ReadRequest(stream);
                     var ownedSecret = request.DatabasePasswordUtf8;
 
                     Assert.IsTrue
@@ -153,12 +148,7 @@ namespace JasonQuery.Tests.Core.Security.Database
         [TestMethod]
         public void Request_UnsupportedStorageRoute_FailsClosed()
         {
-            using (var stream =
-                CreateMinimalRequestFrame
-                (
-                    sourceStorageFormatVersion: 2,
-                    targetStorageFormatVersion: 1
-                ))
+            using (var stream = CreateMinimalRequestFrame(sourceStorageFormatVersion: 2, targetStorageFormatVersion: 1))
             {
                 Assert.ThrowsException<NotSupportedException>
                 (
@@ -212,8 +202,7 @@ namespace JasonQuery.Tests.Core.Security.Database
 
                 stream.Position = 0;
 
-                var response =
-                    DatabaseStorageMigrationWireProtocol.ReadResponse(stream);
+                var response = DatabaseStorageMigrationWireProtocol.ReadResponse(stream);
 
                 Assert.AreEqual
                 (
@@ -230,10 +219,37 @@ namespace JasonQuery.Tests.Core.Security.Database
         }
 
         [TestMethod]
+        public void StorageV1ValidatedResponse_RoundTripsAsBinaryFrame()
+        {
+            using (var stream = new MemoryStream())
+            {
+                DatabaseStorageMigrationWireProtocol.WriteStorageV1ValidatedResponse
+                (
+                    stream
+                );
+
+                stream.Position = 0;
+
+                var response = DatabaseStorageMigrationWireProtocol.ReadResponse(stream);
+
+                Assert.AreEqual
+                (
+                    DatabaseStorageMigrationWireResponseStatus.StorageV1Validated,
+                    response.Status
+                );
+
+                Assert.AreEqual
+                (
+                    "Legacy Storage V1 source validated read-only.",
+                    response.Message
+                );
+            }
+        }
+
+        [TestMethod]
         public void Response_RequestFrameKind_FailsClosed()
         {
-            var passwordBytes =
-                Encoding.UTF8.GetBytes("Not-A-Response");
+            var passwordBytes = Encoding.UTF8.GetBytes("Not-A-Response");
 
             try
             {
@@ -260,12 +276,9 @@ namespace JasonQuery.Tests.Core.Security.Database
             }
         }
 
-        private static MemoryStream CreateMinimalRequestFrame
-        (
-            int protocolVersion = DatabaseStorageMigrationWireProtocol.CurrentVersion,
-            int sourceStorageFormatVersion = DatabaseStorageMigrationWireProtocol.SourceStorageFormatVersion,
-            int targetStorageFormatVersion = DatabaseStorageMigrationWireProtocol.TargetStorageFormatVersion
-        )
+        private static MemoryStream CreateMinimalRequestFrame(int protocolVersion = DatabaseStorageMigrationWireProtocol.CurrentVersion,
+                                                              int sourceStorageFormatVersion = DatabaseStorageMigrationWireProtocol.SourceStorageFormatVersion,
+                                                              int targetStorageFormatVersion = DatabaseStorageMigrationWireProtocol.TargetStorageFormatVersion)
         {
             var stream = new MemoryStream();
 
@@ -277,11 +290,8 @@ namespace JasonQuery.Tests.Core.Security.Database
                 writer.Write(sourceStorageFormatVersion);
                 writer.Write(targetStorageFormatVersion);
 
-                var pathBytes =
-                    Encoding.UTF8.GetBytes(@"D:\Lab\JasonQuery.db");
-
-                var passwordBytes =
-                    Encoding.UTF8.GetBytes("Step389C1");
+                var pathBytes = Encoding.UTF8.GetBytes(@"D:\Lab\JasonQuery.db");
+                var passwordBytes = Encoding.UTF8.GetBytes("Step389C1");
 
                 try
                 {

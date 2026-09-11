@@ -31,23 +31,20 @@ namespace JasonQuery.Core.Security.Database
 
         private const byte ResponseFrameKind = 2;
 
-        private static readonly byte[] MagicBytes =
-            Encoding.ASCII.GetBytes(Magic);
+        private static readonly byte[] MagicBytes = Encoding.ASCII.GetBytes(Magic);
 
-        private static readonly UTF8Encoding StrictUtf8 =
-            new UTF8Encoding(false, true);
+        private static readonly UTF8Encoding StrictUtf8 = new UTF8Encoding(false, true);
 
         public static void WriteRequest(Stream stream, string databaseFilePath, byte[] databasePasswordUtf8)
         {
             ValidateWritableStream(stream);
 
-            var databasePathBytes =
-                EncodeRequiredUtf8
-                (
-                    databaseFilePath,
-                    MaxDatabasePathUtf8Bytes,
-                    nameof(databaseFilePath)
-                );
+            var databasePathBytes = EncodeRequiredUtf8
+            (
+                databaseFilePath,
+                MaxDatabasePathUtf8Bytes,
+                nameof(databaseFilePath)
+            );
 
             ValidateSecretBytes(databasePasswordUtf8);
 
@@ -97,25 +94,22 @@ namespace JasonQuery.Core.Security.Database
                         targetStorageFormatVersion
                     );
 
-                    databasePathBytes =
-                        ReadRequiredBytes
-                        (
-                            reader,
-                            MaxDatabasePathUtf8Bytes,
-                            "database path"
-                        );
+                    databasePathBytes = ReadRequiredBytes
+                    (
+                        reader,
+                        MaxDatabasePathUtf8Bytes,
+                        "database path"
+                    );
 
-                    databasePasswordBytes =
-                        ReadRequiredBytes
-                        (
-                            reader,
-                            MaxDatabasePasswordUtf8Bytes,
-                            "database password"
-                        );
+                    databasePasswordBytes = ReadRequiredBytes
+                    (
+                        reader,
+                        MaxDatabasePasswordUtf8Bytes,
+                        "database password"
+                    );
                 }
 
-                var databaseFilePath =
-                    StrictUtf8.GetString(databasePathBytes);
+                var databaseFilePath = StrictUtf8.GetString(databasePathBytes);
 
                 if (string.IsNullOrWhiteSpace(databaseFilePath))
                 {
@@ -125,15 +119,13 @@ namespace JasonQuery.Core.Security.Database
                     );
                 }
 
-                var request =
-                    new DatabaseStorageMigrationWireRequest
-                    (
-                        databaseFilePath,
-                        databasePasswordBytes
-                    );
+                var request = new DatabaseStorageMigrationWireRequest
+                (
+                    databaseFilePath,
+                    databasePasswordBytes
+                );
 
                 databasePasswordBytes = null;
-
                 return request;
             }
             finally
@@ -170,17 +162,26 @@ namespace JasonQuery.Core.Security.Database
             );
         }
 
+        public static void WriteStorageV1ValidatedResponse(Stream stream)
+        {
+            WriteResponse
+            (
+                stream,
+                DatabaseStorageMigrationWireResponseStatus.StorageV1Validated,
+                "Legacy Storage V1 source validated read-only."
+            );
+        }
+
         public static void WriteResponse(Stream stream, DatabaseStorageMigrationWireResponseStatus status, string message)
         {
             ValidateWritableStream(stream);
 
-            var messageBytes =
-                EncodeOptionalUtf8
-                (
-                    message,
-                    MaxResponseMessageUtf8Bytes,
-                    nameof(message)
-                );
+            var messageBytes = EncodeOptionalUtf8
+            (
+                message,
+                MaxResponseMessageUtf8Bytes,
+                nameof(message)
+            );
 
             try
             {
@@ -223,13 +224,12 @@ namespace JasonQuery.Core.Security.Database
                         );
                     }
 
-                    messageBytes =
-                        ReadOptionalBytes
-                        (
-                            reader,
-                            MaxResponseMessageUtf8Bytes,
-                            "response message"
-                        );
+                    messageBytes = ReadOptionalBytes
+                    (
+                        reader,
+                        MaxResponseMessageUtf8Bytes,
+                        "response message"
+                    );
 
                     return new DatabaseStorageMigrationWireResponse
                     (
@@ -305,8 +305,7 @@ namespace JasonQuery.Core.Security.Database
 
         private static void EnsureSupportedRoute(int sourceStorageFormatVersion, int targetStorageFormatVersion)
         {
-            if (sourceStorageFormatVersion != SourceStorageFormatVersion ||
-                targetStorageFormatVersion != TargetStorageFormatVersion)
+            if (sourceStorageFormatVersion != SourceStorageFormatVersion || targetStorageFormatVersion != TargetStorageFormatVersion)
             {
                 throw new NotSupportedException
                 (
@@ -402,9 +401,7 @@ namespace JasonQuery.Core.Security.Database
 
         private static void ValidateSecretBytes(byte[] databasePasswordUtf8)
         {
-            if (databasePasswordUtf8 == null ||
-                databasePasswordUtf8.Length == 0 ||
-                databasePasswordUtf8.Length > MaxDatabasePasswordUtf8Bytes)
+            if (databasePasswordUtf8 == null || databasePasswordUtf8.Length == 0 || databasePasswordUtf8.Length > MaxDatabasePasswordUtf8Bytes)
             {
                 throw new ArgumentException
                 (
@@ -455,13 +452,8 @@ namespace JasonQuery.Core.Security.Database
 
         internal DatabaseStorageMigrationWireRequest(string databaseFilePath, byte[] databasePasswordUtf8)
         {
-            DatabaseFilePath =
-                databaseFilePath ??
-                throw new ArgumentNullException(nameof(databaseFilePath));
-
-            _databasePasswordUtf8 =
-                databasePasswordUtf8 ??
-                throw new ArgumentNullException(nameof(databasePasswordUtf8));
+            DatabaseFilePath = databaseFilePath ?? throw new ArgumentNullException(nameof(databaseFilePath));
+            _databasePasswordUtf8 = databasePasswordUtf8 ?? throw new ArgumentNullException(nameof(databasePasswordUtf8));
         }
 
         public string DatabaseFilePath { get; }
@@ -502,7 +494,9 @@ namespace JasonQuery.Core.Security.Database
 
     public enum DatabaseStorageMigrationWireResponseStatus
     {
-        ControlChannelReady = 1
+        ControlChannelReady = 1,
+
+        StorageV1Validated = 2
     }
 
     public sealed class DatabaseStorageMigrationWireResponse
