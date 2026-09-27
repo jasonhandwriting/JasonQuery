@@ -16,7 +16,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var provider = new PostgreSqlColumnLengthMetadataProvider(null);
             var actual = provider.GetColumnLengthInfo("public", "a_test");
 
-            Assert.AreEqual(0, actual.Count);
+            Assert.IsEmpty(actual);
         }
 
         [TestMethod]
@@ -31,7 +31,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var provider = new PostgreSqlColumnLengthMetadataProvider(table);
             var actual = provider.GetColumnLengthInfo("public", "a_test");
 
-            Assert.AreEqual(0, actual.Count);
+            Assert.IsEmpty(actual);
         }
 
         [TestMethod]
@@ -42,7 +42,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var provider = new PostgreSqlColumnLengthMetadataProvider(CreateSchemaTable());
             var actual = provider.GetColumnLengthInfo("public", " ");
 
-            Assert.AreEqual(0, actual.Count);
+            Assert.IsEmpty(actual);
         }
 
         [TestMethod]
@@ -57,7 +57,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var provider = new PostgreSqlColumnLengthMetadataProvider(table);
             var actual = provider.GetColumnLengthInfo(string.Empty, "a_test");
 
-            Assert.AreEqual(1, actual.Count);
+            Assert.HasCount(1, actual);
             Assert.AreEqual("public.a_test.t1", actual[0].FullColumnName);
         }
 
@@ -74,7 +74,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var provider = new PostgreSqlColumnLengthMetadataProvider(table);
             var actual = provider.GetColumnLengthInfo("public", "a_test");
 
-            Assert.AreEqual(1, actual.Count);
+            Assert.HasCount(1, actual);
             Assert.AreEqual("a_test", actual[0].TableName);
         }
 
@@ -90,7 +90,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var provider = new PostgreSqlColumnLengthMetadataProvider(table);
             var actual = provider.GetColumnLengthInfo("public", "a_test");
 
-            Assert.AreEqual(1, actual.Count);
+            Assert.HasCount(1, actual);
             Assert.AreEqual("character varying", actual[0].DataType);
             Assert.AreEqual(31, actual[0].CharacterMaximumLength);
             Assert.AreEqual("character varying(31)", actual[0].DisplayDataType);
@@ -108,7 +108,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var provider = new PostgreSqlColumnLengthMetadataProvider(table);
             var actual = provider.GetColumnLengthInfo("public", "a_test");
 
-            Assert.AreEqual(1, actual.Count);
+            Assert.HasCount(1, actual);
             Assert.AreEqual("character", actual[0].DataType);
             Assert.AreEqual(8, actual[0].CharacterMaximumLength);
             Assert.AreEqual("character(8)", actual[0].DisplayDataType);
@@ -126,7 +126,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var provider = new PostgreSqlColumnLengthMetadataProvider(table);
             var actual = provider.GetColumnLengthInfo("public", "a_test");
 
-            Assert.AreEqual(1, actual.Count);
+            Assert.HasCount(1, actual);
             Assert.AreEqual("MixedCase", actual[0].ColumnName);
         }
 
@@ -142,7 +142,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var provider = new PostgreSqlColumnLengthMetadataProvider(table);
             var actual = provider.GetColumnLengthInfo("public", "a_test");
 
-            Assert.AreEqual(0, actual.Count);
+            Assert.IsEmpty(actual);
         }
 
         [TestMethod]
@@ -157,7 +157,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var provider = new PostgreSqlColumnLengthMetadataProvider(table);
             var actual = provider.GetColumnLengthInfo("public", "a_test");
 
-            Assert.AreEqual(0, actual.Count);
+            Assert.IsEmpty(actual);
         }
 
         [TestMethod]
@@ -174,7 +174,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var provider = new PostgreSqlColumnLengthMetadataProvider(table);
             var actual = provider.GetColumnLengthInfo("public", "a_test");
 
-            Assert.AreEqual(1, actual.Count);
+            Assert.HasCount(1, actual);
             Assert.AreEqual("t4", actual[0].ColumnName);
         }
 
@@ -193,7 +193,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var provider = new PostgreSqlColumnLengthMetadataProvider(table);
             var actual = provider.GetColumnLengthInfo("public", "a_test");
 
-            Assert.AreEqual(2, actual.Count);
+            Assert.HasCount(2, actual);
             Assert.AreEqual(1, actual[0].OrdinalPosition);
             Assert.AreEqual("t1", actual[0].ColumnName);
             Assert.AreEqual(2, actual[1].OrdinalPosition);

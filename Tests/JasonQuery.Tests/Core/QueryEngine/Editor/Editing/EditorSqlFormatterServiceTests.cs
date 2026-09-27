@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using JasonLibrary.Core.Database.Enums;
 using JasonLibrary.Core.Text.Formatting;
 using JasonQuery.Core.Database.Connection;
@@ -10,7 +10,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
     [TestClass]
     public sealed class EditorSqlFormatterServiceTests
     {
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DataSourceType.None, DatabaseProviderKind.Unknown)]
         [DataRow(DataSourceType.Oracle, DatabaseProviderKind.Oracle)]
         [DataRow(DataSourceType.PostgreSql, DatabaseProviderKind.PostgreSql)]
@@ -159,7 +159,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
             Assert.IsFalse(formatted);
             Assert.AreEqual("select 1", editor.Text);
             Assert.AreEqual(0, editor.ReplaceSelectionCount);
-            StringAssert.Contains(errorMessage, "no result");
+            Assert.Contains("no result", errorMessage);
         }
 
         [TestMethod]
@@ -184,7 +184,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
             Assert.IsFalse(formatted);
             Assert.AreEqual("select 1", editor.Text);
             Assert.AreEqual(0, editor.ReplaceSelectionCount);
-            StringAssert.Contains(errorMessage, "empty SQL");
+            Assert.Contains("empty SQL", errorMessage);
         }
 
         [TestMethod]
@@ -242,7 +242,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
         [TestMethod]
         public void Constructor_NullEditor_ThrowsArgumentNullException()
         {
-            Assert.ThrowsException<ArgumentNullException>
+            Assert.ThrowsExactly<ArgumentNullException>
             (
                 () => new EditorSqlFormatterService(null, request => null)
             );
@@ -251,7 +251,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
         [TestMethod]
         public void Constructor_NullFormatter_ThrowsArgumentNullException()
         {
-            Assert.ThrowsException<ArgumentNullException>
+            Assert.ThrowsExactly<ArgumentNullException>
             (
                 () => new EditorSqlFormatterService(CreateEditor("select 1"), null)
             );

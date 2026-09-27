@@ -103,12 +103,12 @@ namespace JasonQuery.IntegrationTests.PostgreSql
                 var json = IntegrationTestSpecialTypeAssertions.GetLargeText(arranged, "C_JSON");
                 var jsonb = IntegrationTestSpecialTypeAssertions.GetLargeText(arranged, "C_JSONB");
 
-                Assert.AreEqual(4, bytea.LoadContent().Length);
+                Assert.HasCount(4, bytea.LoadContent());
                 Assert.IsFalse(string.IsNullOrWhiteSpace(byteaArray.LoadContent()));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(varcharArray.LoadContent()));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(textArray.LoadContent()));
-                StringAssert.Contains(json.LoadContent(), "value");
-                StringAssert.Contains(jsonb.LoadContent(), "value");
+                Assert.Contains("value", json.LoadContent());
+                Assert.Contains("value", jsonb.LoadContent());
             }
         }
 

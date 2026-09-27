@@ -1,4 +1,4 @@
-﻿using JasonQuery.Core.Security.Database;
+﻿using JasonQuery.Core.Security.JasonQueryDb;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -37,7 +37,7 @@ namespace JasonQuery.LegacyDbMigration
                     ValidateSystemConfig(connection);
                     inventory = ReadInventory(connection);
 
-                    DatabaseStorageMigrationWireProtocol.WriteStorageV1LogicalStreamReadyResponse(output);
+                    JasonQueryDbStorageMigrationWireProtocol.WriteStorageV1LogicalStreamReadyResponse(output);
                     WriteSchema(connection, inventory, output);
 
                     WriteRows
@@ -64,8 +64,8 @@ namespace JasonQuery.LegacyDbMigration
                 }
             }
 
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteEndDatabase(output);
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteEndStream(output);
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteEndDatabase(output);
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteEndStream(output);
             output.Flush();
         }
 
@@ -75,7 +75,7 @@ namespace JasonQuery.LegacyDbMigration
             var schemaObjects = ReadSchemaObjects(connection);
 
             var tables = new List<LegacyStorageV1Table>();
-            var secondaryObjects = new List<DatabaseStorageMigrationSecondarySchemaObject>();
+            var secondaryObjects = new List<JasonQueryDbStorageMigrationSecondarySchemaObject>();
 
             var sqliteSequenceExists = false;
 
@@ -83,16 +83,13 @@ namespace JasonQuery.LegacyDbMigration
             {
                 if (schemaObject.IsInternal)
                 {
-                    if (schemaObject.Kind == DatabaseStorageMigrationSchemaObjectKind.Table &&
-                        string.Equals(schemaObject.Name, "sqlite_sequence", StringComparison.Ordinal))
+                    if (schemaObject.Kind == JasonQueryDbStorageMigrationSchemaObjectKind.Table && string.Equals(schemaObject.Name, "sqlite_sequence", StringComparison.Ordinal))
                     {
                         sqliteSequenceExists = true;
                         continue;
                     }
 
-                    if (schemaObject.Kind == DatabaseStorageMigrationSchemaObjectKind.Index &&
-                        schemaObject.Name.StartsWith("sqlite_autoindex_", StringComparison.Ordinal) &&
-                        schemaObject.Sql == null)
+                    if (schemaObject.Kind == JasonQueryDbStorageMigrationSchemaObjectKind.Index && schemaObject.Name.StartsWith("sqlite_autoindex_", StringComparison.Ordinal) && schemaObject.Sql == null)
                     {
                         continue;
                     }
@@ -103,7 +100,7 @@ namespace JasonQuery.LegacyDbMigration
                     );
                 }
 
-                if (schemaObject.Kind == DatabaseStorageMigrationSchemaObjectKind.Table)
+                if (schemaObject.Kind == JasonQueryDbStorageMigrationSchemaObjectKind.Table)
                 {
                     tables.Add
                     (
@@ -119,7 +116,7 @@ namespace JasonQuery.LegacyDbMigration
 
                 secondaryObjects.Add
                 (
-                    new DatabaseStorageMigrationSecondarySchemaObject
+                    new JasonQueryDbStorageMigrationSecondarySchemaObject
                     (
                         schemaObject.Kind,
                         schemaObject.Name,
@@ -131,7 +128,7 @@ namespace JasonQuery.LegacyDbMigration
 
             tables.Sort
             (
-                (left, right) => DatabaseStorageMigrationLogicalStreamContract.CompareIdentifiers
+                (left, right) => JasonQueryDbStorageMigrationLogicalStreamContract.CompareIdentifiers
                 (
                     left.Name,
                     right.Name
@@ -140,11 +137,11 @@ namespace JasonQuery.LegacyDbMigration
 
             secondaryObjects.Sort(CompareSecondarySchemaObjects);
 
-            DatabaseStorageMigrationLogicalStreamContract.EnsureTableCount(tables.Count);
+            JasonQueryDbStorageMigrationLogicalStreamContract.EnsureTableCount(tables.Count);
 
             var totalSchemaObjectCount = checked(tables.Count + secondaryObjects.Count);
 
-            DatabaseStorageMigrationLogicalStreamContract.EnsureSchemaObjectCount
+            JasonQueryDbStorageMigrationLogicalStreamContract.EnsureSchemaObjectCount
             (
                 totalSchemaObjectCount
             );
@@ -197,17 +194,17 @@ namespace JasonQuery.LegacyDbMigration
             );
         }
 
-        private static DatabaseStorageMigrationDatabaseMetadata ReadDatabaseMetadata(SQLiteConnection connection)
+        private static JasonQueryDbStorageMigrationDatabaseMetadata ReadDatabaseMetadata(SQLiteConnection connection)
         {
             var encodingName = ReadRequiredPragmaString(connection, "encoding");
 
-            DatabaseStorageMigrationLogicalStreamContract.EnsureSourceEncoding(encodingName);
+            JasonQueryDbStorageMigrationLogicalStreamContract.EnsureSourceEncoding(encodingName);
 
-            return new DatabaseStorageMigrationDatabaseMetadata
+            return new JasonQueryDbStorageMigrationDatabaseMetadata
             (
                 ReadPragmaInt32(connection, "user_version"),
                 ReadPragmaInt32(connection, "application_id"),
-                DatabaseStorageMigrationLogicalStreamContract.RequiredSourceEncodingName
+                JasonQueryDbStorageMigrationLogicalStreamContract.RequiredSourceEncodingName
             );
         }
 
@@ -222,7 +219,7 @@ namespace JasonQuery.LegacyDbMigration
             {
                 while (reader.Read())
                 {
-                    if (result.Count >= DatabaseStorageMigrationLogicalStreamContract.MaxSchemaObjects)
+                    if (result.Count >= JasonQueryDbStorageMigrationLogicalStreamContract.MaxSchemaObjects)
                     {
                         throw new InvalidDataException
                         (
@@ -238,23 +235,23 @@ namespace JasonQuery.LegacyDbMigration
                     var kind = ParseSchemaObjectKind(typeName);
                     var isInternal = name.StartsWith("sqlite_", StringComparison.Ordinal);
 
-                    DatabaseStorageMigrationLogicalStreamContract.EnsureIdentifier
+                    JasonQueryDbStorageMigrationLogicalStreamContract.EnsureIdentifier
                     (
                         name,
                         "schemaObjectName"
                     );
 
-                    DatabaseStorageMigrationLogicalStreamContract.EnsureIdentifier
+                    JasonQueryDbStorageMigrationLogicalStreamContract.EnsureIdentifier
                     (
                         tableName,
                         "schemaObjectTableName"
                     );
 
-                    if (!isInternal || kind == DatabaseStorageMigrationSchemaObjectKind.Table)
+                    if (!isInternal || kind == JasonQueryDbStorageMigrationSchemaObjectKind.Table)
                     {
                         if (sqlText == null)
                         {
-                            if (!(kind == DatabaseStorageMigrationSchemaObjectKind.Index && name.StartsWith("sqlite_autoindex_", StringComparison.Ordinal)))
+                            if (!(kind == JasonQueryDbStorageMigrationSchemaObjectKind.Index && name.StartsWith("sqlite_autoindex_", StringComparison.Ordinal)))
                             {
                                 throw new InvalidDataException
                                 (
@@ -264,7 +261,7 @@ namespace JasonQuery.LegacyDbMigration
                         }
                         else
                         {
-                            DatabaseStorageMigrationLogicalStreamContract.EnsureRequiredSql
+                            JasonQueryDbStorageMigrationLogicalStreamContract.EnsureRequiredSql
                             (
                                 sqlText,
                                 "schemaObjectSql"
@@ -303,7 +300,6 @@ namespace JasonQuery.LegacyDbMigration
             var withoutRowId = ContainsTokenSequence(tokens, "WITHOUT", "ROWID");
             var virtualTable = ContainsTokenSequence(tokens, "CREATE", "VIRTUAL", "TABLE");
             var hasAutoincrement = ContainsTokenSequence(tokens, "AUTOINCREMENT");
-
             var columns = ReadColumns(connection, table.Name);
 
             if (columns.Count == 0)
@@ -341,7 +337,7 @@ namespace JasonQuery.LegacyDbMigration
                 rowIdAliasColumnCid = -1;
             }
 
-            DatabaseStorageMigrationLogicalStreamContract.EnsureSupportedHistoricalTableFeatures
+            JasonQueryDbStorageMigrationLogicalStreamContract.EnsureSupportedHistoricalTableFeatures
             (
                 withoutRowId,
                 virtualTable,
@@ -350,7 +346,7 @@ namespace JasonQuery.LegacyDbMigration
                 columns.Count
             );
 
-            table.Definition = new DatabaseStorageMigrationTableDefinition
+            table.Definition = new JasonQueryDbStorageMigrationTableDefinition
             (
                 tableId,
                 table.Name,
@@ -363,17 +359,17 @@ namespace JasonQuery.LegacyDbMigration
             table.Columns = columns;
         }
 
-        private static List<DatabaseStorageMigrationColumnDefinition> ReadColumns(SQLiteConnection connection, string tableName)
+        private static List<JasonQueryDbStorageMigrationColumnDefinition> ReadColumns(SQLiteConnection connection, string tableName)
         {
             var sql = "PRAGMA table_xinfo(" + QuoteSqlStringLiteral(tableName) + ")";
-            var columns = new List<DatabaseStorageMigrationColumnDefinition>();
+            var columns = new List<JasonQueryDbStorageMigrationColumnDefinition>();
 
             using (var command = new SQLiteCommand(sql, connection))
             using (var reader = command.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                    if (columns.Count >= DatabaseStorageMigrationLogicalStreamContract.MaxColumnsPerTable)
+                    if (columns.Count >= JasonQueryDbStorageMigrationLogicalStreamContract.MaxColumnsPerTable)
                     {
                         throw new InvalidDataException
                         (
@@ -391,7 +387,7 @@ namespace JasonQuery.LegacyDbMigration
 
                     columns.Add
                     (
-                        new DatabaseStorageMigrationColumnDefinition
+                        new JasonQueryDbStorageMigrationColumnDefinition
                         (
                             cid,
                             name,
@@ -443,9 +439,9 @@ namespace JasonQuery.LegacyDbMigration
             return false;
         }
 
-        private static List<DatabaseStorageMigrationSequenceEntry> ReadSequenceEntries(SQLiteConnection connection, bool sqliteSequenceExists, HashSet<string> autoincrementTableNames)
+        private static List<JasonQueryDbStorageMigrationSequenceEntry> ReadSequenceEntries(SQLiteConnection connection, bool sqliteSequenceExists, HashSet<string> autoincrementTableNames)
         {
-            var result = new List<DatabaseStorageMigrationSequenceEntry>();
+            var result = new List<JasonQueryDbStorageMigrationSequenceEntry>();
 
             if (!sqliteSequenceExists)
             {
@@ -461,7 +457,7 @@ namespace JasonQuery.LegacyDbMigration
             {
                 while (reader.Read())
                 {
-                    if (result.Count >= DatabaseStorageMigrationLogicalStreamContract.MaxTables)
+                    if (result.Count >= JasonQueryDbStorageMigrationLogicalStreamContract.MaxTables)
                     {
                         throw new InvalidDataException
                         (
@@ -498,7 +494,7 @@ namespace JasonQuery.LegacyDbMigration
 
                     result.Add
                     (
-                        new DatabaseStorageMigrationSequenceEntry
+                        new JasonQueryDbStorageMigrationSequenceEntry
                         (
                             tableName,
                             reader.GetInt64(2)
@@ -509,7 +505,7 @@ namespace JasonQuery.LegacyDbMigration
 
             result.Sort
             (
-                (left, right) => DatabaseStorageMigrationLogicalStreamContract.CompareIdentifiers
+                (left, right) => JasonQueryDbStorageMigrationLogicalStreamContract.CompareIdentifiers
                 (
                     left.TableName,
                     right.TableName
@@ -521,7 +517,7 @@ namespace JasonQuery.LegacyDbMigration
 
         private static void WriteSchema(SQLiteConnection connection, LegacyStorageV1Inventory inventory, Stream output)
         {
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteBeginDatabase
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteBeginDatabase
             (
                 output,
                 inventory.Metadata,
@@ -529,7 +525,7 @@ namespace JasonQuery.LegacyDbMigration
                 inventory.SchemaObjectCount
             );
 
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteBeginSchema
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteBeginSchema
             (
                 output,
                 inventory.Tables.Count
@@ -537,7 +533,7 @@ namespace JasonQuery.LegacyDbMigration
 
             foreach (var table in inventory.Tables)
             {
-                DatabaseStorageMigrationLogicalStreamProtocol.WriteBeginTable
+                JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteBeginTable
                 (
                     output,
                     table.Definition
@@ -545,7 +541,7 @@ namespace JasonQuery.LegacyDbMigration
 
                 foreach (var column in table.Columns)
                 {
-                    DatabaseStorageMigrationLogicalStreamProtocol.WriteColumn
+                    JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteColumn
                     (
                         output,
                         table.Definition.TableId,
@@ -553,14 +549,14 @@ namespace JasonQuery.LegacyDbMigration
                     );
                 }
 
-                DatabaseStorageMigrationLogicalStreamProtocol.WriteEndTable
+                JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteEndTable
                 (
                     output,
                     table.Definition.TableId
                 );
             }
 
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteEndSchema(output);
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteEndSchema(output);
         }
 
         private static void WriteRows(SQLiteConnection connection, LegacyStorageV1Inventory inventory, Stream output)
@@ -580,7 +576,7 @@ namespace JasonQuery.LegacyDbMigration
         {
             var selectSql = BuildRowSelectSql(table);
 
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteBeginRows
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteBeginRows
             (
                 output,
                 table.Definition.TableId
@@ -601,7 +597,7 @@ namespace JasonQuery.LegacyDbMigration
                         );
                     }
 
-                    DatabaseStorageMigrationLogicalStreamProtocol.WriteBeginRow
+                    JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteBeginRow
                     (
                         output,
                         table.Columns.Count
@@ -628,12 +624,12 @@ namespace JasonQuery.LegacyDbMigration
                         );
                     }
 
-                    DatabaseStorageMigrationLogicalStreamProtocol.WriteEndRow(output);
+                    JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteEndRow(output);
                     rowCount++;
                 }
             }
 
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteEndRows
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteEndRows
             (
                 output,
                 table.Definition.TableId,
@@ -650,7 +646,7 @@ namespace JasonQuery.LegacyDbMigration
                     throw new InvalidDataException("SQLite reported NULL but the value reader did not.");
                 }
 
-                DatabaseStorageMigrationLogicalStreamProtocol.WriteNullValue(output);
+                JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteNullValue(output);
                 return;
             }
 
@@ -664,7 +660,7 @@ namespace JasonQuery.LegacyDbMigration
 
             if (string.Equals(storageType, "integer", StringComparison.Ordinal))
             {
-                DatabaseStorageMigrationLogicalStreamProtocol.WriteInt64Value
+                JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteInt64Value
                 (
                     output,
                     Convert.ToInt64(reader.GetValue(ordinal), CultureInfo.InvariantCulture)
@@ -675,7 +671,7 @@ namespace JasonQuery.LegacyDbMigration
 
             if (string.Equals(storageType, "real", StringComparison.Ordinal))
             {
-                DatabaseStorageMigrationLogicalStreamProtocol.WriteDoubleValue
+                JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteDoubleValue
                 (
                     output,
                     Convert.ToDouble(reader.GetValue(ordinal), CultureInfo.InvariantCulture)
@@ -706,9 +702,9 @@ namespace JasonQuery.LegacyDbMigration
         {
             var totalLength = reader.GetBytes(ordinal, 0, null, 0, 0);
 
-            DatabaseStorageMigrationLogicalStreamContract.EnsureTextUtf8ByteLength(totalLength);
+            JasonQueryDbStorageMigrationLogicalStreamContract.EnsureTextUtf8ByteLength(totalLength);
 
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteBeginTextUtf8
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteBeginTextUtf8
             (
                 output,
                 totalLength
@@ -716,13 +712,13 @@ namespace JasonQuery.LegacyDbMigration
 
             if (totalLength == 0)
             {
-                DatabaseStorageMigrationLogicalStreamProtocol.WriteEndTextUtf8(output);
+                JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteEndTextUtf8(output);
                 return;
             }
 
-            var byteBuffer = new byte[DatabaseStorageMigrationLogicalStreamContract.MaxValueChunkBytes];
-            var charBuffer = new char[DatabaseStorageMigrationLogicalStreamContract.MaxValueChunkBytes];
-            var decoder = DatabaseStorageMigrationLogicalStreamContract.CreateStrictUtf8Decoder();
+            var byteBuffer = new byte[JasonQueryDbStorageMigrationLogicalStreamContract.MaxValueChunkBytes];
+            var charBuffer = new char[JasonQueryDbStorageMigrationLogicalStreamContract.MaxValueChunkBytes];
+            var decoder = JasonQueryDbStorageMigrationLogicalStreamContract.CreateStrictUtf8Decoder();
 
             try
             {
@@ -761,7 +757,7 @@ namespace JasonQuery.LegacyDbMigration
                         flush
                     );
 
-                    DatabaseStorageMigrationLogicalStreamProtocol.WriteTextUtf8Chunk
+                    JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteTextUtf8Chunk
                     (
                         output,
                         byteBuffer,
@@ -786,7 +782,7 @@ namespace JasonQuery.LegacyDbMigration
                 Array.Clear(charBuffer, 0, charBuffer.Length);
             }
 
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteEndTextUtf8(output);
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteEndTextUtf8(output);
         }
 
         private static void ValidateStrictUtf8Chunk(Decoder decoder, byte[] byteBuffer, int byteCount, char[] charBuffer, bool flush)
@@ -835,9 +831,9 @@ namespace JasonQuery.LegacyDbMigration
         {
             var totalLength = reader.GetBytes(ordinal, 0, null, 0, 0);
 
-            DatabaseStorageMigrationLogicalStreamContract.EnsureBlobByteLength(totalLength);
+            JasonQueryDbStorageMigrationLogicalStreamContract.EnsureBlobByteLength(totalLength);
 
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteBeginBlob
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteBeginBlob
             (
                 output,
                 totalLength
@@ -845,11 +841,11 @@ namespace JasonQuery.LegacyDbMigration
 
             if (totalLength == 0)
             {
-                DatabaseStorageMigrationLogicalStreamProtocol.WriteEndBlob(output);
+                JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteEndBlob(output);
                 return;
             }
 
-            var buffer = new byte[DatabaseStorageMigrationLogicalStreamContract.MaxValueChunkBytes];
+            var buffer = new byte[JasonQueryDbStorageMigrationLogicalStreamContract.MaxValueChunkBytes];
 
             try
             {
@@ -876,7 +872,7 @@ namespace JasonQuery.LegacyDbMigration
                         );
                     }
 
-                    DatabaseStorageMigrationLogicalStreamProtocol.WriteBlobChunk
+                    JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteBlobChunk
                     (
                         output,
                         buffer,
@@ -900,12 +896,12 @@ namespace JasonQuery.LegacyDbMigration
                 Array.Clear(buffer, 0, buffer.Length);
             }
 
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteEndBlob(output);
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteEndBlob(output);
         }
 
         private static void WriteSequenceState(LegacyStorageV1Inventory inventory, Stream output)
         {
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteBeginSequenceState
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteBeginSequenceState
             (
                 output,
                 inventory.SequenceEntries.Count
@@ -913,19 +909,19 @@ namespace JasonQuery.LegacyDbMigration
 
             foreach (var entry in inventory.SequenceEntries)
             {
-                DatabaseStorageMigrationLogicalStreamProtocol.WriteSequenceEntry
+                JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteSequenceEntry
                 (
                     output,
                     entry
                 );
             }
 
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteEndSequenceState(output);
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteEndSequenceState(output);
         }
 
         private static void WriteSecondarySchema(LegacyStorageV1Inventory inventory, Stream output)
         {
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteBeginSecondarySchema
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteBeginSecondarySchema
             (
                 output,
                 inventory.SecondaryObjects.Count
@@ -933,14 +929,14 @@ namespace JasonQuery.LegacyDbMigration
 
             foreach (var schemaObject in inventory.SecondaryObjects)
             {
-                DatabaseStorageMigrationLogicalStreamProtocol.WriteSchemaObject
+                JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteSchemaObject
                 (
                     output,
                     schemaObject
                 );
             }
 
-            DatabaseStorageMigrationLogicalStreamProtocol.WriteEndSecondarySchema(output);
+            JasonQueryDbStorageMigrationLogicalStreamProtocol.WriteEndSecondarySchema(output);
         }
 
         private static string BuildRowSelectSql(LegacyStorageV1Table table)
@@ -974,6 +970,7 @@ namespace JasonQuery.LegacyDbMigration
             builder.Append(" FROM ");
             builder.Append(QuoteIdentifier(table.Name));
             builder.Append(" ORDER BY ");
+
             builder.Append
             (
                 QuoteIdentifier
@@ -981,6 +978,7 @@ namespace JasonQuery.LegacyDbMigration
                     table.Columns[table.Definition.RowIdAliasColumnCid].Name
                 )
             );
+
             builder.Append(" ASC");
 
             EnsureGeneratedSqlLength(builder);
@@ -990,7 +988,7 @@ namespace JasonQuery.LegacyDbMigration
 
         private static void EnsureGeneratedSqlCharacterLength(StringBuilder builder)
         {
-            if (builder.Length > DatabaseStorageMigrationLogicalStreamContract.MaxSqlUtf8Bytes)
+            if (builder.Length > JasonQueryDbStorageMigrationLogicalStreamContract.MaxSqlUtf8Bytes)
             {
                 throw new InvalidDataException
                 (
@@ -1001,7 +999,7 @@ namespace JasonQuery.LegacyDbMigration
 
         private static void EnsureGeneratedSqlLength(StringBuilder builder)
         {
-            if (StrictUtf8.GetByteCount(builder.ToString()) > DatabaseStorageMigrationLogicalStreamContract.MaxSqlUtf8Bytes)
+            if (StrictUtf8.GetByteCount(builder.ToString()) > JasonQueryDbStorageMigrationLogicalStreamContract.MaxSqlUtf8Bytes)
             {
                 throw new InvalidDataException
                 (
@@ -1010,12 +1008,11 @@ namespace JasonQuery.LegacyDbMigration
             }
         }
 
-        private static int CompareSecondarySchemaObjects(DatabaseStorageMigrationSecondarySchemaObject left,
-                                                         DatabaseStorageMigrationSecondarySchemaObject right)
+        private static int CompareSecondarySchemaObjects(JasonQueryDbStorageMigrationSecondarySchemaObject left, JasonQueryDbStorageMigrationSecondarySchemaObject right)
         {
-            var orderComparison = DatabaseStorageMigrationLogicalStreamContract.GetSecondarySchemaReplayOrder(left.Kind).CompareTo
+            var orderComparison = JasonQueryDbStorageMigrationLogicalStreamContract.GetSecondarySchemaReplayOrder(left.Kind).CompareTo
             (
-                DatabaseStorageMigrationLogicalStreamContract.GetSecondarySchemaReplayOrder(right.Kind)
+                JasonQueryDbStorageMigrationLogicalStreamContract.GetSecondarySchemaReplayOrder(right.Kind)
             );
 
             if (orderComparison != 0)
@@ -1023,7 +1020,7 @@ namespace JasonQuery.LegacyDbMigration
                 return orderComparison;
             }
 
-            var nameComparison = DatabaseStorageMigrationLogicalStreamContract.CompareIdentifiers
+            var nameComparison = JasonQueryDbStorageMigrationLogicalStreamContract.CompareIdentifiers
             (
                 left.Name,
                 right.Name
@@ -1034,33 +1031,33 @@ namespace JasonQuery.LegacyDbMigration
                 return nameComparison;
             }
 
-            return DatabaseStorageMigrationLogicalStreamContract.CompareIdentifiers
+            return JasonQueryDbStorageMigrationLogicalStreamContract.CompareIdentifiers
             (
                 left.TableName,
                 right.TableName
             );
         }
 
-        private static DatabaseStorageMigrationSchemaObjectKind ParseSchemaObjectKind(string typeName)
+        private static JasonQueryDbStorageMigrationSchemaObjectKind ParseSchemaObjectKind(string typeName)
         {
             if (string.Equals(typeName, "table", StringComparison.OrdinalIgnoreCase))
             {
-                return DatabaseStorageMigrationSchemaObjectKind.Table;
+                return JasonQueryDbStorageMigrationSchemaObjectKind.Table;
             }
 
             if (string.Equals(typeName, "index", StringComparison.OrdinalIgnoreCase))
             {
-                return DatabaseStorageMigrationSchemaObjectKind.Index;
+                return JasonQueryDbStorageMigrationSchemaObjectKind.Index;
             }
 
             if (string.Equals(typeName, "view", StringComparison.OrdinalIgnoreCase))
             {
-                return DatabaseStorageMigrationSchemaObjectKind.View;
+                return JasonQueryDbStorageMigrationSchemaObjectKind.View;
             }
 
             if (string.Equals(typeName, "trigger", StringComparison.OrdinalIgnoreCase))
             {
-                return DatabaseStorageMigrationSchemaObjectKind.Trigger;
+                return JasonQueryDbStorageMigrationSchemaObjectKind.Trigger;
             }
 
             throw new NotSupportedException
@@ -1346,7 +1343,7 @@ namespace JasonQuery.LegacyDbMigration
 
         private static string QuoteIdentifier(string identifier)
         {
-            DatabaseStorageMigrationLogicalStreamContract.EnsureIdentifier
+            JasonQueryDbStorageMigrationLogicalStreamContract.EnsureIdentifier
             (
                 identifier,
                 nameof(identifier)
@@ -1403,9 +1400,9 @@ namespace JasonQuery.LegacyDbMigration
 
         private sealed class LegacyStorageV1Inventory
         {
-            public LegacyStorageV1Inventory(DatabaseStorageMigrationDatabaseMetadata metadata, List<LegacyStorageV1Table> tables,
-                                            List<DatabaseStorageMigrationSecondarySchemaObject> secondaryObjects,
-                                            List<DatabaseStorageMigrationSequenceEntry> sequenceEntries, int schemaObjectCount)
+            public LegacyStorageV1Inventory(JasonQueryDbStorageMigrationDatabaseMetadata metadata, List<LegacyStorageV1Table> tables,
+                                            List<JasonQueryDbStorageMigrationSecondarySchemaObject> secondaryObjects,
+                                            List<JasonQueryDbStorageMigrationSequenceEntry> sequenceEntries, int schemaObjectCount)
             {
                 Metadata = metadata;
                 Tables = tables;
@@ -1414,13 +1411,13 @@ namespace JasonQuery.LegacyDbMigration
                 SchemaObjectCount = schemaObjectCount;
             }
 
-            public DatabaseStorageMigrationDatabaseMetadata Metadata { get; }
+            public JasonQueryDbStorageMigrationDatabaseMetadata Metadata { get; }
 
             public List<LegacyStorageV1Table> Tables { get; }
 
-            public List<DatabaseStorageMigrationSecondarySchemaObject> SecondaryObjects { get; }
+            public List<JasonQueryDbStorageMigrationSecondarySchemaObject> SecondaryObjects { get; }
 
-            public List<DatabaseStorageMigrationSequenceEntry> SequenceEntries { get; }
+            public List<JasonQueryDbStorageMigrationSequenceEntry> SequenceEntries { get; }
 
             public int SchemaObjectCount { get; }
         }
@@ -1437,15 +1434,14 @@ namespace JasonQuery.LegacyDbMigration
 
             public string CreateSql { get; }
 
-            public DatabaseStorageMigrationTableDefinition Definition { get; set; }
+            public JasonQueryDbStorageMigrationTableDefinition Definition { get; set; }
 
-            public List<DatabaseStorageMigrationColumnDefinition> Columns { get; set; }
+            public List<JasonQueryDbStorageMigrationColumnDefinition> Columns { get; set; }
         }
 
         private sealed class LegacyStorageV1SchemaObject
         {
-            public LegacyStorageV1SchemaObject(DatabaseStorageMigrationSchemaObjectKind kind, string name,
-                                               string tableName, string sql, bool isInternal)
+            public LegacyStorageV1SchemaObject(JasonQueryDbStorageMigrationSchemaObjectKind kind, string name, string tableName, string sql, bool isInternal)
             {
                 Kind = kind;
                 Name = name;
@@ -1454,7 +1450,7 @@ namespace JasonQuery.LegacyDbMigration
                 IsInternal = isInternal;
             }
 
-            public DatabaseStorageMigrationSchemaObjectKind Kind { get; }
+            public JasonQueryDbStorageMigrationSchemaObjectKind Kind { get; }
 
             public string Name { get; }
 
@@ -1473,8 +1469,7 @@ namespace JasonQuery.LegacyDbMigration
             private readonly FileSnapshot _shm;
             private readonly FileSnapshot _journal;
 
-            private SourceSnapshot(string databasePath, FileSnapshot database, FileSnapshot wal,
-                                   FileSnapshot shm, FileSnapshot journal)
+            private SourceSnapshot(string databasePath, FileSnapshot database, FileSnapshot wal, FileSnapshot shm, FileSnapshot journal)
             {
                 _databasePath = databasePath;
                 _database = database;
@@ -1560,13 +1555,7 @@ namespace JasonQuery.LegacyDbMigration
                 if (includeHash)
                 {
                     using (var sha256 = SHA256.Create())
-                    using (var stream = new FileStream
-                    (
-                        filePath,
-                        FileMode.Open,
-                        FileAccess.Read,
-                        FileShare.Read
-                    ))
+                    using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
                         hash = sha256.ComputeHash(stream);
                     }

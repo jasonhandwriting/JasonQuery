@@ -56,7 +56,7 @@ namespace JasonQuery.Tests.Core.SchemaExplorer.LazyLoading
             Assert.IsFalse(state.TryBegin(SchemaBrowserLazyTab.None));
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow((int)SchemaBrowserLazyTab.TableData, true, false, (int)SchemaBrowserLazyTab.TableData)]
         [DataRow((int)SchemaBrowserLazyTab.TableStructure, true, false, (int)SchemaBrowserLazyTab.TableStructure)]
         [DataRow((int)SchemaBrowserLazyTab.ViewData, false, true, (int)SchemaBrowserLazyTab.ViewData)]

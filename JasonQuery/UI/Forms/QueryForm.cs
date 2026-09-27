@@ -1193,11 +1193,11 @@ namespace JasonQuery.UI.Forms
             _columnInfoCollector = SchemaColumnInfoBuilder.Build(_currentSourceType, dtSchemaTable);
 
             var columnInfos = _columnInfoCollector.GetAll();
-            bool hasRickyColumn = columnInfos.Any(
-                                                     c =>
-                                                     c.CategoryDataTypeKind == CategoryDataTypeKind.LargeText ||
-                                                     c.CategoryDataTypeKind == CategoryDataTypeKind.LargeBinary
-                                                 );
+
+            bool hasRickyColumn = columnInfos.Any
+            (
+                c => c.CategoryDataTypeKind == CategoryDataTypeKind.LargeText || c.CategoryDataTypeKind == CategoryDataTypeKind.LargeBinary
+            );
 
             if (!hasRickyColumn)
             {

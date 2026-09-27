@@ -1,4 +1,4 @@
-﻿using JasonQuery.Core.Security.Database;
+﻿using JasonQuery.Core.Security.JasonQueryDb;
 using System;
 using System.Data.SQLite;
 using System.Reflection;
@@ -13,9 +13,7 @@ namespace JasonQuery.LegacyDbMigration
 
         private static int Main(string[] args)
         {
-            if (args == null || args.Length != 1 ||
-                (!string.Equals(args[0], RuntimeInfoArgument, StringComparison.Ordinal) &&
-                 !string.Equals(args[0], StreamStorageV1Argument, StringComparison.Ordinal)))
+            if (args == null || args.Length != 1 || (!string.Equals(args[0], RuntimeInfoArgument, StringComparison.Ordinal) && !string.Equals(args[0], StreamStorageV1Argument, StringComparison.Ordinal)))
             {
                 Console.Error.WriteLine
                 (
@@ -82,7 +80,7 @@ namespace JasonQuery.LegacyDbMigration
             {
                 using (var input = Console.OpenStandardInput())
                 using (var output = Console.OpenStandardOutput())
-                using (var request = DatabaseStorageMigrationWireProtocol.ReadRequest(input))
+                using (var request = JasonQueryDbStorageMigrationWireProtocol.ReadRequest(input))
                 {
                     var validator = new LegacyStorageV1ReadOnlyValidator();
 
@@ -92,7 +90,7 @@ namespace JasonQuery.LegacyDbMigration
                         request.DatabasePasswordUtf8
                     );
 
-                    DatabaseStorageMigrationWireProtocol.WriteStorageV1ValidatedResponse
+                    JasonQueryDbStorageMigrationWireProtocol.WriteStorageV1ValidatedResponse
                     (
                         output
                     );
@@ -144,12 +142,7 @@ namespace JasonQuery.LegacyDbMigration
 
             if (string.IsNullOrWhiteSpace(value))
             {
-                throw new InvalidOperationException
-                (
-                    "SQLiteConnection." +
-                    propertyName +
-                    " returned no value."
-                );
+                throw new InvalidOperationException("SQLiteConnection." + propertyName + " returned no value.");
             }
 
             return value;

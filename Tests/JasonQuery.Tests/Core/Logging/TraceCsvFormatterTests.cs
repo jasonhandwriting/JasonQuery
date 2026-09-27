@@ -48,8 +48,8 @@ namespace JasonQuery.Tests.Core.Logging
 
                 var result = TraceCsvFormatter.Format(entry);
 
-                Assert.IsTrue(result.Contains(",1234,123.45,-1.25,"));
-                Assert.IsTrue(result.StartsWith("\"2026-08-30T10:11:12.345+08:00\",1,"));
+                Assert.Contains(",1234,123.45,-1.25,", result);
+                Assert.StartsWith("\"2026-08-30T10:11:12.345+08:00\",1,", result);
             }
             finally
             {

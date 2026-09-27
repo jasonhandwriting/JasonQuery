@@ -30,20 +30,10 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
                 "ConnectionExportForm.cs"
             );
 
-            StringAssert.Contains(dbInfoGridSource, "ConnectionCredentialStorageContract.FromV2StoredValue");
-            StringAssert.Contains(exportSource, "ConnectionCredentialStorageContract.FromV2StoredValue");
-
-            Assert.IsFalse
-            (
-                dbInfoGridSource.Contains("LegacyConnectionCredentialSecurity."),
-                "ConnectionForm runtime credential reads must not use legacy per-field protection."
-            );
-
-            Assert.IsFalse
-            (
-                exportSource.Contains("LegacyConnectionCredentialSecurity."),
-                "Connection export must read DBInfo.Password using the V2 logical-value contract."
-            );
+            Assert.Contains("ConnectionCredentialStorageContract.FromV2StoredValue", dbInfoGridSource);
+            Assert.Contains("ConnectionCredentialStorageContract.FromV2StoredValue", exportSource);
+            Assert.DoesNotContain("LegacyConnectionCredentialSecurity.", dbInfoGridSource, "ConnectionForm runtime credential reads must not use legacy per-field protection.");
+            Assert.DoesNotContain("LegacyConnectionCredentialSecurity.", exportSource, "Connection export must read DBInfo.Password using the V2 logical-value contract.");
         }
 
         [TestMethod]
@@ -69,25 +59,14 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
                 "ConnectionImportForm.cs"
             );
 
-            StringAssert.Contains(saveSource, "ConnectionCredentialStorageContract.ToV2StoredValue");
-            StringAssert.Contains(saveSource, "Password = @Password");
-            StringAssert.Contains(saveSource, "new SQLiteParameter(\"@Password\", storedPassword)");
-
-            StringAssert.Contains(importSource, "ConnectionCredentialStorageContract.ToV2StoredValue");
-            StringAssert.Contains(importSource, "passwordParameterName = $\"@Password{count}\"");
-            StringAssert.Contains(importSource, "passwordParameters.ToArray()");
-
-            Assert.IsFalse
-            (
-                saveSource.Contains("LegacyConnectionCredentialSecurity."),
-                "ConnectionForm runtime credential writes must not use legacy per-field protection."
-            );
-
-            Assert.IsFalse
-            (
-                importSource.Contains("LegacyConnectionCredentialSecurity."),
-                "Connection import must persist DBInfo.Password using the V2 logical-value contract."
-            );
+            Assert.Contains("ConnectionCredentialStorageContract.ToV2StoredValue", saveSource);
+            Assert.Contains("Password = @Password", saveSource);
+            Assert.Contains("new JasonQueryDatabaseParameter(\"@Password\", storedPassword)", saveSource);
+            Assert.Contains("ConnectionCredentialStorageContract.ToV2StoredValue", importSource);
+            Assert.Contains("passwordParameterName = $\"@Password{count}\"", importSource);
+            Assert.Contains("passwordParameters.ToArray()", importSource);
+            Assert.DoesNotContain("LegacyConnectionCredentialSecurity.", saveSource, "ConnectionForm runtime credential writes must not use legacy per-field protection.");
+            Assert.DoesNotContain("LegacyConnectionCredentialSecurity.", importSource, "Connection import must persist DBInfo.Password using the V2 logical-value contract.");
         }
 
         [TestMethod]
@@ -121,18 +100,13 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
 
             var setV2Index = databaseSecuritySource.IndexOf
             (
-                "DatabaseSecurityRuntime.SetV2(metadata.Mode)",
+                "JasonQueryDbSecurityRuntime.SetV2(metadata.Mode)",
                 StringComparison.Ordinal
             );
 
-            Assert.IsTrue(ensureReadyIndex >= 0, "The credential storage startup gate call was not found.");
-            Assert.IsTrue(setV2Index >= 0, "The Database Security V2 runtime marker call was not found.");
-
-            Assert.IsTrue
-            (
-                ensureReadyIndex < setV2Index,
-                "DBInfo.Password migration readiness must be established before DatabaseSecurityRuntime is marked V2."
-            );
+            Assert.IsGreaterThanOrEqualTo(0, ensureReadyIndex, "The credential storage startup gate call was not found.");
+            Assert.IsGreaterThanOrEqualTo(0, setV2Index, "The Database Security V2 runtime marker call was not found.");
+            Assert.IsLessThan(setV2Index, ensureReadyIndex, "DBInfo.Password migration readiness must be established before JasonQueryDbSecurityRuntime is marked V2.");
 
             var initializeDatabaseSecurityIndex = mainFormSource.IndexOf
             (
@@ -152,21 +126,11 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
                 StringComparison.Ordinal
             );
 
-            Assert.IsTrue(initializeDatabaseSecurityIndex >= 0, "InitializeDatabaseSecurity startup call was not found.");
-            Assert.IsTrue(loadGlobalSettingIndex >= 0, "LoadGlobalSetting startup call was not found.");
-            Assert.IsTrue(loadConnectionFormIndex >= 0, "LoadConnectionForm startup call was not found.");
-
-            Assert.IsTrue
-            (
-                initializeDatabaseSecurityIndex < loadGlobalSettingIndex,
-                "Database security and credential migration must finish before global settings access JasonQuery.db."
-            );
-
-            Assert.IsTrue
-            (
-                loadGlobalSettingIndex < loadConnectionFormIndex,
-                "ConnectionForm must remain downstream from the database security startup gate."
-            );
+            Assert.IsGreaterThanOrEqualTo(0, initializeDatabaseSecurityIndex, "InitializeDatabaseSecurity startup call was not found.");
+            Assert.IsGreaterThanOrEqualTo(0, loadGlobalSettingIndex, "LoadGlobalSetting startup call was not found.");
+            Assert.IsGreaterThanOrEqualTo(0, loadConnectionFormIndex, "LoadConnectionForm startup call was not found.");
+            Assert.IsLessThan(loadGlobalSettingIndex, initializeDatabaseSecurityIndex, "Database security and credential migration must finish before global settings access JasonQuery.db.");
+            Assert.IsLessThan(loadConnectionFormIndex, loadGlobalSettingIndex, "ConnectionForm must remain downstream from the database security startup gate.");
         }
 
         private static string FindRepositoryRoot()

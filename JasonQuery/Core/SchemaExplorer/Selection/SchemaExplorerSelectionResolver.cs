@@ -279,8 +279,7 @@ namespace JasonQuery.Core.SchemaExplorer.Selection
 
             if (separatorIndex >= 0)
             {
-                if (selection.SourceType == DataSourceType.Oracle &&
-                    SchemaObjectTypeHelper.Is(selection.SchemaType, SchemaObjectNames.Packages))
+                if (selection.SourceType == DataSourceType.Oracle && SchemaObjectTypeHelper.Is(selection.SchemaType, SchemaObjectNames.Packages))
                 {
                     selection.PackageSpecBody = schemaName.EndsWith("(Spec)", StringComparison.Ordinal) ? "Spec" : "Body";
                 }

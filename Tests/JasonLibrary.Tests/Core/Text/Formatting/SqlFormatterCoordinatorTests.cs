@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using JasonLibrary.Core.Database.Enums;
 using JasonLibrary.Core.Text.Formatting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -61,7 +61,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.AreEqual(SqlFormatterEngineKind.Hogimn, result.EngineKind);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DatabaseProviderKind.SqlServer)]
         [DataRow(DatabaseProviderKind.PostgreSql)]
         public void Format_UnionAll_DoesNotAddBlankLinesAroundSetOperator(DatabaseProviderKind providerKind)
@@ -79,9 +79,9 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success);
-            StringAssert.Contains(result.FormattedSql, "\r\nUNION ALL\r\n");
-            Assert.IsFalse(result.FormattedSql.Contains("\r\n\r\nUNION ALL"));
-            Assert.IsFalse(result.FormattedSql.Contains("UNION ALL\r\n\r\n"));
+            Assert.Contains("\r\nUNION ALL\r\n", result.FormattedSql);
+            Assert.DoesNotContain("\r\n\r\nUNION ALL", result.FormattedSql);
+            Assert.DoesNotContain("UNION ALL\r\n\r\n", result.FormattedSql);
         }
 
         [TestMethod]
@@ -99,7 +99,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.IsFalse(result.Success);
             Assert.AreEqual(SqlFormatterEngineKind.MicrosoftScriptDom, result.EngineKind);
             Assert.AreEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "does not support");
+            Assert.Contains("does not support", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -117,7 +117,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.IsFalse(result.Success);
             Assert.AreEqual(SqlFormatterEngineKind.Laan, result.EngineKind);
             Assert.AreEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "not ready");
+            Assert.Contains("not ready", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -130,7 +130,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.IsFalse(result.Success);
             Assert.AreEqual(SqlFormatterEngineKind.Unknown, result.EngineKind);
             Assert.AreEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "No default formatter engine");
+            Assert.Contains("No default formatter engine", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -148,7 +148,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.IsFalse(result.Success);
             Assert.AreEqual(SqlFormatterEngineKind.Hogimn, result.EngineKind);
             Assert.AreEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "formatter failed");
+            Assert.Contains("formatter failed", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -192,13 +192,13 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.IsFalse(result.Success);
             Assert.AreEqual(SqlFormatterEngineKind.Hogimn, result.EngineKind);
             Assert.AreEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "different engine kind");
+            Assert.Contains("different engine kind", result.ErrorMessage);
         }
 
         [TestMethod]
         public void Format_NullRequest_ThrowsArgumentNullException()
         {
-            Assert.ThrowsException<ArgumentNullException>
+            Assert.ThrowsExactly<ArgumentNullException>
             (
                 () => new SqlFormatterCoordinator().Format((SqlFormatRequest)null)
             );
@@ -207,7 +207,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
         [TestMethod]
         public void Constructor_NullResolver_ThrowsArgumentNullException()
         {
-            Assert.ThrowsException<ArgumentNullException>
+            Assert.ThrowsExactly<ArgumentNullException>
             (
                 () => new SqlFormatterCoordinator(null)
             );

@@ -30,7 +30,7 @@ namespace JasonLibrary.Tests.Core.Update
                     CancellationToken.None
                 );
 
-                Assert.AreEqual(1, manifest.Releases.Count);
+                Assert.HasCount(1, manifest.Releases);
                 Assert.AreEqual("JasonQuery.Tests/1.0", handler.UserAgent);
                 Assert.AreEqual("application/vnd.github+json", handler.Accept);
                 Assert.AreEqual(UpdateMetadataSettingsContract.GitHubApiVersion, handler.ApiVersion);

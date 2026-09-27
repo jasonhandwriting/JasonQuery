@@ -15,7 +15,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.SqlServer
         [DataRow("1")]
         public void Parse_WithMissingOrMalformedValue_ReturnsEmpty(string value)
         {
-            Assert.AreEqual(0, SqlServerSecondaryErrorParser.Parse(value).Count);
+            Assert.IsEmpty(SqlServerSecondaryErrorParser.Parse(value));
         }
 
         [TestMethod]
@@ -25,7 +25,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.SqlServer
             var value = $"2{MyGlobal.SeparatorPlus4}CreatePerson2{MyGlobal.SeparatorPlus4}32{MyGlobal.SeparatorPlus3}";
             var items = SqlServerSecondaryErrorParser.Parse(value);
 
-            Assert.AreEqual(1, items.Count);
+            Assert.HasCount(1, items);
             Assert.AreEqual(2, items[0].LineNumber);
             Assert.AreEqual("CreatePerson2", items[0].TargetText);
             Assert.AreEqual(32, items[0].PositionInLine);
@@ -41,7 +41,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.SqlServer
 
             var items = SqlServerSecondaryErrorParser.Parse(value);
 
-            Assert.AreEqual(3, items.Count);
+            Assert.HasCount(3, items);
             Assert.AreEqual("dbo.CustomerInfo22", items[0].TargetText);
             Assert.AreEqual("CreatePerson2", items[1].TargetText);
             Assert.AreEqual("aaa", items[2].TargetText);
@@ -58,7 +58,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.SqlServer
         {
             var value = $"{line}{MyGlobal.SeparatorPlus4}{target}{MyGlobal.SeparatorPlus4}{position}{MyGlobal.SeparatorPlus3}";
 
-            Assert.AreEqual(0, SqlServerSecondaryErrorParser.Parse(value).Count);
+            Assert.IsEmpty(SqlServerSecondaryErrorParser.Parse(value));
         }
     }
 }

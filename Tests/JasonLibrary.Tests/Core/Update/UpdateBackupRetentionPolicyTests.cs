@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using Updater.Core;
@@ -28,8 +28,8 @@ namespace JasonLibrary.Tests.Core.Update
                 Assert.IsTrue(Directory.Exists(retainedPrevious2));
                 Assert.IsTrue(Directory.Exists(retainedPrevious1));
                 Assert.IsTrue(Directory.Exists(current));
-                Assert.AreEqual(2, result.DeletedDirectories.Count);
-                Assert.AreEqual(0, result.FailedDirectories.Count);
+                Assert.HasCount(2, result.DeletedDirectories);
+                Assert.IsEmpty(result.FailedDirectories);
             }
             finally
             {
@@ -88,7 +88,7 @@ namespace JasonLibrary.Tests.Core.Update
                 var retained = CreateVerifiedBackup(expectedParent, "20260823-000000-000_0.93_to_0.94", 2);
                 var current = CreateVerifiedBackup(otherParent, "20260824-000000-000_0.94_to_0.95", 1);
 
-                Assert.ThrowsException<InvalidOperationException>
+                Assert.ThrowsExactly<InvalidOperationException>
                 (
                     () => UpdateBackupRetentionPolicy.Prune(expectedParent, current)
                 );

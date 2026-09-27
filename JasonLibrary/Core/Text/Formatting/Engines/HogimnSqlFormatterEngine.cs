@@ -1,4 +1,4 @@
-using JasonLibrary.Core.Database.Enums;
+﻿using JasonLibrary.Core.Database.Enums;
 using SQL.Formatter.Core;
 using SQL.Formatter.Language;
 using System;
@@ -229,8 +229,7 @@ namespace JasonLibrary.Core.Text.Formatting.Engines
                 var formatterTokenStart = formatterToken.WhitespaceStart + formatterToken.WhitespaceLength;
                 var formatterTokenEnd = formatterTokenStart + formatterToken.Value.Length;
 
-                while (semanticIndex < semanticTokens.Count
-                       && semanticTokens[semanticIndex].EndIndex <= formatterTokenStart)
+                while (semanticIndex < semanticTokens.Count && semanticTokens[semanticIndex].EndIndex <= formatterTokenStart)
                 {
                     semanticIndex++;
                 }
@@ -249,9 +248,7 @@ namespace JasonLibrary.Core.Text.Formatting.Engines
                         break;
                     }
 
-                    if (semanticToken.Kind == SqlSemanticTokenKind.Word
-                        && semanticToken.StartIndex >= formatterTokenStart
-                        && semanticToken.EndIndex <= formatterTokenEnd)
+                    if (semanticToken.Kind == SqlSemanticTokenKind.Word && semanticToken.StartIndex >= formatterTokenStart && semanticToken.EndIndex <= formatterTokenEnd)
                     {
                         authorizedIndexes.Add(index);
                     }
@@ -401,8 +398,7 @@ namespace JasonLibrary.Core.Text.Formatting.Engines
 
             private static bool IsAliasSensitiveReservedWord(string word)
             {
-                return string.Equals(word, "A", StringComparison.OrdinalIgnoreCase) ||
-                       string.Equals(word, "C", StringComparison.OrdinalIgnoreCase);
+                return string.Equals(word, "A", StringComparison.OrdinalIgnoreCase) || string.Equals(word, "C", StringComparison.OrdinalIgnoreCase);
             }
         }
 

@@ -181,43 +181,76 @@
     <Compile Include="Core\Security\ConnectionCredentials\ConnectionCredentialStorageMigrationBoundary.cs" />
     <Compile Include="Core\Security\ConnectionCredentials\ConnectionCredentialStorageVersion.cs" />
     <Compile Include="Core\Security\ConnectionCredentials\IConnectionCredentialStorageVersionStore.cs" />
-    <Compile Include="Core\Security\Database\CustomPasswordDatabaseKeyDeriver.cs" />
-    <Compile Include="Core\Security\Database\DatabaseKeyGenerator.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityBootstrapper.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityBootstrapResult.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityConstants.cs" />
-    <Compile Include="Core\Security\Database\DatabaseStorageFormatContract.cs" />
-    <Compile Include="Core\Security\Database\DatabaseStorageFormatVersion.cs" />
-    <Compile Include="Core\Security\Database\DatabaseStorageMigrationJournal.cs" />
-    <Compile Include="Core\Security\Database\DatabaseStorageMigrationProtocolContract.cs" />
-    <Compile Include="Core\Security\Database\DatabaseStorageMigrationSchemaObjectKind.cs" />
-    <Compile Include="Core\Security\Database\DatabaseStorageMigrationStage.cs" />
-    <Compile Include="Core\Security\Database\DatabaseStorageMigrationValueKind.cs" />
-    <Compile Include="Core\Security\Database\DatabaseStorageMigrationLogicalFrameKind.cs" />
-    <Compile Include="Core\Security\Database\DatabaseStorageMigrationLogicalSchema.cs" />
-    <Compile Include="Core\Security\Database\DatabaseStorageMigrationLogicalStreamContract.cs" />
-    <Compile Include="Core\Security\Database\DatabaseStorageMigrationLogicalStreamProtocol.cs" />
-    <Compile Include="Core\Security\Database\DatabaseStorageMigrationWireProtocol.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityTransitionJournal.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityTransitionJournalStore.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityTransitionManager.cs" />
-    <Compile Include="Core\Security\Database\FreshDatabaseSecurityInitializer.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityMetadata.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityMetadataStore.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityMigrationResult.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityMode.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityRuntime.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityRuntimeMode.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityStartupErrorKind.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityStartupException.cs" />
-    <Compile Include="Core\Security\Database\DatabaseSecurityStartupState.cs" />
-    <Compile Include="Core\Security\Database\DpapiDatabaseKeyProtector.cs" />
-    <Compile Include="Core\Security\Database\IDatabaseKeyProtector.cs" />
-    <Compile Include="Core\Security\Database\IDatabaseSecurityMetadataStore.cs" />
-    <Compile Include="Core\Security\Database\IDatabaseSecurityFreshInstallDatabase.cs" />
-    <Compile Include="Core\Security\Database\IDatabaseSecurityMigrationDatabase.cs" />
-    <Compile Include="Core\Security\Database\LegacyDatabaseSecurity.cs" />
-    <Compile Include="Core\Security\Database\LegacyDatabaseSecurityMigrator.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbCustomPasswordKeyDeriver.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbKeyGenerator.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbRecoveryConstants.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbRecoveryEnvelope.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbRecoveryEnvelopeProtector.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbRecoveryHkdf.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbRecoveryKeyCodec.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbRecoveryKeyMaterial.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbRecoveryMetadata.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbRecoveryEnrollmentDraft.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbRecoveryEnrollmentManager.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbRecoveryKeyFile.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbRecoveryStartupManager.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityBootstrapper.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityBootstrapResult.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityConstants.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageFormatContract.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageFormatVersion.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationArtifactPaths.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationJournal.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationJournalStore.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationFileIntegrity.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationMetadataContract.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationOrchestrator.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationProcessRunner.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationRecovery.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationCandidateReadyExecutor.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationCoordinator.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationCredentialEncoder.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationStartupRecoveryCoordinator.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageRuntimeKind.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageRuntimeRoute.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageRuntimeRoutingContract.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageRuntimeStartupGate.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageRuntimeCutoverCoordinator.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationExecutionLock.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationForwardRecoveryExecutor.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationStreamBridge.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageV2ReadOnlyValidationProcessRunner.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationProtocolContract.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationSchemaObjectKind.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationStage.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationValueKind.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationLogicalFrameKind.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationLogicalSchema.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationLogicalStreamContract.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationLogicalStreamProtocol.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationWireProtocol.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageV2CandidateWriterProtocol.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbStorageV2ReadOnlyValidatorProtocol.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityTransitionJournal.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityTransitionJournalStore.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityTransitionManager.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbFreshSecurityInitializer.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityMetadata.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityMetadataStore.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityMigrationResult.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityMode.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityRuntime.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityRuntimeMode.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityStartupErrorKind.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityStartupException.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbSecurityStartupState.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbDpapiKeyProtector.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\IJasonQueryDbKeyProtector.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\IJasonQueryDbSecurityMetadataStore.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\IJasonQueryDbFreshInstallDatabase.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\IJasonQueryDbMigrationDatabase.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbLegacySecurity.cs" />
+    <Compile Include="Core\Security\JasonQueryDb\JasonQueryDbLegacySecurityMigrator.cs" />
     <Compile Include="Core\Security\Legacy\LegacyConnectionCredentialSecurity.cs" />
     <Compile Include="Core\Security\Legacy\LegacyConnectionExportSecurity.cs" />
     <Compile Include="Core\Database\Connection\DatabaseConnectionContext.cs" />
@@ -578,8 +611,10 @@
     <Compile Include="Core\Database\Diagnostics\PostgreSql\PostgreSqlUpdateSetValueInfo.cs" />
     <Compile Include="Database\Internal\Security\SqliteConnectionCredentialStorageVersionStore.cs" />
     <Compile Include="Database\Internal\Security\SqliteLegacyConnectionCredentialMigrator.cs" />
+    <Compile Include="Database\Internal\Security\ModernSqlCipherDatabaseSecurityFreshInstallDatabase.cs" />
     <Compile Include="Database\Internal\Security\SqliteDatabaseSecurityFreshInstallDatabase.cs" />
     <Compile Include="Database\Internal\Security\SqliteDatabaseSecurityMigrationDatabase.cs" />
+    <Compile Include="Database\Internal\Security\StorageAwareDatabaseSecurityMigrationDatabase.cs" />
     <Compile Include="Infrastructure\Windows\WindowsShortcutHelper.cs" />
     <Compile Include="UI\Forms\CellEditorBinaryContracts.cs" />
     <Compile Include="UI\Forms\ConnectionForm.ColorAndIcon.cs">
@@ -627,11 +662,23 @@
     <Compile Include="UI\Forms\ConnectionForm.Validation.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Forms\DatabaseSecurityStartupErrorForm.cs">
+    <Compile Include="UI\Forms\JasonQueryDbRecoveryKeyForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Forms\DatabaseSecurityStartupErrorForm.Designer.cs">
-      <DependentUpon>DatabaseSecurityStartupErrorForm.cs</DependentUpon>
+    <Compile Include="UI\Forms\JasonQueryDbRecoveryKeyForm.Designer.cs">
+      <DependentUpon>JasonQueryDbRecoveryKeyForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\JasonQueryDbRecoveryStartupForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\JasonQueryDbRecoveryStartupForm.Designer.cs">
+      <DependentUpon>JasonQueryDbRecoveryStartupForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Forms\JasonQueryDbSecurityStartupErrorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Forms\JasonQueryDbSecurityStartupErrorForm.Designer.cs">
+      <DependentUpon>JasonQueryDbSecurityStartupErrorForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\Forms\EditColumnForm.AddColumn.cs">
       <SubType>Form</SubType>
@@ -1019,6 +1066,13 @@
     <Compile Include="Infrastructure\Diagnostics\ExceptionMessageFormatter.cs" />
     <Compile Include="Infrastructure\Exceptions\ExceptionHelper.cs" />
     <Compile Include="Core\Database\Execution\DatabaseSqlExecutor.cs" />
+    <Compile Include="Database\Internal\Runtime\IJasonQueryDatabaseRuntime.cs" />
+    <Compile Include="Database\Internal\Runtime\JasonQueryDatabaseParameter.cs" />
+    <Compile Include="Database\Internal\Runtime\LegacySystemDataSQLiteDatabaseRuntime.cs" />
+    <Compile Include="Database\Internal\Runtime\Modern\ModernDatabaseRuntimeProtocol.cs" />
+    <Compile Include="Database\Internal\Runtime\Modern\ModernDatabaseRuntimeProcessClient.cs" />
+    <Compile Include="Database\Internal\Runtime\Modern\ModernSqlCipherDatabaseRuntime.cs" />
+    <Compile Include="Database\Internal\Security\ConnectionCredentialStorageRuntimeValidator.cs" />
     <Compile Include="Database\Internal\Repositories\JasonQueryRepository.cs" />
     <Compile Include="Services\ExceptionDialogService.cs" />
     <Compile Include="UI\Helpers\GridHelper.cs" />
@@ -1137,17 +1191,17 @@
     <Compile Include="UI\Forms\EditTableForm.Designer.cs">
       <DependentUpon>EditTableForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\Forms\DatabasePasswordDialog.cs">
+    <Compile Include="UI\Forms\JasonQueryDbPasswordDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Forms\DatabasePasswordDialog.Designer.cs">
-      <DependentUpon>DatabasePasswordDialog.cs</DependentUpon>
+    <Compile Include="UI\Forms\JasonQueryDbPasswordDialog.Designer.cs">
+      <DependentUpon>JasonQueryDbPasswordDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\Forms\DatabaseSecurityForm.cs">
+    <Compile Include="UI\Forms\JasonQueryDbSecurityForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Forms\DatabaseSecurityForm.Designer.cs">
-      <DependentUpon>DatabaseSecurityForm.cs</DependentUpon>
+    <Compile Include="UI\Forms\JasonQueryDbSecurityForm.Designer.cs">
+      <DependentUpon>JasonQueryDbSecurityForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\Forms\ExportToFileForm.cs">
       <SubType>Form</SubType>
@@ -1286,14 +1340,20 @@
     <Compile Include="UI\QueryEditor\KeyCommands\QueryEditorKeyCommandContext.cs" />
     <Compile Include="UI\QueryEditor\KeyCommands\QueryEditorKeyCommandHandler.cs" />
     <Compile Include="UI\SchemaExplorer\C1SchemaExplorerRowReader.cs" />
-    <EmbeddedResource Include="UI\Forms\DatabasePasswordDialog.resx">
-      <DependentUpon>DatabasePasswordDialog.cs</DependentUpon>
+    <EmbeddedResource Include="UI\Forms\JasonQueryDbPasswordDialog.resx">
+      <DependentUpon>JasonQueryDbPasswordDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Forms\DatabaseSecurityForm.resx">
-      <DependentUpon>DatabaseSecurityForm.cs</DependentUpon>
+    <EmbeddedResource Include="UI\Forms\JasonQueryDbRecoveryKeyForm.resx">
+      <DependentUpon>JasonQueryDbRecoveryKeyForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Forms\DatabaseSecurityStartupErrorForm.resx">
-      <DependentUpon>DatabaseSecurityStartupErrorForm.cs</DependentUpon>
+    <EmbeddedResource Include="UI\Forms\JasonQueryDbRecoveryStartupForm.resx">
+      <DependentUpon>JasonQueryDbRecoveryStartupForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\JasonQueryDbSecurityForm.resx">
+      <DependentUpon>JasonQueryDbSecurityForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Forms\JasonQueryDbSecurityStartupErrorForm.resx">
+      <DependentUpon>JasonQueryDbSecurityStartupErrorForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Forms\FindAndReplaceForm.resx">
       <DependentUpon>FindAndReplaceForm.cs</DependentUpon>
@@ -1473,6 +1533,21 @@
       <Name>Updater</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\Migration\LegacySQLite\JasonQuery.LegacyDbMigration\JasonQuery.LegacyDbMigration.csproj">
+      <Project>{b3cc2bc8-5e6d-4f83-8fc2-4aede8a2e761}</Project>
+      <Name>JasonQuery.LegacyDbMigration</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Migration\ModernSQLite\JasonQuery.ModernDbMigration\JasonQuery.ModernDbMigration.csproj">
+      <Project>{8a4c2d61-5f17-4a1d-9e4b-2c0f7d9a6b31}</Project>
+      <Name>JasonQuery.ModernDbMigration</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Runtime\ModernSQLite\JasonQuery.ModernDbRuntime\JasonQuery.ModernDbRuntime.csproj">
+      <Project>{d5a0ee2a-76a1-4b4b-9ee8-a2e3f6f7b201}</Project>
+      <Name>JasonQuery.ModernDbRuntime</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="CopyUpdaterArtifactsToOutput" AfterTargets="Build">
@@ -1491,5 +1566,23 @@
     <ItemGroup>
       <FileWrites Include="@(UpdaterArtifact->'$(TargetDir)%(Filename)%(Extension)')" />
     </ItemGroup>
+  </Target>
+  <Target Name="CopyDatabaseStorageRuntimeArtifactsToOutput" AfterTargets="Build">
+    <PropertyGroup>
+      <LegacyMigrationOutputDirectory>$(MSBuildProjectDirectory)\..\Migration\LegacySQLite\JasonQuery.LegacyDbMigration\bin\$(Configuration)</LegacyMigrationOutputDirectory>
+      <ModernMigrationOutputDirectory>$(MSBuildProjectDirectory)\..\Migration\ModernSQLite\JasonQuery.ModernDbMigration\bin\$(Platform)\$(Configuration)\net48</ModernMigrationOutputDirectory>
+      <ModernRuntimeOutputDirectory>$(MSBuildProjectDirectory)\..\Runtime\ModernSQLite\JasonQuery.ModernDbRuntime\bin\$(Platform)\$(Configuration)\net48</ModernRuntimeOutputDirectory>
+    </PropertyGroup>
+    <ItemGroup>
+      <LegacyMigrationArtifact Include="$(LegacyMigrationOutputDirectory)\**\*.*" />
+      <ModernMigrationArtifact Include="$(ModernMigrationOutputDirectory)\**\*.*" />
+      <ModernRuntimeArtifact Include="$(ModernRuntimeOutputDirectory)\**\*.*" />
+    </ItemGroup>
+    <Error Condition="!Exists('$(LegacyMigrationOutputDirectory)\JasonQuery.LegacyDbMigration.exe')" Text="Missing qualified Legacy Storage V1 migration helper output." />
+    <Error Condition="!Exists('$(ModernMigrationOutputDirectory)\JasonQuery.ModernDbMigration.exe')" Text="Missing qualified Modern Storage V2 migration helper output." />
+    <Error Condition="!Exists('$(ModernRuntimeOutputDirectory)\JasonQuery.ModernDbRuntime.exe')" Text="Missing qualified Modern SQLCipher normal runtime output." />
+    <Copy SourceFiles="@(LegacyMigrationArtifact)" DestinationFiles="@(LegacyMigrationArtifact->'$(TargetDir)StorageMigration\Legacy\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ModernMigrationArtifact)" DestinationFiles="@(ModernMigrationArtifact->'$(TargetDir)StorageMigration\Modern\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ModernRuntimeArtifact)" DestinationFiles="@(ModernRuntimeArtifact->'$(TargetDir)ModernRuntime\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 </Project>

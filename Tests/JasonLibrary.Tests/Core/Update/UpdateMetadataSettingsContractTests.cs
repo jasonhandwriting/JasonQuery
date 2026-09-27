@@ -49,15 +49,11 @@ namespace JasonLibrary.Tests.Core.Update
         [TestCategory("Update")]
         public void OfficialWebsiteContract_UsesCanonicalBareDomain()
         {
-            Assert.AreEqual("https://jasonquery.org", UpdateMetadataSettingsContract.OfficialWebsiteBaseUrl);
+            Assert.AreEqual("https://jasonquery.org", JasonLibrary.Tests.Infrastructure.RuntimeContractValueReader.GetRawConstant(typeof(UpdateMetadataSettingsContract), nameof(UpdateMetadataSettingsContract.OfficialWebsiteBaseUrl)));
 
-            Assert.AreEqual
-            (
-                "https://jasonquery.org/JasonQueryUpdate/jasonquery-update.json",
-                UpdateMetadataSettingsContract.OfficialWebsiteMetadataUrl
-            );
+            Assert.AreEqual ( "https://jasonquery.org/JasonQueryUpdate/jasonquery-update.json", JasonLibrary.Tests.Infrastructure.RuntimeContractValueReader.GetRawConstant(typeof(UpdateMetadataSettingsContract), nameof(UpdateMetadataSettingsContract.OfficialWebsiteMetadataUrl)) );
 
-            Assert.IsFalse(UpdateMetadataSettingsContract.OfficialWebsiteMetadataUrl.Contains("www."));
+            Assert.DoesNotContain("www.", UpdateMetadataSettingsContract.OfficialWebsiteMetadataUrl);
         }
 
         [TestMethod]
@@ -65,8 +61,8 @@ namespace JasonLibrary.Tests.Core.Update
         [TestCategory("Update")]
         public void CompanyUpdatePackageContract_UsesProductionStartingVersion()
         {
-            Assert.AreEqual("JasonQuery-Company-Update-v", UpdateMetadataSettingsContract.CompanyUpdatePackageFileNamePrefix);
-            Assert.AreEqual("0.95.0", UpdateMetadataSettingsContract.CompanyUpdatePackageMinimumVersion);
+            Assert.AreEqual("JasonQuery-Company-Update-v", JasonLibrary.Tests.Infrastructure.RuntimeContractValueReader.GetRawConstant(typeof(UpdateMetadataSettingsContract), nameof(UpdateMetadataSettingsContract.CompanyUpdatePackageFileNamePrefix)));
+            Assert.AreEqual("0.95.0", JasonLibrary.Tests.Infrastructure.RuntimeContractValueReader.GetRawConstant(typeof(UpdateMetadataSettingsContract), nameof(UpdateMetadataSettingsContract.CompanyUpdatePackageMinimumVersion)));
         }
     }
 }

@@ -69,7 +69,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Types
             var result = LargeValueContentLoader.LoadBinary(() => null);
 
             Assert.IsTrue(result.Succeeded);
-            Assert.AreEqual(0, result.Content.Length);
+            Assert.IsEmpty(result.Content);
         }
 
         [TestMethod]
@@ -79,7 +79,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Types
             var result = LargeValueContentLoader.LoadBinary(null);
 
             Assert.IsTrue(result.Succeeded);
-            Assert.AreEqual(0, result.Content.Length);
+            Assert.IsEmpty(result.Content);
         }
 
         [TestMethod]
@@ -89,7 +89,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Types
             var result = LargeValueContentLoader.LoadBinary(() => throw new InvalidOperationException("binary load failed"));
 
             Assert.IsFalse(result.Succeeded);
-            Assert.AreEqual(0, result.Content.Length);
+            Assert.IsEmpty(result.Content);
             Assert.AreEqual("binary load failed", result.ErrorMessage);
             Assert.IsInstanceOfType(result.Error, typeof(InvalidOperationException));
         }

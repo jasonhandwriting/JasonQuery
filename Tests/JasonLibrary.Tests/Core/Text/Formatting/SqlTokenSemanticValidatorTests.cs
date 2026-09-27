@@ -1,4 +1,4 @@
-using JasonLibrary.Core.Database.Enums;
+﻿using JasonLibrary.Core.Database.Enums;
 using JasonLibrary.Core.Text.Formatting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -70,7 +70,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
         [TestMethod]
         public void Validate_NullCaseChangeAuthorization_ThrowsArgumentNullException()
         {
-            Assert.ThrowsException<System.ArgumentNullException>
+            Assert.ThrowsExactly<System.ArgumentNullException>
             (
                 () => SqlTokenSemanticValidator.Validate
                 (
@@ -108,7 +108,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsFalse(result.IsSafe);
-            StringAssert.Contains(result.ErrorMessage, "StringLiteral");
+            Assert.Contains("StringLiteral", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -245,7 +245,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsFalse(result.IsSafe);
-            StringAssert.Contains(result.ErrorMessage, "token");
+            Assert.Contains("token", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -259,7 +259,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsFalse(result.IsSafe);
-            StringAssert.Contains(result.ErrorMessage, "could not be tokenized safely");
+            Assert.Contains("could not be tokenized safely", result.ErrorMessage);
         }
 
         [TestMethod]

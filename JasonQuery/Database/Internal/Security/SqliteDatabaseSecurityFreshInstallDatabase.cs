@@ -1,5 +1,5 @@
 ﻿using JasonQuery.Core.Security.ConnectionCredentials;
-using JasonQuery.Core.Security.Database;
+using JasonQuery.Core.Security.JasonQueryDb;
 using System;
 using System.Data;
 using System.Data.SQLite;
@@ -7,10 +7,12 @@ using System.IO;
 
 namespace JasonQuery.Database.Internal.Security
 {
-    public sealed class SqliteDatabaseSecurityFreshInstallDatabase : IDatabaseSecurityFreshInstallDatabase
+    public sealed class SqliteDatabaseSecurityFreshInstallDatabase : IJasonQueryDbFreshInstallDatabase
     {
         private static readonly IConnectionCredentialStorageVersionStore
             CredentialStorageVersionStore = new SqliteConnectionCredentialStorageVersionStore();
+
+        public int StorageFormatVersion => JasonQueryDbStorageFormatContract.LegacyVersion;
 
         public void CreateEncryptedDatabase(Stream plaintextTemplateStream, string destinationDatabaseFilePath, string databasePassword)
         {

@@ -88,6 +88,10 @@ namespace JasonQuery.UI.Forms
         private static readonly int[] _sqlFormatterIndentSizes = { 2, 4, 8 };
         private static readonly int[] _sqlFormatterBlankLinesBetweenStatements = { 0, 1, 2, 3, 4 };
         private static readonly int[] _sqlFormatterListItemsPerLine = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        private const string SqlHistoryAutoDeleteSettingName = "AutoDeleteSqlHistory";
+        private const string SqlHistoryRetentionDaysSettingName = "SqlHistoryRetentionDays";
+        private const int DefaultSqlHistoryRetentionDays = 30;
+        private static readonly int[] _sqlHistoryRetentionDaysOptions = { 30, 60, 90, 180, 365 };
         private readonly ScintillaEditor[] _editableOptionEditors;
         private readonly ScintillaEditor[] _readOnlyOptionEditors;
 
@@ -199,6 +203,7 @@ namespace JasonQuery.UI.Forms
 
                 txtSpecifiedSQLFile1.Text = MyGlobal.SpecifiedSqlFile1;
                 txtSpecifiedSQLFile2.Text = MyGlobal.SpecifiedSqlFile2;
+                LoadSqlHistoryRetentionSettings();
 
                 chkAskMeBeforeOpenUnsavedFiles.Checked = AppConfigHelper.AskBeforeOpenUnsavedFiles;
 
@@ -1031,7 +1036,10 @@ namespace JasonQuery.UI.Forms
 
         private void ApplyLocalizationSetting()
         {
+            var selectedSqlHistoryRetentionDays = GetSelectedSqlHistoryRetentionDays();
+
             LocalizationHelper.ApplyLanguageInfo(this);
+            PopulateSqlHistoryRetentionDays(selectedSqlHistoryRetentionDays);
 
             RebuildOptionEditorContextMenus();
 
@@ -1342,8 +1350,7 @@ namespace JasonQuery.UI.Forms
 
         private static void OptionEditorContextMenuItem_Click(object sender, EventArgs e)
         {
-            if (!(sender is ToolStripMenuItem menuItem) || !(menuItem.Tag is OptionEditorCommand command) ||
-                !(menuItem.Owner is ContextMenuStrip contextMenu) || !(contextMenu.SourceControl is ScintillaEditor optionEditor))
+            if (!(sender is ToolStripMenuItem menuItem) || !(menuItem.Tag is OptionEditorCommand command) || !(menuItem.Owner is ContextMenuStrip contextMenu) || !(contextMenu.SourceControl is ScintillaEditor optionEditor))
             {
                 return;
             }
@@ -1565,6 +1572,88 @@ namespace JasonQuery.UI.Forms
             {
                 ResumeLayout(true);
             }
+        }
+
+        private void LoadSqlHistoryRetentionSettings()
+        {
+            var autoDeleteEnabled = false;
+            var retentionDays = DefaultSqlHistoryRetentionDays;
+            var sbSql = new StringBuilder();
+
+            sbSql.AppendLine("SELECT AttributeName, AttributeValue FROM SystemConfig");
+            sbSql.AppendLine($" WHERE DomainUser = '{MyGlobal.DomainUser}'");
+            sbSql.AppendLine($"   AND MPID = {JasonQueryRepository.DbMotherPid}");
+            sbSql.AppendLine("   AND AttributeKey = 'GeneralConfig'");
+            sbSql.Append($"   AND AttributeName IN ('{SqlHistoryAutoDeleteSettingName}', '{SqlHistoryRetentionDaysSettingName}')");
+
+            var dt = JasonQueryRepository.ExecQuery(sbSql.ToString());
+
+            foreach (DataRow row in dt?.AsEnumerable() ?? Enumerable.Empty<DataRow>())
+            {
+                var attributeName = row.GetSafeString("AttributeName");
+                var attributeValue = row.GetSafeString("AttributeValue");
+
+                if (string.Equals(attributeName, SqlHistoryAutoDeleteSettingName, StringComparison.Ordinal))
+                {
+                    autoDeleteEnabled = attributeValue == "1";
+                    continue;
+                }
+
+                if (!string.Equals(attributeName, SqlHistoryRetentionDaysSettingName, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (int.TryParse(attributeValue, out var parsedDays) && _sqlHistoryRetentionDaysOptions.Contains(parsedDays))
+                {
+                    retentionDays = parsedDays;
+                }
+            }
+
+            PopulateSqlHistoryRetentionDays(retentionDays);
+            chkAutoDeleteSqlHistory.Checked = autoDeleteEnabled;
+            cboSqlHistoryRetentionDays.Enabled = autoDeleteEnabled;
+        }
+
+        private void PopulateSqlHistoryRetentionDays(int selectedDays)
+        {
+            var format = LocalizationHelper.GetLanguageString
+            (
+                "{0} days",
+                "form",
+                GetType().Name,
+                "dropdownlist",
+                "SqlHistoryRetentionDaysFormat",
+                "Text"
+            );
+
+            cboSqlHistoryRetentionDays.Items.Clear();
+
+            foreach (var days in _sqlHistoryRetentionDaysOptions)
+            {
+                cboSqlHistoryRetentionDays.Items.Add(string.Format(format, days));
+            }
+
+            var selectedIndex = Array.IndexOf(_sqlHistoryRetentionDaysOptions, selectedDays);
+
+            cboSqlHistoryRetentionDays.SelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
+        }
+
+        private int GetSelectedSqlHistoryRetentionDays()
+        {
+            var selectedIndex = cboSqlHistoryRetentionDays.SelectedIndex;
+
+            if (selectedIndex < 0 || selectedIndex >= _sqlHistoryRetentionDaysOptions.Length)
+            {
+                return DefaultSqlHistoryRetentionDays;
+            }
+
+            return _sqlHistoryRetentionDaysOptions[selectedIndex];
+        }
+
+        private void chkAutoDeleteSqlHistory_CheckedChanged(object sender, EventArgs e)
+        {
+            cboSqlHistoryRetentionDays.Enabled = chkAutoDeleteSqlHistory.Checked;
         }
 
         private void ApplyInitialValue()
@@ -2448,179 +2537,183 @@ namespace JasonQuery.UI.Forms
                 cboGridVisualStyle.Text = @"Office 2010 Blue";
             }
 
+            var settingBatch = JasonQueryRepository.CreateSettingUpdateBatch();
+
             _isApplyAndClose = true;
 
             //儲存設定：General
             #region 儲存設定：General
-            JasonQueryRepository.UpdateSetting("GeneralConfig", "DarkMode", chkDarkMode.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GeneralConfig", "DarkMode", chkDarkMode.Checked ? "1" : "0");
             MyLibrary.IsDarkMode = chkDarkMode.Checked;
 
-            JasonQueryRepository.UpdateSetting("GeneralConfig", "SpecifiedSQLFile1", txtSpecifiedSQLFile1.Text);
-            JasonQueryRepository.UpdateSetting("GeneralConfig", "SpecifiedSQLFile2", txtSpecifiedSQLFile2.Text);
+            settingBatch.UpdateSetting("GeneralConfig", "SpecifiedSQLFile1", txtSpecifiedSQLFile1.Text);
+            settingBatch.UpdateSetting("GeneralConfig", "SpecifiedSQLFile2", txtSpecifiedSQLFile2.Text);
+            settingBatch.UpdateSetting("GeneralConfig", SqlHistoryAutoDeleteSettingName, chkAutoDeleteSqlHistory.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GeneralConfig", SqlHistoryRetentionDaysSettingName, GetSelectedSqlHistoryRetentionDays().ToString());
             #endregion
 
             //儲存設定：Query Editor
             #region 儲存設定：Query Editor
-            JasonQueryRepository.UpdateSetting("EditorConfig", "ToolstripBackground", TextHelper.GetSafeString(pnlToolstripBackground.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "ToolstripBackground", TextHelper.GetSafeString(pnlToolstripBackground.Tag));
             MyLibrary.ColorToolstripBackground = TextHelper.GetSafeString(pnlToolstripBackground.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "EditorBackground", TextHelper.GetSafeString(pnlEditorBackground.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "EditorBackground", TextHelper.GetSafeString(pnlEditorBackground.Tag));
             MyLibrary.ColorEditorBackground = TextHelper.GetSafeString(pnlEditorBackground.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "CurrentLineBackground", TextHelper.GetSafeString(pnlCurrentLineBackground.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "CurrentLineBackground", TextHelper.GetSafeString(pnlCurrentLineBackground.Tag));
             MyLibrary.ColorCurrentLineBackground = TextHelper.GetSafeString(pnlCurrentLineBackground.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "SelectedTextBackground", TextHelper.GetSafeString(pnlSelectedTextBackground.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "SelectedTextBackground", TextHelper.GetSafeString(pnlSelectedTextBackground.Tag));
             MyLibrary.ColorSelectedTextBackground = TextHelper.GetSafeString(pnlSelectedTextBackground.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "ErrorLineBackground", TextHelper.GetSafeString(pnlErrorLineBackground.Tag));
-            JasonQueryRepository.UpdateSetting("EditorConfig", "BookmarkBackground", TextHelper.GetSafeString(pnlBookmarkBackground.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "ErrorLineBackground", TextHelper.GetSafeString(pnlErrorLineBackground.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "BookmarkBackground", TextHelper.GetSafeString(pnlBookmarkBackground.Tag));
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "BookmarkStyle", TextHelper.GetKeyFromDictionary(MyGlobal.dicWordWrapIndentMode, cboBookmarkStyle.Text));
+            settingBatch.UpdateSetting("EditorConfig", "BookmarkStyle", TextHelper.GetKeyFromDictionary(MyGlobal.dicWordWrapIndentMode, cboBookmarkStyle.Text));
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "Comments", TextHelper.GetSafeString(pnlComments.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "Comments", TextHelper.GetSafeString(pnlComments.Tag));
             MyLibrary.ColorComments = TextHelper.GetSafeString(pnlComments.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "TextIdentifier", TextHelper.GetSafeString(pnlIdentifier.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "TextIdentifier", TextHelper.GetSafeString(pnlIdentifier.Tag));
             MyLibrary.ColorTextIdentifier = TextHelper.GetSafeString(pnlIdentifier.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "BuiltInKeywords", TextHelper.GetSafeString(pnlBuiltInKeywords.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "BuiltInKeywords", TextHelper.GetSafeString(pnlBuiltInKeywords.Tag));
             MyLibrary.ColorBuiltInKeywords = TextHelper.GetSafeString(pnlBuiltInKeywords.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "UserDefinedKeywords", TextHelper.GetSafeString(pnlUserDefinedKeywords.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "UserDefinedKeywords", TextHelper.GetSafeString(pnlUserDefinedKeywords.Tag));
             MyLibrary.ColorUserDefinedKeywords = TextHelper.GetSafeString(pnlUserDefinedKeywords.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "Number", TextHelper.GetSafeString(pnlNumber.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "Number", TextHelper.GetSafeString(pnlNumber.Tag));
             MyLibrary.ColorNumber = TextHelper.GetSafeString(pnlNumber.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "OperatorSymbol", TextHelper.GetSafeString(pnlOperatorSymbol.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "OperatorSymbol", TextHelper.GetSafeString(pnlOperatorSymbol.Tag));
             MyLibrary.ColorOperatorSymbol = TextHelper.GetSafeString(pnlOperatorSymbol.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "OperatorKeywords", TextHelper.GetSafeString(pnlOperatorKeywords.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "OperatorKeywords", TextHelper.GetSafeString(pnlOperatorKeywords.Tag));
             MyLibrary.ColorOperatorKeywords = TextHelper.GetSafeString(pnlOperatorKeywords.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "String", TextHelper.GetSafeString(pnlString.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "String", TextHelper.GetSafeString(pnlString.Tag));
             MyLibrary.ColorString = TextHelper.GetSafeString(pnlString.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "Character", TextHelper.GetSafeString(pnlCharacter.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "Character", TextHelper.GetSafeString(pnlCharacter.Tag));
             MyLibrary.ColorCharacter = TextHelper.GetSafeString(pnlCharacter.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "BuiltinFunctions", TextHelper.GetSafeString(pnlBuiltInFunctions.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "BuiltinFunctions", TextHelper.GetSafeString(pnlBuiltInFunctions.Tag));
             MyLibrary.ColorBuiltInFunctions = TextHelper.GetSafeString(pnlBuiltInFunctions.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "BuiltInKeywords", TextHelper.GetSafeString(pnlBuiltInKeywords.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "BuiltInKeywords", TextHelper.GetSafeString(pnlBuiltInKeywords.Tag));
             MyLibrary.ColorBuiltInKeywords = TextHelper.GetSafeString(pnlBuiltInKeywords.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "WhiteSpace", TextHelper.GetSafeString(pnlWhiteSpace.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "WhiteSpace", TextHelper.GetSafeString(pnlWhiteSpace.Tag));
             MyLibrary.ColorWhiteSpace = TextHelper.GetSafeString(pnlWhiteSpace.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "UserDefinedTables", TextHelper.GetSafeString(pnlUserTables.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "UserDefinedTables", TextHelper.GetSafeString(pnlUserTables.Tag));
             MyLibrary.ColorUserDefinedTablesViews = TextHelper.GetSafeString(pnlUserTables.Tag);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "UserDefinedFunctions", TextHelper.GetSafeString(pnlUserFunctions.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "UserDefinedFunctions", TextHelper.GetSafeString(pnlUserFunctions.Tag));
             MyLibrary.ColorUserDefinedFunctionsTriggers = TextHelper.GetSafeString(pnlUserFunctions.Tag);
 
             //Query Editor 頁籤：Highlight
             //20191016 Highlight 不要動態變更，故不變更全域變數的值
-            JasonQueryRepository.UpdateSetting("EditorConfig", "HighlightForeColor", TextHelper.GetSafeString(pnlHighlightForeColor.Tag));
-            JasonQueryRepository.UpdateSetting("EditorConfig", "HighlightStyle", cboHighlightStyle.Text);
-            JasonQueryRepository.UpdateSetting("EditorConfig", "HighlightOutlineAlpha", cboHighlightOutlineAlpha.Text);
-            JasonQueryRepository.UpdateSetting("EditorConfig", "HighlightAlpha", cboHighlightAlpha.Text);
+            settingBatch.UpdateSetting("EditorConfig", "HighlightForeColor", TextHelper.GetSafeString(pnlHighlightForeColor.Tag));
+            settingBatch.UpdateSetting("EditorConfig", "HighlightStyle", cboHighlightStyle.Text);
+            settingBatch.UpdateSetting("EditorConfig", "HighlightOutlineAlpha", cboHighlightOutlineAlpha.Text);
+            settingBatch.UpdateSetting("EditorConfig", "HighlightAlpha", cboHighlightAlpha.Text);
 
             //Query Editor 頁籤：Preferences
-            JasonQueryRepository.UpdateSetting("EditorConfig", "EditorFontName", cboEditorFontPicker.Text);
+            settingBatch.UpdateSetting("EditorConfig", "EditorFontName", cboEditorFontPicker.Text);
             MyLibrary.QueryEditorFontName = cboEditorFontPicker.Text;
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "EditorFontSize", cboEditorFontSize.Text);
+            settingBatch.UpdateSetting("EditorConfig", "EditorFontSize", cboEditorFontSize.Text);
             MyLibrary.SetQueryEditorFontSizeFromText(cboEditorFontSize.Text); //20260531 修改取值方法
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "EditorZoom", cboEditorZoom.Text);
+            settingBatch.UpdateSetting("EditorConfig", "EditorZoom", cboEditorZoom.Text);
             MyLibrary.SetQueryEditorZoomFromText(cboEditorZoom.Text); //20260531 修改取值方法
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "WordWrap", chkWordWrap.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "WordWrap", chkWordWrap.Checked ? "1" : "0");
             MyLibrary.WordWrap = chkWordWrap.Checked;
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "WordWrapVisualFlags_Start", chkStart.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "WordWrapVisualFlags_Start", chkStart.Checked ? "1" : "0");
             MyLibrary.WordWrapVisualFlags_Start = chkStart.Checked;
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "WordWrapVisualFlags_End", chkEnd.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "WordWrapVisualFlags_End", chkEnd.Checked ? "1" : "0");
             MyLibrary.WordWrapVisualFlags_End = chkEnd.Checked;
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "WordWrapVisualFlags_Margin", chkMargin.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "WordWrapVisualFlags_Margin", chkMargin.Checked ? "1" : "0");
             MyLibrary.WordWrapVisualFlags_Margin = chkMargin.Checked;
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "WordWrapIndentMode", cboIndentMode.Text);
+            settingBatch.UpdateSetting("EditorConfig", "WordWrapIndentMode", cboIndentMode.Text);
             MyGlobal.WordWrapIndentMode = TextHelper.GetKeyFromDictionary(MyGlobal.dicWordWrapIndentMode, cboIndentMode.Text);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "TabWidth", cboTabWidth.Text);
+            settingBatch.UpdateSetting("EditorConfig", "TabWidth", cboTabWidth.Text);
             MyGlobal.TabWidth = Convert.ToInt16(cboTabWidth.Text);
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "KeywordFontBold", chkBold.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "KeywordFontBold", chkBold.Checked ? "1" : "0");
             MyLibrary.KeywordFontBold = chkBold.Checked;
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "CopyAsHTML", chkCopyAsHTML.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "CopyAsHTML", chkCopyAsHTML.Checked ? "1" : "0");
             MyLibrary.CopyAsHTML = chkCopyAsHTML.Checked;
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "ShowAllCharacters", chkShowAllCharacters.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "ShowAllCharacters", chkShowAllCharacters.Checked ? "1" : "0");
             MyLibrary.ShowAllCharacters = chkShowAllCharacters.Checked;
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "ShowSaveAsButton", chkShowSaveAsButton.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "ShowSaveAsButton", chkShowSaveAsButton.Checked ? "1" : "0");
             MyLibrary.ShowSaveAsButton = chkShowSaveAsButton.Checked;
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "ShowIndentGuide", chkShowIndentGuide.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "ShowIndentGuide", chkShowIndentGuide.Checked ? "1" : "0");
             MyLibrary.ShowIndentGuide = chkShowIndentGuide.Checked;
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "EntireBlankRowAsEmptyRow4SelectBlock", chkEntireBlankRowAsEmptyRow4SelectBlock.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "EntireBlankRowAsEmptyRow4SelectBlock", chkEntireBlankRowAsEmptyRow4SelectBlock.Checked ? "1" : "0");
             MyLibrary.EntireBlankRowAsEmptyRow = chkEntireBlankRowAsEmptyRow4SelectBlock.Checked;
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "HighlightSelection", chkHighlightSelection.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "HighlightSelection", chkHighlightSelection.Checked ? "1" : "0");
             MyLibrary.HighlightSelection = chkHighlightSelection.Checked;
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "SortByColumnName", chkSortByColumnName.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("EditorConfig", "ShowColumnInfo", chkShowColumnInfo.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("EditorConfig", "DefaultTabSchemaBrowser", chkDefaultTabSchemaInformation.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "SortByColumnName", chkSortByColumnName.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "ShowColumnInfo", chkShowColumnInfo.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "DefaultTabSchemaBrowser", chkDefaultTabSchemaInformation.Checked ? "1" : "0");
 
-            JasonQueryRepository.UpdateSetting("EditorConfig", "AutoListMembers", chkAutoListMembers.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("EditorConfig", "SavePoint", chkSavePoint.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "AutoListMembers", chkAutoListMembers.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("EditorConfig", "SavePoint", chkSavePoint.Checked ? "1" : "0");
             #endregion
 
             //儲存設定：Auto Complete
             #region 儲存設定：Auto Complete
-            JasonQueryRepository.UpdateSetting("AutoCompleteConfig", "EnableAutoComplete2", chkEnableAutoComplete.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("AutoCompleteConfig", "EnableAutoComplete2", chkEnableAutoComplete.Checked ? "1" : "0");
             MyLibrary.EnableAutoComplete = chkEnableAutoComplete.Checked;
 
-            JasonQueryRepository.UpdateSetting("AutoCompleteConfig", "MinFragmentLength2", nudMinFragmentLength.Text);
+            settingBatch.UpdateSetting("AutoCompleteConfig", "MinFragmentLength2", nudMinFragmentLength.Text);
             MyLibrary.AutoCompleteMinFragmentLength = (int)nudMinFragmentLength.Value;
 
-            JasonQueryRepository.UpdateSetting("AutoCompleteConfig", "FirstCharChecking2", chkFirstCharChecking.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("AutoCompleteConfig", "FirstCharChecking2", chkFirstCharChecking.Checked ? "1" : "0");
             MyLibrary.AutoCompleteFirstCharChecking = chkFirstCharChecking.Checked;
 
             //Built-In Keywords && Functions
-            JasonQueryRepository.UpdateSetting("AutoCompleteConfig", "BuiltInKeywords2", chkBuiltInKeywords.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("AutoCompleteConfig", "BuiltInKeywords2", chkBuiltInKeywords.Checked ? "1" : "0");
             MyLibrary.AutoCompleteBuiltInKeywords = chkBuiltInKeywords.Checked;
 
-            JasonQueryRepository.UpdateSetting("AutoCompleteConfig", "BuiltInFunctions2", chkBuiltInFunctions.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("AutoCompleteConfig", "BuiltInFunctions2", chkBuiltInFunctions.Checked ? "1" : "0");
             MyLibrary.AutoCompleteBuiltInFunctions = chkBuiltInFunctions.Checked;
 
-            JasonQueryRepository.UpdateSetting("AutoCompleteConfig", "UserDefinedKeywords2", chkUserDefinedKeywords.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("AutoCompleteConfig", "UserDefinedKeywords2", chkUserDefinedKeywords.Checked ? "1" : "0");
             MyLibrary.AutoCompleteUserDefinedKeywords = chkUserDefinedKeywords.Checked;
 
-            JasonQueryRepository.UpdateSetting("AutoCompleteConfig", "UserDefinedFunctions2", chkUserDefinedFunctions.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("AutoCompleteConfig", "UserDefinedFunctions2", chkUserDefinedFunctions.Checked ? "1" : "0");
             MyLibrary.AutoCompleteUserDefinedFunctions = chkUserDefinedFunctions.Checked;
 
-            JasonQueryRepository.UpdateSetting("AutoCompleteConfig", "UserDefinedTables2", chkUserDefinedTables.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("AutoCompleteConfig", "UserDefinedTables2", chkUserDefinedTables.Checked ? "1" : "0");
             MyLibrary.AutoCompleteUserDefinedTables = chkUserDefinedTables.Checked;
 
-            JasonQueryRepository.UpdateSetting("AutoCompleteConfig", "UserDefinedTriggers2", chkUserDefinedTriggers.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("AutoCompleteConfig", "UserDefinedTriggers2", chkUserDefinedTriggers.Checked ? "1" : "0");
             MyLibrary.AutoCompleteUserDefinedTriggers = chkUserDefinedTriggers.Checked;
 
-            JasonQueryRepository.UpdateSetting("AutoCompleteConfig", "UserDefinedViews2", chkUserDefinedViews.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("AutoCompleteConfig", "UserDefinedViews2", chkUserDefinedViews.Checked ? "1" : "0");
             MyLibrary.AutoCompleteUserDefinedViews = chkUserDefinedViews.Checked;
             #endregion
 
             //儲存設定：Auto Replace
             #region 儲存設定：Auto Replace
-            JasonQueryRepository.UpdateSetting("AutoReplaceConfig", "EnableAutoReplace", chkEnableAutoReplace.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("AutoReplaceConfig", "EnableAutoReplace", chkEnableAutoReplace.Checked ? "1" : "0");
             MyLibrary.EnableAutoReplace = chkEnableAutoReplace.Checked;
 
             var sbSql = new StringBuilder();
@@ -2635,7 +2728,7 @@ namespace JasonQuery.UI.Forms
             var temp = string.Empty;
 
             //刪除所有的 Auto Replace，再重新 Insert/Update
-            JasonQueryRepository.ExecNonQuery(sql);
+            settingBatch.QueueNonQuery(sql);
 
             foreach (DataRow oRow in _dtAutoReplaceInfo.Rows)
             {
@@ -2643,69 +2736,69 @@ namespace JasonQuery.UI.Forms
                 var sReplacement = oRow[_lstGridHeaderAutoReplace[AutoReplaceColumn.Replacement]].ToString();
 
                 temp = $"{sKeyword}{MyGlobal.Separator3s}{sReplacement}";
-                JasonQueryRepository.UpdateSetting("AutoReplaceConfig", "AutoReplace", temp, true);
+                settingBatch.UpdateSetting("AutoReplaceConfig", "AutoReplace", temp, true);
             }
             #endregion
 
             //儲存設定：Data Grid
             #region 儲存設定：Data Grid
-            JasonQueryRepository.UpdateSetting("GridConfig", "QuotingWith", cboResultCopyQuotingWith.Text);
-            JasonQueryRepository.UpdateSetting("GridConfig", "ShowColumnDataType", chkShowColumnType.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GridConfig", "ShowFilterRow", chkShowFilterRow.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GridConfig", "ShowGroupingRow", chkShowGroupingRow.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GridConfig", "Resize", chkResize.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GridConfig", "MaxWidth", cboMaxWidth.Text);
+            settingBatch.UpdateSetting("GridConfig", "QuotingWith", cboResultCopyQuotingWith.Text);
+            settingBatch.UpdateSetting("GridConfig", "ShowColumnDataType", chkShowColumnType.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GridConfig", "ShowFilterRow", chkShowFilterRow.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GridConfig", "ShowGroupingRow", chkShowGroupingRow.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GridConfig", "Resize", chkResize.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GridConfig", "MaxWidth", cboMaxWidth.Text);
             int.TryParse(cboMaxWidth.Text, out GridHelper.MaxWidth);
-            JasonQueryRepository.UpdateSetting("GridConfig", "ShowColumnComment", chkShowColumnComment.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GridConfig", "RawDataMode", chkRawDataMode.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GridConfig", "NullShowAs", cboNullShowAs.Text);
-            JasonQueryRepository.UpdateSetting("GridConfig", "PagingQuery", chkPagedQuery.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GridConfig", "RowsPerPage", cboRowsPerPage.Text);
-            JasonQueryRepository.UpdateSetting("GridConfig", "AppendingQueries", chkAppendQueryResult.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GridConfig", "Direction", TextHelper.GetKeyFromDictionary(MyGlobal.dicDirection, cboDirection.Text));
-            JasonQueryRepository.UpdateSetting("GridConfig", "SetFocusAfterQuery", chkSetFocusAfterQuery.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GridConfig", "NullShowColor", TextHelper.GetSafeString(pnlNullValueForeColor.Tag));
-            JasonQueryRepository.UpdateSetting("GridConfig", "VisualStyle", cboGridVisualStyle.Text);
-            JasonQueryRepository.UpdateSetting("GridConfig", "FontName", cboGridFontPicker.Text);
-            JasonQueryRepository.UpdateSetting("GridConfig", "FontSize", cboGridFontSize.Text);
-            JasonQueryRepository.UpdateSetting("GridConfig", "RowResizing", TextHelper.GetKeyFromDictionary(MyGlobal.dicRowSizing, cboGridRowHeightResizing.Text));
+            settingBatch.UpdateSetting("GridConfig", "ShowColumnComment", chkShowColumnComment.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GridConfig", "RawDataMode", chkRawDataMode.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GridConfig", "NullShowAs", cboNullShowAs.Text);
+            settingBatch.UpdateSetting("GridConfig", "PagingQuery", chkPagedQuery.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GridConfig", "RowsPerPage", cboRowsPerPage.Text);
+            settingBatch.UpdateSetting("GridConfig", "AppendingQueries", chkAppendQueryResult.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GridConfig", "Direction", TextHelper.GetKeyFromDictionary(MyGlobal.dicDirection, cboDirection.Text));
+            settingBatch.UpdateSetting("GridConfig", "SetFocusAfterQuery", chkSetFocusAfterQuery.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GridConfig", "NullShowColor", TextHelper.GetSafeString(pnlNullValueForeColor.Tag));
+            settingBatch.UpdateSetting("GridConfig", "VisualStyle", cboGridVisualStyle.Text);
+            settingBatch.UpdateSetting("GridConfig", "FontName", cboGridFontPicker.Text);
+            settingBatch.UpdateSetting("GridConfig", "FontSize", cboGridFontSize.Text);
+            settingBatch.UpdateSetting("GridConfig", "RowResizing", TextHelper.GetKeyFromDictionary(MyGlobal.dicRowSizing, cboGridRowHeightResizing.Text));
 
             //重新啟動，設定才會生效
-            JasonQueryRepository.UpdateSetting("GridConfig", "HeadingForeColor", TextHelper.GetSafeString(pnlGridHeadingForeColor.Tag));
-            JasonQueryRepository.UpdateSetting("GridConfig", "EvenRowForeColor", TextHelper.GetSafeString(pnlGridEvenRowForeColor.Tag));
-            JasonQueryRepository.UpdateSetting("GridConfig", "EvenRowBackColor", TextHelper.GetSafeString(pnlGridEvenRowBackColor.Tag));
-            JasonQueryRepository.UpdateSetting("GridConfig", "OddRowForeColor", TextHelper.GetSafeString(pnlGridOddRowForeColor.Tag));
-            JasonQueryRepository.UpdateSetting("GridConfig", "OddRowBackColor", TextHelper.GetSafeString(pnlGridOddRowBackColor.Tag));
-            JasonQueryRepository.UpdateSetting("GridConfig", "HighlightForeColor", TextHelper.GetSafeString(pnlGridHighlightForeColor.Tag));
-            JasonQueryRepository.UpdateSetting("GridConfig", "HighlightBackColor", TextHelper.GetSafeString(pnlGridHighlightBackColor.Tag));
-            JasonQueryRepository.UpdateSetting("GridConfig", "SelectedForeColor", TextHelper.GetSafeString(pnlGridSelectedForeColor.Tag));
-            JasonQueryRepository.UpdateSetting("GridConfig", "SelectedBackColor", TextHelper.GetSafeString(pnlGridSelectedBackColor.Tag));
+            settingBatch.UpdateSetting("GridConfig", "HeadingForeColor", TextHelper.GetSafeString(pnlGridHeadingForeColor.Tag));
+            settingBatch.UpdateSetting("GridConfig", "EvenRowForeColor", TextHelper.GetSafeString(pnlGridEvenRowForeColor.Tag));
+            settingBatch.UpdateSetting("GridConfig", "EvenRowBackColor", TextHelper.GetSafeString(pnlGridEvenRowBackColor.Tag));
+            settingBatch.UpdateSetting("GridConfig", "OddRowForeColor", TextHelper.GetSafeString(pnlGridOddRowForeColor.Tag));
+            settingBatch.UpdateSetting("GridConfig", "OddRowBackColor", TextHelper.GetSafeString(pnlGridOddRowBackColor.Tag));
+            settingBatch.UpdateSetting("GridConfig", "HighlightForeColor", TextHelper.GetSafeString(pnlGridHighlightForeColor.Tag));
+            settingBatch.UpdateSetting("GridConfig", "HighlightBackColor", TextHelper.GetSafeString(pnlGridHighlightBackColor.Tag));
+            settingBatch.UpdateSetting("GridConfig", "SelectedForeColor", TextHelper.GetSafeString(pnlGridSelectedForeColor.Tag));
+            settingBatch.UpdateSetting("GridConfig", "SelectedBackColor", TextHelper.GetSafeString(pnlGridSelectedBackColor.Tag));
             #endregion
 
             //儲存設定：Keywords
             #region 儲存設定：Keywords
             temp = string.IsNullOrWhiteSpace(editorOperatorKeywords.Text) ? string.Empty : $"{editorOperatorKeywords.Text.Trim().ToLower()} ";
-            JasonQueryRepository.UpdateSetting("KeywordsConfig", "OperatorKeywords", temp, false, true);
+            settingBatch.UpdateSetting("KeywordsConfig", "OperatorKeywords", temp, false, true);
             MyLibrary.KeywordsOperatorKeywords = editorOperatorKeywords.Text;
 
             temp = string.IsNullOrWhiteSpace(editorBuiltInFunctions.Text) ? string.Empty : $"{editorBuiltInFunctions.Text.Trim().ToLower()} ";
-            JasonQueryRepository.UpdateSetting("KeywordsConfig", "BuiltInFunctions", temp, false, true);
+            settingBatch.UpdateSetting("KeywordsConfig", "BuiltInFunctions", temp, false, true);
             MyLibrary.KeywordsBuiltInFunctions = editorBuiltInFunctions.Text;
 
             temp = string.IsNullOrWhiteSpace(editorBuiltInKeywords.Text) ? string.Empty : $"{editorBuiltInKeywords.Text.Trim().ToLower()} ";
-            JasonQueryRepository.UpdateSetting("KeywordsConfig", "BuiltInKeywords", temp, false, true);
+            settingBatch.UpdateSetting("KeywordsConfig", "BuiltInKeywords", temp, false, true);
             MyLibrary.KeywordsBuiltInKeywords = editorBuiltInKeywords.Text;
 
             temp = string.IsNullOrWhiteSpace(editorUserDefinedKeywords.Text) ? string.Empty : $"{editorUserDefinedKeywords.Text.Trim().ToLower()} ";
-            JasonQueryRepository.UpdateSetting("KeywordsConfig", "UserDefinedKeywords", temp, false, true);
+            settingBatch.UpdateSetting("KeywordsConfig", "UserDefinedKeywords", temp, false, true);
             MyLibrary.KeywordsUserDefinedKeywords = editorUserDefinedKeywords.Text;
             #endregion
 
             //儲存設定：SQL to Code
             #region 儲存設定：SQL to Code
-            JasonQueryRepository.UpdateSetting("SQL2CodeConfig", "VariableName", txtSqlVariableName.Text);
+            settingBatch.UpdateSetting("SQL2CodeConfig", "VariableName", txtSqlVariableName.Text);
             MyLibrary.SqlToCodeSqlVariableName = txtSqlVariableName.Text;
-            JasonQueryRepository.UpdateSetting("SQL2CodeConfig", "StringBuilderVariableName", txtStringBuilderVariableName.Text);
+            settingBatch.UpdateSetting("SQL2CodeConfig", "StringBuilderVariableName", txtStringBuilderVariableName.Text);
             MyLibrary.SqlToCodeStringBuilderVariableName = txtStringBuilderVariableName.Text;
             #endregion
 
@@ -2713,20 +2806,20 @@ namespace JasonQuery.UI.Forms
             #region 儲存設定：SQL Formatter
             var indentSize = GetSelectedSqlFormatterIndentSize();
 
-            JasonQueryRepository.UpdateSetting("SQLFormatterConfig", "IndentSize", indentSize.ToString());
+            settingBatch.UpdateSetting("SQLFormatterConfig", "IndentSize", indentSize.ToString());
             MyLibrary.SqlFormatterIndentSize = indentSize;
 
-            JasonQueryRepository.UpdateSetting("SQLFormatterConfig", "MaxLineWidth", txtMaxWidth.Text);
+            settingBatch.UpdateSetting("SQLFormatterConfig", "MaxLineWidth", txtMaxWidth.Text);
             MyLibrary.SqlFormatterMaxLineWidth = Convert.ToInt16(txtMaxWidth.Text);
 
             var blankLinesBetweenStatements = GetSelectedSqlFormatterBlankLinesBetweenStatements();
 
-            JasonQueryRepository.UpdateSetting("SQLFormatterConfig", "BlankLinesBetweenStatements", blankLinesBetweenStatements.ToString());
+            settingBatch.UpdateSetting("SQLFormatterConfig", "BlankLinesBetweenStatements", blankLinesBetweenStatements.ToString());
             MyLibrary.SqlFormatterBlankLinesBetweenStatements = blankLinesBetweenStatements;
 
             var listItemsPerLine = GetSelectedSqlFormatterListItemsPerLine();
 
-            JasonQueryRepository.UpdateSetting
+            settingBatch.UpdateSetting
             (
                 SqlFormatterSettingsContract.SectionName,
                 SqlFormatterSettingsContract.ListItemsPerLineSettingName,
@@ -2735,7 +2828,7 @@ namespace JasonQuery.UI.Forms
 
             MyLibrary.SqlFormatterListItemsPerLine = listItemsPerLine;
 
-            JasonQueryRepository.UpdateSetting("SQLFormatterConfig", "ConvertCaseForKeywords", chkConvertCaseForKeywords.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("SQLFormatterConfig", "ConvertCaseForKeywords", chkConvertCaseForKeywords.Checked ? "1" : "0");
             MyLibrary.SqlFormatterConvertCaseForKeywords = chkConvertCaseForKeywords.Checked;
 
             var selectedCase = 1;
@@ -2744,31 +2837,31 @@ namespace JasonQuery.UI.Forms
             {
                 selectedCase = 2;
             }
-            JasonQueryRepository.UpdateSetting("SQLFormatterConfig", "ConvertCaseForKeywordsCase", selectedCase.ToString());
+            settingBatch.UpdateSetting("SQLFormatterConfig", "ConvertCaseForKeywordsCase", selectedCase.ToString());
             MyLibrary.SqlFormatterConvertCaseForKeywordsCase = selectedCase;
 
             var selectedEngineKind = GetSelectedSqlFormatterEngineKind();
 
-            JasonQueryRepository.UpdateSetting("SQLFormatterConfig", "EngineKind", selectedEngineKind.ToString());
+            settingBatch.UpdateSetting("SQLFormatterConfig", "EngineKind", selectedEngineKind.ToString());
             MyLibrary.SqlFormatterEngine = selectedEngineKind;
             #endregion
 
             //儲存設定：Global
             #region 儲存設定：Global
             //檢查更新
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "EnableCheckForUpdate", rdoCheckOnly.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "EnableCheckForUpdate", rdoCheckOnly.Checked ? "1" : "0");
 
             var updateMetadataSource = GetSelectedUpdateMetadataSource();
             var updateMetadataLocalFolder = txtLocalFolder.Text.Trim();
 
-            JasonQueryRepository.UpdateSetting
+            settingBatch.UpdateSetting
             (
                 UpdateMetadataSettingsContract.SectionName,
                 UpdateMetadataSettingsContract.SourceSettingName,
                 updateMetadataSource.ToString()
             );
 
-            JasonQueryRepository.UpdateSetting
+            settingBatch.UpdateSetting
             (
                 UpdateMetadataSettingsContract.SectionName,
                 UpdateMetadataSettingsContract.LocalFolderSettingName,
@@ -2791,7 +2884,7 @@ namespace JasonQuery.UI.Forms
                 selectedCase = 7;
             }
 
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "CheckForUpdateDays", selectedCase.ToString());
+            settingBatch.UpdateSetting("GlobalConfig", "CheckForUpdateDays", selectedCase.ToString());
 
             if (rdoMultiDocument.Checked)
             {
@@ -2806,11 +2899,11 @@ namespace JasonQuery.UI.Forms
                 temp = "MultiBox";
             }
 
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "TabAppearance", temp);
+            settingBatch.UpdateSetting("GlobalConfig", "TabAppearance", temp);
 
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "RecentFilesQty", txtRecentFiles.Text);
+            settingBatch.UpdateSetting("GlobalConfig", "RecentFilesQty", txtRecentFiles.Text);
             MyLibrary.RecentFilesQty = Convert.ToInt16(txtRecentFiles.Text);
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "MyFavoriteQty", txtMyFavorite.Text);
+            settingBatch.UpdateSetting("GlobalConfig", "MyFavoriteQty", txtMyFavorite.Text);
             MyLibrary.MyFavoriteQty = Convert.ToInt16(txtMyFavorite.Text);
 
             //202411129 儲存 Icon Style (重新啟動 JasonQuery 後才會生效，故此處以變數處理)
@@ -2837,12 +2930,12 @@ namespace JasonQuery.UI.Forms
                 icon = "6";
             }
 
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "CommitRollbackIcon", icon);
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "BackupFile", chkEnableBackup.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "CommitRollbackIcon", icon);
+            settingBatch.UpdateSetting("GlobalConfig", "BackupFile", chkEnableBackup.Checked ? "1" : "0");
             AppConfigHelper.IsBackupFile = chkEnableBackup.Checked;
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "AskMeBeforeOpenUnsavedFiles", chkAskMeBeforeOpenUnsavedFiles.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "AskMeBeforeOpenUnsavedFiles", chkAskMeBeforeOpenUnsavedFiles.Checked ? "1" : "0");
             AppConfigHelper.AskBeforeOpenUnsavedFiles = chkAskMeBeforeOpenUnsavedFiles.Checked;
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "BackupPath", txtBackupPath.Text);
+            settingBatch.UpdateSetting("GlobalConfig", "BackupPath", txtBackupPath.Text);
             AppConfigHelper.BackupPath = txtBackupPath.Text;
 
             if (!AppConfigHelper.BackupPath.EndsWith("\\", StringComparison.Ordinal))
@@ -2862,26 +2955,26 @@ namespace JasonQuery.UI.Forms
                 }
             }
 
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "DateFormat", cboDateFormat.Text);
+            settingBatch.UpdateSetting("GlobalConfig", "DateFormat", cboDateFormat.Text);
             MyLibrary.DateFormat = cboDateFormat.Text;
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "ShowDatabaseName", chkShowDatabaseName.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "ShowVersion", chkShowVersion.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "ShowIP", chkShowIP.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "MainFormMaximized", rdoMaximized.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "ShowDatabaseName", chkShowDatabaseName.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "ShowVersion", chkShowVersion.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "ShowIP", chkShowIP.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "MainFormMaximized", rdoMaximized.Checked ? "1" : "0");
 
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "OptionsTabActiveForeColor", TextHelper.GetSafeString(pnlOptionsTabActiveForeColor.Tag));
+            settingBatch.UpdateSetting("GlobalConfig", "OptionsTabActiveForeColor", TextHelper.GetSafeString(pnlOptionsTabActiveForeColor.Tag));
             MyLibrary.ColorOptionsTabActiveForeColor = TextHelper.GetSafeString(pnlOptionsTabActiveForeColor.Tag);
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "OptionsTabActiveBackColor", TextHelper.GetSafeString(pnlOptionsTabActiveBackColor.Tag));
+            settingBatch.UpdateSetting("GlobalConfig", "OptionsTabActiveBackColor", TextHelper.GetSafeString(pnlOptionsTabActiveBackColor.Tag));
             MyLibrary.ColorOptionsTabActiveBackColor = TextHelper.GetSafeString(pnlOptionsTabActiveBackColor.Tag);
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "OptionsTabInactiveForeColor", TextHelper.GetSafeString(pnlOptionsTabInactiveForeColor.Tag));
+            settingBatch.UpdateSetting("GlobalConfig", "OptionsTabInactiveForeColor", TextHelper.GetSafeString(pnlOptionsTabInactiveForeColor.Tag));
             MyLibrary.ColorOptionsTabInactiveForeColor = TextHelper.GetSafeString(pnlOptionsTabInactiveForeColor.Tag);
 
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "TabStyle", rdoIDE.Checked ? "IDE" : "Plain");
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "TabBold", chkTabBold.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "TabShrinkPages", chkShrinkPages.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "TabShowArrows", chkShowArrows.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "TabHoverSelect", chkHoverSelect.Checked ? "1" : "0");
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "TabMultiLine", chkMultiLine.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "TabStyle", rdoIDE.Checked ? "IDE" : "Plain");
+            settingBatch.UpdateSetting("GlobalConfig", "TabBold", chkTabBold.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "TabShrinkPages", chkShrinkPages.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "TabShowArrows", chkShowArrows.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "TabHoverSelect", chkHoverSelect.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "TabMultiLine", chkMultiLine.Checked ? "1" : "0");
 
             if (MyLibrary.IsDarkMode && TextHelper.GetSafeString(chkDarkMode.Tag) == "0" || MyLibrary.IsDarkMode && TextHelper.GetSafeString(chkDarkMode.Tag) != "1")
             {
@@ -2900,7 +2993,7 @@ namespace JasonQuery.UI.Forms
             }
 
             //20260620 改為全域變數
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "PendingTransactionIdleWarningEnabled", chkPendingWarning.Checked ? "1" : "0");
+            settingBatch.UpdateSetting("GlobalConfig", "PendingTransactionIdleWarningEnabled", chkPendingWarning.Checked ? "1" : "0");
             MyGlobal.IsPendingTransactionWarning = chkPendingWarning.Checked;
 
             //20260125 Store display strategy settings for large text
@@ -2910,7 +3003,20 @@ namespace JasonQuery.UI.Forms
             AppConfigHelper.LargeTextPreviewLength = largeTextPreviewLength;
             cboLargeTextPreviewLength.Text = largeTextPreviewLength.ToString();
 
-            JasonQueryRepository.UpdateSetting("GlobalConfig", "LargeTextPreviewLength", largeTextPreviewLength.ToString());
+            settingBatch.UpdateSetting("GlobalConfig", "LargeTextPreviewLength", largeTextPreviewLength.ToString());
+
+            if (!settingBatch.Commit())
+            {
+                _isApplyAndClose = false;
+
+                Cursor = Cursors.Default;
+                btnRestoreDefaults.Enabled = true;
+                btnCopySettings.Enabled = true;
+                btnApply.Enabled = true;
+                btnClose.Enabled = true;
+
+                return;
+            }
 
             TransferValueToMainForm("ReloadQueryEditorSetting`");
 

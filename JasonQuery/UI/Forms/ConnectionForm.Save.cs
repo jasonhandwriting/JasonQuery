@@ -3,8 +3,8 @@ using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Logging;
 using JasonQuery.Core.Security.ConnectionCredentials;
 using JasonQuery.Database.Internal.Repositories;
+using JasonQuery.Database.Internal.Runtime;
 using System;
-using System.Data.SQLite;
 using System.Text;
 using System.Windows.Forms;
 
@@ -101,7 +101,7 @@ namespace JasonQuery.UI.Forms
                 sql,
                 new[]
                 {
-                    new SQLiteParameter("@Password", storedPassword)
+                    new JasonQueryDatabaseParameter("@Password", storedPassword)
                 }
             );
         }

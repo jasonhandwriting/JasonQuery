@@ -46,7 +46,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
         [TestMethod]
         public void ResolveVersion_WhenPersistedVersionIsUnknown_ThrowsNotSupportedException()
         {
-            Assert.ThrowsException<NotSupportedException>
+            Assert.ThrowsExactly<NotSupportedException>
             (
                 () => ConnectionCredentialStorageContract.ResolveVersion(999)
             );
@@ -80,7 +80,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
         [TestMethod]
         public void RequiresMigration_WhenPersistedVersionIsUnknown_ThrowsNotSupportedException()
         {
-            Assert.ThrowsException<NotSupportedException>
+            Assert.ThrowsExactly<NotSupportedException>
             (
                 () => ConnectionCredentialStorageContract.RequiresMigration(999)
             );
@@ -89,7 +89,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
         [TestMethod]
         public void EnsureV2Ready_WhenPersistedVersionIsUnknown_ThrowsNotSupportedException()
         {
-            Assert.ThrowsException<NotSupportedException>
+            Assert.ThrowsExactly<NotSupportedException>
             (
                 () => ConnectionCredentialStorageContract.EnsureV2Ready(999)
             );
@@ -98,7 +98,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
         [TestMethod]
         public void EnsureV2Ready_WhenPersistedVersionIsMissing_ThrowsInvalidOperationException()
         {
-            Assert.ThrowsException<InvalidOperationException>
+            Assert.ThrowsExactly<InvalidOperationException>
             (
                 () => ConnectionCredentialStorageContract.EnsureV2Ready(null)
             );
@@ -107,7 +107,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
         [TestMethod]
         public void EnsureV2Ready_WhenPersistedVersionIsLegacy_ThrowsInvalidOperationException()
         {
-            Assert.ThrowsException<InvalidOperationException>
+            Assert.ThrowsExactly<InvalidOperationException>
             (
                 () => ConnectionCredentialStorageContract.EnsureV2Ready
                 (

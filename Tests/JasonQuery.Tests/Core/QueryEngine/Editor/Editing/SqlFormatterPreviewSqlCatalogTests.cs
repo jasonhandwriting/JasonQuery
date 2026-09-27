@@ -8,7 +8,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
     [TestClass]
     public sealed class SqlFormatterPreviewSqlCatalogTests
     {
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DatabaseProviderKind.Oracle, "ALL_TAB_COLUMNS")]
         [DataRow(DatabaseProviderKind.PostgreSql, "pg_catalog.pg_attribute")]
         [DataRow(DatabaseProviderKind.SqlServer, "sys.columns")]
@@ -19,12 +19,12 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
             var sql = SqlFormatterPreviewSqlCatalog.Get(providerKind);
             var normalizedSql = sql.ToLowerInvariant();
 
-            StringAssert.Contains(normalizedSql, expectedMetadataObject.ToLowerInvariant());
-            StringAssert.Contains(normalizedSql, "column_name");
-            StringAssert.Contains(normalizedSql, "order by");
+            Assert.Contains(expectedMetadataObject.ToLowerInvariant(), normalizedSql);
+            Assert.Contains("column_name", normalizedSql);
+            Assert.Contains("order by", normalizedSql);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DatabaseProviderKind.Oracle)]
         [DataRow(DatabaseProviderKind.PostgreSql)]
         [DataRow(DatabaseProviderKind.SqlServer)]
@@ -45,7 +45,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
             Assert.AreNotEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.FormattedSql, "\r\n");
+            Assert.Contains("\r\n", result.FormattedSql);
         }
 
         [TestMethod]
@@ -53,7 +53,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
         {
             var sql = SqlFormatterPreviewSqlCatalog.Get(DatabaseProviderKind.Unknown);
 
-            StringAssert.Contains(sql, "information_schema.columns");
+            Assert.Contains("information_schema.columns", sql);
         }
 
         [TestMethod]
@@ -71,8 +71,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "C.OWNER");
-            Assert.IsFalse(result.FormattedSql.Contains("C ."));
+            Assert.Contains("C.OWNER", result.FormattedSql);
+            Assert.DoesNotContain("C .", result.FormattedSql);
         }
 
         [TestMethod]
@@ -91,9 +91,9 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "C.COLUMN_ID\r\n\r\n\r\n\r\nselect");
-            StringAssert.Contains(result.FormattedSql, "user");
-            Assert.IsFalse(result.FormattedSql.Contains("C ."));
+            Assert.Contains("C.COLUMN_ID\r\n\r\n\r\n\r\nselect", result.FormattedSql);
+            Assert.Contains("user", result.FormattedSql);
+            Assert.DoesNotContain("C .", result.FormattedSql);
         }
     }
 }

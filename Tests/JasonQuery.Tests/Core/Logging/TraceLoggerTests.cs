@@ -51,7 +51,7 @@ namespace JasonQuery.Tests.Core.Logging
             var firstLine = File.ReadLines(filePath).First();
 
             Assert.IsTrue(Regex.IsMatch(Path.GetFileName(filePath), @"^JasonQuery_\d{8}_\d{6}_\d{3}_P\d+\.csv$"));
-            Assert.IsTrue(bytes.Length >= 3);
+            Assert.IsGreaterThanOrEqualTo(3, bytes.Length);
             Assert.AreEqual((byte)0xEF, bytes[0]);
             Assert.AreEqual((byte)0xBB, bytes[1]);
             Assert.AreEqual((byte)0xBF, bytes[2]);
@@ -72,7 +72,7 @@ namespace JasonQuery.Tests.Core.Logging
 
             var content = File.ReadAllText(filePath);
 
-            Assert.IsFalse(content.Contains("CreatedBeforeEnable"));
+            Assert.DoesNotContain("CreatedBeforeEnable", content);
         }
 
         [TestMethod]
@@ -92,7 +92,7 @@ namespace JasonQuery.Tests.Core.Logging
 
             var content = File.ReadAllText(newFilePath);
 
-            Assert.IsFalse(content.Contains("OldSessionOperation"));
+            Assert.DoesNotContain("OldSessionOperation", content);
         }
 
         [TestMethod]
@@ -159,9 +159,9 @@ namespace JasonQuery.Tests.Core.Logging
 
             var content = File.ReadAllText(filePath);
 
-            Assert.IsTrue(content.Contains("\"SqlServer\""));
-            Assert.IsTrue(content.Contains("\"SQL Server 2025\""));
-            Assert.IsTrue(content.Contains("\"Test Connection\""));
+            Assert.Contains("\"SqlServer\"", content);
+            Assert.Contains("\"SQL Server 2025\"", content);
+            Assert.Contains("\"Test Connection\"", content);
         }
 
         [TestMethod]
@@ -176,10 +176,10 @@ namespace JasonQuery.Tests.Core.Logging
 
             var content = File.ReadAllText(filePath);
 
-            Assert.IsTrue(content.Contains("\"Error\""));
-            Assert.IsTrue(content.Contains("\"Failed\""));
-            Assert.IsTrue(content.Contains("System.InvalidOperationException"));
-            Assert.IsTrue(content.Contains("Failure, with comma"));
+            Assert.Contains("\"Error\"", content);
+            Assert.Contains("\"Failed\"", content);
+            Assert.Contains("System.InvalidOperationException", content);
+            Assert.Contains("Failure, with comma", content);
         }
     }
 }

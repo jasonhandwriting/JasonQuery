@@ -107,10 +107,10 @@ namespace JasonQuery.IntegrationTests.MySql
                 var text = IntegrationTestSpecialTypeAssertions.GetLargeText(arranged, "C_TEXT");
                 var json = IntegrationTestSpecialTypeAssertions.GetLargeText(arranged, "C_JSON");
 
-                Assert.AreEqual(4, blob.LoadContent().Length);
+                Assert.HasCount(4, blob.LoadContent());
                 Assert.AreEqual(string.Empty, blob.PreviewText);
-                StringAssert.Contains(text.LoadContent(), "TEXT-CONTENT");
-                StringAssert.Contains(json.LoadContent(), "value");
+                Assert.Contains("TEXT-CONTENT", text.LoadContent());
+                Assert.Contains("value", json.LoadContent());
             }
         }
 

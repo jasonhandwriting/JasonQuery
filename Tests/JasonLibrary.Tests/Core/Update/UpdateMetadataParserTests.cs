@@ -1,4 +1,4 @@
-using JasonLibrary.Core.Update;
+﻿using JasonLibrary.Core.Update;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
@@ -34,7 +34,7 @@ namespace JasonLibrary.Tests.Core.Update
 
             Assert.AreEqual(1, manifest.SchemaVersion);
             Assert.AreEqual("JasonQuery", manifest.Product);
-            Assert.AreEqual(1, manifest.Releases.Count);
+            Assert.HasCount(1, manifest.Releases);
             Assert.AreEqual("v0.92.0", manifest.Releases[0].TagName);
             Assert.AreEqual("JasonQuery64.zip", manifest.Releases[0].Assets[0].Name);
         }
@@ -57,7 +57,7 @@ namespace JasonLibrary.Tests.Core.Update
 
             Assert.AreEqual(1, manifest.SchemaVersion);
             Assert.AreEqual("JasonQuery", manifest.Product);
-            Assert.AreEqual(1, manifest.Releases.Count);
+            Assert.HasCount(1, manifest.Releases);
             Assert.IsTrue(manifest.Releases[0].Prerelease);
         }
 
@@ -68,7 +68,7 @@ namespace JasonLibrary.Tests.Core.Update
         {
             const string json = @"{ ""schema_version"": 2, ""product"": ""JasonQuery"", ""releases"": [] }";
 
-            Assert.ThrowsException<NotSupportedException>(() => new UpdateMetadataParser().Parse(json));
+            Assert.ThrowsExactly<NotSupportedException>(() => new UpdateMetadataParser().Parse(json));
         }
 
         [TestMethod]
@@ -78,10 +78,10 @@ namespace JasonLibrary.Tests.Core.Update
         {
             const string json = @"{ ""schema_version"": 1, ""product"": ""AnotherProduct"", ""releases"": [] }";
 
-            Assert.ThrowsException<FormatException>(() => new UpdateMetadataParser().Parse(json));
+            Assert.ThrowsExactly<FormatException>(() => new UpdateMetadataParser().Parse(json));
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("Update")]
         [DataRow("")]
@@ -89,7 +89,7 @@ namespace JasonLibrary.Tests.Core.Update
         [DataRow("{")]
         public void Parse_InvalidContent_ThrowsFormatException(string json)
         {
-            Assert.ThrowsException<FormatException>(() => new UpdateMetadataParser().Parse(json));
+            Assert.ThrowsExactly<FormatException>(() => new UpdateMetadataParser().Parse(json));
         }
     }
 }

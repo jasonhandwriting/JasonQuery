@@ -18,7 +18,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.AreEqual(SqlFormatterEngineReadiness.Ready, descriptor.Readiness);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DatabaseProviderKind.Oracle)]
         [DataRow(DatabaseProviderKind.PostgreSql)]
         [DataRow(DatabaseProviderKind.MySql)]
@@ -55,9 +55,9 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
         {
             var engines = SqlFormatterSupportCatalog.GetReadyEngines(DatabaseProviderKind.PostgreSql);
 
-            Assert.AreEqual(1, engines.Count);
+            Assert.HasCount(1, engines);
             Assert.AreEqual(SqlFormatterEngineKind.Hogimn, engines[0].Kind);
-            StringAssert.Contains(engines[0].AssessmentNote, "safety gate");
+            Assert.Contains("safety gate", engines[0].AssessmentNote);
         }
 
         [TestMethod]

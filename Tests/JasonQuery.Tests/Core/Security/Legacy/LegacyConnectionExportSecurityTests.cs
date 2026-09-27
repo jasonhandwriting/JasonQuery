@@ -18,7 +18,7 @@ namespace JasonQuery.Tests.Core.Security.Legacy
         [TestMethod]
         public void CreateArchivePassword_ThrowsForEmptyPassword()
         {
-            Assert.ThrowsException<ArgumentException>(() => LegacyConnectionExportSecurity.CreateArchivePassword(string.Empty));
+            Assert.ThrowsExactly<ArgumentException>(() => LegacyConnectionExportSecurity.CreateArchivePassword(string.Empty));
         }
     }
 }

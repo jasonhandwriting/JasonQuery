@@ -11,7 +11,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
     [TestClass]
     public sealed class SqlFormatterStep4DRegressionTests
     {
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DatabaseProviderKind.PostgreSql)]
         [DataRow(DatabaseProviderKind.SqlServer)]
         [DataRow(DatabaseProviderKind.MySql)]
@@ -37,11 +37,11 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.IsTrue(oneItemResult.Success, oneItemResult.ErrorMessage);
             Assert.IsTrue(tenItemResult.Success, tenItemResult.ErrorMessage);
             Assert.AreNotEqual(oneItemResult.FormattedSql, tenItemResult.FormattedSql);
-            StringAssert.Contains(oneItemResult.FormattedSql, "SELECT\r\n");
-            StringAssert.Contains(oneItemResult.FormattedSql, "\r\nFROM\r\n");
+            Assert.Contains("SELECT\r\n", oneItemResult.FormattedSql);
+            Assert.Contains("\r\nFROM\r\n", oneItemResult.FormattedSql);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(SqlFormatterEngineKind.MicrosoftScriptDom)]
         [DataRow(SqlFormatterEngineKind.Hogimn)]
         public void SqlServer_BothEngines_ListSettingChangesOutput(SqlFormatterEngineKind engineKind)
@@ -83,11 +83,11 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "DECODE(C.STATUS, 'A', 'Active', 'I', 'Inactive', 'Unknown')");
-            StringAssert.Contains(result.FormattedSql, "NVL2(C.OWNER, C.TABLE_NAME, C.COLUMN_NAME)");
-            StringAssert.Contains(result.FormattedSql, "C.COLUMN_ID IN (1, 2, 3)");
-            StringAssert.Contains(result.FormattedSql, "AS STATUS_TEXT, NVL2");
-            StringAssert.Contains(result.FormattedSql, "AS DISPLAY_VALUE,\r\n       C.COLUMN_ID");
+            Assert.Contains("DECODE(C.STATUS, 'A', 'Active', 'I', 'Inactive', 'Unknown')", result.FormattedSql);
+            Assert.Contains("NVL2(C.OWNER, C.TABLE_NAME, C.COLUMN_NAME)", result.FormattedSql);
+            Assert.Contains("C.COLUMN_ID IN (1, 2, 3)", result.FormattedSql);
+            Assert.Contains("AS STATUS_TEXT, NVL2", result.FormattedSql);
+            Assert.Contains("AS DISPLAY_VALUE,\r\n       C.COLUMN_ID", result.FormattedSql);
             AssertSemanticallySafe(sql, result.FormattedSql);
         }
 
@@ -104,12 +104,12 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "\"Mixed,Case\"");
-            StringAssert.Contains(result.FormattedSql, "\"Alias,Name\"");
-            StringAssert.Contains(result.FormattedSql, "'A,B'");
-            StringAssert.Contains(result.FormattedSql, "q'[C,D]'");
-            StringAssert.Contains(result.FormattedSql, "-- keep, line comment");
-            StringAssert.Contains(result.FormattedSql, "/* keep, block comment */");
+            Assert.Contains("\"Mixed,Case\"", result.FormattedSql);
+            Assert.Contains("\"Alias,Name\"", result.FormattedSql);
+            Assert.Contains("'A,B'", result.FormattedSql);
+            Assert.Contains("q'[C,D]'", result.FormattedSql);
+            Assert.Contains("-- keep, line comment", result.FormattedSql);
+            Assert.Contains("/* keep, block comment */", result.FormattedSql);
             AssertSemanticallySafe(sql, result.FormattedSql);
         }
 
@@ -126,11 +126,11 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT X.A, X.B,");
-            StringAssert.Contains(result.FormattedSql, "SELECT Y.A, Y.B,");
-            Assert.IsFalse(result.FormattedSql.Contains("SELECT X.A, X.B, X.C"));
-            Assert.IsFalse(result.FormattedSql.Contains("SELECT Y.A, Y.B, Y.C"));
-            StringAssert.Contains(result.FormattedSql, " ORDER BY C.OWNER, C.TABLE_NAME,");
+            Assert.Contains("SELECT X.A, X.B,", result.FormattedSql);
+            Assert.Contains("SELECT Y.A, Y.B,", result.FormattedSql);
+            Assert.DoesNotContain("SELECT X.A, X.B, X.C", result.FormattedSql);
+            Assert.DoesNotContain("SELECT Y.A, Y.B, Y.C", result.FormattedSql);
+            Assert.Contains(" ORDER BY C.OWNER, C.TABLE_NAME,", result.FormattedSql);
             AssertSemanticallySafe(sql, result.FormattedSql);
         }
 
@@ -153,11 +153,11 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var normalizerIndex = FindRequired(source, "formattedSql = SqlTextNormalizer.Normalize", listPackerIndex);
             var validatorIndex = FindRequired(source, "var validation = SqlTokenSemanticValidator.Validate", normalizerIndex);
 
-            Assert.IsTrue(statementSpacingIndex < oracleGuardIndex);
-            Assert.IsTrue(oracleGuardIndex < clauseAlignerIndex);
-            Assert.IsTrue(clauseAlignerIndex < listPackerIndex);
-            Assert.IsTrue(listPackerIndex < normalizerIndex);
-            Assert.IsTrue(normalizerIndex < validatorIndex);
+            Assert.IsLessThan(oracleGuardIndex, statementSpacingIndex);
+            Assert.IsLessThan(clauseAlignerIndex, oracleGuardIndex);
+            Assert.IsLessThan(listPackerIndex, clauseAlignerIndex);
+            Assert.IsLessThan(normalizerIndex, listPackerIndex);
+            Assert.IsLessThan(validatorIndex, normalizerIndex);
         }
 
         [TestMethod]
@@ -172,11 +172,11 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var normalizerIndex = FindRequired(source, "formattedSql = SqlTextNormalizer.Normalize", listPackerIndex);
             var validatorIndex = FindRequired(source, "var validation = SqlTokenSemanticValidator.Validate", normalizerIndex);
 
-            Assert.IsTrue(generatorIndex < baselineIndex);
-            Assert.IsTrue(baselineIndex < statementSpacingIndex);
-            Assert.IsTrue(statementSpacingIndex < listPackerIndex);
-            Assert.IsTrue(listPackerIndex < normalizerIndex);
-            Assert.IsTrue(normalizerIndex < validatorIndex);
+            Assert.IsLessThan(baselineIndex, generatorIndex);
+            Assert.IsLessThan(statementSpacingIndex, baselineIndex);
+            Assert.IsLessThan(listPackerIndex, statementSpacingIndex);
+            Assert.IsLessThan(normalizerIndex, listPackerIndex);
+            Assert.IsLessThan(validatorIndex, normalizerIndex);
         }
 
         private static SqlFormatResult FormatWithHogimn(DatabaseProviderKind providerKind, string sql, SqlFormatOptions options)
@@ -227,7 +227,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
         {
             var index = source.IndexOf(value, startIndex, StringComparison.Ordinal);
 
-            Assert.IsTrue(index >= 0, "Required pipeline stage was not found: " + value);
+            Assert.IsGreaterThanOrEqualTo(0, index, "Required pipeline stage was not found: " + value);
 
             return index;
         }

@@ -30,11 +30,11 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT TOP (100)");
-            StringAssert.Contains(result.FormattedSql, "FROM dbo.Customer AS a");
-            StringAssert.Contains(result.FormattedSql, "\r\nWHERE a.IsActive = 1");
-            Assert.IsFalse(result.FormattedSql.Contains("\t"));
-            Assert.IsFalse(result.FormattedSql.Replace("\r\n", string.Empty).Contains("\n"));
+            Assert.Contains("SELECT TOP (100)", result.FormattedSql);
+            Assert.Contains("FROM dbo.Customer AS a", result.FormattedSql);
+            Assert.Contains("\r\nWHERE a.IsActive = 1", result.FormattedSql);
+            Assert.DoesNotContain("\t", result.FormattedSql);
+            Assert.DoesNotContain("\n", result.FormattedSql.Replace("\r\n", string.Empty));
         }
 
         [TestMethod]
@@ -48,8 +48,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "WITH cte");
-            StringAssert.Contains(result.FormattedSql, "OPTION (MAXRECURSION 100);");
+            Assert.Contains("WITH cte", result.FormattedSql);
+            Assert.Contains("OPTION (MAXRECURSION 100);", result.FormattedSql);
         }
 
         [TestMethod]
@@ -64,9 +64,9 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "MERGE INTO dbo.Target");
-            StringAssert.Contains(result.FormattedSql, "WHEN MATCHED THEN UPDATE");
-            StringAssert.Contains(result.FormattedSql, "OUTPUT $ACTION, inserted.Id;");
+            Assert.Contains("MERGE INTO dbo.Target", result.FormattedSql);
+            Assert.Contains("WHEN MATCHED THEN UPDATE", result.FormattedSql);
+            Assert.Contains("OUTPUT $ACTION, inserted.Id;", result.FormattedSql);
         }
 
         [TestMethod]
@@ -78,7 +78,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsFalse(result.Success);
             Assert.AreEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "rejected the SQL");
+            Assert.Contains("rejected the SQL", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -97,7 +97,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsFalse(result.Success);
             Assert.AreEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "SQL Server only");
+            Assert.Contains("SQL Server only", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -116,7 +116,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsFalse(result.Success);
             Assert.AreEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "does not match");
+            Assert.Contains("does not match", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -133,8 +133,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = _engine.Format(request);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "select Id");
-            StringAssert.Contains(result.FormattedSql, "from dbo.Customer");
+            Assert.Contains("select Id", result.FormattedSql);
+            Assert.Contains("from dbo.Customer", result.FormattedSql);
         }
 
         [TestMethod]
@@ -151,11 +151,11 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = _engine.Format(request);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT 1;");
-            StringAssert.Contains(result.FormattedSql, "SELECT 2;");
+            Assert.Contains("SELECT 1;", result.FormattedSql);
+            Assert.Contains("SELECT 2;", result.FormattedSql);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(1)]
         [DataRow(2)]
         [DataRow(3)]
@@ -192,10 +192,10 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
             Assert.AreEqual(SqlFormatOptions.DefaultListItemsPerLine, new SqlFormatOptions().ListItemsPerLine);
-            StringAssert.Contains(result.FormattedSql, "SELECT C.A, C.B, C.C,\r\n       C.D");
+            Assert.Contains("SELECT C.A, C.B, C.C,\r\n       C.D", result.FormattedSql);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(1, "SELECT C.A,\r\n       C.B,\r\n       C.C,\r\n       C.D")]
         [DataRow(2, "SELECT C.A, C.B,\r\n       C.C, C.D")]
         [DataRow(3, "SELECT C.A, C.B, C.C,\r\n       C.D")]
@@ -211,7 +211,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, expectedSelect);
+            Assert.Contains(expectedSelect, result.FormattedSql);
         }
 
         [TestMethod]
@@ -226,9 +226,9 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT C.A, C.B,\r\n       C.C");
-            StringAssert.Contains(result.FormattedSql, "GROUP BY C.A, C.B,\r\n         C.C");
-            StringAssert.Contains(result.FormattedSql, "ORDER BY C.A, C.B,\r\n         C.C;");
+            Assert.Contains("SELECT C.A, C.B,\r\n       C.C", result.FormattedSql);
+            Assert.Contains("GROUP BY C.A, C.B,\r\n         C.C", result.FormattedSql);
+            Assert.Contains("ORDER BY C.A, C.B,\r\n         C.C;", result.FormattedSql);
         }
 
         [TestMethod]
@@ -243,7 +243,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT C.OWNER,\r\n       C.TABLE_NAME");
+            Assert.Contains("SELECT C.OWNER,\r\n       C.TABLE_NAME", result.FormattedSql);
         }
 
         [TestMethod]
@@ -258,10 +258,10 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "COALESCE (C.A, C.B) AS VALUE, CONCAT(C.C, C.D) AS TEXT_VALUE,");
-            StringAssert.Contains(result.FormattedSql, "PARTITION BY C.A, C.B");
-            StringAssert.Contains(result.FormattedSql, "ORDER BY C.C, C.D");
-            StringAssert.Contains(result.FormattedSql, "C.ID IN (1, 2, 3)");
+            Assert.Contains("COALESCE (C.A, C.B) AS VALUE, CONCAT(C.C, C.D) AS TEXT_VALUE,", result.FormattedSql);
+            Assert.Contains("PARTITION BY C.A, C.B", result.FormattedSql);
+            Assert.Contains("ORDER BY C.C, C.D", result.FormattedSql);
+            Assert.Contains("C.ID IN (1, 2, 3)", result.FormattedSql);
         }
 
         [TestMethod]
@@ -276,8 +276,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT X.A, X.B,");
-            Assert.IsFalse(result.FormattedSql.Contains("SELECT X.A, X.B, X.C"));
+            Assert.Contains("SELECT X.A, X.B,", result.FormattedSql);
+            Assert.DoesNotContain("SELECT X.A, X.B, X.C", result.FormattedSql);
         }
 
         [TestMethod]
@@ -292,10 +292,10 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "[Name,WithComma]");
-            StringAssert.Contains(result.FormattedSql, "[Alias,Name]");
-            StringAssert.Contains(result.FormattedSql, "'A,B'");
-            StringAssert.Contains(result.FormattedSql, "/* keep, block comment */");
+            Assert.Contains("[Name,WithComma]", result.FormattedSql);
+            Assert.Contains("[Alias,Name]", result.FormattedSql);
+            Assert.Contains("'A,B'", result.FormattedSql);
+            Assert.Contains("/* keep, block comment */", result.FormattedSql);
         }
 
         [TestMethod]

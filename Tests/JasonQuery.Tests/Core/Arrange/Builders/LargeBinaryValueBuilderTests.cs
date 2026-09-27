@@ -51,7 +51,7 @@ namespace JasonQuery.Tests.Core.Arrange.Builders
 
             Assert.AreEqual("(BLOB)(0)", value.DisplayText);
             Assert.AreEqual(0, value.Length);
-            Assert.AreEqual(0, value.LoadContent().Length);
+            Assert.IsEmpty(value.LoadContent());
         }
 
         [TestMethod]

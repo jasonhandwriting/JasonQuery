@@ -87,9 +87,7 @@ namespace JasonQuery.UI.Forms
                     _dtStructuredSchemaTable.AsEnumerable()
                                             .Where
                                              (
-                                                 row =>
-                                                 !string.IsNullOrWhiteSpace(row.GetSafeString("ColumnName")) &&
-                                                 string.Equals(row.GetSafeString("AutoInc"), "Y", StringComparison.OrdinalIgnoreCase)
+                                                 row => !string.IsNullOrWhiteSpace(row.GetSafeString("ColumnName")) && string.Equals(row.GetSafeString("AutoInc"), "Y", StringComparison.OrdinalIgnoreCase)
                                              )
                                             .Select(row => row.GetSafeString("ColumnName").Trim()),
                     StringComparer.Ordinal

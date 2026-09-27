@@ -51,26 +51,26 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationLogicalFrameKind.cs">
-      <Link>DatabaseStorageMigrationLogicalFrameKind.cs</Link>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationLogicalFrameKind.cs">
+      <Link>JasonQueryDbStorageMigrationLogicalFrameKind.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationLogicalSchema.cs">
-      <Link>DatabaseStorageMigrationLogicalSchema.cs</Link>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationLogicalSchema.cs">
+      <Link>JasonQueryDbStorageMigrationLogicalSchema.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationLogicalStreamContract.cs">
-      <Link>DatabaseStorageMigrationLogicalStreamContract.cs</Link>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationLogicalStreamContract.cs">
+      <Link>JasonQueryDbStorageMigrationLogicalStreamContract.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationLogicalStreamProtocol.cs">
-      <Link>DatabaseStorageMigrationLogicalStreamProtocol.cs</Link>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationLogicalStreamProtocol.cs">
+      <Link>JasonQueryDbStorageMigrationLogicalStreamProtocol.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationSchemaObjectKind.cs">
-      <Link>DatabaseStorageMigrationSchemaObjectKind.cs</Link>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationSchemaObjectKind.cs">
+      <Link>JasonQueryDbStorageMigrationSchemaObjectKind.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationValueKind.cs">
-      <Link>DatabaseStorageMigrationValueKind.cs</Link>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationValueKind.cs">
+      <Link>JasonQueryDbStorageMigrationValueKind.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\JasonQuery\Core\Security\Database\DatabaseStorageMigrationWireProtocol.cs">
-      <Link>DatabaseStorageMigrationWireProtocol.cs</Link>
+    <Compile Include="..\..\..\JasonQuery\Core\Security\JasonQueryDb\JasonQueryDbStorageMigrationWireProtocol.cs">
+      <Link>JasonQueryDbStorageMigrationWireProtocol.cs</Link>
     </Compile>
     <Compile Include="LegacyStorageV1ReadOnlyValidator.cs" />
     <Compile Include="Program.cs" />

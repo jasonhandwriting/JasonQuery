@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Text;
 using Updater.Core;
@@ -43,7 +43,7 @@ namespace JasonLibrary.Tests.Core.Update
             {
                 File.WriteAllText(packagePath, "package", Encoding.UTF8);
 
-                var exception = Assert.ThrowsException<UpdatePackageVerificationException>
+                var exception = Assert.ThrowsExactly<UpdatePackageVerificationException>
                 (
                     () => UpdatePackageVerifier.Verify(packagePath, 999, "sha256:" + new string('a', 64))
                 );
@@ -69,7 +69,7 @@ namespace JasonLibrary.Tests.Core.Update
 
                 var size = new FileInfo(packagePath).Length;
 
-                var exception = Assert.ThrowsException<UpdatePackageVerificationException>
+                var exception = Assert.ThrowsExactly<UpdatePackageVerificationException>
                 (
                     () => UpdatePackageVerifier.Verify(packagePath, size, "sha256:" + new string('a', 64))
                 );

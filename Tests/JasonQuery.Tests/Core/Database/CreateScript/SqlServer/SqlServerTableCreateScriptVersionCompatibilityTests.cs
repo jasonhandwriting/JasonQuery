@@ -20,7 +20,7 @@ namespace JasonQuery.Tests.Core.Database.CreateScript.SqlServer
             var sql = SqlServerTableCreateScriptSqlBuilder.BuildPrimaryKeyWithSql(request, "PK_CustomerInfo");
 
             AssertDoesNotContain(sql.ToLowerInvariant(), "i.optimize_for_sequential_key");
-            StringAssert.Contains(sql, "CAST(0 AS bit) AS Optimize_For_Sequential_Key");
+            Assert.Contains("CAST(0 AS bit) AS Optimize_For_Sequential_Key", sql);
         }
 
         [TestMethod]
@@ -33,7 +33,7 @@ namespace JasonQuery.Tests.Core.Database.CreateScript.SqlServer
 
             var sql = SqlServerTableCreateScriptSqlBuilder.BuildPrimaryKeyWithSql(request, "PK_CustomerInfo");
 
-            StringAssert.Contains(sql.ToLowerInvariant(), "i.optimize_for_sequential_key");
+            Assert.Contains("i.optimize_for_sequential_key", sql.ToLowerInvariant());
             AssertDoesNotContain(sql, "CAST(0 AS bit) AS Optimize_For_Sequential_Key");
         }
 
@@ -51,7 +51,7 @@ namespace JasonQuery.Tests.Core.Database.CreateScript.SqlServer
                 CreateMetadataExecutor(optimizeForSequentialKey: true)
             );
 
-            StringAssert.Contains(script, "ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON");
+            Assert.Contains("ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON", script);
             AssertDoesNotContain(script, "OPTIMIZE_FOR_SEQUENTIAL_KEY");
         }
 
@@ -69,11 +69,7 @@ namespace JasonQuery.Tests.Core.Database.CreateScript.SqlServer
                 CreateMetadataExecutor(optimizeForSequentialKey: true)
             );
 
-            StringAssert.Contains
-            (
-                script,
-                "ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = ON"
-            );
+            Assert.Contains("ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = ON", script);
         }
 
         private static SqlServerCreateScriptRequest CreateRequest(int sqlServerMajorVersion)
@@ -125,9 +121,7 @@ namespace JasonQuery.Tests.Core.Database.CreateScript.SqlServer
                     return CreatePrimaryKeyColumnOrderTable();
                 }
 
-                if (Contains(sql, "---Get Table Default Constraint Info") ||
-                    Contains(sql, "---Get Table Comment Info") ||
-                    Contains(sql, "---Get Table Non-Clustered Index Summary"))
+                if (Contains(sql, "---Get Table Default Constraint Info") || Contains(sql, "---Get Table Comment Info") || Contains(sql, "---Get Table Non-Clustered Index Summary"))
                 {
                     return new DataTable();
                 }

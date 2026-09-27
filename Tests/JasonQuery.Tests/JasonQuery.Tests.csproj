@@ -33,7 +33,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\Migration\LegacySQLite\JasonQuery.LegacyDbMigration\LegacyStorageV1LogicalStreamer.cs">
-      <Link>Core\Security\Database\LegacyStorageV1LogicalStreamer.cs</Link>
+      <Link>Core\Security\JasonQueryDb\LegacyStorageV1LogicalStreamer.cs</Link>
     </Compile>
   </ItemGroup>
 

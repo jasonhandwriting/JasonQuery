@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using JasonLibrary.Core.Database.Enums;
 using JasonLibrary.Core.Text.Formatting;
@@ -10,7 +10,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
     [TestClass]
     public sealed class SqlFormatterEngineResolverTests
     {
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DatabaseProviderKind.Oracle, SqlFormatterEngineKind.Hogimn)]
         [DataRow(DatabaseProviderKind.PostgreSql, SqlFormatterEngineKind.Hogimn)]
         [DataRow(DatabaseProviderKind.SqlServer, SqlFormatterEngineKind.MicrosoftScriptDom)]
@@ -67,7 +67,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsFalse(resolved);
             Assert.IsNull(engine);
-            StringAssert.Contains(errorMessage, "does not support");
+            Assert.Contains("does not support", errorMessage);
         }
 
         [TestMethod]
@@ -85,7 +85,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsFalse(resolved);
             Assert.IsNull(engine);
-            StringAssert.Contains(errorMessage, "not ready");
+            Assert.Contains("not ready", errorMessage);
         }
 
         [TestMethod]
@@ -103,7 +103,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsFalse(resolved);
             Assert.IsNull(engine);
-            StringAssert.Contains(errorMessage, "No default formatter engine");
+            Assert.Contains("No default formatter engine", errorMessage);
         }
 
         [TestMethod]
@@ -127,13 +127,13 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsFalse(resolved);
             Assert.IsNull(engine);
-            StringAssert.Contains(errorMessage, "implementation is not registered");
+            Assert.Contains("implementation is not registered", errorMessage);
         }
 
         [TestMethod]
         public void Constructor_NullCollection_ThrowsArgumentNullException()
         {
-            Assert.ThrowsException<ArgumentNullException>
+            Assert.ThrowsExactly<ArgumentNullException>
             (
                 () => new SqlFormatterEngineResolver((IEnumerable<ISqlFormatterEngine>)null)
             );
@@ -142,7 +142,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
         [TestMethod]
         public void Constructor_NullEntry_ThrowsArgumentException()
         {
-            Assert.ThrowsException<ArgumentException>
+            Assert.ThrowsExactly<ArgumentException>
             (
                 () => new SqlFormatterEngineResolver(new ISqlFormatterEngine[] { null })
             );
@@ -151,7 +151,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
         [TestMethod]
         public void Constructor_DuplicateEngineKind_ThrowsArgumentException()
         {
-            Assert.ThrowsException<ArgumentException>
+            Assert.ThrowsExactly<ArgumentException>
             (
                 () => new SqlFormatterEngineResolver
                 (

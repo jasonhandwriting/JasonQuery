@@ -22,6 +22,8 @@ namespace JasonQuery.UI.Forms
     public partial class ConnectionForm : Form
     {
         public bool IsViewMode { get; set; } = false; //20240505 是否為檢視模式
+        public bool IsApplicationExitRequested { get; private set; }
+
         private DataTable _dtDbInfo;
         private DataTable _dtDatabaseListInfo_PostgreSql; //database 欄位下拉清單 (各自獨立，避免相互干擾)
         private DataTable _dtDatabaseListInfo_SqlServer; //database 欄位下拉清單 (各自獨立，避免相互干擾)
@@ -372,7 +374,8 @@ namespace JasonQuery.UI.Forms
 
         private void btnExit_Click(object sender, EventArgs e)
         {
-            Application.Exit();
+            IsApplicationExitRequested = true;
+            Close();
         }
 
         private void btnUpdateNow_Click(object sender, EventArgs e)
@@ -490,7 +493,7 @@ namespace JasonQuery.UI.Forms
 
         private void btnDatabaseSecurity_Click(object sender, EventArgs e)
         {
-            using (var form = new DatabaseSecurityForm())
+            using (var form = new JasonQueryDbSecurityForm())
             {
                 form.ShowDialog();
             }

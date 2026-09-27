@@ -50,7 +50,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var diagnostic = Analyze(sql, Error32);
 
             Assert.AreEqual(PostgreSqlStringLengthDiagnosticConfidence.Candidate, diagnostic.Confidence);
-            Assert.AreEqual(1, diagnostic.Candidates.Count);
+            Assert.HasCount(1, diagnostic.Candidates);
             AssertCandidate(diagnostic.Candidates[0], "t2", null, 32, null, string.Empty);
         }
 
@@ -115,7 +115,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var diagnostic = Analyze(sql, Error31);
 
             Assert.AreEqual(PostgreSqlStringLengthDiagnosticConfidence.Candidate, diagnostic.Confidence);
-            Assert.AreEqual(2, diagnostic.Candidates.Count);
+            Assert.HasCount(2, diagnostic.Candidates);
 
             AssertCandidate(diagnostic.Candidates[0], "t1", 32, 31, null, "12345678901234567890123456789012");
             AssertCandidate(diagnostic.Candidates[1], "t2", 33, 32, null, "123456789012345678901234567890123");
@@ -178,7 +178,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var diagnostic = Analyze(sql, Error35);
 
             Assert.AreEqual(PostgreSqlStringLengthDiagnosticConfidence.Candidate, diagnostic.Confidence);
-            Assert.AreEqual(2, diagnostic.Candidates.Count);
+            Assert.HasCount(2, diagnostic.Candidates);
 
             AssertCandidate(diagnostic.Candidates[0], "t5", 36, 35, 1, "123456789012345678901234567890123456");
             AssertCandidate(diagnostic.Candidates[1], "t6", 37, 36, 1, "1234567890123456789012345678901234567");
@@ -221,7 +221,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var diagnostic = Analyze(sql, Error31);
 
             Assert.AreEqual(PostgreSqlStringLengthDiagnosticConfidence.Candidate, diagnostic.Confidence);
-            Assert.AreEqual(2, diagnostic.Candidates.Count);
+            Assert.HasCount(2, diagnostic.Candidates);
 
             AssertCandidate(diagnostic.Candidates[0], "t1", 32, 31, 1, "12345678901234567890123456789012");
             AssertCandidate(diagnostic.Candidates[1], "t2", 33, 32, 1, "123456789012345678901234567890123");
@@ -330,7 +330,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var diagnostic = PostgreSqlStringLengthErrorAnalyzer.TryAnalyze(sql, "value too long for type character(8)", provider);
 
             Assert.AreEqual(PostgreSqlStringLengthDiagnosticConfidence.Candidate, diagnostic.Confidence);
-            Assert.AreEqual(1, diagnostic.Candidates.Count);
+            Assert.HasCount(1, diagnostic.Candidates);
             Assert.AreEqual("c1", diagnostic.Candidates[0].ColumnName);
             Assert.AreEqual(8, diagnostic.Candidates[0].MaxLength);
         }
@@ -410,7 +410,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var diagnostic = Analyze(sql, errorMessage);
 
             Assert.AreEqual(PostgreSqlStringLengthDiagnosticConfidence.Exact, diagnostic.Confidence);
-            Assert.AreEqual(1, diagnostic.Candidates.Count);
+            Assert.HasCount(1, diagnostic.Candidates);
             Assert.IsTrue(diagnostic.HasDiagnosticMessage);
 
             AssertCandidate(diagnostic.Candidates[0], expectedColumn, expectedActualLength, expectedMaxLength, expectedRowIndex, expectedPreview);
@@ -432,7 +432,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
         private static void AssertUnknown(PostgreSqlStringLengthDiagnostic diagnostic)
         {
             Assert.AreEqual(PostgreSqlStringLengthDiagnosticConfidence.Unknown, diagnostic.Confidence);
-            Assert.AreEqual(0, diagnostic.Candidates.Count);
+            Assert.IsEmpty(diagnostic.Candidates);
             Assert.IsFalse(diagnostic.HasDiagnosticMessage);
             Assert.AreEqual(string.Empty, diagnostic.Message);
         }

@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -72,7 +72,7 @@ namespace JasonLibrary.Tests.Core.Update
 
                 using (var locked = new FileStream(Path.Combine(paths.InstallationRoot, "ZLocked.dll"), FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    var exception = Assert.ThrowsException<UpdateTransactionException>
+                    var exception = Assert.ThrowsExactly<UpdateTransactionException>
                     (
                         () => new FileUpdateTransaction().Execute
                         (
@@ -131,7 +131,7 @@ namespace JasonLibrary.Tests.Core.Update
 
                 WriteFile(Path.Combine(paths.BackupRoot, "files"), "JasonQuery.exe", "tampered backup");
 
-                Assert.ThrowsException<InvalidDataException>(() => transaction.RestoreBackup(result.BackupManifestPath));
+                Assert.ThrowsExactly<InvalidDataException>(() => transaction.RestoreBackup(result.BackupManifestPath));
                 Assert.AreEqual("new exe", ReadFile(paths.InstallationRoot, "JasonQuery.exe"));
             }
             finally
@@ -152,7 +152,7 @@ namespace JasonLibrary.Tests.Core.Update
                 WriteFile(paths.PayloadRoot, "JasonQuery.db", "must not be updated");
                 WriteFile(paths.InstallationRoot, "JasonQuery.exe", "old exe");
 
-                var exception = Assert.ThrowsException<ProtectedUpdatePathException>
+                var exception = Assert.ThrowsExactly<ProtectedUpdatePathException>
                 (
                     () => new FileUpdateTransaction().Execute
                     (
@@ -185,7 +185,7 @@ namespace JasonLibrary.Tests.Core.Update
                 WriteFile(paths.PayloadRoot, "backup/query-backup.sql", "must not be updated");
                 WriteFile(paths.InstallationRoot, "JasonQuery.exe", "old exe");
 
-                var exception = Assert.ThrowsException<ProtectedUpdatePathException>
+                var exception = Assert.ThrowsExactly<ProtectedUpdatePathException>
                 (
                     () => new FileUpdateTransaction().Execute
                     (

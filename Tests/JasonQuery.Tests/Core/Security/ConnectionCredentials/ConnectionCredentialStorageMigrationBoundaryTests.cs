@@ -86,7 +86,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
 
             var boundary = new ConnectionCredentialStorageMigrationBoundary(store);
 
-            Assert.ThrowsException<InvalidOperationException>
+            Assert.ThrowsExactly<InvalidOperationException>
             (
                 () => boundary.Execute
                 (
@@ -113,7 +113,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
             var store = new FakeVersionStore(events, 999);
             var boundary = new ConnectionCredentialStorageMigrationBoundary(store);
 
-            Assert.ThrowsException<NotSupportedException>
+            Assert.ThrowsExactly<NotSupportedException>
             (
                 () => boundary.Execute
                 (
@@ -140,7 +140,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
             var store = new FakeVersionStore(events, null);
             var boundary = new ConnectionCredentialStorageMigrationBoundary(store);
 
-            Assert.ThrowsException<TestMigrationException>
+            Assert.ThrowsExactly<TestMigrationException>
             (
                 () => boundary.Execute
                 (
@@ -177,7 +177,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
 
             var boundary = new ConnectionCredentialStorageMigrationBoundary(store);
 
-            Assert.ThrowsException<TestVersionWriteException>
+            Assert.ThrowsExactly<TestVersionWriteException>
             (
                 () => boundary.Execute
                 (
@@ -211,7 +211,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
             var store = new FakeVersionStore(events, null);
             var boundary = new ConnectionCredentialStorageMigrationBoundary(store);
 
-            Assert.ThrowsException<TestCommitException>
+            Assert.ThrowsExactly<TestCommitException>
             (
                 () => boundary.Execute
                 (
@@ -246,7 +246,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
             var store = new FakeVersionStore(events, null);
             var boundary = new ConnectionCredentialStorageMigrationBoundary(store);
 
-            var exception = Assert.ThrowsException<InvalidOperationException>
+            var exception = Assert.ThrowsExactly<InvalidOperationException>
             (
                 () => boundary.Execute
                 (
@@ -267,7 +267,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
 
             var aggregate = (AggregateException)exception.InnerException;
 
-            Assert.AreEqual(2, aggregate.InnerExceptions.Count);
+            Assert.HasCount(2, aggregate.InnerExceptions);
 
             Assert.IsInstanceOfType
             (
@@ -305,7 +305,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
             var store = new FakeVersionStore(events, null);
             var boundary = new ConnectionCredentialStorageMigrationBoundary(store);
 
-            Assert.ThrowsException<InvalidOperationException>
+            Assert.ThrowsExactly<InvalidOperationException>
             (
                 () => boundary.Execute
                 (
@@ -314,7 +314,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
                 )
             );
 
-            Assert.AreEqual(0, events.Count);
+            Assert.IsEmpty(events);
         }
 
         [TestMethod]
@@ -325,12 +325,12 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
             var store = new FakeVersionStore(events, null);
             var boundary = new ConnectionCredentialStorageMigrationBoundary(store);
 
-            Assert.ThrowsException<ArgumentNullException>
+            Assert.ThrowsExactly<ArgumentNullException>
             (
                 () => boundary.Execute(connection, null)
             );
 
-            Assert.AreEqual(0, events.Count);
+            Assert.IsEmpty(events);
         }
 
         private static void AssertEvents(IList<string> actual, params string[] expected)

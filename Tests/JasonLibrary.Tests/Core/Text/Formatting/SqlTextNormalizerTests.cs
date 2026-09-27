@@ -36,7 +36,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.AreEqual("SELECT 1  ", result);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(null)]
         [DataRow("")]
         public void Normalize_NullOrEmpty_ReturnsEmpty(string sql)

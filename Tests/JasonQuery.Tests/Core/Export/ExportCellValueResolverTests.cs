@@ -75,7 +75,7 @@ namespace JasonQuery.Tests.Core.Export
         {
             var value = new LargeTextDataType("(CLOB)(10)", "preview", 10, true, () => throw new InvalidOperationException("load failed"));
 
-            var ex = Assert.ThrowsException<InvalidOperationException>(() => ExportCellValueResolver.Resolve(value, value.ToString()));
+            var ex = Assert.ThrowsExactly<InvalidOperationException>(() => ExportCellValueResolver.Resolve(value, value.ToString()));
 
             Assert.AreEqual("load failed", ex.Message);
         }

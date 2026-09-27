@@ -9,7 +9,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
     [TestClass]
     public sealed class SqlFormatterEnginePreferenceResolverTests
     {
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DatabaseProviderKind.Oracle, SqlFormatterEngineKind.Hogimn)]
         [DataRow(DatabaseProviderKind.PostgreSql, SqlFormatterEngineKind.Hogimn)]
         [DataRow(DatabaseProviderKind.SqlServer, SqlFormatterEngineKind.MicrosoftScriptDom)]
@@ -38,7 +38,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
             Assert.AreEqual(SqlFormatterEngineKind.Hogimn, actual);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("")]
         [DataRow("NotAnEngine")]
         [DataRow("Laan")]
@@ -84,14 +84,14 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
             Assert.IsFalse(choices[0].SupportsMaxLineWidth);
             Assert.IsTrue(choices[0].SupportsListItemsPerLine);
             Assert.IsTrue(choices[0].IsRecommended);
-            StringAssert.Contains(choices[0].DisplayName, "Recommended");
+            Assert.Contains("Recommended", choices[0].DisplayName);
             Assert.IsTrue(choices[1].SupportsMaxLineWidth);
             Assert.IsTrue(choices[1].SupportsListItemsPerLine);
             Assert.IsFalse(choices[1].IsRecommended);
-            Assert.IsFalse(choices[1].DisplayName.Contains("MIT"));
+            Assert.DoesNotContain("MIT", choices[1].DisplayName);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DatabaseProviderKind.Oracle)]
         [DataRow(DatabaseProviderKind.PostgreSql)]
         [DataRow(DatabaseProviderKind.MySql)]
@@ -112,11 +112,11 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
             Assert.IsTrue(choices.All(choice => choice.SupportsMaxLineWidth));
             Assert.IsTrue(choices.All(choice => choice.SupportsListItemsPerLine));
             Assert.IsTrue(choices[0].IsRecommended);
-            Assert.IsFalse(choices[0].DisplayName.Contains("Recommended"));
-            Assert.IsFalse(choices[0].DisplayName.Contains("MIT"));
+            Assert.DoesNotContain("Recommended", choices[0].DisplayName);
+            Assert.DoesNotContain("MIT", choices[0].DisplayName);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(SqlFormatterEngineKind.Hogimn, true)]
         [DataRow(SqlFormatterEngineKind.MicrosoftScriptDom, true)]
         [DataRow(SqlFormatterEngineKind.Laan, false)]

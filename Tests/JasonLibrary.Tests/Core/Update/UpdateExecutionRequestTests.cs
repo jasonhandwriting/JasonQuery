@@ -1,4 +1,4 @@
-using JasonLibrary.Core.Update;
+﻿using JasonLibrary.Core.Update;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -42,7 +42,7 @@ namespace JasonLibrary.Tests.Core.Update
             request.SourceKind = UpdateMetadataSourceKind.GitHub.ToString();
             request.PackageIsLocal = true;
 
-            Assert.ThrowsException<FormatException>(() => request.Validate());
+            Assert.ThrowsExactly<FormatException>(() => request.Validate());
         }
 
         [TestMethod]
@@ -54,7 +54,7 @@ namespace JasonLibrary.Tests.Core.Update
             request.InstalledVersion = "0.95.0";
             request.TargetVersion = "0.94.0";
 
-            Assert.ThrowsException<FormatException>(() => request.Validate());
+            Assert.ThrowsExactly<FormatException>(() => request.Validate());
         }
 
         [TestMethod]
@@ -66,7 +66,7 @@ namespace JasonLibrary.Tests.Core.Update
             request.InstalledVersion = "0.95";
             request.TargetVersion = "0.95.0";
 
-            Assert.ThrowsException<FormatException>(() => request.Validate());
+            Assert.ThrowsExactly<FormatException>(() => request.Validate());
         }
 
         private static UpdateExecutionRequest CreateRequest(string packageLocation)

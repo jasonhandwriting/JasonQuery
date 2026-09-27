@@ -17,8 +17,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
             var result = QueryEditorAutoCompleteDataFilter.FilterByKeyword(null, "abc", "ColumnName");
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Rows.Count);
-            Assert.AreEqual(0, result.Columns.Count);
+            Assert.IsEmpty(result.Rows);
+            Assert.IsEmpty(result.Columns);
         }
 
         [TestMethod]
@@ -109,8 +109,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
             var source = CreateTable("ColumnName", "A", "B");
             var result = QueryEditorAutoCompleteDataFilter.FilterByKeyword(source, "XYZ", "ColumnName", false);
 
-            Assert.AreEqual(0, result.Rows.Count);
-            Assert.AreEqual(source.Columns.Count, result.Columns.Count);
+            Assert.IsEmpty(result.Rows);
+            Assert.HasCount(source.Columns.Count, result.Columns);
         }
 
         [TestMethod]
@@ -205,7 +205,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
 
             var result = QueryEditorAutoCompleteDataFilter.FilterSpaceByKeyword(source, "Customer");
 
-            Assert.AreEqual(1, result.Rows.Count);
+            Assert.HasCount(1, result.Rows);
             Assert.AreEqual("Customer", result.Rows[0]["SchemaName"]);
         }
 
@@ -240,7 +240,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
             var result = QueryEditorAutoCompleteDataFilter.FilterSpaceByKeyword(null, "A");
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Rows.Count);
+            Assert.IsEmpty(result.Rows);
         }
 
         [TestMethod]
@@ -279,7 +279,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
 
             var result = QueryEditorAutoCompleteDataFilter.FilterByKeyword(source, "Customer", "ColumnName");
 
-            Assert.AreEqual(3, result.Columns.Count);
+            Assert.HasCount(3, result.Columns);
             Assert.AreEqual("int", result.Rows[0]["DataType"]);
             Assert.AreEqual("P", result.Rows[0]["AllowDBNull"]);
         }

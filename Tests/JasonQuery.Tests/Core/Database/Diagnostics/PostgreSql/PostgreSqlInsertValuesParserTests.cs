@@ -46,7 +46,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             Assert.AreEqual("a_test", result.TableName);
             Assert.AreEqual("public.a_test", result.FullTableName);
             CollectionAssert.AreEqual(new[] { "t1" }, result.ColumnNames.ToArray());
-            Assert.AreEqual(1, result.Values.Count);
+            Assert.HasCount(1, result.Values);
             Assert.AreEqual("abc", result.Values[0].StringValue);
         }
 
@@ -94,7 +94,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var success = PostgreSqlInsertValuesParser.TryParse(sql, out PostgreSqlInsertValuesParseResult result);
 
             Assert.IsTrue(success);
-            Assert.AreEqual(1, result.Values.Count);
+            Assert.HasCount(1, result.Values);
             Assert.AreEqual(33, result.Values[0].ActualLength);
         }
 
@@ -125,7 +125,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var success = PostgreSqlInsertValuesParser.TryParse(sql, out PostgreSqlInsertValuesParseResult result);
 
             Assert.IsTrue(success);
-            Assert.AreEqual(1, result.Values.Count);
+            Assert.HasCount(1, result.Values);
             Assert.IsFalse(result.Values[0].IsStringLiteral);
             Assert.AreEqual("repeat('1', 33)", result.Values[0].RawText);
             Assert.AreEqual(0, result.Values[0].ActualLength);
@@ -145,7 +145,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var success = PostgreSqlInsertValuesParser.TryParse(sql, out PostgreSqlInsertValuesParseResult result);
 
             Assert.IsTrue(success);
-            Assert.AreEqual(3, result.Values.Count);
+            Assert.HasCount(3, result.Values);
             Assert.AreEqual(1, result.Values[0].ValuesRowIndex);
             Assert.AreEqual(2, result.Values[1].ValuesRowIndex);
             Assert.AreEqual(3, result.Values[2].ValuesRowIndex);
@@ -163,7 +163,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var success = PostgreSqlInsertValuesParser.TryParse(sql, out PostgreSqlInsertValuesParseResult result);
 
             Assert.IsTrue(success);
-            Assert.AreEqual(4, result.Values.Count);
+            Assert.HasCount(4, result.Values);
 
             Assert.AreEqual(1, result.Values[0].ValuesRowIndex);
             Assert.AreEqual(0, result.Values[0].ColumnIndex);
@@ -210,7 +210,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
 
             Assert.IsFalse(success);
             Assert.IsFalse(result.Success);
-            StringAssert.Contains(result.FailureReason, "不支援");
+            Assert.Contains("不支援", result.FailureReason);
         }
 
         [TestMethod]
@@ -225,7 +225,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
 
             Assert.IsFalse(success);
             Assert.IsFalse(result.Success);
-            StringAssert.Contains(result.FailureReason, "column list");
+            Assert.Contains("column list", result.FailureReason);
         }
 
         [TestMethod]
@@ -241,9 +241,9 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
 
             Assert.IsFalse(success);
             Assert.IsFalse(result.Success);
-            StringAssert.Contains(
-                result.FailureReason,
-                "VALUES 數量");
+            Assert.Contains(
+                "VALUES 數量",
+                result.FailureReason);
         }
 
         [TestMethod]
@@ -259,7 +259,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
 
             Assert.IsFalse(success);
             Assert.IsFalse(result.Success);
-            StringAssert.Contains(result.FailureReason, "第 2 組");
+            Assert.Contains("第 2 組", result.FailureReason);
         }
 
         [TestMethod]
@@ -286,7 +286,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var success = PostgreSqlInsertValuesParser.TryParseSingleRow(sql, out PostgreSqlInsertValuesParseResult result);
 
             Assert.IsTrue(success);
-            Assert.AreEqual(2, result.Values.Count);
+            Assert.HasCount(2, result.Values);
         }
     }
 }

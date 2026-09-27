@@ -39,7 +39,7 @@ namespace JasonQuery.IntegrationTests.Infrastructure
                 var result = client.ExecutePaged(dialect.BuildScalarSql(), 0, 1);
 
                 AssertPagedSucceeded(result, sourceType);
-                Assert.AreEqual(1, result.Data.Rows.Count);
+                Assert.HasCount(1, result.Data.Rows);
                 Assert.AreEqual(1, Convert.ToInt32(result.Data.Rows[0][0]));
             }
         }
@@ -55,7 +55,7 @@ namespace JasonQuery.IntegrationTests.Infrastructure
                 var result = fixture.Client.ExecutePaged(fixture.Dialect.BuildSelectSql(), 1, 2);
 
                 AssertPagedSucceeded(result, sourceType);
-                Assert.AreEqual(2, result.Data.Rows.Count);
+                Assert.HasCount(2, result.Data.Rows);
                 Assert.AreEqual(2, Convert.ToInt32(result.Data.Rows[0]["ID"]));
                 Assert.AreEqual(3, Convert.ToInt32(result.Data.Rows[1]["ID"]));
             }
@@ -73,7 +73,7 @@ namespace JasonQuery.IntegrationTests.Infrastructure
 
                 AssertPagedSucceeded(result, sourceType);
                 Assert.IsNotNull(result.Schema);
-                Assert.IsTrue(result.Schema.Rows.Count >= 2);
+                Assert.IsGreaterThanOrEqualTo(2, result.Schema.Rows.Count);
 
                 CollectionAssert.IsSubsetOf(new[] { "ColumnName", "ColumnOrdinal", "DataType", "AllowDBNull" },
                                             result.Schema.Columns.Cast<DataColumn>().Select(column => column.ColumnName).ToArray());
@@ -122,7 +122,7 @@ namespace JasonQuery.IntegrationTests.Infrastructure
                 var schemaRow = FindSchemaRow(result.Schema, "ID");
 
                 Assert.IsNotNull(schemaRow);
-                Assert.IsTrue(result.Schema.Columns.Contains("IsKey"));
+                Assert.Contains("IsKey", result.Schema.Columns.Cast<DataColumn>().Select(column => column.ColumnName));
                 Assert.IsFalse(schemaRow.IsNull("IsKey"));
                 Assert.IsTrue(Convert.ToBoolean(schemaRow["IsKey"]));
 

@@ -1,5 +1,4 @@
 ﻿using C1.Win.C1TrueDBGrid;
-using JasonLibrary.Core;
 using JasonLibrary.Core.Schema;
 using JasonLibrary.Core.Schema.Enums;
 using JasonQuery.Core.Config;
@@ -172,20 +171,26 @@ namespace JasonQuery.UI.Forms
             switch (_currentSourceType)
             {
                 case DataSourceType.Oracle:
-                    return MyGlobal.OracleReader.UploadFileToBlobField(sql, parameterName, fileName, out errorMessage);
-
+                    {
+                        return MyGlobal.OracleReader.UploadFileToBlobField(sql, parameterName, fileName, out errorMessage);
+                    }
                 case DataSourceType.PostgreSql:
-                    return MyGlobal.PostgreSqlReader.UploadFileToBlobField(sql, parameterName, fileName, out errorMessage);
-
+                    {
+                        return MyGlobal.PostgreSqlReader.UploadFileToBlobField(sql, parameterName, fileName, out errorMessage);
+                    }
                 case DataSourceType.SqlServer:
-                    return MyGlobal.SqlServerReader.UploadFileToBlobField(sql, parameterName, fileName, out errorMessage);
-
+                    {
+                        return MyGlobal.SqlServerReader.UploadFileToBlobField(sql, parameterName, fileName, out errorMessage);
+                    }
                 case DataSourceType.MySql:
-                    return MyGlobal.MySqlReader.UploadFileToBlobField(sql, parameterName, fileName, out errorMessage);
-
+                    {
+                        return MyGlobal.MySqlReader.UploadFileToBlobField(sql, parameterName, fileName, out errorMessage);
+                    }
                 default:
-                    errorMessage = "Unsupported database type.";
-                    return 0;
+                    {
+                        errorMessage = "Unsupported database type.";
+                        return 0;
+                    }
             }
         }
 
@@ -223,12 +228,9 @@ namespace JasonQuery.UI.Forms
                 return result;
             }
 
-            var binaryExpression = _currentSourceType == DataSourceType.SqlServer
-                ? "CONVERT(VARBINARY(MAX), '0x{HEX}', 1)"
-                : $":{parameterName}";
+            var binaryExpression = _currentSourceType == DataSourceType.SqlServer ? "CONVERT(VARBINARY(MAX), '0x{HEX}', 1)" : $":{parameterName}";
 
             result.Sql = $"UPDATE {tableName}\r\n   SET {columnName} = {binaryExpression}\r\n WHERE {whereInfo.WhereCondition}";
-
             return result;
         }
 
@@ -327,9 +329,7 @@ namespace JasonQuery.UI.Forms
                 return currentRow;
             }
 
-            return _dtOriginalTableData.AsEnumerable()
-                                       .FirstOrDefault(row => StringComparer.Ordinal.Equals(row.GetSafeString(MyGlobal.Row_Id_PK_JQ), rowId))
-                   ?? currentRow;
+            return _dtOriginalTableData.AsEnumerable().FirstOrDefault(row => StringComparer.Ordinal.Equals(row.GetSafeString(MyGlobal.Row_Id_PK_JQ), rowId)) ?? currentRow;
         }
 
         private IEnumerable<ColumnInfo> GetBinaryUpdatePrimaryKeyColumns()
@@ -349,11 +349,7 @@ namespace JasonQuery.UI.Forms
                 return primaryKeyColumns;
             }
 
-            var primaryKeyTable = _currentSourceType == DataSourceType.SqlServer
-                ? _dtSqlServerPrimaryKeyTable
-                : _currentSourceType == DataSourceType.MySql
-                    ? _dtMySqlPrimaryKeyTable
-                    : null;
+            var primaryKeyTable = _currentSourceType == DataSourceType.SqlServer ? _dtSqlServerPrimaryKeyTable : _currentSourceType == DataSourceType.MySql ? _dtMySqlPrimaryKeyTable : null;
 
             if (primaryKeyTable == null || primaryKeyTable.Rows.Count == 0 || !primaryKeyTable.Columns.Contains("ColumnName"))
             {
@@ -375,8 +371,7 @@ namespace JasonQuery.UI.Forms
 
         private int GetBinaryColumnOrdinal(string columnName)
         {
-            if (_dtStructuredSchemaTable == null || _dtStructuredSchemaTable.Rows.Count == 0 ||
-                !_dtStructuredSchemaTable.Columns.Contains("ColumnName") || !_dtStructuredSchemaTable.Columns.Contains("ID"))
+            if (_dtStructuredSchemaTable == null || _dtStructuredSchemaTable.Rows.Count == 0 || !_dtStructuredSchemaTable.Columns.Contains("ColumnName") || !_dtStructuredSchemaTable.Columns.Contains("ID"))
             {
                 return int.MaxValue;
             }
@@ -392,27 +387,27 @@ namespace JasonQuery.UI.Forms
             switch (_currentSourceType)
             {
                 case DataSourceType.Oracle:
-                    return _selectedTableName;
-
+                    {
+                        return _selectedTableName;
+                    }
                 case DataSourceType.PostgreSql:
-                    return string.IsNullOrWhiteSpace(SchemaNode) ? _selectedTableName : $"{SchemaNode}.{_selectedTableName}";
-
+                    {
+                        return string.IsNullOrWhiteSpace(SchemaNode) ? _selectedTableName : $"{SchemaNode}.{_selectedTableName}";
+                    }
                 case DataSourceType.SqlServer:
                     {
                         var schemaName = !string.IsNullOrWhiteSpace(SchemaNode) ? SchemaNode : SchemaDbo;
 
-                        return string.IsNullOrWhiteSpace(schemaName)
-                            ? QuoteSqlServerBinaryIdentifier(_selectedTableName)
-                            : $"{QuoteSqlServerBinaryIdentifier(schemaName)}.{QuoteSqlServerBinaryIdentifier(_selectedTableName)}";
+                        return string.IsNullOrWhiteSpace(schemaName) ? QuoteSqlServerBinaryIdentifier(_selectedTableName) : $"{QuoteSqlServerBinaryIdentifier(schemaName)}.{QuoteSqlServerBinaryIdentifier(_selectedTableName)}";
                     }
-
                 case DataSourceType.MySql:
-                    return string.IsNullOrWhiteSpace(SchemaNode)
-                        ? QuoteMySqlBinaryIdentifier(_selectedTableName)
-                        : $"{QuoteMySqlBinaryIdentifier(SchemaNode)}.{QuoteMySqlBinaryIdentifier(_selectedTableName)}";
-
+                    {
+                        return string.IsNullOrWhiteSpace(SchemaNode) ? QuoteMySqlBinaryIdentifier(_selectedTableName) : $"{QuoteMySqlBinaryIdentifier(SchemaNode)}.{QuoteMySqlBinaryIdentifier(_selectedTableName)}";
+                    }
                 default:
-                    return string.Empty;
+                    {
+                        return string.Empty;
+                    }
             }
         }
 
@@ -421,13 +416,17 @@ namespace JasonQuery.UI.Forms
             switch (_currentSourceType)
             {
                 case DataSourceType.SqlServer:
-                    return QuoteSqlServerBinaryIdentifier(identifier);
-
+                    {
+                        return QuoteSqlServerBinaryIdentifier(identifier);
+                    }
                 case DataSourceType.MySql:
-                    return QuoteMySqlBinaryIdentifier(identifier);
-
+                    {
+                        return QuoteMySqlBinaryIdentifier(identifier);
+                    }
                 default:
-                    return identifier == null ? string.Empty : identifier.Trim();
+                    {
+                        return identifier == null ? string.Empty : identifier.Trim();
+                    }
             }
         }
 
@@ -476,15 +475,14 @@ namespace JasonQuery.UI.Forms
             switch (columnInfo.CategoryDataTypeKind)
             {
                 case CategoryDataTypeKind.Number:
-                    return value;
-
+                    {
+                        return value;
+                    }
                 case CategoryDataTypeKind.DateTime:
                 case CategoryDataTypeKind.String:
                 default:
                     {
-                        var prefix = _currentSourceType == DataSourceType.SqlServer && columnInfo.SpecialDataTypeKind == SpecialDataTypeKind.NString
-                            ? "N"
-                            : string.Empty;
+                        var prefix = _currentSourceType == DataSourceType.SqlServer && columnInfo.SpecialDataTypeKind == SpecialDataTypeKind.NString ? "N" : string.Empty;
 
                         return $"{prefix}'{EscapeBinarySqlString(value)}'";
                     }
@@ -544,6 +542,7 @@ namespace JasonQuery.UI.Forms
             }
 
             var valueCopy = e.Value == null ? Array.Empty<byte>() : (byte[])e.Value.Clone();
+
             var change = new DirectBinaryChange
             {
                 RowId = rowId,
@@ -679,6 +678,7 @@ namespace JasonQuery.UI.Forms
             }
 
             var sb = new StringBuilder();
+
             sb.AppendLine("-- <JASONQUERY_DIRECT_BINARY_CHANGES>");
             sb.AppendLine("-- Binary changes already executed with provider parameters");
             sb.AppendLine("-- They cannot be represented safely as text SQL literals.");
