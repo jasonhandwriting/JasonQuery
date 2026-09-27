@@ -261,8 +261,8 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
 
             var sql = ColumnDdlSqlBuilder.Build(request);
 
-            Assert.IsFalse(sql.Contains("COMMIT"));
-            Assert.IsFalse(sql.Contains("ROLLBACK"));
+            Assert.DoesNotContain("COMMIT", sql);
+            Assert.DoesNotContain("ROLLBACK", sql);
         }
 
         private static ColumnDdlRequest CreateRequest(DataSourceType dataSourceType, ColumnDdlOperation operation)

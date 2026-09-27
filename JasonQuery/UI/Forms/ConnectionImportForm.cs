@@ -7,9 +7,9 @@ using JasonQuery.Core.Security.ConnectionCredentials;
 using JasonQuery.Core.Security.Legacy;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
+using JasonQuery.Database.Internal.Runtime;
 using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -107,6 +107,7 @@ namespace JasonQuery.UI.Forms
                 message = LocalizationHelper.GetLanguageString("Please select the file name to import!", "form", GetType().Name, "msg", "NoneImportFromFileName", "Text");
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 btnBrowseFile.Focus();
+
                 return;
             }
 
@@ -115,6 +116,7 @@ namespace JasonQuery.UI.Forms
                 message = LocalizationHelper.GetLanguageString("Please enter password.", "form", GetType().Name, "msg", "NonePassword", "Text");
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 txtEncryptPassword.Focus();
+
                 return;
             }
 
@@ -169,7 +171,7 @@ namespace JasonQuery.UI.Forms
                 }
 
                 var sbSql = new StringBuilder();
-                var passwordParameters = new List<SQLiteParameter>();
+                var passwordParameters = new List<JasonQueryDatabaseParameter>();
 
                 book.Load(fileNameXls);
 
@@ -238,7 +240,7 @@ namespace JasonQuery.UI.Forms
                     var storedPassword = ConnectionCredentialStorageContract.ToV2StoredValue(logicalPassword);
                     var passwordParameterName = $"@Password{count}";
 
-                    passwordParameters.Add(new SQLiteParameter(passwordParameterName, storedPassword));
+                    passwordParameters.Add(new JasonQueryDatabaseParameter(passwordParameterName, storedPassword));
 
                     col++;
 

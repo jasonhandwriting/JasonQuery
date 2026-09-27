@@ -1,4 +1,4 @@
-using JasonLibrary.Core.Database.Enums;
+﻿using JasonLibrary.Core.Database.Enums;
 using JasonLibrary.Core.Text.Formatting;
 using JasonLibrary.Core.Text.Formatting.Engines;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,7 +10,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
     {
         private readonly HogimnSqlFormatterEngine _engine = new HogimnSqlFormatterEngine();
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DatabaseProviderKind.Oracle)]
         [DataRow(DatabaseProviderKind.PostgreSql)]
         [DataRow(DatabaseProviderKind.SqlServer)]
@@ -27,7 +27,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.IsFalse(_engine.Supports(DatabaseProviderKind.Unknown));
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DatabaseProviderKind.Oracle,
                  "SELECT e.employee_id,e.employee_name FROM hr.employee e WHERE e.employee_id=:employee_id ORDER BY e.employee_name",
                  "e.employee_id = :employee_id")]
@@ -49,8 +49,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
             Assert.AreEqual(SqlFormatterEngineKind.Hogimn, result.EngineKind);
-            StringAssert.Contains(result.FormattedSql, expectedFragment);
-            Assert.IsFalse(result.FormattedSql.Contains("\t"));
+            Assert.Contains(expectedFragment, result.FormattedSql);
+            Assert.DoesNotContain("\t", result.FormattedSql);
         }
 
         [TestMethod]
@@ -61,7 +61,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.PostgreSql, sql);
 
             AssertSafetyFailurePreservesOriginal(sql, result);
-            StringAssert.Contains(result.ErrorMessage, "Operator '||'");
+            Assert.Contains("Operator '||'", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -72,7 +72,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.PostgreSql, sql);
 
             AssertSafetyFailurePreservesOriginal(sql, result);
-            StringAssert.Contains(result.ErrorMessage, "StringLiteral");
+            Assert.Contains("StringLiteral", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -83,7 +83,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.PostgreSql, sql);
 
             AssertSafetyFailurePreservesOriginal(sql, result);
-            StringAssert.Contains(result.ErrorMessage, "Comment");
+            Assert.Contains("Comment", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -94,8 +94,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.PostgreSql, sql);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "first_value,");
-            StringAssert.Contains(result.FormattedSql, "-- keep comma active");
+            Assert.Contains("first_value,", result.FormattedSql);
+            Assert.Contains("-- keep comma active", result.FormattedSql);
         }
 
         [TestMethod]
@@ -106,10 +106,10 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "q'[Jason's SQL]' || employee_name");
+            Assert.Contains("q'[Jason's SQL]' || employee_name", result.FormattedSql);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("A")]
         [DataRow("a")]
         [DataRow("C")]
@@ -121,10 +121,10 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, alias + ".OWNER");
-            StringAssert.Contains(result.FormattedSql, alias + ".TABLE_NAME");
-            Assert.IsFalse(result.FormattedSql.Contains(alias + " .OWNER"));
-            Assert.IsFalse(result.FormattedSql.Contains(alias + " .TABLE_NAME"));
+            Assert.Contains(alias + ".OWNER", result.FormattedSql);
+            Assert.Contains(alias + ".TABLE_NAME", result.FormattedSql);
+            Assert.DoesNotContain(alias + " .OWNER", result.FormattedSql);
+            Assert.DoesNotContain(alias + " .TABLE_NAME", result.FormattedSql);
         }
 
         [TestMethod]
@@ -135,9 +135,9 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "C.OWNER");
-            StringAssert.Contains(result.FormattedSql, "'A.OWNER'");
-            StringAssert.Contains(result.FormattedSql, "'C.OWNER'");
+            Assert.Contains("C.OWNER", result.FormattedSql);
+            Assert.Contains("'A.OWNER'", result.FormattedSql);
+            Assert.Contains("'C.OWNER'", result.FormattedSql);
         }
 
         [TestMethod]
@@ -176,8 +176,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT DISTINCT C.OWNER,");
-            StringAssert.Contains(result.FormattedSql, "\r\n       C.TABLE_NAME");
+            Assert.Contains("SELECT DISTINCT C.OWNER,", result.FormattedSql);
+            Assert.Contains("\r\n       C.TABLE_NAME", result.FormattedSql);
         }
 
         [TestMethod]
@@ -211,9 +211,9 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "\r\n  FROM ALL_TAB_COLUMNS C,\r\n       ALL_TABLES T");
-            StringAssert.Contains(result.FormattedSql, "\r\n WHERE T.OWNER = C.OWNER");
-            StringAssert.Contains(result.FormattedSql, "\r\n   AND T.TABLE_NAME = C.TABLE_NAME;");
+            Assert.Contains("\r\n  FROM ALL_TAB_COLUMNS C,\r\n       ALL_TABLES T", result.FormattedSql);
+            Assert.Contains("\r\n WHERE T.OWNER = C.OWNER", result.FormattedSql);
+            Assert.Contains("\r\n   AND T.TABLE_NAME = C.TABLE_NAME;", result.FormattedSql);
         }
 
         [TestMethod]
@@ -224,12 +224,12 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "\r\n  LEFT JOIN ALL_COL_COMMENTS CC");
-            StringAssert.Contains(result.FormattedSql, "\r\n    ON CC.OWNER = C.OWNER");
-            StringAssert.Contains(result.FormattedSql, "\r\n   AND CC.TABLE_NAME = C.TABLE_NAME");
-            StringAssert.Contains(result.FormattedSql, "\r\n WHERE C.COLUMN_ID BETWEEN 1 AND 10");
-            StringAssert.Contains(result.FormattedSql, "\r\n    OR C.COLUMN_ID IS NULL;");
-            Assert.IsFalse(result.FormattedSql.Contains("BETWEEN 1\r\n   AND 10"));
+            Assert.Contains("\r\n  LEFT JOIN ALL_COL_COMMENTS CC", result.FormattedSql);
+            Assert.Contains("\r\n    ON CC.OWNER = C.OWNER", result.FormattedSql);
+            Assert.Contains("\r\n   AND CC.TABLE_NAME = C.TABLE_NAME", result.FormattedSql);
+            Assert.Contains("\r\n WHERE C.COLUMN_ID BETWEEN 1 AND 10", result.FormattedSql);
+            Assert.Contains("\r\n    OR C.COLUMN_ID IS NULL;", result.FormattedSql);
+            Assert.DoesNotContain("BETWEEN 1\r\n   AND 10", result.FormattedSql);
         }
 
         [TestMethod]
@@ -240,14 +240,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-
-            StringAssert.Contains
-            (
-                result.FormattedSql,
-                "C.CREATED_AT BETWEEN DATE '2026-01-01' AND DATE '2026-12-31'"
-            );
-
-            StringAssert.Contains(result.FormattedSql, "\r\n   AND C.OWNER = USER;");
+            Assert.Contains("C.CREATED_AT BETWEEN DATE '2026-01-01' AND DATE '2026-12-31'", result.FormattedSql);
+            Assert.Contains("\r\n   AND C.OWNER = USER;", result.FormattedSql);
         }
 
         [TestMethod]
@@ -263,9 +257,9 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT NVL(C.DATA_DEFAULT, 'N/A') AS DEFAULT_VALUE,");
-            StringAssert.Contains(result.FormattedSql, "\r\n       C.COLUMN_NAME");
-            StringAssert.Contains(result.FormattedSql, "INSTR(C.COLUMN_NAME, ',') > 0;");
+            Assert.Contains("SELECT NVL(C.DATA_DEFAULT, 'N/A') AS DEFAULT_VALUE,", result.FormattedSql);
+            Assert.Contains("\r\n       C.COLUMN_NAME", result.FormattedSql);
+            Assert.Contains("INSTR(C.COLUMN_NAME, ',') > 0;", result.FormattedSql);
         }
 
         [TestMethod]
@@ -276,11 +270,11 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT C.OWNER,");
-            StringAssert.Contains(result.FormattedSql, "SELECT MAX(X.COLUMN_ID)");
-            StringAssert.Contains(result.FormattedSql, "  FROM ALL_TAB_COLUMNS X");
-            StringAssert.Contains(result.FormattedSql, " WHERE X.OWNER = C.OWNER");
-            StringAssert.Contains(result.FormattedSql, "\r\n  FROM ALL_TAB_COLUMNS C;");
+            Assert.Contains("SELECT C.OWNER,", result.FormattedSql);
+            Assert.Contains("SELECT MAX(X.COLUMN_ID)", result.FormattedSql);
+            Assert.Contains("  FROM ALL_TAB_COLUMNS X", result.FormattedSql);
+            Assert.Contains(" WHERE X.OWNER = C.OWNER", result.FormattedSql);
+            Assert.Contains("\r\n  FROM ALL_TAB_COLUMNS C;", result.FormattedSql);
         }
 
         [TestMethod]
@@ -296,8 +290,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT /*+ INDEX(C IDX_ALL_TAB_COLUMNS) */ C.OWNER,");
-            StringAssert.Contains(result.FormattedSql, "\r\n       C.TABLE_NAME");
+            Assert.Contains("SELECT /*+ INDEX(C IDX_ALL_TAB_COLUMNS) */ C.OWNER,", result.FormattedSql);
+            Assert.Contains("\r\n       C.TABLE_NAME", result.FormattedSql);
         }
 
         [TestMethod]
@@ -313,8 +307,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "-- selected columns\r\n       C.OWNER,");
-            StringAssert.Contains(result.FormattedSql, "\r\n       C.TABLE_NAME");
+            Assert.Contains("-- selected columns\r\n       C.OWNER,", result.FormattedSql);
+            Assert.Contains("\r\n       C.TABLE_NAME", result.FormattedSql);
         }
 
         [TestMethod]
@@ -333,13 +327,12 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.AreEqual(expected, result.FormattedSql);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(1, "SELECT C.A,\r\n       C.B,\r\n       C.C,\r\n       C.D")]
         [DataRow(2, "SELECT C.A, C.B,\r\n       C.C, C.D")]
         [DataRow(3, "SELECT C.A, C.B, C.C,\r\n       C.D")]
         [DataRow(10, "SELECT C.A, C.B, C.C, C.D")]
-        public void Format_Oracle_ListItemsPerLine_UsesConfiguredUpperBound(int itemsPerLine,
-                                                                          string expectedSelect)
+        public void Format_Oracle_ListItemsPerLine_UsesConfiguredUpperBound(int itemsPerLine, string expectedSelect)
         {
             const string sql = "SELECT C.A,C.B,C.C,C.D FROM CUSTOMER C;";
 
@@ -347,7 +340,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, expectedSelect);
+            Assert.Contains(expectedSelect, result.FormattedSql);
         }
 
         [TestMethod]
@@ -359,7 +352,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT C.OWNER,\r\n       C.TABLE_NAME");
+            Assert.Contains("SELECT C.OWNER,\r\n       C.TABLE_NAME", result.FormattedSql);
         }
 
         [TestMethod]
@@ -371,9 +364,9 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT C.A, C.B,\r\n       C.C");
-            StringAssert.Contains(result.FormattedSql, " GROUP BY C.A, C.B,\r\n          C.C");
-            StringAssert.Contains(result.FormattedSql, " ORDER BY C.A, C.B,\r\n          C.C;");
+            Assert.Contains("SELECT C.A, C.B,\r\n       C.C", result.FormattedSql);
+            Assert.Contains(" GROUP BY C.A, C.B,\r\n          C.C", result.FormattedSql);
+            Assert.Contains(" ORDER BY C.A, C.B,\r\n          C.C;", result.FormattedSql);
         }
 
         [TestMethod]
@@ -385,8 +378,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT NVL(C.A, C.B) AS VALUE, C.C");
-            StringAssert.Contains(result.FormattedSql, "C.ID IN (1, 2, 3);");
+            Assert.Contains("SELECT NVL(C.A, C.B) AS VALUE, C.C", result.FormattedSql);
+            Assert.Contains("C.ID IN (1, 2, 3);", result.FormattedSql);
         }
 
         [TestMethod]
@@ -398,23 +391,23 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT X.A, X.B,");
-            StringAssert.Contains(result.FormattedSql, "X.C");
-            Assert.IsFalse(result.FormattedSql.Contains("SELECT X.A, X.B, X.C"));
+            Assert.Contains("SELECT X.A, X.B,", result.FormattedSql);
+            Assert.Contains("X.C", result.FormattedSql);
+            Assert.DoesNotContain("SELECT X.A, X.B, X.C", result.FormattedSql);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(0)]
         [DataRow(11)]
         public void SqlFormatOptions_ListItemsPerLineOutsideRange_Throws(int itemsPerLine)
         {
-            Assert.ThrowsException<System.ArgumentOutOfRangeException>
+            Assert.ThrowsExactly<System.ArgumentOutOfRangeException>
             (
                 () => new SqlFormatOptions(listItemsPerLine: itemsPerLine)
             );
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DatabaseProviderKind.PostgreSql)]
         [DataRow(DatabaseProviderKind.SqlServer)]
         [DataRow(DatabaseProviderKind.MySql)]
@@ -427,26 +420,26 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(providerKind, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT\r\n");
-            StringAssert.Contains(result.FormattedSql, "\r\nFROM\r\n");
-            StringAssert.Contains(result.FormattedSql, "\r\nWHERE\r\n");
-            StringAssert.Contains(result.FormattedSql, "\r\nORDER BY\r\n");
-            StringAssert.Contains(result.FormattedSql, "C.ID, C.NAME");
-            Assert.IsFalse(result.FormattedSql.Contains("SELECT C.ID"));
+            Assert.Contains("SELECT\r\n", result.FormattedSql);
+            Assert.Contains("\r\nFROM\r\n", result.FormattedSql);
+            Assert.Contains("\r\nWHERE\r\n", result.FormattedSql);
+            Assert.Contains("\r\nORDER BY\r\n", result.FormattedSql);
+            Assert.Contains("C.ID, C.NAME", result.FormattedSql);
+            Assert.DoesNotContain("SELECT C.ID", result.FormattedSql);
         }
 
         [TestMethod]
         public void Format_OracleLowerKeywordCase_KeepsStep4ClauseAlignment()
         {
             const string sql = "SELECT C.OWNER FROM ALL_TAB_COLUMNS C WHERE C.OWNER=USER ORDER BY C.OWNER;";
-            var options = new SqlFormatOptions(keywordCase: SqlFormatterKeywordCase.Lower);
 
+            var options = new SqlFormatOptions(keywordCase: SqlFormatterKeywordCase.Lower);
             var result = Format(DatabaseProviderKind.Oracle, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "select C.OWNER\r\n  from ALL_TAB_COLUMNS C");
-            StringAssert.Contains(result.FormattedSql, "\r\n where C.OWNER = user");
-            StringAssert.Contains(result.FormattedSql, "\r\n order by C.OWNER;");
+            Assert.Contains("select C.OWNER\r\n  from ALL_TAB_COLUMNS C", result.FormattedSql);
+            Assert.Contains("\r\n where C.OWNER = user", result.FormattedSql);
+            Assert.Contains("\r\n order by C.OWNER;", result.FormattedSql);
         }
 
         [TestMethod]
@@ -458,12 +451,12 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "select");
-            StringAssert.Contains(result.FormattedSql, "user");
-            Assert.IsFalse(result.FormattedSql.Contains("C ."));
+            Assert.Contains("select", result.FormattedSql);
+            Assert.Contains("user", result.FormattedSql);
+            Assert.DoesNotContain("C .", result.FormattedSql);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(DatabaseProviderKind.Oracle, "SELECT CAST(1 AS INTEGER) FROM DUAL", "integer", "select")]
         [DataRow(DatabaseProviderKind.PostgreSql, "SELECT CURRENT_USER", "current_user", "select")]
         [DataRow(DatabaseProviderKind.SqlServer, "SELECT CURRENT_USER", "current_user", "select")]
@@ -475,8 +468,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(providerKind, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, expectedFirstKeyword);
-            StringAssert.Contains(result.FormattedSql, expectedSecondKeyword);
+            Assert.Contains(expectedFirstKeyword, result.FormattedSql);
+            Assert.Contains(expectedSecondKeyword, result.FormattedSql);
         }
 
         [TestMethod]
@@ -488,11 +481,11 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "select");
-            StringAssert.Contains(result.FormattedSql, "user,");
-            StringAssert.Contains(result.FormattedSql, "C.USER");
-            StringAssert.Contains(result.FormattedSql, "= user");
-            Assert.IsFalse(result.FormattedSql.Contains("C.user"));
+            Assert.Contains("select", result.FormattedSql);
+            Assert.Contains("user,", result.FormattedSql);
+            Assert.Contains("C.USER", result.FormattedSql);
+            Assert.Contains("= user", result.FormattedSql);
+            Assert.DoesNotContain("C.user", result.FormattedSql);
         }
 
         [TestMethod]
@@ -504,7 +497,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.SqlServer, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "order by");
+            Assert.Contains("order by", result.FormattedSql);
         }
 
         [TestMethod]
@@ -515,10 +508,10 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Sqlite, sql);
 
             AssertSafetyFailurePreservesOriginal(sql, result);
-            StringAssert.Contains(result.ErrorMessage, "Parameter ':id'");
+            Assert.Contains("Parameter ':id'", result.ErrorMessage);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(SqlFormatterKeywordCase.Upper, "select Id from Customer", "SELECT")]
         [DataRow(SqlFormatterKeywordCase.Lower, "SELECT Id FROM Customer", "select")]
         [DataRow(SqlFormatterKeywordCase.Preserve, "SeLeCt Id FrOm Customer", "SeLeCt")]
@@ -528,7 +521,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.SqlServer, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, expectedKeyword);
+            Assert.Contains(expectedKeyword, result.FormattedSql);
         }
 
         [TestMethod]
@@ -541,7 +534,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsFalse(result.Success);
             Assert.AreEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "does not support proper-case");
+            Assert.Contains("does not support proper-case", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -553,9 +546,9 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.SqlServer, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "\r\n      Id,");
-            Assert.IsFalse(result.FormattedSql.Contains("\t"));
-            Assert.IsFalse(result.FormattedSql.Replace("\r\n", string.Empty).Contains("\n"));
+            Assert.Contains("\r\n      Id,", result.FormattedSql);
+            Assert.DoesNotContain("\t", result.FormattedSql);
+            Assert.DoesNotContain("\n", result.FormattedSql.Replace("\r\n", string.Empty));
         }
 
         [TestMethod]
@@ -576,7 +569,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsFalse(result.Success);
             Assert.AreEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "does not support");
+            Assert.Contains("does not support", result.ErrorMessage);
         }
 
         [TestMethod]
@@ -595,10 +588,10 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsFalse(result.Success);
             Assert.AreEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "does not match");
+            Assert.Contains("does not match", result.ErrorMessage);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(0)]
         [DataRow(1)]
         [DataRow(2)]
@@ -612,15 +605,10 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Sqlite, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-
-            StringAssert.Contains
-            (
-                result.FormattedSql,
-                "1;" + new string('\n', blankLines + 1).Replace("\n", "\r\n") + "SELECT"
-            );
+            Assert.Contains("1;" + new string('\n', blankLines + 1).Replace("\n", "\r\n") + "SELECT", result.FormattedSql);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(0)]
         [DataRow(1)]
         [DataRow(3)]
@@ -632,12 +620,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-
-            StringAssert.Contains
-            (
-                result.FormattedSql,
-                "1" + new string('\n', blankLines + 1).Replace("\n", "\r\n") + "SELECT"
-            );
+            Assert.Contains("1" + new string('\n', blankLines + 1).Replace("\n", "\r\n") + "SELECT", result.FormattedSql);
         }
 
         [TestMethod]
@@ -649,8 +632,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "UNION\r\nSELECT");
-            Assert.IsFalse(result.FormattedSql.Contains("UNION\r\n\r\n"));
+            Assert.Contains("UNION\r\nSELECT", result.FormattedSql);
+            Assert.DoesNotContain("UNION\r\n\r\n", result.FormattedSql);
         }
 
         [TestMethod]
@@ -662,8 +645,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var result = Format(DatabaseProviderKind.Oracle, sql, options);
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "';'");
-            StringAssert.Contains(result.FormattedSql, "VALUE;\r\n\r\n\r\nSELECT");
+            Assert.Contains("';'", result.FormattedSql);
+            Assert.Contains("VALUE;\r\n\r\n\r\nSELECT", result.FormattedSql);
         }
 
         private SqlFormatResult Format(DatabaseProviderKind providerKind, string sql, SqlFormatOptions options = null)
@@ -684,7 +667,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
         {
             Assert.IsFalse(result.Success);
             Assert.AreEqual(originalSql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "failed token safety validation");
+            Assert.Contains("failed token safety validation", result.ErrorMessage);
         }
     }
 }

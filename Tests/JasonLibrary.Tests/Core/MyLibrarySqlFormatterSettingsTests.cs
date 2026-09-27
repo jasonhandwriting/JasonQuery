@@ -8,7 +8,7 @@ namespace JasonLibrary.Tests.Core
     [DoNotParallelize]
     public sealed class MyLibrarySqlFormatterSettingsTests
     {
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(1)]
         [DataRow(3)]
         [DataRow(10)]
@@ -26,7 +26,7 @@ namespace JasonLibrary.Tests.Core
             }
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(-1)]
         [DataRow(0)]
         [DataRow(11)]

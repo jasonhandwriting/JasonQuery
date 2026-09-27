@@ -7,7 +7,7 @@ namespace JasonQuery.Tests.Core.Database.Connection
     [TestClass]
     public sealed class DataSourceTypeMapperTests
     {
-        [DataTestMethod]
+        [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("SqlFormatter")]
         [DataRow(DataSourceType.None, DatabaseProviderKind.Unknown)]

@@ -104,7 +104,7 @@ namespace JasonQuery.Tests.Core.Database.Transactions
 
             Assert.IsFalse(result.TransactionSucceeded);
             Assert.AreEqual(0, reader.DisconnectCount);
-            StringAssert.StartsWith(result.Message, "ErrorMsg: Rollback failed");
+            Assert.StartsWith("ErrorMsg: Rollback failed", result.Message);
         }
 
         [TestMethod]
@@ -160,7 +160,7 @@ namespace JasonQuery.Tests.Core.Database.Transactions
 
             Assert.IsFalse(result.WasAttempted);
             Assert.IsTrue(result.ShouldKeepPendingState);
-            StringAssert.Contains(result.Message, "database reader is not available");
+            Assert.Contains("database reader is not available", result.Message);
         }
 
         [TestMethod]
@@ -183,7 +183,7 @@ namespace JasonQuery.Tests.Core.Database.Transactions
             Assert.IsFalse(result.TransactionSucceeded);
             Assert.AreEqual(0, reader.ExecuteCount);
             Assert.AreEqual(0, reader.DisconnectCount);
-            StringAssert.Contains(result.Message, "database connection is not open");
+            Assert.Contains("database connection is not open", result.Message);
         }
 
         [TestMethod]
@@ -201,8 +201,8 @@ namespace JasonQuery.Tests.Core.Database.Transactions
             Assert.IsTrue(result.ShouldClearPendingState);
             Assert.IsTrue(result.DisconnectAttempted);
             Assert.IsFalse(result.DisconnectSucceeded);
-            StringAssert.Contains(result.Message, "transaction was completed");
-            StringAssert.Contains(result.Message, "connection could not be closed");
+            Assert.Contains("transaction was completed", result.Message);
+            Assert.Contains("connection could not be closed", result.Message);
         }
 
         [TestMethod]
@@ -220,8 +220,8 @@ namespace JasonQuery.Tests.Core.Database.Transactions
             Assert.IsTrue(result.ShouldClearPendingState);
             Assert.IsTrue(result.DisconnectAttempted);
             Assert.IsFalse(result.DisconnectSucceeded);
-            StringAssert.StartsWith(result.Message, "Rollback executed at " + Timestamp);
-            StringAssert.Contains(result.Message, "disconnect failed");
+            Assert.StartsWith("Rollback executed at " + Timestamp, result.Message);
+            Assert.Contains("disconnect failed", result.Message);
         }
 
         [TestMethod]
@@ -281,7 +281,7 @@ namespace JasonQuery.Tests.Core.Database.Transactions
         [TestCategory("Transaction")]
         public void Execute_NullGetState_ThrowsArgumentNullException()
         {
-            Assert.ThrowsException<ArgumentNullException>
+            Assert.ThrowsExactly<ArgumentNullException>
             (
                 () => DatabaseTransactionActionCoordinator.Execute
                 (
@@ -300,7 +300,7 @@ namespace JasonQuery.Tests.Core.Database.Transactions
         [TestCategory("Transaction")]
         public void Execute_NullExecuteTransaction_ThrowsArgumentNullException()
         {
-            Assert.ThrowsException<ArgumentNullException>
+            Assert.ThrowsExactly<ArgumentNullException>
             (
                 () => DatabaseTransactionActionCoordinator.Execute
                 (
@@ -319,7 +319,7 @@ namespace JasonQuery.Tests.Core.Database.Transactions
         [TestCategory("Transaction")]
         public void Execute_NullDisconnect_ThrowsArgumentNullException()
         {
-            Assert.ThrowsException<ArgumentNullException>
+            Assert.ThrowsExactly<ArgumentNullException>
             (
                 () => DatabaseTransactionActionCoordinator.Execute
                 (
@@ -338,7 +338,7 @@ namespace JasonQuery.Tests.Core.Database.Transactions
         [TestCategory("Transaction")]
         public void Execute_NullTimestampProvider_ThrowsArgumentNullException()
         {
-            Assert.ThrowsException<ArgumentNullException>
+            Assert.ThrowsExactly<ArgumentNullException>
             (
                 () => DatabaseTransactionActionCoordinator.Execute
                 (

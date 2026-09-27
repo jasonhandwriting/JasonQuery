@@ -338,7 +338,7 @@ namespace JasonQuery.Tests.Database.Internal.Security
                         corruptValue
                     );
 
-                    Assert.ThrowsException<InvalidDataException>
+                    Assert.ThrowsExactly<InvalidDataException>
                     (
                         () => ExecuteMigration(databaseFilePath)
                     );
@@ -384,7 +384,7 @@ namespace JasonQuery.Tests.Database.Internal.Security
                         protectedValue
                     );
 
-                    Assert.ThrowsException<InvalidDataException>
+                    Assert.ThrowsExactly<InvalidDataException>
                     (
                         () => ExecuteMigration(databaseFilePath)
                     );
@@ -432,7 +432,7 @@ namespace JasonQuery.Tests.Database.Internal.Security
                         "999"
                     );
 
-                    Assert.ThrowsException<NotSupportedException>
+                    Assert.ThrowsExactly<NotSupportedException>
                     (
                         () => ExecuteMigration(databaseFilePath)
                     );
@@ -518,7 +518,7 @@ namespace JasonQuery.Tests.Database.Internal.Security
                         ConnectionCredentialStorageContract.LegacyVersion.ToString(CultureInfo.InvariantCulture)
                     );
 
-                    Assert.ThrowsException<InvalidDataException>
+                    Assert.ThrowsExactly<InvalidDataException>
                     (
                         () => ExecuteMigration(databaseFilePath)
                     );

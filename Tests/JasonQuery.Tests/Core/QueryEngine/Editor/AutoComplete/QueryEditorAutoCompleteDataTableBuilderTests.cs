@@ -24,7 +24,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
                 string.Empty
             );
 
-            Assert.AreEqual(0, result.Rows.Count);
+            Assert.IsEmpty(result.Rows);
 
             CollectionAssert.AreEqual
             (
@@ -283,7 +283,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
         {
             var result = QueryEditorAutoCompleteDataTableBuilder.BuildAutoCompleteSpaceTable(null);
 
-            Assert.AreEqual(0, result.Rows.Count);
+            Assert.IsEmpty(result.Rows);
 
             CollectionAssert.AreEqual
             (

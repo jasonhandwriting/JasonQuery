@@ -123,7 +123,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Types
             var actual = value.LoadContent();
 
             Assert.IsNotNull(actual);
-            Assert.AreEqual(0, actual.Length);
+            Assert.IsEmpty(actual);
         }
 
         [TestMethod]
@@ -137,7 +137,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Types
             Assert.AreEqual(0, value.Length);
             Assert.IsFalse(value.IsTruncated);
             Assert.IsTrue(value.IsNull);
-            Assert.AreEqual(0, value.LoadContent().Length);
+            Assert.IsEmpty(value.LoadContent());
             Assert.AreEqual("(NULL)", value.ToString());
         }
     }

@@ -59,7 +59,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
         {
             var hidden = false;
 
-            Assert.ThrowsException<InvalidOperationException>
+            Assert.ThrowsExactly<InvalidOperationException>
             (
                 () => QueryEditorAutoCompletePopupCleanupCoordinator.Cleanup
                 (
@@ -76,7 +76,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
         [TestCategory("AutoComplete")]
         public void Cleanup_WhenHideThrows_PropagatesException()
         {
-            Assert.ThrowsException<InvalidOperationException>
+            Assert.ThrowsExactly<InvalidOperationException>
             (
                 () => QueryEditorAutoCompletePopupCleanupCoordinator.Cleanup
                 (

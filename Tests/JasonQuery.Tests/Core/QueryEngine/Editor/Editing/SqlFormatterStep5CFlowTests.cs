@@ -10,7 +10,7 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
     [TestClass]
     public sealed class SqlFormatterStep5CFlowTests
     {
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(SqlFormatterEngineKind.Unknown)]
         [DataRow(SqlFormatterEngineKind.MicrosoftScriptDom)]
         [DataRow(SqlFormatterEngineKind.Hogimn)]
@@ -62,8 +62,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
             Assert.AreEqual(editor.Text.Length, editor.SelectionEnd);
             Assert.AreEqual(1, editor.ReplaceSelectionCount);
             Assert.AreEqual(1, editor.ScrollCaretCount);
-            StringAssert.Contains(editor.Text, "C.A, C.B,");
-            Assert.IsFalse(editor.Text.Contains("C.A, C.B, C.C"));
+            Assert.Contains("C.A, C.B,", editor.Text);
+            Assert.DoesNotContain("C.A, C.B, C.C", editor.Text);
         }
 
         [TestMethod]
@@ -81,8 +81,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
                 var tenItemSql = FormatInEditor(engineKind, 10);
 
                 Assert.AreNotEqual(oneItemSql, tenItemSql);
-                Assert.IsFalse(oneItemSql.Contains("C.A, C.B"));
-                StringAssert.Contains(tenItemSql, "C.A, C.B, C.C, C.D");
+                Assert.DoesNotContain("C.A, C.B", oneItemSql);
+                Assert.Contains("C.A, C.B, C.C, C.D", tenItemSql);
             }
         }
 

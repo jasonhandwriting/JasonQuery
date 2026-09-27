@@ -21,13 +21,8 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
                 "ConnectionExportForm.cs"
             );
 
-            StringAssert.Contains(exportSource, "var value = c1GridDbInfo[row, \" \"].ToString();");
-
-            Assert.IsFalse
-            (
-                exportSource.Contains("var value = dr.GetSafeString(\" \");"),
-                "Connection export must use the live C1 grid checkbox state instead of a detached DataRow checkbox value."
-            );
+            Assert.Contains("var value = c1GridDbInfo[row, \" \"].ToString();", exportSource);
+            Assert.DoesNotContain("var value = dr.GetSafeString(\" \");", exportSource, "Connection export must use the live C1 grid checkbox state instead of a detached DataRow checkbox value.");
         }
 
         [TestMethod]
@@ -44,11 +39,7 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
                 "ConnectionImportForm.cs"
             );
 
-            Assert.IsFalse
-            (
-                importSource.Contains("isOpenNG"),
-                "Connection import must not rely on the legacy isOpenNG flag for wrong-password flow control."
-            );
+            Assert.DoesNotContain("isOpenNG", importSource, "Connection import must not rely on the legacy isOpenNG flag for wrong-password flow control.");
 
             var extractIndex = importSource.IndexOf
             (
@@ -76,10 +67,10 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
                 StringComparison.Ordinal
             );
 
-            Assert.IsTrue(extractIndex >= 0, "The .jqc extraction call was not found.");
-            Assert.IsTrue(wrongPasswordIndex > extractIndex, "The wrong-password handler was not found after extraction.");
-            Assert.IsTrue(returnIndex > wrongPasswordIndex, "Wrong-password handling must return immediately.");
-            Assert.IsTrue(workbookLoadIndex > returnIndex, "Workbook processing must remain downstream from the wrong-password return path.");
+            Assert.IsGreaterThanOrEqualTo(0, extractIndex, "The .jqc extraction call was not found.");
+            Assert.IsGreaterThan(extractIndex, wrongPasswordIndex, "The wrong-password handler was not found after extraction.");
+            Assert.IsGreaterThan(wrongPasswordIndex, returnIndex, "Wrong-password handling must return immediately.");
+            Assert.IsGreaterThan(returnIndex, workbookLoadIndex, "Workbook processing must remain downstream from the wrong-password return path.");
         }
 
         [TestMethod]
@@ -127,11 +118,11 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
                 StringComparison.Ordinal
             );
 
-            Assert.IsTrue(exportDisposeIndex >= 0, "Connection export must dispose the temporary workbook.");
-            Assert.IsTrue(exportFinallyIndex > exportDisposeIndex, "Export temp-file cleanup must remain downstream from workbook disposal.");
-            Assert.IsTrue(exportPayloadCleanupIndex > exportFinallyIndex, "Export plaintext workbook cleanup must run from finally.");
-            Assert.IsTrue(exportPlaceholderCleanupIndex > exportFinallyIndex, "Export temporary placeholder cleanup must run from finally.");
-            StringAssert.Contains(exportSource, "TraceLogger.LogError(\"ConnectionExportTempCleanup\", ex);");
+            Assert.IsGreaterThanOrEqualTo(0, exportDisposeIndex, "Connection export must dispose the temporary workbook.");
+            Assert.IsGreaterThan(exportDisposeIndex, exportFinallyIndex, "Export temp-file cleanup must remain downstream from workbook disposal.");
+            Assert.IsGreaterThan(exportFinallyIndex, exportPayloadCleanupIndex, "Export plaintext workbook cleanup must run from finally.");
+            Assert.IsGreaterThan(exportFinallyIndex, exportPlaceholderCleanupIndex, "Export temporary placeholder cleanup must run from finally.");
+            Assert.Contains("TraceLogger.LogError(\"ConnectionExportTempCleanup\", ex);", exportSource);
 
             var importBookDisposeIndex = importSource.LastIndexOf("book.Dispose();", StringComparison.Ordinal);
 
@@ -149,11 +140,11 @@ namespace JasonQuery.Tests.Core.Security.ConnectionCredentials
                 StringComparison.Ordinal
             );
 
-            Assert.IsTrue(importBookDisposeIndex >= 0, "Connection import must dispose the workbook before deleting its plaintext temp payload.");
-            Assert.IsTrue(importWorkbookCleanupIndex > importBookDisposeIndex, "Import plaintext workbook cleanup must run after workbook disposal.");
-            Assert.IsTrue(importArchiveCleanupIndex > importBookDisposeIndex, "Import temporary archive cleanup must run from the outer finally path.");
-            StringAssert.Contains(importSource, "new FileInfo(fileNameXls).Length == 0");
-            StringAssert.Contains(importSource, "TraceLogger.LogError(\"ConnectionImportTempCleanup\", ex);");
+            Assert.IsGreaterThanOrEqualTo(0, importBookDisposeIndex, "Connection import must dispose the workbook before deleting its plaintext temp payload.");
+            Assert.IsGreaterThan(importBookDisposeIndex, importWorkbookCleanupIndex, "Import plaintext workbook cleanup must run after workbook disposal.");
+            Assert.IsGreaterThan(importBookDisposeIndex, importArchiveCleanupIndex, "Import temporary archive cleanup must run from the outer finally path.");
+            Assert.Contains("new FileInfo(fileNameXls).Length == 0", importSource);
+            Assert.Contains("TraceLogger.LogError(\"ConnectionImportTempCleanup\", ex);", importSource);
         }
 
         private static string FindRepositoryRoot()

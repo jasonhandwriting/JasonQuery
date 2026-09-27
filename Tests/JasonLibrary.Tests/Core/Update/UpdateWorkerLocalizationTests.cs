@@ -59,10 +59,9 @@ namespace JasonLibrary.Tests.Core.Update
                         $"/JasonQuery/language[@category='form' and @class='UpdaterForm' and @type='msg' and @id='{expectedEntry.Key}' and @attribute='Text']"
                     );
 
-                    Assert.AreEqual
-                    (
+                    Assert.HasCount(
                         1,
-                        nodes.Count,
+                        nodes,
                         $"{expectedFile.Key} must contain exactly one {expectedEntry.Key} entry."
                     );
 

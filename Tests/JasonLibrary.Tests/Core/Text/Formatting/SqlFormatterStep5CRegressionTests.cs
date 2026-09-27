@@ -9,7 +9,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
     {
         private const string FourColumnSelect = "SELECT C.A,C.B,C.C,C.D FROM dbo.CUSTOMER C ORDER BY C.A,C.B,C.C,C.D;";
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(SqlFormatterEngineKind.Unknown, SqlFormatterEngineKind.MicrosoftScriptDom)]
         [DataRow(SqlFormatterEngineKind.MicrosoftScriptDom, SqlFormatterEngineKind.MicrosoftScriptDom)]
         [DataRow(SqlFormatterEngineKind.Hogimn, SqlFormatterEngineKind.Hogimn)]
@@ -25,12 +25,12 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
             Assert.AreEqual(expectedEngineKind, result.EngineKind);
-            StringAssert.Contains(result.FormattedSql, "C.A, C.B,");
-            StringAssert.Contains(result.FormattedSql, "C.C, C.D");
-            Assert.IsFalse(result.FormattedSql.Contains("C.A, C.B, C.C"));
+            Assert.Contains("C.A, C.B,", result.FormattedSql);
+            Assert.Contains("C.C, C.D", result.FormattedSql);
+            Assert.DoesNotContain("C.A, C.B, C.C", result.FormattedSql);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(SqlFormatterEngineKind.MicrosoftScriptDom)]
         [DataRow(SqlFormatterEngineKind.Hogimn)]
         public void Coordinator_SqlServerListSetting_BoundariesProduceDistinctOutput(SqlFormatterEngineKind engineKind)
@@ -54,8 +54,8 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.AreEqual(engineKind, oneItemResult.EngineKind);
             Assert.AreEqual(engineKind, tenItemResult.EngineKind);
             Assert.AreNotEqual(oneItemResult.FormattedSql, tenItemResult.FormattedSql);
-            Assert.IsFalse(oneItemResult.FormattedSql.Contains("C.A, C.B"));
-            StringAssert.Contains(tenItemResult.FormattedSql, "C.A, C.B, C.C, C.D");
+            Assert.DoesNotContain("C.A, C.B", oneItemResult.FormattedSql);
+            Assert.Contains("C.A, C.B, C.C, C.D", tenItemResult.FormattedSql);
         }
 
         [TestMethod]
@@ -71,12 +71,12 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "SELECT A, B,");
-            StringAssert.Contains(result.FormattedSql, "SELECT E, F,");
-            StringAssert.Contains(result.FormattedSql, "SELECT C.A, C.B,");
-            StringAssert.Contains(result.FormattedSql, "ORDER BY C.A, C.B,");
-            Assert.IsFalse(result.FormattedSql.Contains("SELECT A, B, C"));
-            Assert.IsFalse(result.FormattedSql.Contains("SELECT E, F, G"));
+            Assert.Contains("SELECT A, B,", result.FormattedSql);
+            Assert.Contains("SELECT E, F,", result.FormattedSql);
+            Assert.Contains("SELECT C.A, C.B,", result.FormattedSql);
+            Assert.Contains("ORDER BY C.A, C.B,", result.FormattedSql);
+            Assert.DoesNotContain("SELECT A, B, C", result.FormattedSql);
+            Assert.DoesNotContain("SELECT E, F, G", result.FormattedSql);
         }
 
         [TestMethod]
@@ -92,14 +92,14 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             );
 
             Assert.IsTrue(result.Success, result.ErrorMessage);
-            StringAssert.Contains(result.FormattedSql, "STRING_AGG(C.NAME, ',')");
-            StringAssert.Contains(result.FormattedSql, "ORDER BY C.NAME, C.ID");
-            StringAssert.Contains(result.FormattedSql, "PARTITION BY C.TYPE, C.STATUS");
-            StringAssert.Contains(result.FormattedSql, "ORDER BY C.ID, C.NAME");
-            StringAssert.Contains(result.FormattedSql, "C.ID IN (1, 2, 3)");
+            Assert.Contains("STRING_AGG(C.NAME, ',')", result.FormattedSql);
+            Assert.Contains("ORDER BY C.NAME, C.ID", result.FormattedSql);
+            Assert.Contains("PARTITION BY C.TYPE, C.STATUS", result.FormattedSql);
+            Assert.Contains("ORDER BY C.ID, C.NAME", result.FormattedSql);
+            Assert.Contains("C.ID IN (1, 2, 3)", result.FormattedSql);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("UPDATE dbo.CUSTOMER SET A=1,B=2,C=3,D=4 WHERE ID=1;")]
         [DataRow("INSERT INTO dbo.CUSTOMER (A,B,C,D) VALUES (1,2,3,4);")]
         public void ScriptDom_NonQueryCommaLists_AreIndependentOfListSetting(string sql)
@@ -138,7 +138,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.IsFalse(result.Success);
             Assert.AreEqual(SqlFormatterEngineKind.MicrosoftScriptDom, result.EngineKind);
             Assert.AreEqual(sql, result.FormattedSql);
-            StringAssert.Contains(result.ErrorMessage, "rejected");
+            Assert.Contains("rejected", result.ErrorMessage);
         }
 
         private static SqlFormatResult Format(SqlFormatterEngineKind engineKind, string sql, SqlFormatOptions options)

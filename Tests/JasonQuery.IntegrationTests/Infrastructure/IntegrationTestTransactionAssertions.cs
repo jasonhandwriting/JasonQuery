@@ -148,8 +148,8 @@ namespace JasonQuery.IntegrationTests.Infrastructure
 
                 Assert.IsTrue(first.Succeeded, first.ErrorPayload);
                 Assert.IsTrue(second.Succeeded, second.ErrorPayload);
-                Assert.AreEqual(1, first.Data.Rows.Count);
-                Assert.AreEqual(1, second.Data.Rows.Count);
+                Assert.HasCount(1, first.Data.Rows);
+                Assert.HasCount(1, second.Data.Rows);
                 Assert.IsNotNull(first.Schema);
                 Assert.IsNotNull(second.Schema);
 
@@ -169,7 +169,7 @@ namespace JasonQuery.IntegrationTests.Infrastructure
 
                 var afterRelease = fixture.SessionB.ExecuteSinglePassQuery(fixture.Dialect.BuildLockingQuerySql(1, true));
                 Assert.IsTrue(afterRelease.Succeeded, afterRelease.ErrorPayload);
-                Assert.AreEqual(1, afterRelease.Data.Rows.Count);
+                Assert.HasCount(1, afterRelease.Data.Rows);
             }
         }
 

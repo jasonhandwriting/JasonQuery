@@ -80,11 +80,8 @@ namespace JasonQuery.Core.Data.DataTables
             var commentMap = dtColumnComments.AsEnumerable()
                 .Where
                  (
-                     r =>
-                     !string.IsNullOrWhiteSpace(r.GetSafeString("SchemaName")) &&
-                     !string.IsNullOrWhiteSpace(r.GetSafeString("TableName")) &&
-                     !string.IsNullOrWhiteSpace(r.GetSafeString("ColumnName")) &&
-                     !string.IsNullOrWhiteSpace(r.GetSafeString("Comments"))
+                     r => !string.IsNullOrWhiteSpace(r.GetSafeString("SchemaName")) && !string.IsNullOrWhiteSpace(r.GetSafeString("TableName"))
+                          && !string.IsNullOrWhiteSpace(r.GetSafeString("ColumnName")) && !string.IsNullOrWhiteSpace(r.GetSafeString("Comments"))
                  )
                 .GroupBy
                  (

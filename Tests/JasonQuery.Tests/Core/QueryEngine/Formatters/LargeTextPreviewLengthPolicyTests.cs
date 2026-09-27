@@ -81,8 +81,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Formatters
         [TestCategory("Unit")]
         public void Constants_UseFiftyForDefaultAndRawDataMode()
         {
-            Assert.AreEqual(50, LargeTextPreviewLengthPolicy.DefaultLength);
-            Assert.AreEqual(50, LargeTextPreviewLengthPolicy.RawDataModeLength);
+            Assert.AreEqual(50, JasonQuery.Tests.Infrastructure.RuntimeContractValueReader.GetRawConstant(typeof(LargeTextPreviewLengthPolicy), nameof(LargeTextPreviewLengthPolicy.DefaultLength)));
+            Assert.AreEqual(50, JasonQuery.Tests.Infrastructure.RuntimeContractValueReader.GetRawConstant(typeof(LargeTextPreviewLengthPolicy), nameof(LargeTextPreviewLengthPolicy.RawDataModeLength)));
         }
     }
 }

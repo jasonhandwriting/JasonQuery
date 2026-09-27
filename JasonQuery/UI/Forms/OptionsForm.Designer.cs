@@ -502,6 +502,9 @@ namespace JasonQuery.UI.Forms
             this.rdoUpdateSourceGitHub = new System.Windows.Forms.RadioButton();
             this.rdoUpdateSourceOfficialWebsite = new System.Windows.Forms.RadioButton();
             this.tabGeneral = new C1.Win.C1Command.C1DockingTabPage();
+            this.grpSqlHistory = new System.Windows.Forms.GroupBox();
+            this.cboSqlHistoryRetentionDays = new C1.Win.C1Input.C1ComboBox();
+            this.chkAutoDeleteSqlHistory = new System.Windows.Forms.CheckBox();
             this.grpDefaultDirectory = new System.Windows.Forms.GroupBox();
             this.btnBrowseFavaritePath = new C1.Win.C1Input.C1Button();
             this.txtFavoriteDirectory = new C1.Win.C1Input.C1TextBox();
@@ -773,6 +776,8 @@ namespace JasonQuery.UI.Forms
             ((System.ComponentModel.ISupportInitialize)(this.btnBrowseLocalFolder)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtLocalFolder)).BeginInit();
             this.tabGeneral.SuspendLayout();
+            this.grpSqlHistory.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.cboSqlHistoryRetentionDays)).BeginInit();
             this.grpDefaultDirectory.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.btnBrowseFavaritePath)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtFavoriteDirectory)).BeginInit();
@@ -7094,7 +7099,7 @@ namespace JasonQuery.UI.Forms
             this.lblOfficialWebsiteUpdateUrl.AutoSize = true;
             this.lblOfficialWebsiteUpdateUrl.Location = new System.Drawing.Point(36, 49);
             this.lblOfficialWebsiteUpdateUrl.Name = "lblOfficialWebsiteUpdateUrl";
-            this.lblOfficialWebsiteUpdateUrl.Size = new System.Drawing.Size(416, 16);
+            this.lblOfficialWebsiteUpdateUrl.Size = new System.Drawing.Size(386, 16);
             this.lblOfficialWebsiteUpdateUrl.TabIndex = 320;
             this.lblOfficialWebsiteUpdateUrl.Text = "https://jasonquery.org/JasonQueryUpdate/jasonquery-update.json";
             // 
@@ -7175,6 +7180,7 @@ namespace JasonQuery.UI.Forms
             // 
             // tabGeneral
             // 
+            this.tabGeneral.Controls.Add(this.grpSqlHistory);
             this.tabGeneral.Controls.Add(this.grpDefaultDirectory);
             this.tabGeneral.Controls.Add(this.grpOpenSqlFile);
             this.tabGeneral.Controls.Add(this.grpColorTheme);
@@ -7184,6 +7190,51 @@ namespace JasonQuery.UI.Forms
             this.tabGeneral.TabIndex = 9;
             this.tabGeneral.Text = "General";
             // 
+            // grpSqlHistory
+            //
+            this.grpSqlHistory.BackColor = System.Drawing.Color.Transparent;
+            this.grpSqlHistory.Controls.Add(this.cboSqlHistoryRetentionDays);
+            this.grpSqlHistory.Controls.Add(this.chkAutoDeleteSqlHistory);
+            this.grpSqlHistory.Location = new System.Drawing.Point(12, 169);
+            this.grpSqlHistory.Name = "grpSqlHistory";
+            this.grpSqlHistory.Size = new System.Drawing.Size(680, 90);
+            this.grpSqlHistory.TabIndex = 89;
+            this.grpSqlHistory.TabStop = false;
+            this.grpSqlHistory.Text = "SQL History";
+            //
+            // cboSqlHistoryRetentionDays
+            //
+            this.cboSqlHistoryRetentionDays.AllowSpinLoop = false;
+            this.cboSqlHistoryRetentionDays.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(237)))), ((int)(((byte)(237)))), ((int)(((byte)(239)))));
+            this.cboSqlHistoryRetentionDays.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.cboSqlHistoryRetentionDays.Cursor = System.Windows.Forms.Cursors.Arrow;
+            this.cboSqlHistoryRetentionDays.DropDownStyle = C1.Win.C1Input.DropDownStyle.DropDownList;
+            this.cboSqlHistoryRetentionDays.Enabled = false;
+            this.cboSqlHistoryRetentionDays.GapHeight = 0;
+            this.cboSqlHistoryRetentionDays.ImagePadding = new System.Windows.Forms.Padding(0);
+            this.cboSqlHistoryRetentionDays.ItemsDisplayMember = "";
+            this.cboSqlHistoryRetentionDays.ItemsValueMember = "";
+            this.cboSqlHistoryRetentionDays.Location = new System.Drawing.Point(40, 54);
+            this.cboSqlHistoryRetentionDays.Name = "cboSqlHistoryRetentionDays";
+            this.cboSqlHistoryRetentionDays.Size = new System.Drawing.Size(106, 21);
+            this.cboSqlHistoryRetentionDays.TabIndex = 78;
+            this.cboSqlHistoryRetentionDays.Tag = null;
+            this.cboSqlHistoryRetentionDays.TextDetached = true;
+            this.c1ThemeController1.SetTheme(this.cboSqlHistoryRetentionDays, "(default)");
+            this.cboSqlHistoryRetentionDays.VisualStyleBaseStyle = C1.Win.C1Input.VisualStyle.Office2010Blue;
+            //
+            // chkAutoDeleteSqlHistory
+            //
+            this.chkAutoDeleteSqlHistory.AutoSize = true;
+            this.chkAutoDeleteSqlHistory.Location = new System.Drawing.Point(20, 26);
+            this.chkAutoDeleteSqlHistory.Name = "chkAutoDeleteSqlHistory";
+            this.chkAutoDeleteSqlHistory.Size = new System.Drawing.Size(379, 20);
+            this.chkAutoDeleteSqlHistory.TabIndex = 0;
+            this.chkAutoDeleteSqlHistory.Text = "Automatically delete SQL history for this connection older than:";
+            this.c1ThemeController1.SetTheme(this.chkAutoDeleteSqlHistory, "(default)");
+            this.chkAutoDeleteSqlHistory.UseVisualStyleBackColor = true;
+            this.chkAutoDeleteSqlHistory.CheckedChanged += new System.EventHandler(this.chkAutoDeleteSqlHistory_CheckedChanged);
+            //
             // grpDefaultDirectory
             // 
             this.grpDefaultDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -8566,6 +8617,9 @@ namespace JasonQuery.UI.Forms
             ((System.ComponentModel.ISupportInitialize)(this.btnBrowseLocalFolder)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtLocalFolder)).EndInit();
             this.tabGeneral.ResumeLayout(false);
+            this.grpSqlHistory.ResumeLayout(false);
+            this.grpSqlHistory.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.cboSqlHistoryRetentionDays)).EndInit();
             this.grpDefaultDirectory.ResumeLayout(false);
             this.grpDefaultDirectory.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.btnBrowseFavaritePath)).EndInit();
@@ -9212,5 +9266,8 @@ namespace JasonQuery.UI.Forms
         private System.Windows.Forms.RadioButton rdoUpdateSourceOfficialWebsite;
         private System.Windows.Forms.Label lblGitHubUpdateUrl;
         private System.Windows.Forms.Label lblOfficialWebsiteUpdateUrl;
+        private System.Windows.Forms.GroupBox grpSqlHistory;
+        private C1.Win.C1Input.C1ComboBox cboSqlHistoryRetentionDays;
+        private System.Windows.Forms.CheckBox chkAutoDeleteSqlHistory;
     }
 }

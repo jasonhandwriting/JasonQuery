@@ -96,7 +96,7 @@ namespace JasonLibrary.Tests.Core.Update
 
                 Assert.AreEqual(InstalledVersion, backupManifest.InstalledVersion);
                 Assert.AreEqual(TargetVersion, backupManifest.TargetVersion);
-                Assert.AreEqual(3, backupManifest.Files.Count);
+                Assert.HasCount(3, backupManifest.Files);
 
                 transaction.RestoreBackup(result.BackupManifestPath);
 

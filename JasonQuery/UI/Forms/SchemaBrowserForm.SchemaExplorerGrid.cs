@@ -451,8 +451,7 @@ namespace JasonQuery.UI.Forms
         {
             var schemaName = context.SchemaName ?? string.Empty;
 
-            if (context.SourceType == DataSourceType.PostgreSql &&
-                SchemaObjectTypeHelper.StartsWithAny(context.SchemaType, SchemaObjectNames.Functions, SchemaObjectNames.Triggers))
+            if (context.SourceType == DataSourceType.PostgreSql && SchemaObjectTypeHelper.StartsWithAny(context.SchemaType, SchemaObjectNames.Functions, SchemaObjectNames.Triggers))
             {
                 var index = schemaName.IndexOf('(');
 

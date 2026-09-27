@@ -91,18 +91,18 @@
   <language category="form" class="CellViewerForm" type="menueditor" id="SelectAll" attribute="Text" name="全选" />
   <language category="form" class="CellViewerForm" type="menueditor" id="Copy" attribute="Text" name="复制" />
   <language category="form" class="CellViewerForm" type="msg" id="OpenFile" attribute="Text" name="打开十六进制文件..." />
-  <!-- DatabaseSecurityStartupErrorForm-->
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="this" attribute="Text" name="JasonQuery.db 数据库安全性" />
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblTitle" attribute="Text" name="JasonQuery 无法安全地打开内部数据库。" />
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblMissingReason" attribute="Text" name="打开 JasonQuery.db 所需的数据库安全性信息丢失，或此数据库仍使用旧版 JasonQuery 创建的自定义密码。" />
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblMissingRecovery" attribute="Text" name="如果 JasonQuery.security.json 曾被移动或删除，请还原与此 JasonQuery.db 配对的文件。如果此 JasonQuery.db 仍使用旧版 JasonQuery 设置的自定义密码，请先使用该旧版 JasonQuery 将 JasonQuery.db 的密码切换回默认密码，再重新启动 JasonQuery。" />
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblGeneralReason" attribute="Text" name="JasonQuery 在检查内部数据库的安全性信息时发现问题。" />
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblGeneralRecovery" attribute="Text" name="为了保护数据库，JasonQuery 已停止启动。请从确认可用的备份还原配对的 JasonQuery.db 与 JasonQuery.security.json，或先联系支持人员再重试。" />
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="lblNoMigration" attribute="Text" name="本次未执行任何数据库迁移，也未修改 JasonQuery.db。" />
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="grpLocalization" attribute="Text" name="语言" />
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="object" id="btnExit" attribute="Text" name="退出 JasonQuery(&amp;E)" />
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="msg" id="WindowsCurrentUserKeyUnavailableReason" attribute="Text" name="无法解锁 JasonQuery.db 的 Windows 用户保护密钥。此情况可能发生在迁移到其他电脑、改用其他 Windows 用户配置文件，或重新安装 Windows 之后。" />
-  <language category="form" class="DatabaseSecurityStartupErrorForm" type="msg" id="WindowsCurrentUserKeyUnavailableRecovery" attribute="Text" name="如果原来的 Windows 环境仍可使用，请先在该环境启动 JasonQuery，将 JasonQuery.db 的保护方式切换为自定义密码，再进行迁移。备份或迁移时，请务必将 JasonQuery.db 与 JasonQuery.security.json 一并备份或迁移。" />
+  <!-- JasonQueryDbSecurityStartupErrorForm-->
+  <language category="form" class="JasonQueryDbSecurityStartupErrorForm" type="object" id="this" attribute="Text" name="JasonQuery.db 安全性" />
+  <language category="form" class="JasonQueryDbSecurityStartupErrorForm" type="object" id="lblTitle" attribute="Text" name="JasonQuery 无法安全地打开 JasonQuery.db。" />
+  <language category="form" class="JasonQueryDbSecurityStartupErrorForm" type="object" id="lblMissingReason" attribute="Text" name="打开 JasonQuery.db 所需的安全性信息丢失，或 JasonQuery.db 仍使用旧版 JasonQuery 创建的自定义密码。" />
+  <language category="form" class="JasonQueryDbSecurityStartupErrorForm" type="object" id="lblMissingRecovery" attribute="Text" name="如果 JasonQuery.security.json 曾被移动或删除，请还原与此 JasonQuery.db 配对的文件。如果 JasonQuery.db 仍使用旧版 JasonQuery 设置的自定义密码，请先使用该旧版 JasonQuery 将 JasonQuery.db 的密码切换回默认密码，再重新启动 JasonQuery。" />
+  <language category="form" class="JasonQueryDbSecurityStartupErrorForm" type="object" id="lblGeneralReason" attribute="Text" name="JasonQuery 在检查 JasonQuery.db 的安全性信息时发现问题。" />
+  <language category="form" class="JasonQueryDbSecurityStartupErrorForm" type="object" id="lblGeneralRecovery" attribute="Text" name="为了保护 JasonQuery.db，JasonQuery 已停止启动。请从确认可用的备份还原配对的 JasonQuery.db 与 JasonQuery.security.json，或先联系支持人员再重试。" />
+  <language category="form" class="JasonQueryDbSecurityStartupErrorForm" type="object" id="lblNoMigration" attribute="Text" name="本次未执行任何 JasonQuery.db 迁移，也未修改 JasonQuery.db。" />
+  <language category="form" class="JasonQueryDbSecurityStartupErrorForm" type="object" id="grpLocalization" attribute="Text" name="语言" />
+  <language category="form" class="JasonQueryDbSecurityStartupErrorForm" type="object" id="btnExit" attribute="Text" name="退出 JasonQuery(&amp;E)" />
+  <language category="form" class="JasonQueryDbSecurityStartupErrorForm" type="msg" id="WindowsCurrentUserKeyUnavailableReason" attribute="Text" name="无法解锁 JasonQuery.db 的 Windows 用户保护密钥。此情况可能发生在迁移到其他电脑、改用其他 Windows 用户配置文件，或重新安装 Windows 之后。" />
+  <language category="form" class="JasonQueryDbSecurityStartupErrorForm" type="msg" id="WindowsCurrentUserKeyUnavailableRecovery" attribute="Text" name="如果原来的 Windows 环境仍可使用，请先在该环境启动 JasonQuery，将 JasonQuery.db 的保护方式切换为自定义密码，再进行迁移。备份或迁移时，请务必将 JasonQuery.db 与 JasonQuery.security.json 一并备份或迁移。" />
   <!-- UpdateForm-->
   <language category="form" class="UpdateForm" type="object" id="this" attribute="Text" name="检查更新" />
   <language category="form" class="UpdateForm" type="object" id="lblInfoHasNewVersion" attribute="Text" name="有新版的 JasonQuery：" />
@@ -470,44 +470,78 @@
   <language category="form" class="ConnectionImportForm" type="msg" id="NoneImportFromFileName" attribute="Text" name="请选择要导入的文件名称！" />
   <language category="form" class="ConnectionImportForm" type="msg" id="NonePassword" attribute="Text" name="请输入密码！" />
   <language category="form" class="ConnectionImportForm" type="msg" id="ImportOK" attribute="Text" name="已成功地导入 {qty} 笔连线信息！" />
-  <!-- DatabasePasswordDialog-->
-  <language category="form" class="DatabasePasswordDialog" type="object" id="this" attribute="Text" name="JasonQuery.db 密码" />
-  <language category="form" class="DatabasePasswordDialog" type="object" id="lblInfo1" attribute="Text" name="JasonQuery.db 目前使用自定义密码保护。" />
-  <language category="form" class="DatabasePasswordDialog" type="object" id="lblInfo2" attribute="Text" name="请输入密码以继续。" />
-  <language category="form" class="DatabasePasswordDialog" type="object" id="lblCustomPassword" attribute="Text" name="自定义密码：" />
-  <language category="form" class="DatabasePasswordDialog" type="object" id="btnOK" attribute="Text" name="确定(&amp;O)" />
-  <language category="form" class="DatabasePasswordDialog" type="object" id="btnExit" attribute="Text" name="退出 JasonQuery(&amp;E)" />
-  <language category="form" class="DatabasePasswordDialog" type="object" id="grpLocalization" attribute="Text" name="语言" />
-  <language category="form" class="DatabasePasswordDialog" type="msg" id="NonePassword" attribute="Text" name="请输入自定义密码。" />
-  <language category="form" class="DatabasePasswordDialog" type="msg" id="WrongPassword" attribute="Text" name="自定义密码不正确。" />
-  <!-- DatabaseSecurityForm-->
-  <language category="form" class="DatabaseSecurityForm" type="object" id="this" attribute="Text" name="JasonQuery.db 安全设置" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="lblCurrentProtection" attribute="Text" name="当前保护方式：" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="grpProtection" attribute="Text" name="保护方式" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="rdoWindowsProtected" attribute="Text" name="Windows 用户保护" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="rdoCustomPassword" attribute="Text" name="自定义密码" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="lblCurrentPassword" attribute="Text" name="当前密码：" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="lblNewCustomPassword" attribute="Text" name="新的自定义密码：" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="lblConfirmPassword" attribute="Text" name="确认密码：" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="lblInfo1" attribute="Text" name="JasonQuery 无法恢复自定义密码。" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="lblInfo2" attribute="Text" name="启动时需输入密码。备份或迁移时，请将 JasonQuery.db 与 JasonQuery.security.json 一并备份或迁移。" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="btnApply" attribute="Text" name="应用(&amp;A)" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="btnClose" attribute="Text" name="关闭(&amp;C)" />
-  <language category="form" class="DatabaseSecurityForm" type="object" id="grpLocalization" attribute="Text" name="语言" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="ProtectionWindows" attribute="Text" name="Windows 用户保护" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="ProtectionCustom" attribute="Text" name="自定义密码" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="WindowsProtectionInfo" attribute="Text" name="Windows 用户保护绑定当前的 Windows 用户配置文件。迁移到其他电脑、改用其他 Windows 用户或重新安装 Windows 前，请先切换为自定义密码。" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="MetadataMissing" attribute="Text" name="找不到 JasonQuery.db 的安全性元数据。" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="UnsupportedMode" attribute="Text" name="不支持 JasonQuery.db 当前的安全性模式。" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="NewPasswordRequired" attribute="Text" name="请输入新的自定义密码。" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="PasswordMismatch" attribute="Text" name="新密码与确认密码不匹配。" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmCustomPassword" attribute="Text" name="JasonQuery 无法恢复自定义密码。&#x000A;&#x000A;每次启动 JasonQuery 时都需要输入此密码。&#x000A;&#x000A;备份或迁移时，请务必将 JasonQuery.db 与 JasonQuery.security.json 一并备份或迁移。&#x000A;&#x000A;是否继续？" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="ConfirmWindowsProtected" attribute="Text" name="是否要使用当前的 Windows 用户保护 JasonQuery.db？&#x000A;&#x000A;Windows 用户保护绑定当前的 Windows 用户配置文件。迁移到其他电脑、改用其他 Windows 用户或重新安装 Windows 前，请先切换为自定义密码。&#x000A;&#x000A;完成更改后将不再需要自定义密码。" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="UpdateSuccess" attribute="Text" name="JasonQuery.db 的安全设置已成功更新。" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="EnterCurrentPassword" attribute="Text" name="请输入当前的自定义密码。" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="CurrentPasswordIncorrect" attribute="Text" name="当前密码不正确。" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="ReopenFailed" attribute="Text" name="更新 JasonQuery.db 的安全设置后，无法重新打开 JasonQuery.db。" />
-  <language category="form" class="DatabaseSecurityForm" type="msg" id="UpdateFailed" attribute="Text" name="无法更新 JasonQuery.db 的安全设置。" />
+  <!-- JasonQueryDbPasswordDialog-->
+  <language category="form" class="JasonQueryDbPasswordDialog" type="object" id="this" attribute="Text" name="JasonQuery.db 密码" />
+  <language category="form" class="JasonQueryDbPasswordDialog" type="object" id="lblInfo1" attribute="Text" name="JasonQuery.db 目前使用自定义密码保护。" />
+  <language category="form" class="JasonQueryDbPasswordDialog" type="object" id="lblInfo2" attribute="Text" name="请输入密码以继续。" />
+  <language category="form" class="JasonQueryDbPasswordDialog" type="object" id="lblCustomPassword" attribute="Text" name="自定义密码：" />
+  <language category="form" class="JasonQueryDbPasswordDialog" type="object" id="btnOK" attribute="Text" name="确定(&amp;O)" />
+  <language category="form" class="JasonQueryDbPasswordDialog" type="object" id="btnExit" attribute="Text" name="退出 JasonQuery(&amp;E)" />
+  <language category="form" class="JasonQueryDbPasswordDialog" type="object" id="grpLocalization" attribute="Text" name="语言" />
+  <language category="form" class="JasonQueryDbPasswordDialog" type="msg" id="NonePassword" attribute="Text" name="请输入自定义密码。" />
+  <language category="form" class="JasonQueryDbPasswordDialog" type="msg" id="WrongPassword" attribute="Text" name="自定义密码不正确。" />
+  <!-- JasonQueryDbSecurityForm-->
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="this" attribute="Text" name="JasonQuery.db 安全设置" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="lblCurrentProtection" attribute="Text" name="当前保护方式：" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="grpProtection" attribute="Text" name="保护方式" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="rdoWindowsProtected" attribute="Text" name="Windows 用户保护" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="rdoCustomPassword" attribute="Text" name="自定义密码" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="lblCurrentPassword" attribute="Text" name="当前密码：" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="lblNewCustomPassword" attribute="Text" name="新的自定义密码：" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="lblConfirmPassword" attribute="Text" name="确认密码：" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="lblInfo1" attribute="Text" name="JasonQuery 无法恢复自定义密码。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="lblInfo2" attribute="Text" name="启动时需输入密码。备份或迁移时，请将 JasonQuery.db 与 JasonQuery.security.json 一并备份或迁移。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="btnApply" attribute="Text" name="应用(&amp;A)" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="btnClose" attribute="Text" name="关闭(&amp;C)" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="object" id="grpLocalization" attribute="Text" name="语言" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="ProtectionWindows" attribute="Text" name="Windows 用户保护" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="ProtectionCustom" attribute="Text" name="自定义密码" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="WindowsProtectionInfo" attribute="Text" name="Windows 用户保护绑定当前的 Windows 用户配置文件。建议创建并妥善保存恢复密钥，以便在迁移电脑、更换 Windows 用户配置文件或重新安装 Windows 后恢复 JasonQuery.db。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="RecoveryConfigured" attribute="Text" name="恢复密钥：已设置" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="RecoveryNotConfigured" attribute="Text" name="恢复密钥：尚未设置" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="ManageRecoveryKey" attribute="Text" name="管理恢复密钥…" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="RecoveryManagementFailed" attribute="Text" name="无法打开恢复密钥管理功能。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="MetadataMissing" attribute="Text" name="找不到 JasonQuery.db 的安全性元数据。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="UnsupportedMode" attribute="Text" name="不支持 JasonQuery.db 当前的安全性模式。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="NewPasswordRequired" attribute="Text" name="请输入新的自定义密码。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="PasswordMismatch" attribute="Text" name="新密码与确认密码不匹配。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="ConfirmCustomPassword" attribute="Text" name="JasonQuery 无法恢复自定义密码。&#x000A;&#x000A;每次启动 JasonQuery 时都需要输入此密码。&#x000A;&#x000A;备份或迁移时，请务必将 JasonQuery.db 与 JasonQuery.security.json 一并备份或迁移。&#x000A;&#x000A;是否继续？" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="ConfirmWindowsProtected" attribute="Text" name="是否要使用当前的 Windows 用户保护 JasonQuery.db？&#x000A;&#x000A;完成更改后，请在此窗口创建并妥善保存恢复密钥，以便在迁移电脑、更换 Windows 用户配置文件或重新安装 Windows 后恢复 JasonQuery.db。&#x000A;&#x000A;完成更改后将不再需要自定义密码。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="UpdateSuccess" attribute="Text" name="JasonQuery.db 的安全设置已成功更新。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="EnterCurrentPassword" attribute="Text" name="请输入当前的自定义密码。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="CurrentPasswordIncorrect" attribute="Text" name="当前密码不正确。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="ReopenFailed" attribute="Text" name="更新 JasonQuery.db 的安全设置后，无法重新打开 JasonQuery.db。" />
+  <language category="form" class="JasonQueryDbSecurityForm" type="msg" id="UpdateFailed" attribute="Text" name="无法更新 JasonQuery.db 的安全设置。" />
+  <!-- JasonQueryDbRecoveryKeyForm-->
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="object" id="this" attribute="Text" name="JasonQuery.db 恢复密钥" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="object" id="lblRecoveryStatus" attribute="Text" name="恢复密钥：尚未设置" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="object" id="lblInfo" attribute="Text" name="恢复密钥提供一种独立的恢复方式；如果重新安装 Windows 或用户配置文件损坏后无法再解开 Windows 用户保护，仍可用它取回同一把 JasonQuery.db 逻辑密钥。请将 .jqrecovery 文件与 JasonQuery.db、JasonQuery.security.json 分开保存。" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="object" id="btnCreateOrRegenerate" attribute="Text" name="创建恢复密钥…" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="object" id="btnDisable" attribute="Text" name="停用恢复密钥" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="object" id="btnClose" attribute="Text" name="关闭" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="msg" id="StatusConfigured" attribute="Text" name="恢复密钥：已设置" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="msg" id="StatusNotConfigured" attribute="Text" name="恢复密钥：尚未设置" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="msg" id="CreateButton" attribute="Text" name="创建恢复密钥…" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="msg" id="RegenerateButton" attribute="Text" name="重新生成恢复密钥…" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="msg" id="SaveDialogTitle" attribute="Text" name="保存 JasonQuery 恢复密钥" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="msg" id="ExistingFile" attribute="Text" name="所选文件已存在。请选择新的文件名，JasonQuery 不会覆盖现有的恢复密钥文件。" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="msg" id="RegenerateConfirm" attribute="Text" name="重新生成恢复密钥后，新密钥一旦启用，旧的恢复密钥将立即失效。是否继续？" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="msg" id="EnableAfterSave" attribute="Text" name="恢复密钥文件已保存并验证成功。请将此文件妥善保存在与 JasonQuery.db、JasonQuery.security.json 不同的位置。现在要启用此恢复密钥吗？" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="msg" id="EnrollmentSuccess" attribute="Text" name="恢复密钥已启用。如果这次是重新生成，之前的恢复密钥已失效。" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="msg" id="DisableConfirm" attribute="Text" name="要停用恢复密钥吗？停用后，现有的 .jqrecovery 文件将无法再恢复此 JasonQuery.db。" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="msg" id="DisableSuccess" attribute="Text" name="恢复密钥已停用；数据库加密密钥没有变更。" />
+  <language category="form" class="JasonQueryDbRecoveryKeyForm" type="msg" id="OperationFailed" attribute="Text" name="无法完成恢复密钥操作。" />
+  <!-- JasonQueryDbRecoveryStartupForm-->
+  <language category="form" class="JasonQueryDbRecoveryStartupForm" type="object" id="this" attribute="Text" name="恢复 JasonQuery.db" />
+  <language category="form" class="JasonQueryDbRecoveryStartupForm" type="object" id="lblInfo" attribute="Text" name="Windows 用户保护无法为当前 Windows 用户解开 JasonQuery.db。&#x000A;请选择之前保存的恢复密钥文件。&#x000A;JasonQuery 会先验证 JasonQuery.db，再重新建立 Windows 用户保护。" />
+  <language category="form" class="JasonQueryDbRecoveryStartupForm" type="object" id="lblRecoveryKey" attribute="Text" name="恢复密钥文件：" />
+  <language category="form" class="JasonQueryDbRecoveryStartupForm" type="object" id="btnRecover" attribute="Text" name="恢复" />
+  <language category="form" class="JasonQueryDbRecoveryStartupForm" type="object" id="btnExit" attribute="Text" name="退出" />
+  <language category="form" class="JasonQueryDbRecoveryStartupForm" type="object" id="grpLocalization" attribute="Text" name="语言" />
+  <language category="form" class="JasonQueryDbRecoveryStartupForm" type="msg" id="OpenDialogTitle" attribute="Text" name="选择 JasonQuery 恢复密钥" />
+  <language category="form" class="JasonQueryDbRecoveryStartupForm" type="msg" id="FileLoadFailed" attribute="Text" name="无法加载恢复密钥文件。" />
+  <language category="form" class="JasonQueryDbRecoveryStartupForm" type="msg" id="RecoveryKeyRequired" attribute="Text" name="请选择恢复密钥文件。" />
+  <language category="form" class="JasonQueryDbRecoveryStartupForm" type="msg" id="RecoveryFailed" attribute="Text" name="JasonQuery 无法恢复 JasonQuery.db 密钥。&#x000A;请确认所选的恢复密钥文件属于这个 JasonQuery.db。" />
   <!-- GenerateSqlForm-->
   <language category="form" class="GenerateSqlForm" type="object" id="this" attribute="Text" name="产生 SQL 语句" />
   <language category="form" class="GenerateSqlForm" type="object" id="lblDatabase" attribute="Text" name="数据库:" />
@@ -1784,13 +1818,9 @@
   <language category="form" class="OptionsForm" type="object" id="btnSpecifiedSqlFile2" attribute="ToolTipText" name="浏览文件" />
   <language category="form" class="OptionsForm" type="object" id="btnClear1" attribute="ToolTipText" name="清除" />
   <language category="form" class="OptionsForm" type="object" id="btnClear2" attribute="ToolTipText" name="清除" />
-  <language category="form" class="OptionsForm" type="object" id="grpAutoDisconnect" attribute="Text" name="自动中断连线" />
-  <language category="form" class="OptionsForm" type="dropdownlist" id="AutoDisconnect_Never" attribute="Text" name="从不" />
-  <language category="form" class="OptionsForm" type="dropdownlist" id="AutoDisconnect_1hr" attribute="Text" name="1 小时" />
-  <language category="form" class="OptionsForm" type="dropdownlist" id="AutoDisconnect_3hrs" attribute="Text" name="3 小时" />
-  <language category="form" class="OptionsForm" type="dropdownlist" id="AutoDisconnect_5hrs" attribute="Text" name="5 小时" />
-  <language category="form" class="OptionsForm" type="dropdownlist" id="AutoDisconnect_7hrs" attribute="Text" name="7 小时" />
-  <language category="form" class="OptionsForm" type="dropdownlist" id="AutoDisconnect_9hrs" attribute="Text" name="9 小时" />
+  <language category="form" class="OptionsForm" type="object" id="grpSqlHistory" attribute="Text" name="SQL 历史记录" />
+  <language category="form" class="OptionsForm" type="object" id="chkAutoDeleteSqlHistory" attribute="Text" name="自动删除此连接超过以下期间的 SQL 历史记录：" />
+  <language category="form" class="OptionsForm" type="dropdownlist" id="SqlHistoryRetentionDaysFormat" attribute="Text" name="{0} 天" />
   <language category="form" class="OptionsForm" type="menugrid" id="CellViewer" attribute="Text" name="单元格查看器" />
   <language category="form" class="OptionsForm" type="menugrid" id="SelectAll" attribute="Text" name="全选" />
   <language category="form" class="OptionsForm" type="menugrid" id="ExportAllDataToFile" attribute="Text" name="将所有数据导出到文件 (Excel/CSV...)" />

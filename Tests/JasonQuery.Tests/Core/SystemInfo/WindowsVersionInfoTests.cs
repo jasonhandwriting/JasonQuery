@@ -60,8 +60,7 @@ namespace JasonQuery.Tests.Core.SystemInfo
         [TestMethod]
         public void Create_NoReliableVersionData_UsesSafeFallbackWithoutGuessingWindows8()
         {
-            var actual = WindowsVersionInfo.Create(string.Empty, string.Empty, string.Empty, 0, 0, 0, -1,
-                                                   "Microsoft Windows NT 6.2.9200.0");
+            var actual = WindowsVersionInfo.Create(string.Empty, string.Empty, string.Empty, 0, 0, 0, -1, "Microsoft Windows NT 6.2.9200.0");
 
             Assert.AreEqual("Windows", actual.ShortName);
             Assert.AreEqual("Microsoft Windows NT 6.2.9200.0", actual.FullName);

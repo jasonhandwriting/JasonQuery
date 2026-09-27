@@ -234,7 +234,7 @@ namespace JasonQuery.Tests.Core.Database.Transactions.LockingQueries
 
             Assert.IsTrue(result.IsLockingQuery);
             Assert.AreEqual(expectedKind, result.Kind);
-            Assert.IsTrue(result.MatchedPosition >= 0);
+            Assert.IsGreaterThanOrEqualTo(0, result.MatchedPosition);
             Assert.IsFalse(string.IsNullOrWhiteSpace(result.MatchedText));
         }
 

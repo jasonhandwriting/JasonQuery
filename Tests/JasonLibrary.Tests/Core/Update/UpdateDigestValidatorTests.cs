@@ -18,7 +18,7 @@ namespace JasonLibrary.Tests.Core.Update
             Assert.AreEqual(new string('a', 64), sha256);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("Update")]
         [DataRow(null)]

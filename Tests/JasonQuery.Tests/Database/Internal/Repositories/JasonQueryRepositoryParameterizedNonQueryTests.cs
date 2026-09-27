@@ -1,4 +1,5 @@
 ﻿using JasonQuery.Database.Internal.Repositories;
+using JasonQuery.Database.Internal.Runtime;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Data.SQLite;
@@ -25,7 +26,7 @@ namespace JasonQuery.Tests.Database.Internal.Repositories
                         "INSERT INTO [CredentialWriteTest] ([Id], [Password]) VALUES (1, @Password)",
                         new[]
                         {
-                            new SQLiteParameter("@Password", logicalPassword)
+                            new JasonQueryDatabaseParameter("@Password", logicalPassword)
                         },
                         false
                     );
@@ -47,7 +48,7 @@ namespace JasonQuery.Tests.Database.Internal.Repositories
                         "INSERT INTO [CredentialWriteTest] ([Id], [Password]) VALUES (2, @Password)",
                         new[]
                         {
-                            new SQLiteParameter("@Password", string.Empty)
+                            new JasonQueryDatabaseParameter("@Password", string.Empty)
                         },
                         false
                     );
@@ -73,8 +74,8 @@ namespace JasonQuery.Tests.Database.Internal.Repositories
                         "INSERT INTO [CredentialWriteTest] ([Id], [Password]) VALUES (11, @Password1);",
                         new[]
                         {
-                            new SQLiteParameter("@Password0", firstPassword),
-                            new SQLiteParameter("@Password1", secondPassword)
+                            new JasonQueryDatabaseParameter("@Password0", firstPassword),
+                            new JasonQueryDatabaseParameter("@Password1", secondPassword)
                         },
                         false
                     );
@@ -145,13 +146,7 @@ namespace JasonQuery.Tests.Database.Internal.Repositories
 
         private static string ReadPassword(string databaseFilePath, long id)
         {
-            using
-            (
-                var connection = new SQLiteConnection
-                {
-                    ConnectionString = $"Data Source={databaseFilePath};Version=3;New=False;"
-                }
-            )
+            using (var connection = new SQLiteConnection { ConnectionString = $"Data Source={databaseFilePath};Version=3;New=False;" })
             {
                 connection.SetPassword(JasonQueryRepository.DbConnectionPassword);
                 connection.Open();
@@ -161,6 +156,7 @@ namespace JasonQuery.Tests.Database.Internal.Repositories
                     command.Parameters.AddWithValue("@Id", id);
 
                     var value = command.ExecuteScalar();
+
                     return value == null || value == DBNull.Value ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
                 }
             }

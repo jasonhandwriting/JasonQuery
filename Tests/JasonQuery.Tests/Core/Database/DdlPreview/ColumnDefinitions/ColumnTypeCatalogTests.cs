@@ -21,7 +21,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview.ColumnDefinitions
             var definitions = ColumnTypeCatalog.GetDefinitions(dataSourceType);
 
             Assert.IsNotNull(definitions);
-            Assert.IsTrue(definitions.Count >= 15);
+            Assert.IsGreaterThanOrEqualTo(15, definitions.Count);
             Assert.IsTrue(definitions.All(item => item.DataSourceType == dataSourceType));
         }
 
@@ -30,7 +30,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview.ColumnDefinitions
         [TestCategory("DdlPreview")]
         public void GetDefinitions_ForNone_ReturnsEmptyCollection()
         {
-            Assert.AreEqual(0, ColumnTypeCatalog.GetDefinitions(DataSourceType.None).Count);
+            Assert.IsEmpty(ColumnTypeCatalog.GetDefinitions(DataSourceType.None));
         }
 
         [TestMethod]

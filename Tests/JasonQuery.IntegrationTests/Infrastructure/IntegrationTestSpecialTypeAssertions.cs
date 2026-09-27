@@ -29,7 +29,7 @@ namespace JasonQuery.IntegrationTests.Infrastructure
             Assert.AreEqual(string.Empty, result.ErrorMessage, $"Paged query failed for {sourceType}. ErrorCode: {result.ErrorCode}\r\n{result.ErrorMessage}");
             Assert.IsNotNull(result.Data);
             Assert.IsNotNull(result.Schema);
-            Assert.AreEqual(1, result.Data.Rows.Count);
+            Assert.HasCount(1, result.Data.Rows);
         }
 
         public static ColumnInfoCollector BuildCollector(DataSourceType sourceType, IntegrationTestPagedQueryResult result)
@@ -51,7 +51,7 @@ namespace JasonQuery.IntegrationTests.Infrastructure
         public static DataRow GetSchemaRow(DataTable schema, string columnName)
         {
             Assert.IsNotNull(schema);
-            Assert.IsTrue(schema.Columns.Contains("ColumnName"));
+            Assert.Contains("ColumnName", schema.Columns.Cast<DataColumn>().Select(column => column.ColumnName));
 
             var row = schema.Rows.Cast<DataRow>()
                             .FirstOrDefault
@@ -90,7 +90,7 @@ namespace JasonQuery.IntegrationTests.Infrastructure
             ArrangeStrategyFactory.Create(sourceType).Execute(context);
 
             Assert.IsNotNull(context.SortedData);
-            Assert.AreEqual(result.Data.Rows.Count, context.SortedData.Rows.Count);
+            Assert.HasCount(result.Data.Rows.Count, context.SortedData.Rows);
 
             return context.SortedData;
         }
@@ -136,7 +136,7 @@ namespace JasonQuery.IntegrationTests.Infrastructure
         {
             var actual = Convert.ToString(value) ?? string.Empty;
 
-            StringAssert.Contains(actual, expectedText, $"Unexpected value for {columnName}.");
+            Assert.Contains(expectedText, actual, $"Unexpected value for {columnName}.");
         }
     }
 }

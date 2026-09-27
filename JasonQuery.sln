@@ -20,6 +20,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Updater", "Updater\Updater\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JasonQuery.LegacyDbMigration", "Migration\LegacySQLite\JasonQuery.LegacyDbMigration\JasonQuery.LegacyDbMigration.csproj", "{B3CC2BC8-5E6D-4F83-8FC2-4AEDE8A2E761}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JasonQuery.ModernDbMigration", "Migration\ModernSQLite\JasonQuery.ModernDbMigration\JasonQuery.ModernDbMigration.csproj", "{8A4C2D61-5F17-4A1D-9E4B-2C0F7D9A6B31}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JasonQuery.ModernDbRuntime", "Runtime\ModernSQLite\JasonQuery.ModernDbRuntime\JasonQuery.ModernDbRuntime.csproj", "{D5A0EE2A-76A1-4B4B-9EE8-A2E3F6F7B201}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -62,6 +66,14 @@ Global
 		{B3CC2BC8-5E6D-4F83-8FC2-4AEDE8A2E761}.Debug|x64.Build.0 = Debug|x64
 		{B3CC2BC8-5E6D-4F83-8FC2-4AEDE8A2E761}.Release|x64.ActiveCfg = Release|x64
 		{B3CC2BC8-5E6D-4F83-8FC2-4AEDE8A2E761}.Release|x64.Build.0 = Release|x64
+		{8A4C2D61-5F17-4A1D-9E4B-2C0F7D9A6B31}.Debug|x64.ActiveCfg = Debug|x64
+		{8A4C2D61-5F17-4A1D-9E4B-2C0F7D9A6B31}.Debug|x64.Build.0 = Debug|x64
+		{8A4C2D61-5F17-4A1D-9E4B-2C0F7D9A6B31}.Release|x64.ActiveCfg = Release|x64
+		{8A4C2D61-5F17-4A1D-9E4B-2C0F7D9A6B31}.Release|x64.Build.0 = Release|x64
+		{D5A0EE2A-76A1-4B4B-9EE8-A2E3F6F7B201}.Debug|x64.ActiveCfg = Debug|x64
+		{D5A0EE2A-76A1-4B4B-9EE8-A2E3F6F7B201}.Debug|x64.Build.0 = Debug|x64
+		{D5A0EE2A-76A1-4B4B-9EE8-A2E3F6F7B201}.Release|x64.ActiveCfg = Release|x64
+		{D5A0EE2A-76A1-4B4B-9EE8-A2E3F6F7B201}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

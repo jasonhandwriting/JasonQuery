@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JasonQuery.Core.Security.JasonQueryDb;
+using System;
 using System.Data.SQLite;
 using System.Reflection;
 
@@ -8,13 +9,16 @@ namespace JasonQuery.LegacyDbMigration
     {
         private const string RuntimeInfoArgument = "--runtime-info";
 
+        private const string StreamStorageV1Argument = "--stream-storage-v1";
+
         private static int Main(string[] args)
         {
-            if (args == null || args.Length != 1 || !string.Equals(args[0], RuntimeInfoArgument, StringComparison.Ordinal))
+            if (args == null || args.Length != 1 || (!string.Equals(args[0], RuntimeInfoArgument, StringComparison.Ordinal) && !string.Equals(args[0], StreamStorageV1Argument, StringComparison.Ordinal)))
             {
                 Console.Error.WriteLine
                 (
-                    "Usage: JasonQuery.LegacyDbMigration.exe --runtime-info"
+                    "Usage: JasonQuery.LegacyDbMigration.exe " +
+                    "(--runtime-info | --stream-storage-v1)"
                 );
 
                 return 2;
@@ -30,6 +34,16 @@ namespace JasonQuery.LegacyDbMigration
                 return 3;
             }
 
+            if (string.Equals(args[0], RuntimeInfoArgument, StringComparison.Ordinal))
+            {
+                return RunRuntimeInfo();
+            }
+
+            return RunStorageV1ControlChannel();
+        }
+
+        private static int RunRuntimeInfo()
+        {
             try
             {
                 var assemblyVersion = typeof(SQLiteConnection).Assembly.GetName().Version.ToString();
@@ -60,6 +74,53 @@ namespace JasonQuery.LegacyDbMigration
             }
         }
 
+        private static int RunStorageV1ControlChannel()
+        {
+            try
+            {
+                using (var input = Console.OpenStandardInput())
+                using (var output = Console.OpenStandardOutput())
+                using (var request = JasonQueryDbStorageMigrationWireProtocol.ReadRequest(input))
+                {
+                    var validator = new LegacyStorageV1ReadOnlyValidator();
+
+                    validator.Validate
+                    (
+                        request.DatabaseFilePath,
+                        request.DatabasePasswordUtf8
+                    );
+
+                    JasonQueryDbStorageMigrationWireProtocol.WriteStorageV1ValidatedResponse
+                    (
+                        output
+                    );
+
+                    output.Flush();
+
+                    var streamer = new LegacyStorageV1LogicalStreamer();
+
+                    streamer.Stream(request.DatabaseFilePath, request.DatabasePasswordUtf8, output);
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                //STDERR is diagnostics-only. Never print request path, password/key material, row payloads, or SQL/data dumps here.
+                Console.Error.WriteLine
+                (
+                    "Legacy Storage V1 read-only validation or logical streaming failed."
+                );
+
+                Console.Error.WriteLine
+                (
+                    ex.GetType().FullName
+                );
+
+                return 4;
+            }
+        }
+
         private static string GetRequiredStaticStringProperty(string propertyName)
         {
             var property = typeof(SQLiteConnection).GetProperty
@@ -81,12 +142,7 @@ namespace JasonQuery.LegacyDbMigration
 
             if (string.IsNullOrWhiteSpace(value))
             {
-                throw new InvalidOperationException
-                (
-                    "SQLiteConnection." +
-                    propertyName +
-                    " returned no value."
-                );
+                throw new InvalidOperationException("SQLiteConnection." + propertyName + " returned no value.");
             }
 
             return value;

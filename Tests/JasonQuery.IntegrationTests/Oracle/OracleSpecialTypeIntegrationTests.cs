@@ -132,11 +132,11 @@ namespace JasonQuery.IntegrationTests.Oracle
                 var raw = IntegrationTestSpecialTypeAssertions.GetLargeBinary(arranged, "C_RAW");
                 var blob = IntegrationTestSpecialTypeAssertions.GetLargeBinary(arranged, "C_BLOB");
 
-                StringAssert.Contains(clob.LoadContent(), "CLOB-CONTENT");
-                StringAssert.Contains(nclob.LoadContent(), "NCLOB-內容");
-                StringAssert.Contains(xml.LoadContent(), "<root>");
-                Assert.AreEqual(4, raw.LoadContent().Length);
-                Assert.AreEqual(4, blob.LoadContent().Length);
+                Assert.Contains("CLOB-CONTENT", clob.LoadContent());
+                Assert.Contains("NCLOB-內容", nclob.LoadContent());
+                Assert.Contains("<root>", xml.LoadContent());
+                Assert.HasCount(4, raw.LoadContent());
+                Assert.HasCount(4, blob.LoadContent());
                 Assert.AreEqual(string.Empty, raw.PreviewText);
                 Assert.AreEqual(string.Empty, blob.PreviewText);
 
@@ -150,8 +150,8 @@ namespace JasonQuery.IntegrationTests.Oracle
                 var longRawArranged = IntegrationTestSpecialTypeAssertions.Arrange(DataSourceType.Oracle, longRawResult, longRawCollector);
                 var longRawValue = IntegrationTestSpecialTypeAssertions.GetLargeBinary(longRawArranged, "C_LONG_RAW");
 
-                StringAssert.Contains(longValue.LoadContent(), "LONG-CONTENT");
-                Assert.AreEqual(4, longRawValue.LoadContent().Length);
+                Assert.Contains("LONG-CONTENT", longValue.LoadContent());
+                Assert.HasCount(4, longRawValue.LoadContent());
             }
         }
 

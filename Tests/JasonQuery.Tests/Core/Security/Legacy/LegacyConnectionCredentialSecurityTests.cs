@@ -6,8 +6,7 @@ namespace JasonQuery.Tests.Core.Security.Legacy
     [TestClass]
     public class LegacyConnectionCredentialSecurityTests
     {
-        private const string HistoricalDomainUser =
-            @"TESTDOMAIN\JasonQueryLegacyUser";
+        private const string HistoricalDomainUser = @"TESTDOMAIN\JasonQueryLegacyUser";
 
         [TestMethod]
         public void Protect_MatchesHistoricalGoldenVectors()

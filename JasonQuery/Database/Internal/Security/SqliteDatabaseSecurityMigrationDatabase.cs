@@ -1,4 +1,4 @@
-﻿using JasonQuery.Core.Security.Database;
+﻿using JasonQuery.Core.Security.JasonQueryDb;
 using System;
 using System.Data;
 using System.Data.SQLite;
@@ -6,7 +6,7 @@ using System.IO;
 
 namespace JasonQuery.Database.Internal.Security
 {
-    public sealed class SqliteDatabaseSecurityMigrationDatabase : IDatabaseSecurityMigrationDatabase
+    public sealed class SqliteDatabaseSecurityMigrationDatabase : IJasonQueryDbMigrationDatabase
     {
         public bool CanOpen(string databaseFilePath, string databasePassword)
         {

@@ -59,6 +59,11 @@ namespace JasonQuery.UI.Forms
         private DateTime? _pendingTransactionWarningNextTime; //按下 OK 後，間隔 5 分鐘後再跳一次提示訊息，避免使用者忘記 Commit 或 Rollback
         private string _pendingTransactionMessage = string.Empty;
         private static HashSet<string> SpecialTabName;
+        private const string SqlHistoryAutoDeleteSettingName = "AutoDeleteSqlHistory";
+        private const string SqlHistoryRetentionDaysSettingName = "SqlHistoryRetentionDays";
+        private const int DefaultSqlHistoryRetentionDays = 30;
+        private static readonly int[] SqlHistoryRetentionDaysOptions = { 30, 60, 90, 180, 365 };
+        private readonly HashSet<int> _sqlHistoryAutoCleanupAttemptedMpids = new HashSet<int>();
 
         private enum UpdateCheckScheduleOperation
         {
@@ -288,7 +293,10 @@ namespace JasonQuery.UI.Forms
                     EnableCloseTabMenu(false);
                 }
 
-                LoadConnectionForm();
+                if (!LoadConnectionForm())
+                {
+                    return;
+                }
 
                 AppConfigHelper.MessageBoxCaption = MessageBoxCaptionBuilder.Build
                 (
@@ -760,15 +768,15 @@ namespace JasonQuery.UI.Forms
 
             _cMenu.Items.Add("-");
 
-            _cMenu.Items.Add(_lstGridHeader[MapColumn.NewSQLEditor]);
+            _cMenu.Items.Add(_lstGridHeader[MapColumn.NewSqlEditor]);
 
-            _cMenu.Items[MapColumn.NewSQLEditor].Click += delegate
+            _cMenu.Items[MapColumn.NewSqlEditor].Click += delegate
             {
                 CreateNewTab("Query", CheckTabNameExist()); //Tab頁籤的右鍵選單
             };
 
-            _cMenu.Items[MapColumn.NewSQLEditor].Image = IconManager.GetImage(MyGlobal.IconLibrary, "New File 16x16.ico");
-            ((ToolStripMenuItem)_cMenu.Items[MapColumn.NewSQLEditor]).ShortcutKeys = Keys.Control | Keys.N;
+            _cMenu.Items[MapColumn.NewSqlEditor].Image = IconManager.GetImage(MyGlobal.IconLibrary, "New File 16x16.ico");
+            ((ToolStripMenuItem)_cMenu.Items[MapColumn.NewSqlEditor]).ShortcutKeys = Keys.Control | Keys.N;
 
             _cMenu.Items.Add(_lstGridHeader[MapColumn.OpenFile]);
 
@@ -1308,7 +1316,7 @@ namespace JasonQuery.UI.Forms
             MyGlobal.IsPendingTransactionWarning = GetBool("PendingTransactionIdleWarningEnabled", true);
         }
 
-        private void LoadConnectionForm()
+        private bool LoadConnectionForm()
         {
             string temp;
             var isConnectToDatabase = true;
@@ -1323,13 +1331,23 @@ namespace JasonQuery.UI.Forms
                 form.StartPosition = FormStartPosition.CenterScreen;
                 form.ShowDialog();
 
+                if (form.IsApplicationExitRequested)
+                {
+                    if (!_isFormLoadFinished || BeforeCloseApplication())
+                    {
+                        Close();
+                    }
+
+                    return false;
+                }
+
                 if (_connectionFormChangeLocalization > -1)
                 {
                     _connectionFormChangeLocalization = -2;
                 }
                 else if (_connectionFormChangeLocalization == -2)
                 {
-                    return;
+                    return true;
                 }
             }
 
@@ -1392,6 +1410,8 @@ namespace JasonQuery.UI.Forms
                     //載入各項預設值
                     LoadDefaultSetting();
                 }
+
+                TryAutoDeleteSqlHistoryForCurrentConnection();
 
                 _isMenuEnable = false; //使用者有指定連線
 
@@ -1684,22 +1704,68 @@ namespace JasonQuery.UI.Forms
             }
 
             Application.UseWaitCursor = false;
+
+            return true;
+        }
+
+        private void TryAutoDeleteSqlHistoryForCurrentConnection()
+        {
+            if (!int.TryParse(JasonQueryRepository.DbMotherPid, NumberStyles.Integer, CultureInfo.InvariantCulture, out var motherPid) || motherPid <= 0)
+            {
+                return;
+            }
+
+            if (_sqlHistoryAutoCleanupAttemptedMpids.Contains(motherPid))
+            {
+                return;
+            }
+
+            var autoDeleteValue = JasonQueryRepository.GetSettingValue
+            (
+                "GeneralConfig",
+                SqlHistoryAutoDeleteSettingName,
+                "0"
+            );
+
+            if (autoDeleteValue != "1")
+            {
+                return;
+            }
+
+            var retentionValue = JasonQueryRepository.GetSettingValue
+            (
+                "GeneralConfig",
+                SqlHistoryRetentionDaysSettingName,
+                DefaultSqlHistoryRetentionDays.ToString(CultureInfo.InvariantCulture)
+            );
+
+            var retentionDays = DefaultSqlHistoryRetentionDays;
+
+            if (int.TryParse(retentionValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedRetentionDays) && SqlHistoryRetentionDaysOptions.Contains(parsedRetentionDays))
+            {
+                retentionDays = parsedRetentionDays;
+            }
+
+            _sqlHistoryAutoCleanupAttemptedMpids.Add(motherPid);
+
+            var cutoff = DateTime.Today.AddDays(-retentionDays).ToString("yyyy/MM/dd 00:00:00", CultureInfo.InvariantCulture);
+            var sbSql = new StringBuilder();
+
+            sbSql.AppendLine("DELETE FROM SqlHistory");
+            sbSql.AppendLine($" WHERE MPID = {motherPid}");
+            sbSql.Append($"   AND ExecutionDate < '{cutoff}'");
+
+            var result = JasonQueryRepository.BatchDeleteRecord(sbSql.ToString());
+            var stage = string.IsNullOrEmpty(result) ? "Completed" : "Failed";
+
+            TraceLogger.LogStage($"SqlHistory.AutoDelete.{stage}; RetentionDays={retentionDays}");
         }
 
         private static string ResolvePostgreSqlCompatibilityVersion(string serverVersionNumber, string rawVersion)
         {
             const int postgreSql11VersionNumber = 110000;
 
-            if
-            (
-                int.TryParse
-                (
-                    serverVersionNumber,
-                    NumberStyles.Integer,
-                    CultureInfo.InvariantCulture,
-                    out var parsedVersionNumber
-                )
-            )
+            if (int.TryParse(serverVersionNumber, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedVersionNumber))
             {
                 return parsedVersionNumber >= postgreSql11VersionNumber ? ">=11" : "<=10";
             }
@@ -2017,9 +2083,9 @@ namespace JasonQuery.UI.Forms
             LoadAutoReplaceConfig();
             LoadGridConfig();
             LoadKeywordsConfig();
-            LoadSQL2CodeConfig();
-            LoadSQLFormatterMetaConfig();
-            LoadGenerateSQLConfig();
+            LoadSql2CodeConfig();
+            LoadSqlFormatterMetaConfig();
+            LoadGenerateSqlConfig();
 
             //處理 MainFormIconStyle
             LoadMainFormIconStyle();
@@ -2212,7 +2278,7 @@ namespace JasonQuery.UI.Forms
                 }
             }
 
-            void LoadSQL2CodeConfig()
+            void LoadSql2CodeConfig()
             {
                 //載入 SQL to Code 設定值
                 MyLibrary.SqlToCodeSqlVariableName = GetStringValue("SQL2CodeConfig", "SqlVariableName");
@@ -2234,7 +2300,7 @@ namespace JasonQuery.UI.Forms
                 MyLibrary.SqlToCodeStringBuilderVariableName = GetStringValue("SQL2CodeConfig", "StringBuilderVariableName");
             }
 
-            void LoadSQLFormatterMetaConfig()
+            void LoadSqlFormatterMetaConfig()
             {
                 //載入 SQL Formatter 設定值
                 MyLibrary.SqlFormatterIndentSize = GetInt("SQLFormatterConfig", "IndentSize", 4);
@@ -2253,7 +2319,7 @@ namespace JasonQuery.UI.Forms
                 );
             }
 
-            void LoadGenerateSQLConfig()
+            void LoadGenerateSqlConfig()
             {
                 //載入 Generate SQL 預設值
                 MyLibrary.GenerateSqlConvertCase = GetStringValue("GenerateSQLConfig", "ConvertCase");
@@ -2438,6 +2504,7 @@ namespace JasonQuery.UI.Forms
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            SystemEvents.SessionEnding -= SystemEvents_SessionEnding;
             MessageBoxManager.Unregister();
         }
 
@@ -3138,7 +3205,7 @@ namespace JasonQuery.UI.Forms
             _cMenu.Items[MapColumn.Close].Enabled = bEnable;
             tabControl1.ShowClose = bEnable;
 
-            _cMenu.Items[MapColumn.NewSQLEditor].Enabled = true;
+            _cMenu.Items[MapColumn.NewSqlEditor].Enabled = true;
 
             if (!bCheckFavorite)
             {
@@ -3979,6 +4046,8 @@ namespace JasonQuery.UI.Forms
                     {
                         UpdateTabList();
                     }
+
+                    TryAutoDeleteSqlHistoryForCurrentConnection();
                 }
                 catch (Exception ex)
                 {
@@ -4161,7 +4230,10 @@ namespace JasonQuery.UI.Forms
 
                     try
                     {
-                        LoadConnectionForm();
+                        if (!LoadConnectionForm())
+                        {
+                            return;
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -4191,8 +4263,6 @@ namespace JasonQuery.UI.Forms
                         {
                             var title = tabControl1.TabPages[i].Title;
                             var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
-
-                            sbInfo.Append($"{tabAccessibleDescription};");
 
                             if (title == MyGlobal.OptionsTabName_Before)
                             {
@@ -4224,6 +4294,11 @@ namespace JasonQuery.UI.Forms
                                 tabControl1.TabPages[i].Title = MyGlobal.CreateTableTabName;
                                 tabControl1.TabPages[i].Tag = MyGlobal.CreateTableTabName;
                                 MyGlobal.CreateTableTabName_Before = MyGlobal.CreateTableTabName;
+                            }
+
+                            if (!SpecialTabName.Contains(tabControl1.TabPages[i].Title) && !string.IsNullOrWhiteSpace(tabAccessibleDescription))
+                            {
+                                sbInfo.Append($"{tabAccessibleDescription};");
                             }
                         }
                     }
@@ -5674,11 +5749,11 @@ namespace JasonQuery.UI.Forms
                     ((ToolStripMenuItem)mnuSwitchDatabase.DropDownItems[i]).Checked = true;
                 }
 
-                mnuSwitchDatabase.DropDownItems[i].Click += SwitchDatabase_PostgreSQL;
+                mnuSwitchDatabase.DropDownItems[i].Click += SwitchDatabase_PostgreSql;
             }
         }
 
-        private void SwitchDatabase_PostgreSQL(object sender, EventArgs e)
+        private void SwitchDatabase_PostgreSql(object sender, EventArgs e)
         {
             if (!(sender is ToolStripMenuItem mnuItem))
             {
@@ -5796,11 +5871,11 @@ namespace JasonQuery.UI.Forms
                     ((ToolStripMenuItem)mnuSwitchDatabase.DropDownItems[i]).Checked = true;
                 }
 
-                mnuSwitchDatabase.DropDownItems[i].Click += SwitchDatabase_SQLServer;
+                mnuSwitchDatabase.DropDownItems[i].Click += SwitchDatabase_SqlServer;
             }
         }
 
-        private void SwitchDatabase_SQLServer(object sender, EventArgs e)
+        private void SwitchDatabase_SqlServer(object sender, EventArgs e)
         {
             if (!(sender is ToolStripMenuItem mnuItem))
             {
@@ -5850,8 +5925,7 @@ namespace JasonQuery.UI.Forms
                 var temp = string.Join("`", tabControl1.TabPages.Cast<TabPage>()
                                                                 .Where
                                                                 (
-                                                                    tab => !SpecialTabName.Contains(tab.Title) &&
-                                                                    tab.AccessibleDescription != accessibleDescription
+                                                                    tab => !SpecialTabName.Contains(tab.Title) && tab.AccessibleDescription != accessibleDescription
                                                                 )
                                                                 .Select
                                                                 (
@@ -5905,11 +5979,11 @@ namespace JasonQuery.UI.Forms
                     ((ToolStripMenuItem)mnuSwitchDatabase.DropDownItems[i]).Checked = true;
                 }
 
-                mnuSwitchDatabase.DropDownItems[i].Click += SwitchDatabase_MySQL;
+                mnuSwitchDatabase.DropDownItems[i].Click += SwitchDatabase_MySql;
             }
         }
 
-        private void SwitchDatabase_MySQL(object sender, EventArgs e)
+        private void SwitchDatabase_MySql(object sender, EventArgs e)
         {
             if (!(sender is ToolStripMenuItem mnuItem))
             {
@@ -5959,8 +6033,7 @@ namespace JasonQuery.UI.Forms
                 var temp = string.Join("`", tabControl1.TabPages.Cast<TabPage>()
                                                                 .Where
                                                                 (
-                                                                    tab => !SpecialTabName.Contains(tab.Title) &&
-                                                                    tab.AccessibleDescription != accessibleDescription
+                                                                    tab => !SpecialTabName.Contains(tab.Title) && tab.AccessibleDescription != accessibleDescription
                                                                 )
                                                                 .Select
                                                                 (
@@ -6171,7 +6244,7 @@ namespace JasonQuery.UI.Forms
             public const int Dash0 = 7;
             public const int RenameTab = 8;
             public const int Dash1 = 9;
-            public const int NewSQLEditor = 10;
+            public const int NewSqlEditor = 10;
             public const int OpenFile = 11;
             public const int Dash2 = 12;
             public const int AddToMyFavorite = 13;

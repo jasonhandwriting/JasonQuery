@@ -155,7 +155,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview.ColumnDefinitions
             );
 
             Assert.IsTrue(result.Succeeded, result.ErrorMessage);
-            StringAssert.Contains(result.Sql, columnName);
+            Assert.Contains(columnName, result.Sql);
         }
 
         [TestMethod]
@@ -174,7 +174,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview.ColumnDefinitions
             var result = ColumnAddSqlBuilder.Build(request);
 
             Assert.IsTrue(result.Succeeded, result.ErrorMessage);
-            StringAssert.Contains(result.Sql, customType);
+            Assert.Contains(customType, result.Sql);
             Assert.AreEqual(customType, result.ResolvedDataType);
         }
 
@@ -200,8 +200,8 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview.ColumnDefinitions
             );
 
             Assert.IsTrue(result.Succeeded);
-            Assert.IsFalse(result.Sql.Contains("COMMIT"));
-            Assert.IsFalse(result.Sql.Contains("ROLLBACK"));
+            Assert.DoesNotContain("COMMIT", result.Sql);
+            Assert.DoesNotContain("ROLLBACK", result.Sql);
         }
 
         [TestMethod]

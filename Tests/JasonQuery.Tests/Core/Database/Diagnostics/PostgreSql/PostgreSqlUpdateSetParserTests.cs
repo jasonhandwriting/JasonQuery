@@ -45,7 +45,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             Assert.IsTrue(success);
             Assert.AreEqual("public", result.SchemaName);
             Assert.AreEqual("a_test", result.TableName);
-            Assert.AreEqual(1, result.SetValues.Count);
+            Assert.HasCount(1, result.SetValues);
             Assert.AreEqual("t2", result.SetValues[0].ColumnName);
             Assert.IsTrue(result.SetValues[0].IsStringLiteral);
             Assert.AreEqual(33, result.SetValues[0].ActualLength);
@@ -199,7 +199,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var success = PostgreSqlUpdateSetParser.TryParse(sql, out PostgreSqlUpdateSetParseResult result);
 
             Assert.IsTrue(success);
-            Assert.AreEqual(2, result.SetValues.Count);
+            Assert.HasCount(2, result.SetValues);
             Assert.AreEqual("concat('a', 'b')", result.SetValues[0].RawText);
             Assert.AreEqual("c", result.SetValues[1].StringValue);
         }
@@ -217,7 +217,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var success = PostgreSqlUpdateSetParser.TryParse(sql, out PostgreSqlUpdateSetParseResult result);
 
             Assert.IsTrue(success);
-            Assert.AreEqual(1, result.SetValues.Count);
+            Assert.HasCount(1, result.SetValues);
             Assert.AreEqual("abc", result.SetValues[0].StringValue);
         }
 
@@ -233,7 +233,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             var success = PostgreSqlUpdateSetParser.TryParse(sql, out PostgreSqlUpdateSetParseResult result);
 
             Assert.IsTrue(success);
-            Assert.AreEqual(2, result.SetValues.Count);
+            Assert.HasCount(2, result.SetValues);
             Assert.AreEqual("where", result.SetValues[0].StringValue);
         }
 
@@ -262,7 +262,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
 
             Assert.IsFalse(success);
             Assert.IsFalse(result.Success);
-            StringAssert.Contains(result.FailureReason, "SET");
+            Assert.Contains("SET", result.FailureReason);
         }
 
         [TestMethod]
@@ -274,7 +274,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
 
             Assert.IsFalse(success);
             Assert.IsFalse(result.Success);
-            StringAssert.Contains(result.FailureReason, "欄位指定");
+            Assert.Contains("欄位指定", result.FailureReason);
         }
     }
 }

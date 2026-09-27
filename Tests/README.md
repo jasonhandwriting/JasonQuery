@@ -1,13 +1,13 @@
 # JasonQuery Tests
 
-The `Tests` directory contains the automated regression and real-database integration tests for JasonQuery. The suite currently contains more than 2,000 automated test cases. The exact count is intentionally not maintained in this document; Visual Studio Test Explorer and the latest test results are the source of truth.
+The `Tests` directory contains the automated regression and real-database integration tests for JasonQuery. The suite contains several thousand automated test cases. The exact count is intentionally not maintained in this document; Visual Studio Test Explorer and the latest test results are the source of truth.
 
 ## Test Projects
 
 | Project | Purpose | Database required |
 | --- | --- | --- |
 | `JasonLibrary.Tests` | Tests shared library behavior, including SQL formatting, settings, and update metadata handling. | No |
-| `JasonQuery.Tests` | Tests JasonQuery application and core behavior, including SQL generation, diagnostics, transaction policies, autocomplete, value formatting, and safety rules. | No |
+| `JasonQuery.Tests` | Tests JasonQuery application and core behavior, including SQL generation, diagnostics, transaction policies, autocomplete, value formatting, database security, encrypted `JasonQuery.db` storage migration and recovery, runtime boundaries, and safety rules. | No |
 | `JasonQuery.IntegrationTests` | Exercises the real Oracle, PostgreSQL, SQL Server, and MySQL providers, readers, schema metadata, special data types, transactions, and locking behavior. | Yes |
 
 All three projects use MSTest, target .NET Framework 4.8, and run as x64 test projects.

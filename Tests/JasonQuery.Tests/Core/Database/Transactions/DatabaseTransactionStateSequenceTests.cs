@@ -145,9 +145,9 @@ namespace JasonQuery.Tests.Core.Database.Transactions
         [TestCategory("Transaction")]
         public void ResolveStateToken_UsesPublishedConstants()
         {
-            Assert.AreEqual("TX_UNCHANGED", DatabaseTransactionStatePolicy.StateUnchanged);
-            Assert.AreEqual("TX_PENDING", DatabaseTransactionStatePolicy.StatePending);
-            Assert.AreEqual("TX_CLOSED", DatabaseTransactionStatePolicy.StateClosed);
+            Assert.AreEqual("TX_UNCHANGED", JasonQuery.Tests.Infrastructure.RuntimeContractValueReader.GetRawConstant(typeof(DatabaseTransactionStatePolicy), nameof(DatabaseTransactionStatePolicy.StateUnchanged)));
+            Assert.AreEqual("TX_PENDING", JasonQuery.Tests.Infrastructure.RuntimeContractValueReader.GetRawConstant(typeof(DatabaseTransactionStatePolicy), nameof(DatabaseTransactionStatePolicy.StatePending)));
+            Assert.AreEqual("TX_CLOSED", JasonQuery.Tests.Infrastructure.RuntimeContractValueReader.GetRawConstant(typeof(DatabaseTransactionStatePolicy), nameof(DatabaseTransactionStatePolicy.StateClosed)));
         }
     }
 }

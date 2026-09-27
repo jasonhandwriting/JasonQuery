@@ -19,7 +19,7 @@ namespace JasonQuery.Tests.Core.Localization
 
                 LocalizationHelper.InitializeLocalizationMap();
 
-                Assert.AreEqual(3, LocalizationHelper.LocalizationMap.Count);
+                Assert.HasCount(3, LocalizationHelper.LocalizationMap);
                 Assert.AreEqual("english.xml", LocalizationHelper.LocalizationMap["English"]);
                 Assert.AreEqual("chinese-cht.xml", LocalizationHelper.LocalizationMap["Chinese (Traditional) - 中文繁體"]);
                 Assert.AreEqual("chinese-chs.xml", LocalizationHelper.LocalizationMap["Chinese (Simplified) - 中文简体"]);
@@ -43,7 +43,7 @@ namespace JasonQuery.Tests.Core.Localization
 
                 LocalizationHelper.InitializeLocalizationMap();
 
-                Assert.AreEqual(1, LocalizationHelper.LocalizationMap.Count);
+                Assert.HasCount(1, LocalizationHelper.LocalizationMap);
                 Assert.AreEqual("english.xml", LocalizationHelper.LocalizationMap["English"]);
             }
             finally

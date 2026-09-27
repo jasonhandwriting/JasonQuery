@@ -1,4 +1,4 @@
-using JasonLibrary.Core.Database.Enums;
+﻿using JasonLibrary.Core.Database.Enums;
 using JasonLibrary.Core.Text.Formatting;
 using System;
 using System.Collections.Generic;
@@ -48,11 +48,8 @@ namespace JasonQuery.Core.QueryEngine.Editor.Editing
 
             var descriptor = SqlFormatterSupportCatalog.Get(engineKind);
 
-            return descriptor != null &&
-                   descriptor.Readiness == SqlFormatterEngineReadiness.Ready &&
-                   descriptor.Supports(providerKind)
-                   ? engineKind
-                   : SqlFormatterEngineKind.Unknown;
+            return descriptor != null && descriptor.Readiness == SqlFormatterEngineReadiness.Ready && descriptor.Supports(providerKind)
+                   ? engineKind : SqlFormatterEngineKind.Unknown;
         }
 
         public static SqlFormatterEngineKind GetEffectiveEngine(DatabaseProviderKind providerKind, SqlFormatterEngineKind preferredEngineKind)

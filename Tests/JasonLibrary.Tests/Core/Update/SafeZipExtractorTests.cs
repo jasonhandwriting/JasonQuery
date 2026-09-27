@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -52,7 +52,7 @@ namespace JasonLibrary.Tests.Core.Update
                     WriteEntry(archive, "../escaped.txt", "unsafe");
                 }
 
-                Assert.ThrowsException<InvalidDataException>
+                Assert.ThrowsExactly<InvalidDataException>
                 (
                     () => SafeZipExtractor.ExtractAndResolvePayloadRoot(packagePath, extractionRoot)
                 );
@@ -81,7 +81,7 @@ namespace JasonLibrary.Tests.Core.Update
                     WriteEntry(archive, "JasonQuery x64/JasonQuery.exe:payload", "unsafe");
                 }
 
-                Assert.ThrowsException<InvalidDataException>
+                Assert.ThrowsExactly<InvalidDataException>
                 (
                     () => SafeZipExtractor.ExtractAndResolvePayloadRoot(packagePath, extractionRoot)
                 );

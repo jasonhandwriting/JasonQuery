@@ -26,8 +26,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Types
             var count = 0;
             var value = new LargeBinaryDataType("display", "preview", 0, false, () => { count++; return null; });
 
-            Assert.AreEqual(0, value.LoadContent().Length);
-            Assert.AreEqual(0, value.LoadContent().Length);
+            Assert.IsEmpty(value.LoadContent());
+            Assert.IsEmpty(value.LoadContent());
             Assert.AreEqual(1, count);
         }
 
@@ -38,8 +38,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Types
             var count = 0;
             var value = new LargeTextDataType("display", "preview", 0, false, () => { count++; throw new InvalidOperationException("load"); });
 
-            Assert.ThrowsException<InvalidOperationException>(() => value.LoadContent());
-            Assert.ThrowsException<InvalidOperationException>(() => value.LoadContent());
+            Assert.ThrowsExactly<InvalidOperationException>(() => value.LoadContent());
+            Assert.ThrowsExactly<InvalidOperationException>(() => value.LoadContent());
             Assert.AreEqual(2, count);
         }
 
@@ -50,8 +50,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Types
             var count = 0;
             var value = new LargeBinaryDataType("display", "preview", 0, false, () => { count++; throw new InvalidOperationException("load"); });
 
-            Assert.ThrowsException<InvalidOperationException>(() => value.LoadContent());
-            Assert.ThrowsException<InvalidOperationException>(() => value.LoadContent());
+            Assert.ThrowsExactly<InvalidOperationException>(() => value.LoadContent());
+            Assert.ThrowsExactly<InvalidOperationException>(() => value.LoadContent());
             Assert.AreEqual(2, count);
         }
 

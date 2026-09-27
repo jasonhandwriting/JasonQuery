@@ -92,10 +92,8 @@ namespace JasonQuery.Core.Data.Schema
                     var catalogMap = dtCatalogInfo.AsEnumerable()
                                                   .Where
                                                    (
-                                                       r => !string.IsNullOrWhiteSpace(r.GetSafeString("SchemaName")) &&
-                                                            !string.IsNullOrWhiteSpace(r.GetSafeString("TableName")) &&
-                                                            !string.IsNullOrWhiteSpace(r.GetSafeString("ColumnName")) &&
-                                                            !string.IsNullOrWhiteSpace(r.GetSafeString("TrueTypeName"))
+                                                       r => !string.IsNullOrWhiteSpace(r.GetSafeString("SchemaName")) && !string.IsNullOrWhiteSpace(r.GetSafeString("TableName"))
+                                                            &&  !string.IsNullOrWhiteSpace(r.GetSafeString("ColumnName")) && !string.IsNullOrWhiteSpace(r.GetSafeString("TrueTypeName"))
                                                    )
                                                   .ToDictionary
                                                    (

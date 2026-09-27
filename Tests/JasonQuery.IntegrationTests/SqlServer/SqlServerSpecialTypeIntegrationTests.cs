@@ -57,7 +57,7 @@ namespace JasonQuery.IntegrationTests.SqlServer
                 var result = fixture.ExecuteMainQuery();
 
                 IntegrationTestSpecialTypeAssertions.AssertPagedSucceeded(result, DataSourceType.SqlServer);
-                Assert.AreEqual(true, Convert.ToBoolean(result.Data.Rows[0]["C_BIT"]));
+                Assert.IsTrue(Convert.ToBoolean(result.Data.Rows[0]["C_BIT"]));
                 Assert.IsInstanceOfType(result.Data.Rows[0]["C_BINARY"], typeof(byte[]));
                 Assert.IsInstanceOfType(result.Data.Rows[0]["C_VARBINARY"], typeof(byte[]));
                 Assert.IsInstanceOfType(result.Data.Rows[0]["C_ROWVERSION"], typeof(byte[]));
@@ -109,13 +109,13 @@ namespace JasonQuery.IntegrationTests.SqlServer
                 var ntext = IntegrationTestSpecialTypeAssertions.GetLargeText(arranged, "C_NTEXT");
                 var xml = IntegrationTestSpecialTypeAssertions.GetLargeText(arranged, "C_XML");
 
-                Assert.AreEqual(4, binary.LoadContent().Length);
-                Assert.AreEqual(4, varbinary.LoadContent().Length);
+                Assert.HasCount(4, binary.LoadContent());
+                Assert.HasCount(4, varbinary.LoadContent());
                 Assert.AreEqual(string.Empty, binary.PreviewText);
                 Assert.AreEqual(string.Empty, varbinary.PreviewText);
-                StringAssert.Contains(text.LoadContent(), "TEXT-CONTENT");
-                StringAssert.Contains(ntext.LoadContent(), "NTEXT-內容");
-                StringAssert.Contains(xml.LoadContent(), "<root>");
+                Assert.Contains("TEXT-CONTENT", text.LoadContent());
+                Assert.Contains("NTEXT-內容", ntext.LoadContent());
+                Assert.Contains("<root>", xml.LoadContent());
             }
         }
 

@@ -39,6 +39,7 @@ namespace JasonQuery.Tests.Database.Internal.Security
 
                     Assert.AreEqual(logicalPassword, ReadPassword(databaseFilePath, 1));
                     Assert.AreEqual(ConnectionCredentialStorageContract.CurrentVersion, ReadPersistedVersion(databaseFilePath));
+                    AssertMigrationCompatibleMetadataSchema(databaseFilePath);
                 }
             );
         }
@@ -65,6 +66,7 @@ namespace JasonQuery.Tests.Database.Internal.Security
 
                     Assert.AreEqual(legacyLookingValue, ReadPassword(databaseFilePath, 2));
                     Assert.AreEqual(ConnectionCredentialStorageContract.CurrentVersion, ReadPersistedVersion(databaseFilePath));
+                    AssertMigrationCompatibleMetadataSchema(databaseFilePath);
                 }
             );
         }
@@ -83,7 +85,7 @@ namespace JasonQuery.Tests.Database.Internal.Security
                     {
                         var gate = new SqliteConnectionCredentialStorageStartupGate();
 
-                        Assert.ThrowsException<NotSupportedException>(() => gate.EnsureReady(connection));
+                        Assert.ThrowsExactly<NotSupportedException>(() => gate.EnsureReady(connection));
                     }
 
                     Assert.AreEqual("unchanged-value", ReadPassword(databaseFilePath, 3));
@@ -109,7 +111,7 @@ namespace JasonQuery.Tests.Database.Internal.Security
                     {
                         var gate = new SqliteConnectionCredentialStorageStartupGate();
 
-                        Assert.ThrowsException<InvalidDataException>(() => gate.EnsureReady(connection));
+                        Assert.ThrowsExactly<InvalidDataException>(() => gate.EnsureReady(connection));
                     }
 
                     Assert.AreEqual(firstProtectedPassword, ReadPassword(databaseFilePath, 4));
@@ -158,7 +160,7 @@ namespace JasonQuery.Tests.Database.Internal.Security
             {
                 var gate = new SqliteConnectionCredentialStorageStartupGate();
 
-                Assert.ThrowsException<InvalidOperationException>(() => gate.EnsureReady(connection));
+                Assert.ThrowsExactly<InvalidOperationException>(() => gate.EnsureReady(connection));
             }
         }
 
@@ -195,6 +197,60 @@ namespace JasonQuery.Tests.Database.Internal.Security
                 if (File.Exists(databaseFilePath))
                 {
                     File.Delete(databaseFilePath);
+                }
+            }
+        }
+
+        private static void AssertMigrationCompatibleMetadataSchema(string databaseFilePath)
+        {
+            using (var connection = OpenConnection(databaseFilePath))
+            {
+                using
+                (
+                    var command = new SQLiteCommand
+                    (
+                        "PRAGMA table_info('JasonQuerySecurityMetadata')",
+                        connection
+                    )
+                )
+                using (var reader = command.ExecuteReader())
+                {
+                    var rowCount = 0;
+
+                    while (reader.Read())
+                    {
+                        var name = Convert.ToString(reader["name"]);
+                        var declaredType = Convert.ToString(reader["type"]);
+                        var primaryKeyOrdinal = Convert.ToInt32(reader["pk"]);
+
+                        if (rowCount == 0)
+                        {
+                            Assert.AreEqual("PID", name);
+                            Assert.AreEqual("INTEGER", declaredType.ToUpperInvariant());
+                            Assert.AreEqual(1, primaryKeyOrdinal);
+                        }
+
+                        rowCount++;
+                    }
+
+                    Assert.AreEqual(3, rowCount);
+                }
+
+                using
+                (
+                    var command = new SQLiteCommand
+                    (
+                        "PRAGMA index_list('JasonQuerySecurityMetadata')",
+                        connection
+                    )
+                )
+                using (var reader = command.ExecuteReader())
+                {
+                    Assert.IsTrue(reader.Read());
+                    Assert.AreEqual(SqliteConnectionCredentialStorageVersionStore.MetadataUniqueIndexName, Convert.ToString(reader["name"]));
+                    Assert.AreEqual(1, Convert.ToInt32(reader["unique"]));
+                    Assert.AreEqual("c", Convert.ToString(reader["origin"]));
+                    Assert.IsFalse(reader.Read());
                 }
             }
         }

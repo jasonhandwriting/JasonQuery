@@ -1,10 +1,14 @@
 ﻿using JasonQuery.Core.Config;
-using JasonQuery.Core.Security.Database;
+using JasonQuery.Core.Logging;
+using JasonQuery.Core.Security.JasonQueryDb;
 using JasonQuery.Core.Text;
+using JasonQuery.Database.Internal.Runtime;
+using JasonQuery.Database.Internal.Runtime.Modern;
 using JasonQuery.UI.Services;
 using System;
+using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Windows.Forms;
@@ -13,68 +17,76 @@ namespace JasonQuery.Database.Internal.Repositories
 {
     public static class JasonQueryRepository //for JasonQuery.db
     {
+        private static readonly LegacySystemDataSQLiteDatabaseRuntime LegacyRuntime = new LegacySystemDataSQLiteDatabaseRuntime();
+
+        private static IJasonQueryDatabaseRuntime _runtime = LegacyRuntime;
+
         public static string DbConnectionString = string.Empty;
-        public static string DbConnectionPassword = LegacyDatabaseSecurity.LegacyDefaultDatabasePassword; //Legacy default; V2 overwrites this at startup.
+        public static string DbConnectionPassword = JasonQueryDbLegacySecurity.LegacyDefaultDatabasePassword; //Legacy default; V2 overwrites this at startup.
         public static string DbMotherPid = string.Empty;
         public static string DbFileName = string.Empty;
 
-        //資料庫初始化
-        private static SQLiteConnection OleDbOpenConn()
+        internal static void ConfigureRuntime(IJasonQueryDatabaseRuntime runtime)
         {
-            var connection = new SQLiteConnection { ConnectionString = DbConnectionString };
-
-            try
-            {
-                if (connection.State == ConnectionState.Open)
-                {
-                    connection.Close();
-                }
-
-                connection.SetPassword(DbConnectionPassword);
-                connection.Open();
-            }
-            catch (Exception ex)
-            {
-                ExceptionDialogService.Show(ex);
-            }
-
-            return connection;
+            _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         }
 
-        //V2 startup：使用已解析完成的資料庫密碼開啟並驗證 JasonQuery.db
-        //呼叫端負責 Dispose；成功回傳時 connection 必須保持 Open，供後續安全啟動 gate 使用
-        internal static SQLiteConnection OpenValidatedCurrentDatabaseConnection()
+        internal static void ResetRuntimeToLegacy()
         {
-            var connection = new SQLiteConnection { ConnectionString = DbConnectionString };
+            _runtime = LegacyRuntime;
+        }
 
-            try
+        internal static void ReleaseRuntimeDatabaseHandleForSecurityTransition()
+        {
+            var runtime = GetRuntime();
+
+            if (runtime is LegacySystemDataSQLiteDatabaseRuntime)
             {
-                connection.SetPassword(DbConnectionPassword);
-                connection.Open();
-
-                if (connection.State != ConnectionState.Open)
-                {
-                    throw new InvalidOperationException("The JasonQuery database connection did not open.");
-                }
-
-                using (var command = new SQLiteCommand("SELECT 1 FROM SystemConfig WHERE 1 = 2", connection))
-                {
-                    command.ExecuteScalar();
-                }
-
-                return connection;
+                return;
             }
-            catch
+
+            if (runtime is ModernSqlCipherDatabaseRuntime modernRuntime)
             {
-                connection.Dispose();
-                throw;
+                modernRuntime.ReleaseDatabaseHandle();
+                return;
             }
+
+            throw new InvalidOperationException
+            (
+                "The configured JasonQuery internal database runtime does not support database-security transitions."
+            );
+        }
+
+        private static IJasonQueryDatabaseRuntime GetRuntime()
+        {
+            return _runtime ?? throw new InvalidOperationException("The JasonQuery internal database runtime is not configured.");
+        }
+
+        //R4F2A startup compatibility seam：目前 credential startup gate 仍只允許 Legacy runtime 提供本機 IDbConnection。
+        //R4F2C 切換 production startup 前必須移除此限制，Modern runtime 不得 fallback 到 legacy provider。
+        internal static IDbConnection OpenValidatedCurrentDatabaseConnection()
+        {
+            var runtime = GetRuntime();
+
+            if (!(runtime is LegacySystemDataSQLiteDatabaseRuntime legacyRuntime))
+            {
+                throw new InvalidOperationException
+                (
+                    "The current JasonQuery internal database runtime cannot expose a legacy in-process connection."
+                );
+            }
+
+            return legacyRuntime.OpenValidatedConnection
+            (
+                DbConnectionString,
+                DbConnectionPassword
+            );
         }
 
         //Legacy：驗證舊版預設密碼或舊版自訂密碼
         public static bool CheckDBPassword(string password)
         {
-            var legacyDatabasePassword = string.IsNullOrWhiteSpace(password) ? DbConnectionPassword : LegacyDatabaseSecurity.CreateCustomDatabasePassword(password);
+            var legacyDatabasePassword = string.IsNullOrWhiteSpace(password) ? DbConnectionPassword : JasonQueryDbLegacySecurity.CreateCustomDatabasePassword(password);
 
             return CanOpenDatabase(legacyDatabasePassword);
         }
@@ -85,27 +97,13 @@ namespace JasonQuery.Database.Internal.Repositories
             return CanOpenDatabase(DbConnectionPassword);
         }
 
-        private static bool CanOpenDatabase(string databasePassword)
+        internal static bool CanOpenDatabase(string databasePassword)
         {
-            using (var connection = new SQLiteConnection { ConnectionString = DbConnectionString })
-            {
-                try
-                {
-                    connection.SetPassword(databasePassword);
-                    connection.Open();
-
-                    using (var command = new SQLiteCommand("SELECT 1 FROM SystemConfig WHERE 1 = 2", connection))
-                    {
-                        command.ExecuteScalar();
-                    }
-
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
+            return GetRuntime().CanOpenDatabase
+            (
+                DbConnectionString,
+                databasePassword
+            );
         }
 
         //變更密碼！
@@ -115,7 +113,7 @@ namespace JasonQuery.Database.Internal.Repositories
 
             try
             {
-                targetDatabasePassword = isUseDefaultPassword ? LegacyDatabaseSecurity.LegacyDefaultDatabasePassword : LegacyDatabaseSecurity.CreateCustomDatabasePassword(newPassword);
+                targetDatabasePassword = isUseDefaultPassword ? JasonQueryDbLegacySecurity.LegacyDefaultDatabasePassword : JasonQueryDbLegacySecurity.CreateCustomDatabasePassword(newPassword);
             }
             catch (Exception ex)
             {
@@ -124,12 +122,12 @@ namespace JasonQuery.Database.Internal.Repositories
 
             try
             {
-                using (var connection = new SQLiteConnection { ConnectionString = DbConnectionString })
-                {
-                    connection.SetPassword(oldPassword);
-                    connection.Open();
-                    connection.ChangePassword(targetDatabasePassword);
-                }
+                GetRuntime().ChangePassword
+                (
+                    DbConnectionString,
+                    oldPassword,
+                    targetDatabasePassword
+                );
             }
             catch (Exception ex)
             {
@@ -142,7 +140,11 @@ namespace JasonQuery.Database.Internal.Repositories
                 return string.Empty;
             }
 
-            var restoreResult = TryRestoreDatabasePassword(targetDatabasePassword, oldPassword);
+            var restoreResult = TryRestoreDatabasePassword
+            (
+                targetDatabasePassword,
+                oldPassword
+            );
 
             if (string.IsNullOrEmpty(restoreResult))
             {
@@ -157,12 +159,12 @@ namespace JasonQuery.Database.Internal.Repositories
         {
             try
             {
-                using (var connection = new SQLiteConnection { ConnectionString = DbConnectionString })
-                {
-                    connection.SetPassword(currentPassword);
-                    connection.Open();
-                    connection.ChangePassword(previousPassword);
-                }
+                GetRuntime().ChangePassword
+                (
+                    DbConnectionString,
+                    currentPassword,
+                    previousPassword
+                );
 
                 return CanOpenDatabase(previousPassword) ? string.Empty : "The previous database password could not be validated after restoration.";
             }
@@ -172,76 +174,47 @@ namespace JasonQuery.Database.Internal.Repositories
             }
         }
 
-        //取得資料表:
         public static DataTable ExecQuery(string sql)
         {
-            var connection = OleDbOpenConn();
-            var dataTable = new DataTable();
-            var dataAdapter = new SQLiteDataAdapter(sql, connection);
-            var dataSet = new DataSet();
-
             try
             {
-                dataSet.Clear();
-                dataAdapter.Fill(dataSet);
-                dataTable = dataSet.Tables[0];
+                return GetRuntime().ExecuteQuery
+                (
+                    DbConnectionString,
+                    DbConnectionPassword,
+                    sql
+                );
             }
             catch (Exception ex)
             {
                 ExceptionDialogService.Show(ex);
+                return new DataTable();
             }
-
-            if (connection.State == ConnectionState.Open)
-            {
-                connection.Close();
-            }
-
-            return dataTable;
         }
 
         //對資料表進行新增、修改及刪除等功能:
         public static void ExecNonQuery(string sql, bool showAlertOnError = true)
         {
-            var connection = OleDbOpenConn();
-
-            try
-            {
-                var command = new SQLiteCommand(sql, connection);
-
-                command.ExecuteNonQuery();
-
-                if (connection.State == ConnectionState.Open)
-                {
-                    connection.Close();
-                }
-            }
-            catch (Exception ex)
-            {
-                var message = ExceptionDialogService.BuildMessage(ex);
-
-                if (showAlertOnError)
-                {
-                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
+            ExecNonQuery
+            (
+                sql,
+                null,
+                showAlertOnError
+            );
         }
 
-        //Credential, runtime write path：敏感欄位一律以 SQLite parameter 寫入，避免 logical password 被拼接進 SQL literal
-        public static void ExecNonQuery(string sql, SQLiteParameter[] parameters, bool showAlertOnError = true)
+        //Credential, runtime write path：敏感欄位一律透過 provider-neutral parameter 寫入，避免 logical password 被拼接進 SQL literal
+        public static void ExecNonQuery(string sql, JasonQueryDatabaseParameter[] parameters, bool showAlertOnError = true)
         {
-            var connection = OleDbOpenConn();
-
             try
             {
-                using (var command = new SQLiteCommand(sql, connection))
-                {
-                    if (parameters != null && parameters.Length > 0)
-                    {
-                        command.Parameters.AddRange(parameters);
-                    }
-
-                    command.ExecuteNonQuery();
-                }
+                GetRuntime().ExecuteNonQuery
+                (
+                    DbConnectionString,
+                    DbConnectionPassword,
+                    sql,
+                    parameters
+                );
             }
             catch (Exception ex)
             {
@@ -249,50 +222,44 @@ namespace JasonQuery.Database.Internal.Repositories
 
                 if (showAlertOnError)
                 {
-                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show
+                    (
+                        message,
+                        AppConfigHelper.MessageBoxCaption,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
                 }
-            }
-            finally
-            {
-                if (connection.State == ConnectionState.Open)
-                {
-                    connection.Close();
-                }
-
-                connection.Dispose();
             }
         }
 
         public static string BatchDeleteRecord(string sqls)
         {
-            var result = string.Empty;
-            var connection = OleDbOpenConn();
-
             try
             {
-                var sqlStatements = sqls.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+                var sqlStatements = sqls.Split
+                (
+                    new[] { ";" },
+                    StringSplitOptions.RemoveEmptyEntries
+                );
 
-                foreach (var sqlStatement in sqlStatements)
-                {
-                    var command = new SQLiteCommand(sqlStatement, connection);
+                GetRuntime().ExecuteBatchNonQuery
+                (
+                    DbConnectionString,
+                    DbConnectionPassword,
+                    sqlStatements
+                );
 
-                    command.ExecuteNonQuery();
-                }
+                return string.Empty;
             }
             catch (Exception ex)
             {
-                result = ExceptionDialogService.BuildMessage(ex);
+                return ExceptionDialogService.BuildMessage(ex);
             }
-
-            if (connection.State == ConnectionState.Open)
-            {
-                connection.Close();
-            }
-
-            return result;
         }
 
-        public static void UpdateSqlHistory(string motherPid, string executionDate, string executionTime, string queryTime, int rows, string result, string message, string sql, string operationObject, string seqNo = "")
+        public static void UpdateSqlHistory(string motherPid, string executionDate, string executionTime, string queryTime, int rows,
+                                            string result, string message, string sql, string operationObject, string seqNo = "")
         {
             result = result.Replace("'", "''");
             message = message.Replace("'", "''");
@@ -335,6 +302,241 @@ namespace JasonQuery.Database.Internal.Repositories
             var sql = sbSql.ToString();
 
             ExecNonQuery(sql);
+        }
+
+        public sealed class SettingUpdateBatch
+        {
+            private readonly List<string> _sqlStatements = new List<string>();
+            private int _settingCount;
+            private bool _committed;
+
+            internal SettingUpdateBatch()
+            {
+            }
+
+            public void UpdateSetting(string attributeKey, string attributeName, string attributeValue, bool isInsertDirectly = false, bool isAttributeText = false)
+            {
+                ThrowIfCommitted();
+
+                var fieldName = isAttributeText ? "AttributeText" : "AttributeValue";
+                var motherPid = ResolveSettingMotherPid(attributeKey);
+                var dateTimeNow = ResolveSettingDateTime(attributeName);
+                var safeDomainUser = EscapeSqlLiteral(MyGlobal.DomainUser);
+                var safeAttributeKey = EscapeSqlLiteral(attributeKey);
+                var safeAttributeName = EscapeSqlLiteral(attributeName);
+                var safeAttributeValue = EscapeSqlLiteral(attributeValue);
+
+                if (isInsertDirectly)
+                {
+                    _sqlStatements.Add
+                    (
+                        BuildSettingInsertSql
+                        (
+                            safeDomainUser,
+                            motherPid,
+                            safeAttributeKey,
+                            safeAttributeName,
+                            fieldName,
+                            safeAttributeValue,
+                            dateTimeNow,
+                            false
+                        )
+                    );
+
+                    _settingCount++;
+                    return;
+                }
+
+                _sqlStatements.Add
+                (
+                    BuildSettingUpdateSql
+                    (
+                        safeDomainUser,
+                        motherPid,
+                        safeAttributeKey,
+                        safeAttributeName,
+                        fieldName,
+                        safeAttributeValue,
+                        dateTimeNow
+                    )
+                );
+
+                _sqlStatements.Add
+                (
+                    BuildSettingInsertSql
+                    (
+                        safeDomainUser,
+                        motherPid,
+                        safeAttributeKey,
+                        safeAttributeName,
+                        fieldName,
+                        safeAttributeValue,
+                        dateTimeNow,
+                        true
+                    )
+                );
+
+                _settingCount++;
+            }
+
+            public void QueueNonQuery(string sql)
+            {
+                ThrowIfCommitted();
+
+                if (string.IsNullOrWhiteSpace(sql))
+                {
+                    return;
+                }
+
+                _sqlStatements.Add(sql);
+            }
+
+            public bool Commit()
+            {
+                ThrowIfCommitted();
+
+                if (_sqlStatements.Count == 0)
+                {
+                    _committed = true;
+                    return true;
+                }
+
+                var statements = new List<string>(_sqlStatements);
+
+                var stopwatch = Stopwatch.StartNew();
+
+                TraceLogger.LogStage
+                (
+                    $"Options.SettingBatch.Begin; SettingCount={_settingCount}; StatementCount={statements.Count}"
+                );
+
+                try
+                {
+                    GetRuntime().ExecuteBatchNonQuery
+                    (
+                        DbConnectionString,
+                        DbConnectionPassword,
+                        statements
+                    );
+
+                    stopwatch.Stop();
+                    _committed = true;
+
+                    TraceLogger.LogStage
+                    (
+                        $"Options.SettingBatch.End; Status=Success; SettingCount={_settingCount}; StatementCount={statements.Count}; ElapsedMs={stopwatch.ElapsedMilliseconds}"
+                    );
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    stopwatch.Stop();
+
+                    TraceLogger.LogStage
+                    (
+                        $"Options.SettingBatch.End; Status=Failure; SettingCount={_settingCount}; StatementCount={statements.Count}; ElapsedMs={stopwatch.ElapsedMilliseconds}; ExceptionType={ex.GetType().FullName}"
+                    );
+
+                    MessageBox.Show
+                    (
+                        ExceptionDialogService.BuildMessage(ex),
+                        AppConfigHelper.MessageBoxCaption,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+
+                    return false;
+                }
+            }
+
+            private void ThrowIfCommitted()
+            {
+                if (_committed)
+                {
+                    throw new InvalidOperationException("This setting update batch has already been committed.");
+                }
+            }
+        }
+
+        public static SettingUpdateBatch CreateSettingUpdateBatch()
+        {
+            return new SettingUpdateBatch();
+        }
+
+        private static string ResolveSettingMotherPid(string attributeKey)
+        {
+            if (string.Equals(attributeKey, "GlobalConfig", StringComparison.Ordinal))
+            {
+                return "0";
+            }
+
+            return string.IsNullOrWhiteSpace(DbMotherPid) ? "0" : DbMotherPid;
+        }
+
+        private static string ResolveSettingDateTime(string attributeName)
+        {
+            if (string.Equals(attributeName, "CheckForUpdateDays", StringComparison.Ordinal))
+            {
+                return DateTime.Now.ToString("yyyy/MM/dd 00:00:00", CultureInfo.InvariantCulture);
+            }
+
+            return MyGlobal.DateTimeNow();
+        }
+
+        private static string EscapeSqlLiteral(string value)
+        {
+            return (value ?? string.Empty).Replace("'", "''");
+        }
+
+        private static string BuildSettingUpdateSql(string safeDomainUser, string motherPid, string safeAttributeKey, string safeAttributeName, string fieldName, string safeAttributeValue, string dateTimeNow)
+        {
+            var sbSql = new StringBuilder();
+
+            sbSql.AppendLine("UPDATE SystemConfig");
+
+            if (string.Equals(safeAttributeName, "CheckForUpdateDays", StringComparison.Ordinal))
+            {
+                sbSql.AppendLine($"   SET {fieldName} = '{safeAttributeValue}'");
+            }
+            else
+            {
+                sbSql.AppendLine($"   SET {fieldName} = '{safeAttributeValue}', AttributeDate = '{dateTimeNow}'");
+            }
+
+            sbSql.AppendLine($" WHERE DomainUser = '{safeDomainUser}'");
+            sbSql.AppendLine($"   AND MPID = {motherPid}");
+            sbSql.AppendLine($"   AND AttributeKey = '{safeAttributeKey}'");
+            sbSql.Append($"   AND AttributeName = '{safeAttributeName}'");
+
+            return sbSql.ToString();
+        }
+
+        private static string BuildSettingInsertSql(string safeDomainUser, string motherPid, string safeAttributeKey, string safeAttributeName, string fieldName, string safeAttributeValue, string dateTimeNow, bool onlyWhenMissing)
+        {
+            var sbSql = new StringBuilder();
+
+            sbSql.AppendLine("INSERT INTO SystemConfig");
+            sbSql.AppendLine($"       (DomainUser, MPID, AttributeKey, AttributeName, {fieldName}, AttributeDate)");
+
+            if (!onlyWhenMissing)
+            {
+                sbSql.Append($"VALUES ('{safeDomainUser}', {motherPid}, '{safeAttributeKey}', '{safeAttributeName}', '{safeAttributeValue}', '{dateTimeNow}')");
+                return sbSql.ToString();
+            }
+
+            sbSql.AppendLine($"SELECT '{safeDomainUser}', {motherPid}, '{safeAttributeKey}', '{safeAttributeName}', '{safeAttributeValue}', '{dateTimeNow}'");
+            sbSql.AppendLine(" WHERE NOT EXISTS");
+            sbSql.AppendLine("       (");
+            sbSql.AppendLine("           SELECT 1");
+            sbSql.AppendLine("             FROM SystemConfig");
+            sbSql.AppendLine($"            WHERE DomainUser = '{safeDomainUser}'");
+            sbSql.AppendLine($"              AND MPID = {motherPid}");
+            sbSql.AppendLine($"              AND AttributeKey = '{safeAttributeKey}'");
+            sbSql.AppendLine($"              AND AttributeName = '{safeAttributeName}'");
+            sbSql.Append("       )");
+
+            return sbSql.ToString();
         }
 
         public static string GetSettingValue(string attributeKey, string attributeName, string defaultValue = "")

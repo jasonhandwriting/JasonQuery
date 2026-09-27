@@ -26,6 +26,7 @@ namespace JasonQuery.UI.Forms
     public partial class FindAndReplaceForm : Form
     {
         private bool _autoPosition;
+        private bool _reloadLocalizationProcessed;
         private CharacterRange _searchRange;
         private Scintilla _scintilla;
 
@@ -1249,8 +1250,16 @@ namespace JasonQuery.UI.Forms
             //是否為 Reload Localization 套用？
             if (string.IsNullOrEmpty(MyGlobal.InfoFromReloadLocalization) || !MyGlobal.InfoFromReloadLocalization.StartsWith("ReloadLocalization`", StringComparison.Ordinal))
             {
+                _reloadLocalizationProcessed = false;
                 return;
             }
+
+            if (_reloadLocalizationProcessed)
+            {
+                return;
+            }
+
+            _reloadLocalizationProcessed = true;
 
             //20240224
             if (!string.IsNullOrEmpty(AccessibleDescription))

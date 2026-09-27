@@ -39,15 +39,15 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Builders
                     }
                 case AutoCompleteObjectLookupMode.TableOrView:
                     {
-                        rows = rows.Where(r => r.GetSafeString("SchemaType").StartsWith(QueryEditorSchemaTypeNames.Table, StringComparison.Ordinal) ||
-                                               r.GetSafeString("SchemaType").StartsWith(QueryEditorSchemaTypeNames.View, StringComparison.Ordinal));
+                        rows = rows.Where(r => r.GetSafeString("SchemaType").StartsWith(QueryEditorSchemaTypeNames.Table, StringComparison.Ordinal)
+                                               || r.GetSafeString("SchemaType").StartsWith(QueryEditorSchemaTypeNames.View, StringComparison.Ordinal));
                         break;
                     }
             }
 
             //SQL Server, MySQL：依目前 DB 過濾
-            if ((currentSourceType == DataSourceType.SqlServer || currentSourceType == DataSourceType.MySql) &&
-                 lookupMode != AutoCompleteObjectLookupMode.DatabaseOnly && !string.IsNullOrWhiteSpace(currentDatabase))
+            if ((currentSourceType == DataSourceType.SqlServer || currentSourceType == DataSourceType.MySql)
+                 && lookupMode != AutoCompleteObjectLookupMode.DatabaseOnly && !string.IsNullOrWhiteSpace(currentDatabase))
             {
                 var currentDb = currentDatabase.ToUpperInvariant();
 
