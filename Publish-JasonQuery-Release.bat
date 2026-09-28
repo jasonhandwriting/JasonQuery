@@ -7,6 +7,9 @@ if "%REPOSITORY_ROOT:~-1%"=="\" set "REPOSITORY_ROOT=%REPOSITORY_ROOT:~0,-1%"
 set "SOURCE=%REPOSITORY_ROOT%\JasonQuery\bin\Release"
 set "STAGING=%REPOSITORY_ROOT% x64"
 set "LOCALIZATION_SOURCE=%SOURCE%\localization"
+set "LICENSE_SOURCE=%REPOSITORY_ROOT%\LICENSE.md"
+set "THIRD_PARTY_NOTICES_SOURCE=%REPOSITORY_ROOT%\THIRD-PARTY-NOTICES.md"
+set "THIRD_PARTY_LICENSES_SOURCE=%REPOSITORY_ROOT%\Build\Legal\RuntimeLicenses"
 set "OUTPUT=%USERPROFILE%\Desktop\JasonQuery64.zip"
 set "SEVENZIP=C:\Program Files\7-Zip\7z.exe"
 set "REPOSITORY_VALIDATOR=%REPOSITORY_ROOT%\Build\Validate-Repository.ps1"
@@ -197,6 +200,21 @@ if not exist "%LOCALIZATION_SOURCE%\chinese-chs.xml" (
     exit /B 1
 )
 
+if not exist "%LICENSE_SOURCE%" (
+    echo ERROR: LICENSE.md was not found in: %LICENSE_SOURCE%
+    exit /B 1
+)
+
+if not exist "%THIRD_PARTY_NOTICES_SOURCE%" (
+    echo ERROR: THIRD-PARTY-NOTICES.md was not found in: %THIRD_PARTY_NOTICES_SOURCE%
+    exit /B 1
+)
+
+if not exist "%THIRD_PARTY_LICENSES_SOURCE%\Apache-2.0-LICENSE.txt" (
+    echo ERROR: Third-party runtime licenses were not found in: %THIRD_PARTY_LICENSES_SOURCE%
+    exit /B 1
+)
+
 if not exist "%SEVENZIP%" (
     echo ERROR: 7-Zip was not found in: %SEVENZIP%
     exit /B 1
@@ -240,7 +258,12 @@ if errorlevel 8 (
 exit /B 0
 
 :CleanStaging
-del /F /Q "%STAGING%\JasonQuery.db" >nul 2>&1
+rem Remove all per-user JasonQuery.db security and migration runtime state.
+rem Publication staging must behave like a clean installation, not inherit
+rem the maintainer's Release-output database or security metadata.
+del /F /Q "%STAGING%\JasonQuery.db*" >nul 2>&1
+del /F /Q "%STAGING%\JasonQuery.security.json*" >nul 2>&1
+del /F /Q "%STAGING%\JasonQuery.security-transition.json*" >nul 2>&1
 del /S /F /Q "%STAGING%\*.bak" >nul 2>&1
 del /F /Q "%STAGING%\sqlite3.dll" >nul 2>&1
 del /F /Q "%STAGING%\LinqBridge.dll" >nul 2>&1
@@ -251,7 +274,7 @@ for %%F in ("%STAGING%\*.pdb") do (
 )
 
 for /D %%D in ("%STAGING%\*") do (
-    if /I not "%%~nxD"=="localization" if /I not "%%~nxD"=="zh-Hans" if /I not "%%~nxD"=="zh-Hant" rd /S /Q "%%~fD"
+    if /I not "%%~nxD"=="localization" if /I not "%%~nxD"=="zh-Hans" if /I not "%%~nxD"=="zh-Hant" if /I not "%%~nxD"=="StorageMigration" if /I not "%%~nxD"=="ModernRuntime" rd /S /Q "%%~fD"
 )
 
 if not exist "%STAGING%\localization\english.xml" (
@@ -274,6 +297,42 @@ if not exist "%STAGING%\JasonQuery.exe.config" (
     exit /B 1
 )
 
+if not exist "%STAGING%\StorageMigration\Legacy\JasonQuery.LegacyDbMigration.exe" (
+    echo ERROR: The staging directory is missing StorageMigration\Legacy\JasonQuery.LegacyDbMigration.exe.
+    exit /B 1
+)
+
+if not exist "%STAGING%\StorageMigration\Modern\JasonQuery.ModernDbMigration.exe" (
+    echo ERROR: The staging directory is missing StorageMigration\Modern\JasonQuery.ModernDbMigration.exe.
+    exit /B 1
+)
+
+if not exist "%STAGING%\ModernRuntime\JasonQuery.ModernDbRuntime.exe" (
+    echo ERROR: The staging directory is missing ModernRuntime\JasonQuery.ModernDbRuntime.exe.
+    exit /B 1
+)
+
+for %%F in ("%STAGING%\JasonQuery.db*") do (
+    if exist "%%~fF" (
+        echo ERROR: Database runtime state still exists in staging: %%~nxF
+        exit /B 1
+    )
+)
+
+for %%F in ("%STAGING%\JasonQuery.security.json*") do (
+    if exist "%%~fF" (
+        echo ERROR: Database security metadata runtime state still exists in staging: %%~nxF
+        exit /B 1
+    )
+)
+
+for %%F in ("%STAGING%\JasonQuery.security-transition.json*") do (
+    if exist "%%~fF" (
+        echo ERROR: Database security transition runtime state still exists in staging: %%~nxF
+        exit /B 1
+    )
+)
+
 where /R "%STAGING%" PoorMansTSqlFormatterLib.dll >nul 2>&1
 if not errorlevel 1 (
     echo ERROR: PoorMansTSqlFormatterLib.dll still exists in the staging directory.
@@ -283,6 +342,49 @@ if not errorlevel 1 (
 where /R "%STAGING%" LinqBridge.dll >nul 2>&1
 if not errorlevel 1 (
     echo ERROR: LinqBridge.dll still exists in the staging directory.
+    exit /B 1
+)
+
+call :StageLegalNotices
+if errorlevel 1 exit /B 1
+
+exit /B 0
+
+:StageLegalNotices
+del /F /Q "%STAGING%\LICENSE.md" >nul 2>&1
+del /F /Q "%STAGING%\THIRD-PARTY-NOTICES.md" >nul 2>&1
+if exist "%STAGING%\licenses" rd /S /Q "%STAGING%\licenses"
+
+copy /Y "%LICENSE_SOURCE%" "%STAGING%\LICENSE.md" >nul
+if errorlevel 1 (
+    echo ERROR: Unable to stage LICENSE.md.
+    exit /B 1
+)
+
+copy /Y "%THIRD_PARTY_NOTICES_SOURCE%" "%STAGING%\THIRD-PARTY-NOTICES.md" >nul
+if errorlevel 1 (
+    echo ERROR: Unable to stage THIRD-PARTY-NOTICES.md.
+    exit /B 1
+)
+
+robocopy "%THIRD_PARTY_LICENSES_SOURCE%" "%STAGING%\licenses" /MIR /R:2 /W:1 /NFL /NDL /NJH /NJS /NP
+if errorlevel 8 (
+    echo ERROR: Unable to stage the third-party runtime licenses.
+    exit /B 1
+)
+
+if not exist "%STAGING%\LICENSE.md" (
+    echo ERROR: The staging directory is missing LICENSE.md.
+    exit /B 1
+)
+
+if not exist "%STAGING%\THIRD-PARTY-NOTICES.md" (
+    echo ERROR: The staging directory is missing THIRD-PARTY-NOTICES.md.
+    exit /B 1
+)
+
+if not exist "%STAGING%\licenses\Apache-2.0-LICENSE.txt" (
+    echo ERROR: The staging directory is missing the third-party runtime licenses.
     exit /B 1
 )
 

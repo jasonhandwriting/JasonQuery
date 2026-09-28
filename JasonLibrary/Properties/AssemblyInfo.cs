@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("JasonLibrary")]
-[assembly: AssemblyCopyright("Released under the GNU General Public License version 3")]
+[assembly: AssemblyCopyright("Copyright © 2018-2026 Jason Yu")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

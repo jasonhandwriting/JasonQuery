@@ -1,0 +1,7 @@
+OpenSSL 3.5.8
+
+License: Apache License 2.0
+Upstream project: https://github.com/openssl/openssl
+
+The complete Apache License 2.0 text is included in:
+Apache-2.0-LICENSE.txt

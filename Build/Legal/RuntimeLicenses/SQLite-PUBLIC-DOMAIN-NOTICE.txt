@@ -1,0 +1,6 @@
+SQLite
+
+SQLite is dedicated to the public domain.
+
+Official copyright information:
+https://www.sqlite.org/copyright.html

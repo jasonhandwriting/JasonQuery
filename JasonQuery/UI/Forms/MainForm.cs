@@ -1016,6 +1016,11 @@ namespace JasonQuery.UI.Forms
                 sbResult.AppendLine("C1.Win.C1Ribbon.4.5.2.dll");
             }
 
+            if (!File.Exists($"{Application.StartupPath}\\C1.Win.C1SuperTooltip.4.5.2.dll"))
+            {
+                sbResult.AppendLine("C1.Win.C1SuperTooltip.4.5.2.dll");
+            }
+
             if (!File.Exists($"{Application.StartupPath}\\C1.Win.C1Themes.4.5.2.dll"))
             {
                 sbResult.AppendLine("C1.Win.C1Themes.4.5.2.dll");
@@ -1035,6 +1040,17 @@ namespace JasonQuery.UI.Forms
             {
                 sbResult.AppendLine("C1.Win.C1TrueDBGrid.Excel.4.5.2.dll");
             }
+
+            if (!File.Exists($"{Application.StartupPath}\\C1.Win.Calendar.4.5.2.dll"))
+            {
+                sbResult.AppendLine("C1.Win.Calendar.4.5.2.dll");
+            }
+
+            if (!File.Exists($"{Application.StartupPath}\\C1.Win.Ribbon.4.5.2.dll"))
+            {
+                sbResult.AppendLine("C1.Win.Ribbon.4.5.2.dll");
+            }
+
             if (!File.Exists($"{Application.StartupPath}\\Devart.Data.dll"))
             {
                 sbResult.AppendLine("Devart.Data.dll");

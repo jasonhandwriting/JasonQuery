@@ -1,5 +1,19 @@
 <Project>
   <PropertyGroup>
+    <ComponentOneAssembliesPath
+      Condition="'$(ComponentOneAssembliesPath)' == ''
+              And '$(JASONQUERY_COMPONENTONE_DIR)' != ''">$(JASONQUERY_COMPONENTONE_DIR)</ComponentOneAssembliesPath>
+
+    <ComponentOneAssembliesPath
+      Condition="'$(ComponentOneAssembliesPath)' == ''">$(MSBuildThisFileDirectory).local\ComponentOne</ComponentOneAssembliesPath>
+
+    <!-- Only the JasonQuery application directly imports ComponentOne references. -->
+    <UseJasonQueryComponentOneReferences
+      Condition="'$(MSBuildProjectFile)' == 'JasonQuery.csproj'">true</UseJasonQueryComponentOneReferences>
+
+    <UseJasonQueryComponentOneReferences
+      Condition="'$(UseJasonQueryComponentOneReferences)' == ''">false</UseJasonQueryComponentOneReferences>
+
     <DevartAssembliesPath
       Condition="'$(DevartAssembliesPath)' == ''
               And '$(JASONQUERY_DEVART_DIR)' != ''">$(JASONQUERY_DEVART_DIR)</DevartAssembliesPath>
@@ -48,6 +62,10 @@
   </PropertyGroup>
 
   <Import
+    Project="$(MSBuildThisFileDirectory)Build\ComponentOne.References.props"
+    Condition="'$(UseJasonQueryComponentOneReferences)' == 'true'" />
+
+  <Import
     Project="$(MSBuildThisFileDirectory)Build\Devart.References.props"
     Condition="'$(UseJasonQueryDevartReferences)' == 'true'" />
 
@@ -57,6 +75,46 @@
   <Import
     Project="$(MSBuildThisFileDirectory)Build\LegacySQLite.References.props"
     Condition="'$(UseJasonQueryLegacySQLiteReferences)' == 'true'" />
+
+  <Target Name="ValidateJasonQueryComponentOneAssemblies"
+          BeforeTargets="ResolveReferences"
+          Condition="'$(UseJasonQueryComponentOneReferences)' == 'true'">
+
+    <Message
+      Text="ProjectFile=$(MSBuildProjectFile); UseComponentOne=[$(UseJasonQueryComponentOneReferences)]; ComponentOnePath=[$(ComponentOneAssembliesPath)]"
+      Importance="High" />
+
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.C1Excel.4.5.2.dll')"
+           Text="Missing C1.C1Excel.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.C1Zip.4.5.2.dll')"
+           Text="Missing C1.C1Zip.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.4.5.2.dll')"
+           Text="Missing C1.Win.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.Bitmap.4.5.2.dll')"
+           Text="Missing C1.Win.Bitmap.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.C1Command.4.5.2.dll')"
+           Text="Missing C1.Win.C1Command.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.C1DX.4.5.2.dll')"
+           Text="Missing C1.Win.C1DX.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.C1Input.4.5.2.dll')"
+           Text="Missing C1.Win.C1Input.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.C1Ribbon.4.5.2.dll')"
+           Text="Missing C1.Win.C1Ribbon.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.C1SuperTooltip.4.5.2.dll')"
+           Text="Missing C1.Win.C1SuperTooltip.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.C1Themes.4.5.2.dll')"
+           Text="Missing C1.Win.C1Themes.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.C1Themes.Extended.4.5.2.dll')"
+           Text="Missing C1.Win.C1Themes.Extended.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.C1TrueDBGrid.4.5.2.dll')"
+           Text="Missing C1.Win.C1TrueDBGrid.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.C1TrueDBGrid.Excel.4.5.2.dll')"
+           Text="Missing C1.Win.C1TrueDBGrid.Excel.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.Calendar.4.5.2.dll')"
+           Text="Missing C1.Win.Calendar.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+    <Error Condition="!Exists('$(ComponentOneAssembliesPath)\C1.Win.Ribbon.4.5.2.dll')"
+           Text="Missing C1.Win.Ribbon.4.5.2.dll in $(ComponentOneAssembliesPath)." />
+  </Target>
 
   <Target Name="ValidateJasonQueryDevartAssemblies"
           BeforeTargets="ResolveReferences"

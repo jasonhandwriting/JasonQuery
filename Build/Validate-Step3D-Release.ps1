@@ -21,6 +21,7 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $results = New-Object System.Collections.Generic.List[object]
 $validationStartedAt = Get-Date
+$repositoryRoot = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 
 function Add-ValidationResult
 {
@@ -211,6 +212,9 @@ try
         "System.Data.SQLite.dll",
         "System.Threading.Tasks.Extensions.dll",
         "SQLite.Interop.dll",
+        "StorageMigration\Legacy\JasonQuery.LegacyDbMigration.exe",
+        "StorageMigration\Modern\JasonQuery.ModernDbMigration.exe",
+        "ModernRuntime\JasonQuery.ModernDbRuntime.exe",
         "zh-Hans\Microsoft.SqlServer.TransactSql.ScriptDom.resources.dll",
         "zh-Hant\Microsoft.SqlServer.TransactSql.ScriptDom.resources.dll"
     )
@@ -219,6 +223,44 @@ try
         "zh-Hans/Microsoft.SqlServer.TransactSql.ScriptDom.resources.dll",
         "zh-Hant/Microsoft.SqlServer.TransactSql.ScriptDom.resources.dll"
     )
+
+    $runtimeLicenseRoot = Join-Path $repositoryRoot "Build\Legal\RuntimeLicenses"
+
+    if (!([System.IO.Directory]::Exists($runtimeLicenseRoot)))
+    {
+        throw "Missing third-party runtime license directory: $runtimeLicenseRoot"
+    }
+
+    $runtimeLicenseFiles = @(
+        Get-ChildItem -LiteralPath $runtimeLicenseRoot -Recurse -File |
+            Sort-Object FullName
+    )
+
+    if ($runtimeLicenseFiles.Count -eq 0)
+    {
+        throw "The third-party runtime license directory is empty: $runtimeLicenseRoot"
+    }
+
+    $requiredLegalSourceFiles = @(
+        [PSCustomObject]@{
+            SourcePath = Join-Path $repositoryRoot "LICENSE.md"
+            ZipPath = "LICENSE.md"
+        }
+        [PSCustomObject]@{
+            SourcePath = Join-Path $repositoryRoot "THIRD-PARTY-NOTICES.md"
+            ZipPath = "THIRD-PARTY-NOTICES.md"
+        }
+    )
+
+    foreach ($legalFile in $requiredLegalSourceFiles)
+    {
+        if (!([System.IO.File]::Exists($legalFile.SourcePath)))
+        {
+            throw "Missing required legal source file: $($legalFile.SourcePath)"
+        }
+    }
+
+    Add-ValidationResult "PASS" "Legal source files" "Root license, third-party notice, and $($runtimeLicenseFiles.Count) runtime license/notice files are present."
 
     Write-Host "Validating Release directory: $releaseRoot"
 
@@ -279,6 +321,84 @@ try
         $applicationPath = Get-NormalizedZipPath $applicationEntries[0].FullName
         $separatorIndex = $applicationPath.LastIndexOf("/")
         $zipRoot = if ($separatorIndex -ge 0) { $applicationPath.Substring(0, $separatorIndex + 1) } else { "" }
+
+        foreach ($legalFile in $requiredLegalSourceFiles)
+        {
+            $expectedZipPath = $zipRoot + $legalFile.ZipPath
+            $zipEntry = Assert-SingleZipEntry $fileEntries $expectedZipPath
+            $sourceHash = (Get-FileHash -LiteralPath $legalFile.SourcePath -Algorithm SHA256).Hash
+            $zipStream = $zipEntry.Open()
+
+            try
+            {
+                $zipHash = Get-StreamSha256 $zipStream
+            }
+            finally
+            {
+                $zipStream.Dispose()
+            }
+
+            if (![string]::Equals($sourceHash, $zipHash, [System.StringComparison]::OrdinalIgnoreCase))
+            {
+                throw "Legal source/ZIP hash mismatch: $($legalFile.ZipPath)"
+            }
+
+            Add-ValidationResult "PASS" $legalFile.ZipPath "Present in ZIP and byte-identical to the repository legal source."
+        }
+
+        $expectedRuntimeLicensePaths = New-Object System.Collections.Generic.List[string]
+
+        foreach ($runtimeLicenseFile in $runtimeLicenseFiles)
+        {
+            $relativeLicensePath = Get-RelativeReleasePath $runtimeLicenseRoot $runtimeLicenseFile.FullName
+            $relativeLicensePath = $relativeLicensePath -replace "\\", "/"
+            $expectedRelativePath = "licenses/" + $relativeLicensePath
+            $expectedRuntimeLicensePaths.Add($expectedRelativePath)
+
+            $zipEntry = Assert-SingleZipEntry $fileEntries ($zipRoot + $expectedRelativePath)
+            $sourceHash = (Get-FileHash -LiteralPath $runtimeLicenseFile.FullName -Algorithm SHA256).Hash
+            $zipStream = $zipEntry.Open()
+
+            try
+            {
+                $zipHash = Get-StreamSha256 $zipStream
+            }
+            finally
+            {
+                $zipStream.Dispose()
+            }
+
+            if (![string]::Equals($sourceHash, $zipHash, [System.StringComparison]::OrdinalIgnoreCase))
+            {
+                throw "Runtime license source/ZIP hash mismatch: $expectedRelativePath"
+            }
+        }
+
+        $actualRuntimeLicensePaths = @(
+            $fileEntries |
+                ForEach-Object {
+                    $entryPath = Get-NormalizedZipPath $_.FullName
+                    if ($entryPath.StartsWith($zipRoot, [System.StringComparison]::OrdinalIgnoreCase))
+                    {
+                        $entryPath.Substring($zipRoot.Length)
+                    }
+                    else
+                    {
+                        $entryPath
+                    }
+                } |
+                Where-Object { $_.StartsWith("licenses/", [System.StringComparison]::OrdinalIgnoreCase) } |
+                Sort-Object
+        )
+
+        $expectedRuntimeLicensePathArray = @($expectedRuntimeLicensePaths | Sort-Object)
+
+        if (($actualRuntimeLicensePaths -join "|") -cne ($expectedRuntimeLicensePathArray -join "|"))
+        {
+            throw "The ZIP licenses directory does not exactly match Build\Legal\RuntimeLicenses."
+        }
+
+        Add-ValidationResult "PASS" "ZIP runtime licenses" "$($runtimeLicenseFiles.Count) legal files are present, byte-identical, with no stale or unexpected license entries."
 
         $legacyZipEntries = @(
             $fileEntries | Where-Object {
@@ -389,3 +509,4 @@ Write-Host "- Required formatter and SQLite dependencies are present."
 Write-Host "- PoorMansTSqlFormatterLib.dll is absent."
 Write-Host "- Only zh-Hans and zh-Hant ScriptDOM resources are present."
 Write-Host "- Required files in Release and the publication ZIP are byte-identical."
+Write-Host "- Root legal documents and all canonical runtime license files are present and validated in the publication ZIP."

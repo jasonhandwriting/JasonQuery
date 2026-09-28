@@ -1,0 +1,12 @@
+System.Data.SQLite
+
+The core System.Data.SQLite provider and its associated documentation are
+dedicated to the public domain by their authors.
+
+Files in the upstream System.Data.SQLite.Linq/SQL Generation directory are
+covered separately by the Microsoft Public License (MS-PL). JasonQuery's
+qualified runtime uses the core System.Data.SQLite provider rather than those
+LINQ / Entity Framework components.
+
+Official copyright information:
+https://system.data.sqlite.org/home/doc/trunk/www/copyright.wiki
