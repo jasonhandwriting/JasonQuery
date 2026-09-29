@@ -2,6 +2,71 @@
 
 All notable changes to JasonQuery from version 0.94 onward are documented in this file. Versions 0.27 through 0.93 predate this changelog and are covered by the historical JasonQuery Release Notes.
 
+## [0.96] - 2026-09-29
+
+### New Features
+
+1. Added a JasonQuery.db Recovery Key for disaster recovery
+1.1. Windows Protected mode can now create a Recovery Key in advance. If the original Windows user profile, DPAPI binding, or operating-system environment is no longer available, the Recovery Key can be used to restore access to JasonQuery.db.
+1.2. Recovery verifies the JasonQuery.db and Recovery Key pairing, preserves the existing logical database key, and rebinds it to the current Windows user protection. Recovery does not generate a new database key or re-key the database.
+1.3. Incorrect, mismatched, or tampered Recovery Keys are rejected without incorrectly modifying the existing JasonQuery.db or its security metadata.
+1.4. Recovery Keys can be regenerated or disabled. Regeneration invalidates the previous Recovery Key, and disabling recovery prevents the existing key from being used again.
+1.5. Recovery Keys are specific to Windows Protected mode. Custom Password mode continues to use the user-defined password and does not use a Recovery Key.
+1.6. Recovery also covers supported historical Storage V1 states. After successful recovery, JasonQuery can complete the Storage V1 → Storage V2 upgrade and use the new Storage V2 runtime on subsequent startups.
+2. SQL History - Added automatic cleanup
+2.1. Added SQL History automatic cleanup settings to the General tab in Options. The feature can be enabled independently for each database connection.
+2.2. Automatic cleanup is disabled by default, so existing and newly created connections will not have SQL History deleted unless the user explicitly enables the feature.
+2.3. When enabled, users can retain SQL History for the most recent 30, 60, 90, 180, or 365 days. Entries older than the selected retention period are automatically removed.
+2.4. Automatic cleanup applies only to the current database connection and does not remove SQL History belonging to other connections.
+2.5. Improved the Options settings persistence flow to significantly reduce the time required to apply large numbers of settings and ensure JasonQuery can close normally after SQL History automatic cleanup is enabled.
+
+### Enhancements
+
+1. Modernized JasonQuery.db security and storage architecture
+1.1. New JasonQuery.db storage uses Storage V2 with a SQLCipher 4-compatible format and an isolated Modern SQLite Runtime, protected by an independently generated logical database key.
+1.2. An isolated Legacy Storage V1 compatibility runtime is retained so supported historical JasonQuery.db files can migrate directly to Storage V2. Migration does not create a plaintext staging database, and legacy and modern SQLite runtimes remain separated into different processes.
+1.3. Added an explicit persisted storageFormatVersion contract. JasonQuery selects the correct runtime from the stored format version, fails closed for unknown versions, and does not guess the database format through provider probing or exception fallback.
+1.4. Storage V1 → V2 migration preserves the existing security mode, logical database key, application schema, and saved connection information. A physical storage-format upgrade does not silently change the user's security configuration.
+1.5. Added direct upgrade support for historical Default Password and Custom Password JasonQuery.db files. Legacy Default migrates to Windows Protected mode; Legacy Custom Password preserves the same user password while migrating to the new Custom Password protection. Incorrect passwords or migration failures stop startup without modifying the original JasonQuery.db.
+1.6. Strengthened protection-mode switching and Custom Password changes with validated candidate databases, backups, transition journals, verification, and deterministic recovery for interrupted or ambiguous states.
+1.7. Improved startup errors and backup/transfer guidance when Windows Protected data cannot be unlocked. JasonQuery.db and JasonQuery.security.json should be treated as a matched pair when backing up or moving an installation.
+1.8. Consolidated the JasonQuery.db security and startup-error interfaces, retired legacy security dialogs, and updated English, Traditional Chinese, and Simplified Chinese wording to refer explicitly to JasonQuery.db so the messages are not confused with connected Oracle, PostgreSQL, SQL Server, or MySQL databases.
+2. Improved security for saved database connection passwords
+2.1. Existing DBInfo.Password values are automatically migrated from the historical per-field storage format to the new credential-storage model. Saved Oracle, PostgreSQL, SQL Server, and MySQL credentials remain usable after upgrade without requiring users to re-enter their passwords.
+2.2. Saved connection passwords are now protected by the secured JasonQuery.db itself instead of applying the historical TripleDES/DES, DomainUser binding, and additional encoding to DBInfo.Password. Password writes also use parameterized SQL.
+2.3. Preserved compatibility with the existing .jqc connection import/export format while strengthening temporary-file cleanup on success, wrong-password, and exception paths to reduce the risk of sensitive connection data remaining in the system temporary directory.
+3. Runtime Logging - Improved TraceLogger v2 diagnostics and log management
+3.1. Replaced the single, repeatedly overwritten JasonQuery.log file with a separate UTF-8 BOM CSV file for each logging session, allowing logs to be opened, filtered, and compared directly in Excel.
+3.2. Added a fixed structured schema that records operation start and end events, parent-child relationships, execution duration, memory usage, database and object context, and error details to help identify performance bottlenecks and failure locations.
+3.3. Improved thread-safe logging, nested-operation tracing, and logging lifecycle management. JasonQuery records the session completion status and releases the log file during a normal application shutdown.
+3.4. Added session timestamps and Process IDs to log filenames to prevent collisions between application instances. Matching JasonQuery log files older than seven days are automatically removed, while recent and unrelated files are preserved.
+3.5. Runtime logs do not intentionally record passwords, complete connection strings, SQL parameter values, or returned data rows. Before attaching a log to a public issue, users should still review database names, connection names, object names, and error messages that may appear in diagnostic fields.
+4. Schema Browser - Improved tab content loading with Lazy Load
+4.1. SQL Pane, Table/View Structure, the first 100 View rows, and the first 500 Table rows are now loaded only when the corresponding tab is opened for the first time, avoiding unnecessary queries and data processing.
+4.2. The currently selected tab is preserved when switching database objects. If the new object does not support that tab, such as selecting a Function while Table Data is active, JasonQuery automatically returns to SQL Pane.
+4.3. A successfully loaded object/tab combination is not queried again. If loading fails, the same tab can be retried after the cause has been corrected.
+4.4. A wait message and busy cursor are displayed while JasonQuery retrieves information and prepares the Grid, providing clear feedback that loading is in progress.
+4.5. Selecting a large Table no longer automatically retrieves its first 500 rows, reducing unnecessary waiting time. The data query runs only when the user explicitly opens the Table Data tab.
+4.6. Added separate timing stages for SQL execution, KeyInfo, DataPage, data arrangement, and Grid formatting, while ensuring that an already loaded SQL script remains intact after other content tabs are opened.
+5. Improved Windows version information and error diagnostics
+5.1. Added a concise Windows version name to message-box captions and automatically omitted unavailable database version fields to prevent unnecessary separators.
+5.2. Enhanced TraceLogger session logs with the full Windows edition, version, and build information while retaining the CLR version and process architecture for easier diagnosis of user-reported compatibility issues.
+6. Improved Updater diagnostics and localized layout
+6.1. Added an independent version identifier to the Updater window title so the running Updater build can be identified more easily. The Company Update Folder path field is also positioned dynamically after its localized label to prevent text overlap.
+7. SQL Formatting - Updated the Microsoft SQL ScriptDOM component
+7.1. Updated Microsoft.SqlServer.TransactSql.ScriptDom from version 180.78.1 to 180.102.0 to incorporate maintenance fixes and improve the compatibility and stability of the Microsoft SQL ScriptDOM formatting engine.
+8. Improved JasonQuery.db internal architecture and regression coverage
+8.1. Renamed internal JasonQuery.db security, storage-migration, and recovery classes, enums, namespaces, files, and tests from generic Database* identifiers to the clearer JasonQueryDb* naming, reducing ambiguity with user-connected databases and improving maintainability.
+8.2. Significantly expanded regression coverage for Storage V1/V2 migration, runtime routing, security transitions, Recovery, connection-credential migration, and compatibility. The current complete automated test baseline contains 2,987 tests.
+
+### Bug Fixes
+
+1. SQL Editor - Fixed tab file names when dragging multiple SQL files
+1.1. Fixed an issue where only the last tab displayed the correct file name when multiple SQL files were dragged from Windows File Explorer into the editor. Each newly opened tab now completes file loading and initialization correctly and displays its corresponding SQL file name.
+2. Connection Export
+2.1. Fixed an issue where connection export could fail to use the current selections shown in the connection Grid. JasonQuery now determines the exported connections from the live checkbox state, preventing selected connections from being omitted or an incorrect number of connections from being exported.
+
+
 ## [0.95] - 2026-08-30
 
 ### Enhancements
