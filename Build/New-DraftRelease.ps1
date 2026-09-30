@@ -13,17 +13,109 @@ param
     [Parameter(Mandatory = $true)]
     [string]$Repository,
 
-    [string]$TargetCommitish = "main",
-
-    [switch]$Prerelease
+    [Parameter(Mandatory = $true)]
+    [string]$ExpectedCommitSha
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-if ($TagName -notmatch '^v[0-9]+[.][0-9]+(?:[.][0-9]+)?(?:-[0-9A-Za-z.-]+)?$')
+function Invoke-GhApiJson
 {
-    throw "TagName must look like v0.94.0 or v0.94.0-preview.1."
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Endpoint,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Context
+    )
+
+    $output = @(& $script:ghCommand.Source api $Endpoint 2>&1)
+    $exitCode = $LASTEXITCODE
+
+    if ($exitCode -ne 0)
+    {
+        throw "$Context failed. $($output -join ' ')"
+    }
+
+    try
+    {
+        return (($output -join [Environment]::NewLine) | ConvertFrom-Json)
+    }
+    catch
+    {
+        throw "$Context returned invalid JSON. $($_.Exception.Message)"
+    }
+}
+
+function Resolve-TagCommitSha
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RepositoryName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ReleaseTag
+    )
+
+    $reference = Invoke-GhApiJson `
+        -Endpoint "repos/$RepositoryName/git/ref/tags/$ReleaseTag" `
+        -Context "Reading tag '$ReleaseTag'"
+
+    $objectType = [string]$reference.object.type
+    $objectSha = [string]$reference.object.sha
+    $depth = 0
+
+    while ($objectType -eq "tag")
+    {
+        $depth++
+
+        if ($depth -gt 5)
+        {
+            throw "Tag '$ReleaseTag' has an unexpectedly deep annotated-tag chain."
+        }
+
+        $tagObject = Invoke-GhApiJson `
+            -Endpoint "repos/$RepositoryName/git/tags/$objectSha" `
+            -Context "Resolving annotated tag '$ReleaseTag'"
+
+        $objectType = [string]$tagObject.object.type
+        $objectSha = [string]$tagObject.object.sha
+    }
+
+    if ($objectType -ne "commit" -or $objectSha -notmatch '^[0-9a-fA-F]{40}$')
+    {
+        throw "Tag '$ReleaseTag' does not resolve to a Git commit."
+    }
+
+    return $objectSha.ToLowerInvariant()
+}
+
+if ($TagName -notmatch '^v(\d+)[.](\d+)[.](\d+)$')
+{
+    throw "TagName must use exactly v<major.minor.build>, for example v0.97.0 or v0.97.1."
+}
+
+$major = [int]$Matches[1]
+$minor = [int]$Matches[2]
+$build = [int]$Matches[3]
+$versionText = "$major.$minor.$build"
+$channel = if ($build -eq 0) { "Production" } else { "Test" }
+$expectedPackageName = if ($channel -eq "Production") { "JasonQuery64.zip" } else { "JasonQuery64Test.zip" }
+$releaseTitle = if ($channel -eq "Production")
+{
+    "JasonQuery v$major.$minor"
+}
+else
+{
+    "JasonQuery v$versionText Test"
+}
+
+$expectedCommit = $ExpectedCommitSha.Trim().ToLowerInvariant()
+
+if ($expectedCommit -notmatch '^[0-9a-f]{40}$')
+{
+    throw "ExpectedCommitSha must contain exactly 40 hexadecimal characters."
 }
 
 if ($Repository -notmatch '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$')
@@ -37,6 +129,13 @@ if (![System.Uri]::TryCreate($PackageUrl, [System.UriKind]::Absolute, [ref]$pack
     ![string]::Equals($packageUri.Scheme, "https", [System.StringComparison]::OrdinalIgnoreCase))
 {
     throw "PackageUrl must be an absolute HTTPS URL."
+}
+
+$packageFileName = [System.IO.Path]::GetFileName($packageUri.AbsolutePath)
+
+if (![string]::Equals($packageFileName, $expectedPackageName, [System.StringComparison]::Ordinal))
+{
+    throw "$channel tag $TagName requires package URL ending in $expectedPackageName. Actual file name: $packageFileName"
 }
 
 $expectedSha256 = $PackageSha256.Trim().ToUpperInvariant()
@@ -53,24 +152,33 @@ if ($null -eq $ghCommand)
     throw "GitHub CLI (gh) was not found in PATH."
 }
 
+$script:ghCommand = $ghCommand
+
 if ([string]::IsNullOrWhiteSpace($env:GH_TOKEN))
 {
     throw "GH_TOKEN is not configured."
 }
 
 $temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("JasonQuery-DraftRelease-{0}" -f [Guid]::NewGuid().ToString("N"))
-$packagePath = Join-Path $temporaryRoot "JasonQuery64.zip"
+$packagePath = Join-Path $temporaryRoot $expectedPackageName
 [System.IO.Directory]::CreateDirectory($temporaryRoot) | Out-Null
 
 try
 {
     Write-Host "Checking GitHub repository access..."
-    $repositoryCheckOutput = @(& $ghCommand.Source api "repos/$Repository" --silent 2>&1)
+    [void](Invoke-GhApiJson -Endpoint "repos/$Repository" -Context "Repository access check")
 
-    if ($LASTEXITCODE -ne 0)
+    $tagCommitSha = Resolve-TagCommitSha -RepositoryName $Repository -ReleaseTag $TagName
+
+    if (![string]::Equals($tagCommitSha, $expectedCommit, [System.StringComparison]::Ordinal))
     {
-        throw "Unable to access GitHub repository '$Repository'. $($repositoryCheckOutput -join ' ')"
+        throw "Tag '$TagName' resolves to $tagCommitSha, not the qualified commit $expectedCommit. The tag was not changed."
     }
+
+    Write-Host "Verified existing tag: $TagName -> $tagCommitSha" -ForegroundColor Green
+    Write-Host "Derived channel: $channel"
+    Write-Host "Expected asset: $expectedPackageName"
+    Write-Host "Release title: $releaseTitle"
 
     $previousErrorActionPreference = $ErrorActionPreference
 
@@ -90,7 +198,7 @@ try
         throw "A GitHub release already exists for tag '$TagName'. No existing release was changed."
     }
 
-    Write-Host "Downloading the already validated official package..."
+    Write-Host "Downloading the already validated $channel package..."
     Add-Type -AssemblyName System.Net.Http
     $handler = New-Object System.Net.Http.HttpClientHandler
     $handler.AllowAutoRedirect = $true
@@ -178,29 +286,26 @@ try
 
     Write-Host "Package SHA-256 verified: $actualSha256" -ForegroundColor Green
 
-    $releaseTitle = "JasonQuery " + $TagName.Substring(1)
-    $assetArgument = $packagePath
     $releaseArguments = @(
         "release"
         "create"
         $TagName
-        $assetArgument
+        $packagePath
         "--repo"
         $Repository
-        "--target"
-        $TargetCommitish
+        "--verify-tag"
         "--title"
         $releaseTitle
         "--generate-notes"
         "--draft"
     )
 
-    if ($Prerelease)
+    if ($channel -eq "Test")
     {
         $releaseArguments += "--prerelease"
     }
 
-    Write-Host "Creating a draft release. This workflow never publishes the release..."
+    Write-Host "Creating a draft release from the verified existing tag. This workflow never publishes the release..."
     $createOutput = @(& $ghCommand.Source @releaseArguments 2>&1)
     $createExitCode = $LASTEXITCODE
     $createOutput | ForEach-Object { Write-Host $_ }
@@ -211,7 +316,7 @@ try
     }
 
     Write-Host ""
-    Write-Host "Draft release created. Review its notes, tag, and asset before publishing it manually." -ForegroundColor Green
+    Write-Host "Draft release created. Review its notes, tag, asset, title, and prerelease state before publishing it manually." -ForegroundColor Green
 }
 finally
 {

@@ -15,6 +15,7 @@ set "SEVENZIP=C:\Program Files\7-Zip\7z.exe"
 set "REPOSITORY_VALIDATOR=%REPOSITORY_ROOT%\Build\Validate-Repository.ps1"
 set "PACKAGE_VALIDATOR=%REPOSITORY_ROOT%\Build\Validate-Step3D-Release.ps1"
 set "UPDATE_METADATA_GENERATOR=%REPOSITORY_ROOT%\Build\Update\New-JasonQueryUpdateMetadata.ps1"
+set "PUBLISH_VERSION_VALIDATOR=%REPOSITORY_ROOT%\Build\Update\Confirm-JasonQueryPublishVersion.ps1"
 set "COMPANY_UPDATE_PACKAGE_GENERATOR=%REPOSITORY_ROOT%\Build\Update\New-JasonQueryCompanyUpdatePackage.ps1"
 set "UPDATE_METADATA=%USERPROFILE%\Desktop\jasonquery-update.json"
 set "LEGACY_UPDATE_METADATA=%USERPROFILE%\Desktop\jq.txt"
@@ -45,6 +46,14 @@ echo ============================================================
 set "CURRENT_STEP=Checking prerequisites"
 call :CheckPrerequisites
 if errorlevel 1 goto :Failed
+
+echo [Preflight] Validating Production version/channel...
+set "CURRENT_STEP=Production version/channel preflight"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PUBLISH_VERSION_VALIDATOR%" -Channel "Production" -ApplicationPath "%SOURCE%\JasonQuery.exe"
+if errorlevel 1 (
+    echo ERROR: Production publish version/channel preflight failed.
+    goto :Failed
+)
 
 echo [1/9] Validating the repository...
 set "CURRENT_STEP=Repository validation"
@@ -227,6 +236,11 @@ if not exist "%REPOSITORY_VALIDATOR%" (
 
 if not exist "%PACKAGE_VALIDATOR%" (
     echo ERROR: Step 3D validator was not found in: %PACKAGE_VALIDATOR%
+    exit /B 1
+)
+
+if not exist "%PUBLISH_VERSION_VALIDATOR%" (
+    echo ERROR: Publish version validator was not found in: %PUBLISH_VERSION_VALIDATOR%
     exit /B 1
 )
 

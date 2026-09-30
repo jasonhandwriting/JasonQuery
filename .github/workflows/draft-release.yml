@@ -4,11 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: "Release tag, for example v0.94.0"
+        description: "Existing release tag, for example v0.97.0 or v0.97.1"
+        required: true
+        type: string
+      qualified_commit_sha:
+        description: "Exact 40-character commit SHA qualified on the trusted Windows VM"
         required: true
         type: string
       package_url:
-        description: "HTTPS URL of the already validated official ZIP"
+        description: "HTTPS URL of the already validated Production or Test ZIP"
         required: true
         default: "https://jasonquery.org/JasonQueryUpdate/JasonQuery64.zip"
         type: string
@@ -16,11 +20,6 @@ on:
         description: "Expected SHA-256 from the trusted Windows VM"
         required: true
         type: string
-      prerelease:
-        description: "Mark the draft as a prerelease"
-        required: true
-        default: false
-        type: boolean
       confirm_draft:
         description: "Create a draft release only; publishing remains manual"
         required: true
@@ -47,18 +46,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Download, verify, and create draft
+      - name: Verify existing tag and package, then create draft
         shell: powershell
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_PRERELEASE: ${{ inputs.prerelease }}
         run: |
-          $prerelease = [System.Convert]::ToBoolean($env:RELEASE_PRERELEASE)
-
           .\Build\New-DraftRelease.ps1 `
               -TagName "${{ inputs.tag_name }}" `
+              -ExpectedCommitSha "${{ inputs.qualified_commit_sha }}" `
               -PackageUrl "${{ inputs.package_url }}" `
               -PackageSha256 "${{ inputs.package_sha256 }}" `
-              -Repository "${{ github.repository }}" `
-              -TargetCommitish "main" `
-              -Prerelease:$prerelease
+              -Repository "${{ github.repository }}"

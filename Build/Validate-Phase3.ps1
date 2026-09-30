@@ -190,17 +190,20 @@ Test-TextContract "Public Endpoint Monitor workflow" ".github\workflows\public-e
 Test-TextContract "Draft Release workflow" ".github\workflows\draft-release.yml" @(
     "name: Draft Release",
     "workflow_dispatch:",
+    "qualified_commit_sha:",
     "package_sha256:",
     "confirm_draft:",
     "contents: write",
     "inputs.confirm_draft == true",
+    "-ExpectedCommitSha",
     "Build\New-DraftRelease.ps1",
     "secrets.GITHUB_TOKEN"
 ) @(
     "pull_request_target:",
     "pull_request:",
     "push:",
-    "schedule:"
+    "schedule:",
+    "inputs.prerelease"
 )
 
 Test-TextContract "Public endpoint monitor" "Build\Test-PublicEndpoints.ps1" @(
@@ -227,12 +230,40 @@ Test-TextContract "Company update package generator" "Build\Update\New-JasonQuer
 )
 
 Test-TextContract "Draft release creator" "Build\New-DraftRelease.ps1" @(
+    "ExpectedCommitSha",
     "PackageSha256",
+    "JasonQuery64.zip",
+    "JasonQuery64Test.zip",
     "Get-FileHash",
     "Package SHA-256 mismatch",
+    '"--verify-tag"',
     '"--generate-notes"',
     '"--draft"',
     "This workflow never publishes the release"
+) @(
+    '"--target"',
+    '[switch]$Prerelease'
+)
+
+Test-TextContract "Publish version preflight" "Build\Update\Confirm-JasonQueryPublishVersion.ps1" @(
+    'ValidateSet("Production", "Test")',
+    "major.minor.build",
+    "belongs to the",
+    "Publish version preflight"
+)
+
+Test-TextContract "Production publisher version gate" "Publish-JasonQuery-Release.bat" @(
+    "PUBLISH_VERSION_VALIDATOR",
+    '-Channel "Production"',
+    "-RequireCleanWorkingTree",
+    '-ExpectedBranch "main"'
+)
+
+Test-TextContract "Test publisher version gate" "Publish-JasonQuery-Test.bat" @(
+    "PUBLISH_VERSION_VALIDATOR",
+    '-Channel "Test"',
+    "-RequireCleanWorkingTree",
+    '-ExpectedBranch "main"'
 )
 
 Test-TextContract "Repository Guard integration" ".github\workflows\repository-guard.yml" @(
