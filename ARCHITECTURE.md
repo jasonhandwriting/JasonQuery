@@ -205,15 +205,23 @@ The routing contract explicitly does **not**:
 
 A storage-format/runtime pair is valid only when it matches the defined contract.
 
-### Current production-format marker
+### Current production storage behavior
 
-At the documented baseline, `JasonQueryDbStorageFormatContract.CurrentVersion` is still:
+At the documented baseline, the source still contains:
 
-`LegacyVersion`
+`JasonQueryDbStorageFormatContract.CurrentVersion = LegacyVersion`
 
-Storage V2 (`SqlCipherCompatibility4`) is defined and recognized, and the repository contains migration, validation, routing, and modern-runtime infrastructure for it. However, the source-level `CurrentVersion` marker means contributors must not describe Storage V2 as the default production storage format until that contract is intentionally changed and qualified.
+That constant is a historical compatibility marker and is **not** the production startup selector used by the current application flow.
 
-This distinction is important: **having a qualified V2 migration/runtime implementation is not the same as declaring V2 to be the current production format.**
+The production startup path in `MainForm.DatabaseSecurity.cs` is driven by persisted storage routing and explicit cutover behavior:
+
+- a fresh installation creates `JasonQuery.db` through `ModernSqlCipherDatabaseSecurityFreshInstallDatabase`, persists `ModernVersion`, and configures the isolated Modern SQLCipher runtime;
+- an existing database whose persisted route is already Storage V2 is opened through the Modern SQLCipher runtime;
+- an existing Storage V1 database completes the qualified V1 → V2 migration through `JasonQueryDbStorageRuntimeCutoverCoordinator` before the application configures the Modern SQLCipher runtime.
+
+Therefore, Storage V1 remains a recognized compatibility and migration source format, while the current production target/runtime after successful initialization or upgrade is **Storage V2 / Modern SQLCipher**.
+
+Contributors should not use `CurrentVersion` alone to infer production runtime behavior. Production routing is defined by persisted `storageFormatVersion`, the runtime-routing contract, and the startup/cutover flow described above.
 
 ## `JasonQuery.db` security boundary
 
