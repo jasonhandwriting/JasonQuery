@@ -4,9 +4,11 @@ JasonQuery is a Windows desktop database query and management tool for Oracle, P
 
 The application targets .NET Framework 4.8, C# 8.0, and x64 Windows.
 
-## Repository status
+## Source availability
 
-This repository is being prepared for a future public source release. Some proprietary or separately licensed build dependencies are intentionally not included. A fresh clone will not build until those dependencies have been installed or supplied by the developer.
+JasonQuery is licensed under the MIT License. This repository contains the JasonQuery source code, excluding proprietary or separately licensed build dependencies that cannot be redistributed with the source.
+
+A fresh clone will not build until those dependencies have been installed or supplied by the developer. See [BUILD.md](BUILD.md) for the required build environment and dependency setup.
 
 ## Build environment
 
