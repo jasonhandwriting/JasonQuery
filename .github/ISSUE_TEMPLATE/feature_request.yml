@@ -1,0 +1,73 @@
+name: Feature Request
+description: Suggest a focused improvement to JasonQuery.
+title: "[Feature] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. Please describe the problem or workflow first so the proposal can be evaluated against JasonQuery's current architecture and compatibility boundaries.
+
+        Security vulnerabilities belong in GitHub Private Vulnerability Reporting, not in a public feature request.
+
+  - type: checkboxes
+    id: existing_request
+    attributes:
+      label: Existing request
+      description: Please check whether the same feature has already been requested.
+      options:
+        - label: I searched the existing issues and did not find the same request.
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - SQL editor / query execution
+        - Schema Browser / database objects
+        - Connection management
+        - Oracle
+        - PostgreSQL
+        - SQL Server
+        - MySQL
+        - JasonQuery.db / settings / history
+        - Security / recovery
+        - Update / packaging
+        - UI / usability
+        - Build / contributor tooling
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or workflow
+      description: What limitation, repeated task, or user problem would this feature address?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_behavior
+    attributes:
+      label: Proposed behavior
+      description: Describe the behavior you would like JasonQuery to provide.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or workarounds
+      description: Describe any current workaround or alternative you have considered.
+    validations:
+      required: false
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility or database-specific constraints
+      description: Note any affected database platforms, historical compatibility requirements, security boundaries, or other constraints.
+    validations:
+      required: false
