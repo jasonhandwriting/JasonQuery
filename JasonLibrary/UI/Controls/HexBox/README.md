@@ -9,7 +9,7 @@ related `BitControl` / `BitInfo` components.
 - Original project and author: **Be.HexEditor** by **Bernhard Elbl**
 - Original project site: https://sourceforge.net/projects/hexbox/
 - GitHub mirror used as the source: https://github.com/Pkcs11Admin/Be.HexEditor
-- Vendored upstream revision: `<upstream-commit-sha>`
+- Exact vendored upstream revision: not recorded in this repository.
 - License: MIT License
 
 The complete upstream MIT License is included in

@@ -1,5 +1,19 @@
 ﻿# SQLite Legacy Codec Compatibility Characterization
 
+> **Historical characterization status**
+>
+> This document records the pre-Storage V2 investigation that established the
+> historical SQLite compatibility boundary. It is retained as engineering
+> evidence and should not be read as the current canonical JasonQuery.db
+> architecture.
+>
+> JasonQuery v0.96 uses the later Storage V2 design with an isolated modern
+> SQLCipher-compatible runtime while retaining a separate legacy migration
+> boundary for supported historical databases. The characterization results
+> below remain relevant to that historical compatibility boundary; statements
+> about future provider or codec selection reflect the point in time when this
+> investigation was performed.
+
 ## Purpose
 
 This document records the SQLite provider and legacy encrypted database

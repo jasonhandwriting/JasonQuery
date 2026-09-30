@@ -40,23 +40,21 @@ SOFTWARE.
 ## Native SciLexer Runtime
 
 ScintillaNET uses the native **SciLexer.dll** runtime from the Scintilla
-project. The runtime is included as compressed embedded resources and as
-native files under `x64` and `x86`.
+project. JasonQuery's vendored source includes the x64 runtime as
+`x64/SciLexer.dll.gz`, together with `x64/License.txt` and `x64/version.txt`.
 
 SciLexer is not covered by the MIT license above. Its separate Scintilla and
-SciTE license is included unchanged in `x64/License.txt` and
-`x86/License.txt`; these files must remain with every source or binary
-distribution that includes the corresponding SciLexer runtime.
+SciTE license is included unchanged in `x64/License.txt` and must remain with
+source or binary distributions that include the corresponding SciLexer
+runtime.
 
-JasonQuery officially targets and ships **x64 only**. The `x86` directory is
-retained in this vendored source snapshot for upstream completeness and is not
-part of JasonQuery release packaging.
+JasonQuery officially targets and ships **x64 only**. No x86 SciLexer runtime
+is included in the current JasonQuery repository or release packaging.
 
 ## Distribution Rules
 
-- Keep this README and the applicable `x64/License.txt` or `x86/License.txt`
-  files when redistributing this directory or its native runtime.
+- Keep this README and `x64/License.txt` when redistributing this directory or
+  its native runtime.
 - Preserve the MIT copyright and permission notice for the managed wrapper.
 - Preserve the separate Scintilla and SciTE notice for every included
   `SciLexer.dll` or `SciLexer.dll.gz` resource.
-
