@@ -12,6 +12,18 @@ Before making a substantial change, review:
 - [SECURITY.md](SECURITY.md) — vulnerability reporting and security scope
 - [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) — third-party licensing and attribution
 
+## Maintainer availability and project scope
+
+JasonQuery is currently maintained by a single developer. Issues and pull requests are reviewed on a best-effort basis, so responses may take time and not every request or proposed change can be accepted.
+
+The current project scope is intentionally narrow:
+
+- **Platform:** Windows x64 only. Cross-platform support is not planned.
+- **External databases:** Oracle, PostgreSQL, SQL Server, and MySQL.
+- **Possible future database scope:** SQLite is the only additional database platform that may be considered. This is not a committed roadmap item; additional external database platforms are not currently planned.
+
+Keeping these boundaries explicit helps focus limited maintainer time on reliability, compatibility, security, and the supported database workflows.
+
 ## Reporting a bug
 
 Use the Bug Report issue form for reproducible application defects.
@@ -74,7 +86,7 @@ Important non-repository inputs include:
 - the private JasonQuery `IconLibrary` binary;
 - qualified SQLite / SQLCipher runtime binaries supplied through the documented local dependency boundary.
 
-Contributors are responsible for obtaining proprietary dependencies under appropriate vendor licenses or trials.
+`BUILD.md` documents the technical dependency setup but does not grant rights to proprietary dependencies. Contributors must ensure that their use of ComponentOne and Devart complies with the vendors' current license/EULA terms. Do not assume that the availability of a trial installer means that the trial is an appropriate license for contribution development.
 
 Do not commit:
 

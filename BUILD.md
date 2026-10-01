@@ -6,6 +6,9 @@ A fresh source clone intentionally does **not** contain every binary dependency 
 
 This document describes the build path qualified on a clean Windows x64 virtual machine.
 
+> [!IMPORTANT]
+> **Third-party licensing:** This document describes JasonQuery's technical build setup; it does not grant license rights to proprietary dependencies. ComponentOne and Devart remain subject to their vendors' current license/EULA terms. A trial or evaluation installation must not be treated as a substitute for an appropriate development license. Before developing, compiling, or submitting a contribution that depends on these products, contributors are responsible for confirming that their intended use is permitted by the applicable vendor terms.
+
 ## 1. Supported build environment
 
 Use:
@@ -84,6 +87,15 @@ The default dependency layout is:
 
 ## 3. ComponentOne
 
+ComponentOne licensing is controlled by MESCIUS, not by the JasonQuery license. MESCIUS documents evaluation licensing separately from licensed development/build use. Contributors must review the current ComponentOne licensing terms for their own intended use; JasonQuery's build instructions do not extend or replace those rights.
+
+Official references:
+
+- [ComponentOne evaluation license](https://developer.mescius.com/componentone/docs/license/online-license/evaluation-license)
+- [ComponentOne licensing overview](https://developer.mescius.com/componentone/docs/license/online-license/overview)
+- [ComponentOne licensing FAQs](https://developer.mescius.com/componentone/docs/license/online-license/faqs)
+- [MESCIUS EULA](https://developer.mescius.com/legal/eula)
+
 ### 3.1 Install the qualified WinForms version
 
 Install ComponentOne through the current MESCIUS ComponentOne Control Panel.
@@ -137,7 +149,9 @@ Restart Visual Studio after changing a user- or machine-level environment variab
 
 JasonQuery uses Devart .NET Framework providers for Oracle, PostgreSQL, SQL Server, MySQL, and SQLite.
 
-Install the required dotConnect products from Devart and activate an active trial or an appropriate paid license. The clean-VM qualification used the normal installer path with GAC installation enabled; do not select **Do not install assemblies in the GAC** when reproducing that baseline.
+Install the required dotConnect products from Devart. The clean-VM qualification used the normal installer path with GAC installation enabled; do not select **Do not install assemblies in the GAC** when reproducing that baseline.
+
+Devart licensing is controlled by Devart, not by the JasonQuery license. Devart's current dotConnect EULA describes Trial versions as evaluation-use software and places separate restrictions on development, production, and commercial use. Do not assume that a Trial installation authorizes ongoing contribution development. Contributors are responsible for reviewing the current [Devart dotConnect EULA](https://www.devart.com/dotconnect/eula.html) and obtaining an appropriate license when required for their intended use.
 
 Current Devart installers may start as time-limited trials. JasonQuery's full development baseline is **not** qualified against an Express-only feature set. Some JasonQuery behavior depends on Devart features that are not available in every Express edition, including Oracle-specific functionality used by the application. After a trial expires, use an appropriate Devart license if you need to continue full development and testing.
 
@@ -373,7 +387,9 @@ A source build is not considered fully reproduced if the solution compiles but t
 
 ## 12. Licensing and repository hygiene
 
-ComponentOne and Devart are proprietary third-party dependencies. They are not included in the source repository. Obtain them directly from their vendors under licenses or trials appropriate for your use.
+ComponentOne and Devart are proprietary third-party dependencies. They are not included in the source repository. Obtain them directly from their vendors under licenses appropriate for your intended use.
+
+JasonQuery's MIT license applies only to JasonQuery-owned source and materials. It does not grant, extend, or interpret rights in ComponentOne, Devart, or other proprietary dependencies.
 
 `IconLibrary` is also intentionally excluded from source distribution.
 
