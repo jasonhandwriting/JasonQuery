@@ -170,7 +170,7 @@ Security-, migration-, recovery-, updater-, release-, transaction-, and locking-
 
 See [Tests/README.md](Tests/README.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Repository automation
+## Maintainer automation
 
 GitHub-hosted automation protects the public repository without pretending to replace the trusted Windows release environment.
 
@@ -178,7 +178,7 @@ Current automation includes:
 
 - **Repository Guard** — repository structure, private/generated file guards, solution/configuration contracts, whitespace/line-ending checks, and automation policy;
 - **Secret Scan** — Gitleaks scanning for pull requests, pushes, scheduled history checks, and manual runs;
-- **Public Endpoint Monitor** — official website/TLS/update-metadata/download endpoint checks;
+- **Public Endpoint Monitor** — official website/TLS/update-metadata/download endpoint checks. Manual runs are always available; scheduled runs execute only when the repository variable `PUBLIC_ENDPOINT_MONITOR_ENABLED` is set to `true`;
 - **Dependabot** — dependency maintenance; and
 - **Draft Release** — manual preparation of a GitHub draft release from an already qualified production ZIP and SHA-256.
 
