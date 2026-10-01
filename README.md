@@ -11,6 +11,28 @@ Developed continuously since 2018, JasonQuery combines a practical SQL-centered 
 [![Repository Guard](https://github.com/jasonhandwriting/JasonQuery/actions/workflows/repository-guard.yml/badge.svg)](https://github.com/jasonhandwriting/JasonQuery/actions/workflows/repository-guard.yml)
 [![Secret Scan](https://github.com/jasonhandwriting/JasonQuery/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/jasonhandwriting/JasonQuery/actions/workflows/secret-scan.yml)
 
+## See JasonQuery in action
+
+**JasonQuery can do more than you think.**
+
+The examples below show two small parts of the SQL editor workflow: database-aware assistance while writing SQL, and shortcut-based expansion for SQL that you type repeatedly.
+
+### AutoComplete — database-aware assistance you can inspect
+
+![JasonQuery AutoComplete suggesting database objects while a SQL statement is being written](docs/images/readme/readme-autocomplete.gif)
+
+JasonQuery's database-aware AutoComplete helps reduce manual typing while you build SQL statements, including longer queries that reference multiple database objects.
+
+The SQL that JasonQuery issues to the connected database for AutoComplete can be reviewed in **SQL History**, so the database interaction behind the feature remains visible and can also be inspected when troubleshooting unexpected results.
+
+### AutoReplace — turn short keywords into reusable SQL
+
+![JasonQuery AutoReplace expanding a configured SQL shortcut after the Space key is pressed](docs/images/readme/readme-autoreplace.gif)
+
+AutoReplace expands configured keywords into longer SQL snippets or templates. Type a configured keyword and press **Space** to trigger the replacement.
+
+This makes frequently used SQL patterns faster to enter without repeatedly typing the same text, from short clauses to multi-line query fragments.
+
 ## What JasonQuery provides
 
 JasonQuery is built for day-to-day database work where direct SQL access, clear feedback, and compatibility matter.
@@ -217,6 +239,7 @@ The current repository changelog begins at v0.94. Earlier versions v0.27 through
 | [EVOLUTION.md](EVOLUTION.md) | Project history and major evolution milestones |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Current architecture, runtime boundaries, projects, and invariants |
 | [BUILD.md](BUILD.md) | Fresh-clone build environment and local dependency setup |
+| [FAQ.md](FAQ.md) | Frequently asked questions about use, releases, local data, builds, and reporting |
 | [Tests/README.md](Tests/README.md) | Test organization, execution, and safety rules |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution workflow and validation expectations |
 | [SECURITY.md](SECURITY.md) | Vulnerability reporting and security policy |
