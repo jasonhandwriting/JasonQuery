@@ -284,6 +284,7 @@ The current repository changelog begins at v0.94. Earlier versions v0.27 through
 | [CHANGELOG.md](CHANGELOG.md) | Release-level changes from v0.94 onward |
 | [EVOLUTION.md](EVOLUTION.md) | Project history and major evolution milestones |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Current architecture, runtime boundaries, projects, and invariants |
+| [PHILOSOPHY.md](PHILOSOPHY.md) | Engineering rationale behind JasonQuery's durable design choices |
 | [BUILD.md](BUILD.md) | Fresh-clone build environment and local dependency setup |
 | [FAQ.md](FAQ.md) | Frequently asked questions about use, releases, local data, builds, and reporting |
 | [Tests/README.md](Tests/README.md) | Test organization, execution, and safety rules |

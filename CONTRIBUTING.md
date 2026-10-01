@@ -8,6 +8,7 @@ Before making a substantial change, review:
 
 - [BUILD.md](BUILD.md) — supported build environment and local dependency setup
 - [ARCHITECTURE.md](ARCHITECTURE.md) — project, provider, runtime, migration, and dependency boundaries
+- [PHILOSOPHY.md](PHILOSOPHY.md) — rationale behind the project's durable design and safety choices
 - [Tests/README.md](Tests/README.md) — unit/regression and real-database integration-test policy
 - [SECURITY.md](SECURITY.md) — vulnerability reporting and security scope
 - [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) — third-party licensing and attribution
