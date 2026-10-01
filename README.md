@@ -4,18 +4,33 @@
 
 JasonQuery is a Windows x64 desktop database query and management tool for **Oracle**, **PostgreSQL**, **SQL Server**, and **MySQL**.
 
-Developed continuously since 2018, JasonQuery combines a practical SQL-centered desktop workflow with multi-database support, schema browsing, history, formatting, update integrity, local data protection, diagnostics, and a growing regression-test baseline.
+Developed continuously by a single maintainer since 2018, JasonQuery combines a practical SQL-centered desktop workflow with multi-database support, schema browsing, history, formatting, update integrity, local data protection, diagnostics, and a growing regression-test baseline.
 
 [Website](https://jasonquery.org/) · [GitHub Releases](https://github.com/jasonhandwriting/JasonQuery/releases) · [Changelog](CHANGELOG.md) · [Build from source](BUILD.md) · [Contributing](CONTRIBUTING.md)
 
 [![Repository Guard](https://github.com/jasonhandwriting/JasonQuery/actions/workflows/repository-guard.yml/badge.svg)](https://github.com/jasonhandwriting/JasonQuery/actions/workflows/repository-guard.yml)
 [![Secret Scan](https://github.com/jasonhandwriting/JasonQuery/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/jasonhandwriting/JasonQuery/actions/workflows/secret-scan.yml)
 
+## Quick start
+
+1. Download `JasonQuery64.zip` from [GitHub Releases](https://github.com/jasonhandwriting/JasonQuery/releases) or the [JasonQuery website](https://jasonquery.org/).
+2. Extract the ZIP to a local folder.
+3. Run `JasonQuery.exe`.
+4. Create a connection for Oracle, PostgreSQL, SQL Server, or MySQL and start querying.
+
+JasonQuery requires **Windows x64** and **.NET Framework 4.8**. The qualified source-build environment is documented separately in [BUILD.md](BUILD.md).
+
 ## See JasonQuery in action
 
 **JasonQuery can do more than you think.**
 
-The examples below show two small parts of the SQL editor workflow: database-aware assistance while writing SQL, and shortcut-based expansion for SQL that you type repeatedly.
+The examples below show the overall desktop workflow together with selected editor, safety, and transparency features.
+
+### Full application overview
+
+![JasonQuery main window showing Schema Browser, SQL editor, and query results](docs/images/readme/readme-overview.png)
+
+JasonQuery keeps schema navigation, SQL editing, execution feedback, and result inspection in one Windows desktop workflow.
 
 ### AutoComplete — database-aware assistance you can inspect
 
@@ -32,6 +47,20 @@ The SQL that JasonQuery issues to the connected database for AutoComplete can be
 AutoReplace expands configured keywords into longer SQL snippets or templates. Type a configured keyword and press **Space** to trigger the replacement.
 
 This makes frequently used SQL patterns faster to enter without repeatedly typing the same text, from short clauses to multi-line query fragments.
+
+### Safety and transparency
+
+#### Pending-transaction reminder
+
+![JasonQuery pending-transaction reminder](docs/images/readme/readme-transaction-reminder.png)
+
+JasonQuery keeps Commit/Rollback decisions explicit. When a transaction remains pending, the application periodically reminds the user instead of silently committing database changes.
+
+#### SQL History — inspect JasonQuery-issued SQL
+
+![JasonQuery SQL History showing inspectable SQL issued by the application](docs/images/readme/readme-sql-history.png)
+
+SQL History provides an audit trail for executed SQL and exposes SQL issued by JasonQuery for supported internal workflows, including AutoComplete, so unexpected database interaction can be reviewed during troubleshooting.
 
 ## What JasonQuery provides
 
@@ -53,6 +82,14 @@ Highlights include:
 
 JasonQuery is intentionally conservative around database transactions, upgrades, internal storage, and long-lived user data. Changes in those areas are expected to preserve compatibility or provide an explicit, qualified migration path.
 
+## Why JasonQuery
+
+JasonQuery is designed around a few deliberate operating principles:
+
+- **Source transparency** — JasonQuery-owned source is publicly available, while proprietary and separately licensed build dependencies remain clearly separated from the repository.
+- **Deliberate transaction control** — Commit/Rollback decisions remain explicit, and pending transactions can be surfaced through periodic reminders instead of being hidden behind an automatic commit policy.
+- **Inspectable database activity** — SQL History exposes database SQL from supported JasonQuery workflows, including AutoComplete, so database interaction can be inspected when troubleshooting.
+- **Conservative database safety** — transaction, locking, migration, recovery, updater, and internal-storage behavior are treated as explicit compatibility and qualification boundaries.
 ## Supported database platforms
 
 | Database | JasonQuery support |
@@ -64,6 +101,15 @@ JasonQuery is intentionally conservative around database transactions, upgrades,
 
 The application and its automated integration coverage keep database-specific behavior separate where the platforms differ in SQL, metadata, transactions, locking, and special data types.
 
+## Project scope and maintainer expectations
+
+JasonQuery is currently maintained by a single developer.
+
+- **Platform:** Windows x64 only. Cross-platform support is not planned.
+- **Databases:** Oracle, PostgreSQL, SQL Server, and MySQL are the supported external database platforms. SQLite is the only additional database platform that may be considered in the future; this is not a committed roadmap item. Additional external database platforms are not currently planned.
+- **Issues and pull requests:** reviewed on a best-effort basis. Responses may take time, and not every request or proposed change can be accepted or implemented.
+
+For contributor workflow and validation expectations, see [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Download and releases
 
 Official binary releases are published through:
@@ -75,7 +121,7 @@ The normal production package is `JasonQuery64.zip`.
 
 Production releases may also provide a Company Update package for IT administrators who distribute updates through an internal folder or UNC path.
 
-JasonQuery is **x64 only**. There is no supported x86 build.
+JasonQuery requires **Windows x64** and **.NET Framework 4.8**. There is no supported x86 build.
 
 Release notes and release-package SHA-256 values are published with the corresponding release. See [CHANGELOG.md](CHANGELOG.md) for repository release history from v0.94 onward.
 
@@ -225,7 +271,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the complete project map and architec
 
 ## Project history
 
-JasonQuery has been developed continuously since 2018.
+JasonQuery has been developed continuously by a single maintainer since 2018.
 
 The current repository changelog begins at v0.94. Earlier versions v0.27 through v0.93 were documented through historical JasonQuery Release Notes rather than the present `CHANGELOG.md`.
 
@@ -249,6 +295,8 @@ The current repository changelog begins at v0.94. Earlier versions v0.27 through
 ## Contributing
 
 Contributions are welcome when they preserve the documented build, compatibility, security, and architecture boundaries.
+
+JasonQuery is maintained by a single developer, so issue and pull-request review is handled on a best-effort basis and may take time.
 
 Before opening a pull request:
 
