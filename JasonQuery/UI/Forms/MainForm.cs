@@ -384,7 +384,7 @@ namespace JasonQuery.UI.Forms
                 item.ToolTipText = LocalizationHelper.GetLanguageString(item.ToolTipText, "form", GetType().Name, "menu", name, "ToolTipText");
                 item.ShortcutKeyDisplayString = LocalizationHelper.GetLanguageString(item.ShortcutKeyDisplayString, "form", GetType().Name, "menu", name, "ShortcutKeyDisplayString");
 
-                var textTrimEnd = item.Text.TrimEnd('.');
+                var textTrimEnd = item.Text.TrimEnd('.', '…');
 
                 switch (name)
                 {
@@ -4312,7 +4312,10 @@ namespace JasonQuery.UI.Forms
                                 MyGlobal.CreateTableTabName_Before = MyGlobal.CreateTableTabName;
                             }
 
-                            if (!SpecialTabName.Contains(tabControl1.TabPages[i].Title) && !string.IsNullOrWhiteSpace(tabAccessibleDescription))
+                            var localizationTarget = tabControl1.TabPages[i].Control;
+                            var supportsLocalizationReload = localizationTarget is QueryForm || localizationTarget is OptionsForm || localizationTarget is SchemaBrowserForm || localizationTarget is SqlHistoryForm || localizationTarget is OracleCreateTableWizardForm;
+
+                            if (supportsLocalizationReload && !string.IsNullOrWhiteSpace(tabAccessibleDescription))
                             {
                                 sbInfo.Append($"{tabAccessibleDescription};");
                             }

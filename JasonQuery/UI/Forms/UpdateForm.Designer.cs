@@ -85,7 +85,7 @@
             this.lnkCheck.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.lnkCheck.Location = new System.Drawing.Point(23, 29);
             this.lnkCheck.Name = "lnkCheck";
-            this.lnkCheck.Size = new System.Drawing.Size(472, 16);
+            this.lnkCheck.Size = new System.Drawing.Size(525, 16);
             this.lnkCheck.TabIndex = 3;
             this.lnkCheck.TabStop = true;
             this.lnkCheck.Text = "jasonquery-update.json";
@@ -105,7 +105,7 @@
             this.grpDownloadInfo.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.grpDownloadInfo.Location = new System.Drawing.Point(15, 159);
             this.grpDownloadInfo.Name = "grpDownloadInfo";
-            this.grpDownloadInfo.Size = new System.Drawing.Size(514, 128);
+            this.grpDownloadInfo.Size = new System.Drawing.Size(567, 128);
             this.grpDownloadInfo.TabIndex = 11;
             this.grpDownloadInfo.TabStop = false;
             this.grpDownloadInfo.Text = "Download latest version manually";
@@ -196,7 +196,7 @@
             this.grpCheckInfo.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.grpCheckInfo.Location = new System.Drawing.Point(15, 88);
             this.grpCheckInfo.Name = "grpCheckInfo";
-            this.grpCheckInfo.Size = new System.Drawing.Size(514, 63);
+            this.grpCheckInfo.Size = new System.Drawing.Size(567, 63);
             this.grpCheckInfo.TabIndex = 12;
             this.grpCheckInfo.TabStop = false;
             this.grpCheckInfo.Text = "Check for updates manually";
@@ -205,7 +205,7 @@
             //
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnClose.Location = new System.Drawing.Point(463, 405);
+            this.btnClose.Location = new System.Drawing.Point(516, 405);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(66, 29);
             this.btnClose.TabIndex = 0;
@@ -216,7 +216,7 @@
             //
             // btnCheckForUpdates
             //
-            this.btnCheckForUpdates.Location = new System.Drawing.Point(168, 32);
+            this.btnCheckForUpdates.Location = new System.Drawing.Point(193, 32);
             this.btnCheckForUpdates.Name = "btnCheckForUpdates";
             this.btnCheckForUpdates.Size = new System.Drawing.Size(209, 29);
             this.btnCheckForUpdates.TabIndex = 1;
@@ -235,7 +235,7 @@
             this.grpUpdateNow.ForeColor = System.Drawing.Color.Black;
             this.grpUpdateNow.Location = new System.Drawing.Point(15, 294);
             this.grpUpdateNow.Name = "grpUpdateNow";
-            this.grpUpdateNow.Size = new System.Drawing.Size(514, 100);
+            this.grpUpdateNow.Size = new System.Drawing.Size(567, 100);
             this.grpUpdateNow.TabIndex = 13;
             this.grpUpdateNow.TabStop = false;
             this.grpUpdateNow.Text = "Automatically download and update";
@@ -268,7 +268,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnClose;
-            this.ClientSize = new System.Drawing.Size(543, 448);
+            this.ClientSize = new System.Drawing.Size(596, 448);
             this.Controls.Add(this.grpUpdateNow);
             this.Controls.Add(this.btnCheckForUpdates);
             this.Controls.Add(this.btnClose);

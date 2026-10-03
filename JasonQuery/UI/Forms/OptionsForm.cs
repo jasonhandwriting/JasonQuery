@@ -1,7 +1,6 @@
 ﻿using C1.Win.C1TrueDBGrid;
 using IconLibrary;
 using JasonLibrary.Core;
-using JasonLibrary.Core.Database.Enums;
 using JasonLibrary.Core.Events;
 using JasonLibrary.Core.Text.Formatting;
 using JasonLibrary.Core.Update;
@@ -6191,7 +6190,7 @@ namespace JasonQuery.UI.Forms
             {
                 case UpdateMetadataSourceKind.GitHub:
                     {
-                        rdoUpdateSourceOfficialWebsite.Checked = true;
+                        rdoUpdateSourceGitHub.Checked = true;
                         break;
                     }
                 case UpdateMetadataSourceKind.LocalFolder:
@@ -6211,7 +6210,17 @@ namespace JasonQuery.UI.Forms
 
         private UpdateMetadataSourceKind GetSelectedUpdateMetadataSource()
         {
-            return rdoUpdateSourceLocal.Checked ? UpdateMetadataSourceKind.LocalFolder : UpdateMetadataSourceKind.OfficialWebsite;
+            if (rdoUpdateSourceGitHub.Checked)
+            {
+                return UpdateMetadataSourceKind.GitHub;
+            }
+
+            if (rdoUpdateSourceLocal.Checked)
+            {
+                return UpdateMetadataSourceKind.LocalFolder;
+            }
+
+            return UpdateMetadataSourceKind.OfficialWebsite;
         }
 
         private void UpdateMetadataSource_CheckedChanged(object sender, EventArgs e)

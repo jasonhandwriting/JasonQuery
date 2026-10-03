@@ -5047,12 +5047,14 @@ namespace JasonQuery.UI.Forms
             // 
             // cboSqlFormatterEngine
             // 
+            this.cboSqlFormatterEngine.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cboSqlFormatterEngine.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(234)))), ((int)(((byte)(242)))), ((int)(((byte)(255)))));
             this.cboSqlFormatterEngine.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboSqlFormatterEngine.FormattingEnabled = true;
             this.cboSqlFormatterEngine.Location = new System.Drawing.Point(15, 45);
             this.cboSqlFormatterEngine.Name = "cboSqlFormatterEngine";
-            this.cboSqlFormatterEngine.Size = new System.Drawing.Size(200, 24);
+            this.cboSqlFormatterEngine.Size = new System.Drawing.Size(280, 24);
             this.cboSqlFormatterEngine.TabIndex = 76;
             this.cboSqlFormatterEngine.SelectedIndexChanged += new System.EventHandler(this.cboSqlFormatterEngine_SelectedIndexChanged);
             // 
@@ -7156,7 +7158,6 @@ namespace JasonQuery.UI.Forms
             // rdoUpdateSourceGitHub
             // 
             this.rdoUpdateSourceGitHub.AutoSize = true;
-            this.rdoUpdateSourceGitHub.Enabled = false;
             this.rdoUpdateSourceGitHub.Location = new System.Drawing.Point(20, 76);
             this.rdoUpdateSourceGitHub.Name = "rdoUpdateSourceGitHub";
             this.rdoUpdateSourceGitHub.Size = new System.Drawing.Size(117, 20);

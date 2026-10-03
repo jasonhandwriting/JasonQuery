@@ -93,6 +93,8 @@ namespace JasonQuery.UI.Forms
             InitializeComponent();
 
             _currentSourceType = DatabaseSqlExecutor.CurrentDataSource;
+
+            InitializeRuntimeLocalizationConsumer();
         }
 
         private void Form_Load(object sender, EventArgs e)
@@ -246,7 +248,7 @@ namespace JasonQuery.UI.Forms
 
                 CreateIndexesData();
                 GridHelper.ReplaceColumnCaptionByLanguageInfo(c1GridIndexes, Name, true, "gridheader_index");
-                GridHelper.ReplaceColumnCaptionByLanguageInfo(c1GridIndexExpressions, Name, true, "gridheader_indexexpression");
+                GridHelper.ReplaceColumnCaptionByLanguageInfo(c1GridIndexExpressions, Name, true, "gridheader_IndexExpression");
                 ResizeColumnWidth("INDEX");
                 ResizeColumnWidth("INDEXEXPRESSION");
 
@@ -317,6 +319,18 @@ namespace JasonQuery.UI.Forms
                 GridHelper.SetGridVisualStyle(c1GridForeignKeyReferencedTable, 10);
                 GridHelper.SetGridVisualStyle(c1GridCheck);
                 GridHelper.SetGridVisualStyle(c1GridCheck, 10);
+
+                GridHelper.ResizeGridColumnWidth(c1GridColumn);
+                GridHelper.ResizeGridColumnWidth(c1GridIndexes);
+                GridHelper.ResizeGridColumnWidth(c1GridIndexExpressions);
+                GridHelper.ResizeGridColumnWidth(c1GridPrimaryKey);
+                GridHelper.ResizeGridColumnWidth(c1GridPrimaryKeyConstraints);
+                GridHelper.ResizeGridColumnWidth(c1GridUnique);
+                GridHelper.ResizeGridColumnWidth(c1GridUniqueConstraints);
+                GridHelper.ResizeGridColumnWidth(c1GridForeignKey);
+                GridHelper.ResizeGridColumnWidth(c1GridForeignKeyThisTable);
+                GridHelper.ResizeGridColumnWidth(c1GridForeignKeyReferencedTable);
+                GridHelper.ResizeGridColumnWidth(c1GridCheck);
 
                 #region 依資料庫版本，調整欄位名稱的最大長度
                 var databaseVersion = DatabaseSqlExecutor.DbServerVersion;

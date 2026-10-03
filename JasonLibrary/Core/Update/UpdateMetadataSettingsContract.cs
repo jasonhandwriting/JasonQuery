@@ -26,8 +26,7 @@ namespace JasonLibrary.Core.Update
         public static UpdateMetadataSourceKind ParseSource(string value)
         {
             if (Enum.TryParse(value, true, out UpdateMetadataSourceKind source)
-                && Enum.IsDefined(typeof(UpdateMetadataSourceKind), source)
-                && source != UpdateMetadataSourceKind.GitHub)
+                && Enum.IsDefined(typeof(UpdateMetadataSourceKind), source))
             {
                 return source;
             }

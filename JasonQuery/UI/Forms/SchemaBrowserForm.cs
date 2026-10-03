@@ -369,7 +369,7 @@ namespace JasonQuery.UI.Forms
             lblPosition2.Text = lblColumnFilterData.Text;
             txtColumnFilter.Location = new Point(lblPosition2.Left + lblPosition2.Width + 3, txtColumnFilter.Top);
             txtColumnFilter.Size = new Size(c1GridColumns.Width - lblPosition2.Width - 4, 21);
-            GridHelper.ReplaceColumnCaptionByLanguageInfo(c1GridColumns, GetType().Name, true, "gridheader"); //20241031
+            ApplyLocalizedGridColumnCaptions(c1GridColumns, "gridheader"); //20241031
 
             AutoResizeGridColumnWidthForColumns();
             ArrangeDataFindControls();
@@ -573,8 +573,8 @@ namespace JasonQuery.UI.Forms
             GridHelper.SetGridVisualStyle(c1GridColumns);
 
             //20260607 依語系內容變更欄位名稱
-            GridHelper.ReplaceColumnCaptionByLanguageInfo(c1GridStructure, GetType().Name);
-            GridHelper.ReplaceColumnCaptionByLanguageInfo(c1GridColumns, GetType().Name, true, "gridheader");
+            ApplyLocalizedGridColumnCaptions(c1GridStructure, "gridheader");
+            ApplyLocalizedGridColumnCaptions(c1GridColumns, "gridheader");
 
             GridFontAndBackColor();
             GridZoom();
@@ -588,6 +588,28 @@ namespace JasonQuery.UI.Forms
             Cursor = Cursors.Default;
         }
 
+        private void ApplyLocalizedGridColumnCaptions(C1TrueDBGrid grid, string gridHeader)
+        {
+            foreach (C1DataColumn column in grid.Columns)
+            {
+                var localizationId = column.DataField;
+
+                if (string.IsNullOrEmpty(localizationId))
+                {
+                    continue;
+                }
+
+                column.Caption = LocalizationHelper.GetLanguageString
+                (
+                    column.Caption,
+                    "form",
+                    GetType().Name,
+                    gridHeader,
+                    localizationId,
+                    "Text"
+                );
+            }
+        }
         private void CreateTableSchemaTable() //點選到 Tables 時，顯示在右側的 Grid
         {
             _dtStructuredSchemaTable = new DataTable();
