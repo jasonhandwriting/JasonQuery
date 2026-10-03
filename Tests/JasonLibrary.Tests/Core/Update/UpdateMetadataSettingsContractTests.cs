@@ -10,23 +10,13 @@ namespace JasonLibrary.Tests.Core.Update
         [TestCategory("Unit")]
         [TestCategory("Update")]
         [DataRow("OfficialWebsite", UpdateMetadataSourceKind.OfficialWebsite)]
+        [DataRow("GitHub", UpdateMetadataSourceKind.GitHub)]
         [DataRow("LocalFolder", UpdateMetadataSourceKind.LocalFolder)]
         public void ParseSource_EnabledValue_ReturnsExpected(string value, UpdateMetadataSourceKind expected)
         {
             Assert.AreEqual(expected, UpdateMetadataSettingsContract.ParseSource(value));
         }
 
-        [TestMethod]
-        [TestCategory("Unit")]
-        [TestCategory("Update")]
-        public void ParseSource_LegacyGitHubValue_ReturnsOfficialWebsite()
-        {
-            Assert.AreEqual
-            (
-                UpdateMetadataSourceKind.OfficialWebsite,
-                UpdateMetadataSettingsContract.ParseSource("github")
-            );
-        }
 
         [TestMethod]
         [TestCategory("Unit")]

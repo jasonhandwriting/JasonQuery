@@ -9,6 +9,9 @@ namespace JasonQuery.UI.Forms
 {
     public partial class SchemaBrowserForm
     {
+        private int _gridZoomBaseRowHeight = -1;
+        private int _gridZoomBaseRecordSelectorWidth = -1;
+
         private void AutoResizeGridColumnWidth(bool bSchemaBrowser = true)
         {
             _isColumnAutoResizing = true;
@@ -122,8 +125,18 @@ namespace JasonQuery.UI.Forms
         {
             const int fontSize = 11;
             const float pcnt = 0.9F;
-            var rowHeight = c1GridSchemaBrowser.RowHeight;
-            var recordSelectorWidth = c1GridSchemaBrowser.RecordSelectorWidth;
+            if (_gridZoomBaseRowHeight <= 0)
+            {
+                _gridZoomBaseRowHeight = c1GridSchemaBrowser.RowHeight;
+            }
+
+            if (_gridZoomBaseRecordSelectorWidth <= 0)
+            {
+                _gridZoomBaseRecordSelectorWidth = c1GridSchemaBrowser.RecordSelectorWidth;
+            }
+
+            var rowHeight = _gridZoomBaseRowHeight;
+            var recordSelectorWidth = _gridZoomBaseRecordSelectorWidth;
 
             //adjust row height
             c1GridSchemaBrowser.RowHeight = (int)(rowHeight * pcnt) + 5;
