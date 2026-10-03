@@ -22,9 +22,7 @@ JasonQuery requires **Windows x64** and **.NET Framework 4.8**. The qualified so
 
 ## See JasonQuery in action
 
-**JasonQuery can do more than you think.**
-
-The examples below show the overall desktop workflow together with selected editor, safety, and transparency features.
+The examples below highlight JasonQuery's desktop workflow together with selected editor, safety, and transparency features.
 
 ### Full application overview
 
@@ -56,11 +54,13 @@ This makes frequently used SQL patterns faster to enter without repeatedly typin
 
 JasonQuery keeps Commit/Rollback decisions explicit. When a transaction remains pending, the application periodically reminds the user instead of silently committing database changes.
 
-#### SQL History — inspect JasonQuery-issued SQL
+#### SQL History — see what was sent to the database
 
-![JasonQuery SQL History showing inspectable SQL issued by the application](docs/images/readme/readme-sql-history.png)
+![JasonQuery SQL History showing user-executed SQL and SQL issued by AutoComplete](docs/images/readme/readme-sql-history.gif)
 
-SQL History provides an audit trail for executed SQL and exposes SQL issued by JasonQuery for supported internal workflows, including AutoComplete, so unexpected database interaction can be reviewed during troubleshooting.
+SQL History keeps executed SQL visible and also exposes SQL issued by JasonQuery for supported internal workflows such as AutoComplete.
+
+This makes it easier to see what was sent to the database and to inspect the SQL behind a feature when troubleshooting unexpected results or database activity.
 
 ## What JasonQuery provides
 
