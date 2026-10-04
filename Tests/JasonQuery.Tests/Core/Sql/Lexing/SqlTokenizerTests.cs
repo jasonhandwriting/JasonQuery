@@ -402,6 +402,93 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
             Assert.IsTrue(result.IsInsideKeywordSuppressedText(position));
         }
 
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlLexing")]
+        [TestCategory("SqlLexingMigration")]
+        public void Tokenize_MySqlDashCommentCompatibilityOption_AllowsDashCommentWithoutWhitespace()
+        {
+            const string sql = "--FOR UPDATE\r\nSELECT 1";
+
+            var result = SqlTokenizer.Tokenize
+            (
+                sql,
+                DataSourceType.MySql,
+                SqlTokenizerOptions.MySqlDashCommentWithoutWhitespace
+            );
+
+            Assert.AreEqual(SqlTokenKind.LineComment, result.Tokens[0].Kind);
+            Assert.AreEqual("--FOR UPDATE", result.Tokens[0].Text);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlLexing")]
+        [TestCategory("SqlLexingMigration")]
+        public void Tokenize_MySqlHashInsideWordCompatibilityOption_StartsCommentAtHash()
+        {
+            const string sql = "SELECT abc#FOR UPDATE\r\nSELECT 1";
+
+            var result = SqlTokenizer.Tokenize
+            (
+                sql,
+                DataSourceType.MySql,
+                SqlTokenizerOptions.MySqlHashStartsCommentInsideWord
+            );
+
+            Assert.IsTrue(result.Tokens.Any(token => token.Kind == SqlTokenKind.Word && token.Text == "abc"));
+            Assert.IsTrue(result.Tokens.Any(token => token.Kind == SqlTokenKind.LineComment && token.Text == "#FOR UPDATE"));
+            Assert.IsFalse(result.Tokens.Any(token => token.IsWord("UPDATE")));
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlLexing")]
+        [TestCategory("SqlLexingMigration")]
+        public void Tokenize_WithoutForeignDelimitedIdentifierOption_AllowsNestedStringToRemainProtected()
+        {
+            const string sql = "SELECT ['FOR UPDATE'] FROM dual";
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.Oracle, SqlTokenizerOptions.None);
+
+            Assert.IsFalse(result.Tokens.Any(token => token.Kind == SqlTokenKind.DelimitedIdentifier && token.Text.StartsWith("[")));
+            Assert.AreEqual(SqlTokenKind.StringLiteral, FindToken(result, "'FOR UPDATE'").Kind);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlLexing")]
+        [TestCategory("SqlLexingMigration")]
+        public void Tokenize_MySqlDoubleQuoteBackslashOption_IsConfigurable()
+        {
+            const string sql = "SELECT \"a\\\" FOR UPDATE\" FROM t";
+
+            var defaultResult = SqlTokenizer.Tokenize(sql, DataSourceType.MySql);
+            var compatibilityResult = SqlTokenizer.Tokenize(sql, DataSourceType.MySql, SqlTokenizerOptions.None);
+
+            Assert.IsFalse(defaultResult.Tokens.Any(token => token.IsWord("UPDATE")));
+            Assert.IsTrue(compatibilityResult.Tokens.Any(token => token.IsWord("UPDATE")));
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlLexing")]
+        [TestCategory("SqlLexingMigration")]
+        public void Tokenize_MySqlBacktickBackslashOption_IsConfigurable()
+        {
+            const string sql = "SELECT `a\\` FOR UPDATE` FROM t";
+
+            var escapedResult = SqlTokenizer.Tokenize
+            (
+                sql,
+                DataSourceType.MySql,
+                SqlTokenizerOptions.MySqlBacktickIdentifierAllowsBackslashEscape
+            );
+
+            var unescapedResult = SqlTokenizer.Tokenize(sql, DataSourceType.MySql, SqlTokenizerOptions.None);
+
+            Assert.IsFalse(escapedResult.Tokens.Any(token => token.IsWord("UPDATE")));
+            Assert.IsTrue(unescapedResult.Tokens.Any(token => token.IsWord("UPDATE")));
+        }
         private static SqlToken FindWord(SqlTokenizationResult result, string word)
         {
             var token = result.Tokens.FirstOrDefault(candidate => candidate.IsWord(word));
