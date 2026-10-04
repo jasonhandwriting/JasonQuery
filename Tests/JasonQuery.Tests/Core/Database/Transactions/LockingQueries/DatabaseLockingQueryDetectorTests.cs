@@ -213,6 +213,35 @@ namespace JasonQuery.Tests.Core.Database.Transactions.LockingQueries
             );
         }
 
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("LockingQuery")]
+        [TestCategory("SqlLexingMigration")]
+        [DataRow("Oracle", "SELECT q'[FOR UPDATE]' FROM dual")]
+        [DataRow("Oracle", "SELECT q'[x' FOR UPDATE y]' FROM dual")]
+        [DataRow("Oracle", "SELECT ['FOR UPDATE'] FROM dual")]
+        [DataRow("Oracle", "SELECT ';' FROM dual FOR UPDATE; SELECT 1 FROM dual")]
+        [DataRow("PostgreSql", "SELECT $$FOR UPDATE$$")]
+        [DataRow("PostgreSql", "SELECT $tag$FOR NO KEY UPDATE; (x)$tag$")]
+        [DataRow("PostgreSql", "/* outer /* FOR UPDATE */ outer */ SELECT 1")]
+        [DataRow("PostgreSql", "SELECT * FROM `FOR UPDATE`")]
+        [DataRow("MySql", "SELECT 1--FOR UPDATE\r\nSELECT 2")]
+        [DataRow("MySql", "SELECT abc#FOR UPDATE\r\nSELECT 2")]
+        [DataRow("MySql", "SELECT \"a\\\" FOR UPDATE\" FROM a_test")]
+        [DataRow("MySql", "SELECT `a\\` FOR UPDATE` FROM a_test")]
+        [DataRow("MySql", "SELECT 'FOR UPDATE' FROM a_test")]
+        [DataRow("SqlServer", "SELECT [WITH (UPDLOCK)] FROM dbo.a_test")]
+        [DataRow("SqlServer", "SELECT `'WITH (UPDLOCK)'`")]
+        [DataRow("SqlServer", "SELECT /* WITH (XLOCK) */ 1")]
+        [DataRow("PostgreSql", "SELECT 'unterminated FOR UPDATE")]
+        public void SharedTokenizerMasking_MatchesLegacyMasking(string dataSourceTypeName, string sql)
+        {
+            var dataSourceType = ParseDataSourceType(dataSourceTypeName);
+            var shared = DatabaseLockingQueryDetector.CreateSearchableSqlForParityTest(dataSourceType, sql);
+            var legacy = DatabaseLockingQueryDetector.CreateLegacySearchableSqlForParityTest(dataSourceType, sql);
+
+            Assert.AreEqual(legacy, shared);
+        }
         private static DataSourceType ParseDataSourceType(string value)
         {
             return (DataSourceType)Enum.Parse(typeof(DataSourceType), value, ignoreCase: true);

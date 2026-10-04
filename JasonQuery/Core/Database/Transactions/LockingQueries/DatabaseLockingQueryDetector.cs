@@ -1,4 +1,5 @@
 ﻿using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Sql.Lexing;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -21,6 +22,8 @@ namespace JasonQuery.Core.Database.Transactions.LockingQueries
         private static readonly Regex SqlServerWithHintRegex = CreateRegex(@"\bWITH\s*\((?<Hints>[^)]*)\)");
         private static readonly Regex SqlServerHintTokenRegex = CreateRegex(@"\b(UPDLOCK|XLOCK|HOLDLOCK|TABLOCKX|SERIALIZABLE)\b");
 
+        private const SqlTokenizerOptions LockingQueryTokenizerOptions = SqlTokenizerOptions.MySqlDashCommentWithoutWhitespace | SqlTokenizerOptions.MySqlBacktickIdentifierAllowsBackslashEscape | SqlTokenizerOptions.MySqlHashStartsCommentInsideWord;
+
         public static DatabaseLockingQueryDetectionResult Detect(DataSourceType dataSourceType, string sql)
         {
             if (string.IsNullOrWhiteSpace(sql))
@@ -28,7 +31,7 @@ namespace JasonQuery.Core.Database.Transactions.LockingQueries
                 return DatabaseLockingQueryDetectionResult.NotDetected();
             }
 
-            var searchableSql = MaskNonExecutableText(sql, dataSourceType);
+            var searchableSql = CreateSearchableSql(sql, dataSourceType);
 
             searchableSql = LimitToFirstExecutableStatement(searchableSql);
 
@@ -36,48 +39,43 @@ namespace JasonQuery.Core.Database.Transactions.LockingQueries
             {
                 case DataSourceType.Oracle:
                     {
-                        return DetectFirst(sql, searchableSql,
-                                           new[]
-                                           {
-                                               CreateRule(
-                                                   OracleForUpdateRegex,
-                                                   DatabaseLockingQueryKind.ForUpdate)
-                                           });
+                        return DetectFirst
+                        (
+                            sql, searchableSql,
+                            new[]
+                            {
+                                CreateRule(OracleForUpdateRegex, DatabaseLockingQueryKind.ForUpdate)
+                            }
+                        );
                     }
                 case DataSourceType.PostgreSql:
                     {
-                        return DetectFirst(sql, searchableSql,
-                                           new[]
-                                           {
-                                               CreateRule(
-                                                   PostgreSqlForNoKeyUpdateRegex,
-                                                   DatabaseLockingQueryKind.ForNoKeyUpdate),
-                                               CreateRule(
-                                                   PostgreSqlForKeyShareRegex,
-                                                   DatabaseLockingQueryKind.ForKeyShare),
-                                               CreateRule(
-                                                   PostgreSqlForUpdateRegex,
-                                                   DatabaseLockingQueryKind.ForUpdate),
-                                               CreateRule(
-                                                   PostgreSqlForShareRegex,
-                                                   DatabaseLockingQueryKind.ForShare)
-                                           });
+                        return DetectFirst
+                        (
+                            sql,
+                            searchableSql,
+                            new[]
+                            {
+                                CreateRule(PostgreSqlForNoKeyUpdateRegex, DatabaseLockingQueryKind.ForNoKeyUpdate),
+                                CreateRule(PostgreSqlForKeyShareRegex, DatabaseLockingQueryKind.ForKeyShare),
+                                CreateRule(PostgreSqlForUpdateRegex, DatabaseLockingQueryKind.ForUpdate),
+                                CreateRule(PostgreSqlForShareRegex, DatabaseLockingQueryKind.ForShare)
+                            }
+                        );
                     }
                 case DataSourceType.MySql:
                     {
-                        return DetectFirst(sql, searchableSql,
-                                           new[]
-                                           {
-                                               CreateRule(
-                                                   MySqlLockInShareModeRegex,
-                                                   DatabaseLockingQueryKind.LockInShareMode),
-                                               CreateRule(
-                                                   MySqlForUpdateRegex,
-                                                   DatabaseLockingQueryKind.ForUpdate),
-                                               CreateRule(
-                                                   MySqlForShareRegex,
-                                                   DatabaseLockingQueryKind.ForShare)
-                                           });
+                        return DetectFirst
+                        (
+                            sql,
+                            searchableSql,
+                            new[]
+                            {
+                                CreateRule(MySqlLockInShareModeRegex, DatabaseLockingQueryKind.LockInShareMode),
+                                CreateRule(MySqlForUpdateRegex, DatabaseLockingQueryKind.ForUpdate),
+                                CreateRule(MySqlForShareRegex, DatabaseLockingQueryKind.ForShare)
+                            }
+                        );
                     }
                 case DataSourceType.SqlServer:
                     {
@@ -252,6 +250,39 @@ namespace JasonQuery.Core.Database.Transactions.LockingQueries
             return new string(chars);
         }
 
+        private static string CreateSearchableSql(string sql, DataSourceType dataSourceType)
+        {
+            if (string.IsNullOrEmpty(sql))
+            {
+                return string.Empty;
+            }
+
+            var chars = sql.ToCharArray();
+            var tokenizationResult = SqlTokenizer.Tokenize(sql, dataSourceType, LockingQueryTokenizerOptions);
+
+            foreach (var token in tokenizationResult.Tokens)
+            {
+                if (!token.SuppressesKeywordMatching)
+                {
+                    continue;
+                }
+
+                MaskRange(chars, token.Start, token.EndExclusive);
+            }
+
+            return new string(chars);
+        }
+
+        internal static string CreateSearchableSqlForParityTest(DataSourceType dataSourceType, string sql)
+        {
+            return CreateSearchableSql(sql ?? string.Empty, dataSourceType);
+        }
+
+        internal static string CreateLegacySearchableSqlForParityTest(DataSourceType dataSourceType, string sql)
+        {
+            return MaskNonExecutableText(sql ?? string.Empty, dataSourceType);
+        }
+
         private static string MaskNonExecutableText(string sql, DataSourceType dataSourceType)
         {
             var chars = sql.ToCharArray();
@@ -316,7 +347,6 @@ namespace JasonQuery.Core.Database.Transactions.LockingQueries
         private static bool TryMaskLineComment(char[] chars, ref int index, DataSourceType dataSourceType)
         {
             var isDashComment = index + 1 < chars.Length && chars[index] == '-' && chars[index + 1] == '-';
-
             var isMySqlHashComment = dataSourceType == DataSourceType.MySql && chars[index] == '#';
 
             if (!isDashComment && !isMySqlHashComment)
@@ -350,6 +380,7 @@ namespace JasonQuery.Core.Database.Transactions.LockingQueries
                     MaskCharacter(chars, index + 1);
                     index += 2;
                     depth++;
+
                     continue;
                 }
 
@@ -503,6 +534,7 @@ namespace JasonQuery.Core.Database.Transactions.LockingQueries
                     MaskCharacter(chars, index);
                     MaskCharacter(chars, index + 1);
                     index += 2;
+
                     continue;
                 }
 
@@ -510,6 +542,7 @@ namespace JasonQuery.Core.Database.Transactions.LockingQueries
                 {
                     MaskCharacter(chars, index);
                     index++;
+
                     continue;
                 }
 
@@ -518,11 +551,13 @@ namespace JasonQuery.Core.Database.Transactions.LockingQueries
                     MaskCharacter(chars, index);
                     MaskCharacter(chars, index + 1);
                     index += 2;
+
                     continue;
                 }
 
                 MaskCharacter(chars, index);
                 index++;
+
                 break;
             }
         }

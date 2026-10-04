@@ -6,7 +6,14 @@ namespace JasonQuery.Core.Sql.Lexing
 {
     internal static class SqlTokenizer
     {
+        private const SqlTokenizerOptions DefaultOptions = SqlTokenizerOptions.RecognizeForeignDelimitedIdentifiers | SqlTokenizerOptions.MySqlBacktickIdentifierAllowsBackslashEscape | SqlTokenizerOptions.MySqlDoubleQuotedTextAllowsBackslashEscape;
+
         public static SqlTokenizationResult Tokenize(string sql, DataSourceType dataSourceType)
+        {
+            return Tokenize(sql, dataSourceType, DefaultOptions);
+        }
+
+        public static SqlTokenizationResult Tokenize(string sql, DataSourceType dataSourceType, SqlTokenizerOptions options)
         {
             var tokens = new List<SqlToken>();
 
@@ -26,7 +33,7 @@ namespace JasonQuery.Core.Sql.Lexing
                     continue;
                 }
 
-                if (TryReadLineComment(sql, dataSourceType, ref index, depth, tokens))
+                if (TryReadLineComment(sql, dataSourceType, options, ref index, depth, tokens))
                 {
                     continue;
                 }
@@ -63,18 +70,18 @@ namespace JasonQuery.Core.Sql.Lexing
                     continue;
                 }
 
-                if (TryReadDelimitedIdentifier(sql, dataSourceType, ref index, depth, tokens))
+                if (TryReadDelimitedIdentifier(sql, dataSourceType, options, ref index, depth, tokens))
                 {
                     continue;
                 }
 
-                if (IsWordCharacter(sql[index]))
+                if (IsWordCharacter(sql[index], dataSourceType, options))
                 {
                     var start = index;
 
                     index++;
 
-                    while (index < sql.Length && IsWordCharacter(sql[index]))
+                    while (index < sql.Length && IsWordCharacter(sql[index], dataSourceType, options))
                     {
                         index++;
                     }
@@ -108,7 +115,7 @@ namespace JasonQuery.Core.Sql.Lexing
             return new SqlTokenizationResult(tokens);
         }
 
-        private static bool TryReadLineComment(string sql, DataSourceType dataSourceType, ref int index, int depth, List<SqlToken> tokens)
+        private static bool TryReadLineComment(string sql, DataSourceType dataSourceType, SqlTokenizerOptions options, ref int index, int depth, List<SqlToken> tokens)
         {
             var start = index;
             var isComment = false;
@@ -120,7 +127,7 @@ namespace JasonQuery.Core.Sql.Lexing
             }
             else if (index + 1 < sql.Length && sql[index] == '-' && sql[index + 1] == '-')
             {
-                if (dataSourceType != DataSourceType.MySql || index + 2 >= sql.Length || char.IsWhiteSpace(sql[index + 2]) || char.IsControl(sql[index + 2]))
+                if (dataSourceType != DataSourceType.MySql || HasOption(options, SqlTokenizerOptions.MySqlDashCommentWithoutWhitespace) || index + 2 >= sql.Length || char.IsWhiteSpace(sql[index + 2]) || char.IsControl(sql[index + 2]))
                 {
                     isComment = true;
                     index += 2;
@@ -236,7 +243,8 @@ namespace JasonQuery.Core.Sql.Lexing
             return true;
         }
 
-        private static bool TryReadDelimitedIdentifier(string sql, DataSourceType dataSourceType, ref int index, int depth, List<SqlToken> tokens)
+        private static bool TryReadDelimitedIdentifier(string sql, DataSourceType dataSourceType, SqlTokenizerOptions options,
+                                                       ref int index, int depth, List<SqlToken> tokens)
         {
             var openingDelimiter = sql[index];
             char closingDelimiter;
@@ -250,11 +258,23 @@ namespace JasonQuery.Core.Sql.Lexing
                     }
                 case '[':
                     {
+                        if (dataSourceType != DataSourceType.SqlServer
+                            && !HasOption(options, SqlTokenizerOptions.RecognizeForeignDelimitedIdentifiers))
+                        {
+                            return false;
+                        }
+
                         closingDelimiter = ']';
                         break;
                     }
                 case '`':
                     {
+                        if (dataSourceType != DataSourceType.MySql
+                            && !HasOption(options, SqlTokenizerOptions.RecognizeForeignDelimitedIdentifiers))
+                        {
+                            return false;
+                        }
+
                         closingDelimiter = '`';
                         break;
                     }
@@ -262,6 +282,17 @@ namespace JasonQuery.Core.Sql.Lexing
                     {
                         return false;
                     }
+            }
+
+            var allowBackslashEscape = false;
+
+            if (dataSourceType == DataSourceType.MySql && openingDelimiter == '`')
+            {
+                allowBackslashEscape = HasOption(options, SqlTokenizerOptions.MySqlBacktickIdentifierAllowsBackslashEscape);
+            }
+            else if (dataSourceType == DataSourceType.MySql && openingDelimiter == '"')
+            {
+                allowBackslashEscape = HasOption(options, SqlTokenizerOptions.MySqlDoubleQuotedTextAllowsBackslashEscape);
             }
 
             ReadDelimitedToken
@@ -273,7 +304,7 @@ namespace JasonQuery.Core.Sql.Lexing
                 SqlTokenKind.DelimitedIdentifier,
                 closingDelimiter,
                 allowDoubledClosingDelimiter: true,
-                allowBackslashEscape: dataSourceType == DataSourceType.MySql
+                allowBackslashEscape: allowBackslashEscape
             );
 
             return true;
@@ -340,9 +371,19 @@ namespace JasonQuery.Core.Sql.Lexing
             }
         }
 
-        private static bool IsWordCharacter(char value)
+        private static bool IsWordCharacter(char value, DataSourceType dataSourceType, SqlTokenizerOptions options)
         {
+            if (value == '#' && dataSourceType == DataSourceType.MySql && HasOption(options, SqlTokenizerOptions.MySqlHashStartsCommentInsideWord))
+            {
+                return false;
+            }
+
             return char.IsLetterOrDigit(value) || value == '_' || value == '$' || value == '#';
+        }
+
+        private static bool HasOption(SqlTokenizerOptions options, SqlTokenizerOptions value)
+        {
+            return (options & value) == value;
         }
 
         private static void AddToken(List<SqlToken> tokens, SqlTokenKind kind, string sql, int start, int endExclusive, int depth)
