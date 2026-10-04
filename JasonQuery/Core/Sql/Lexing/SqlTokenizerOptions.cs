@@ -14,6 +14,12 @@ namespace JasonQuery.Core.Sql.Lexing
         MySqlDashCommentWithoutWhitespace = 2,
         MySqlBacktickIdentifierAllowsBackslashEscape = 4,
         MySqlDoubleQuotedTextAllowsBackslashEscape = 8,
-        MySqlHashStartsCommentInsideWord = 16
+        MySqlHashStartsCommentInsideWord = 16,
+
+        //Disable flags preserve a consumer's legacy behavior while keeping the default shared contract unchanged.
+        DisablePostgreSqlDollarQuotedText = 32,
+        DisableOracleAlternativeQuotedText = 64,
+        DisableNestedBlockComments = 128,
+        DisableMySqlSingleQuotedStringBackslashEscape = 256
     }
 }

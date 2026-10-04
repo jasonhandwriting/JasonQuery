@@ -1,5 +1,8 @@
 ﻿using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.QueryEngine.Editor.AutoComplete.Models;
+using SharedSqlTokenKind = JasonQuery.Core.Sql.Lexing.SqlTokenKind;
+using SharedSqlTokenizer = JasonQuery.Core.Sql.Lexing.SqlTokenizer;
+using SharedSqlTokenizerOptions = JasonQuery.Core.Sql.Lexing.SqlTokenizerOptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +11,8 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
 {
     internal static class QueryEditorAutoCompleteSpaceAnalyzer
     {
+        private const SharedSqlTokenizerOptions AutoCompleteTokenizerOptions = SharedSqlTokenizerOptions.RecognizeForeignDelimitedIdentifiers | SharedSqlTokenizerOptions.DisablePostgreSqlDollarQuotedText | SharedSqlTokenizerOptions.DisableOracleAlternativeQuotedText | SharedSqlTokenizerOptions.DisableNestedBlockComments | SharedSqlTokenizerOptions.DisableMySqlSingleQuotedStringBackslashEscape;
+
         private enum SqlTokenKind
         {
             None = 0,
@@ -76,7 +81,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
 
             var sql = request.Sql;
             var caretPosition = Math.Max(0, Math.Min(request.CaretPosition, sql.Length));
-            var tokenizeResult = Tokenize(sql, request.DataSourceType);
+            var tokenizeResult = TokenizeWithSharedTokenizer(sql, request.DataSourceType);
 
             if (IsInsideProtectedRange(tokenizeResult.ProtectedRanges, caretPosition))
             {
@@ -90,17 +95,14 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
                 return result;
             }
 
-            if (!TryResolveKeyword(tokenizeResult.Tokens, tokensBeforeCaret,
-                                   out var keyword, out var tableOnly, out var triggerTokenIndex))
+            if (!TryResolveKeyword(tokenizeResult.Tokens, tokensBeforeCaret, out var keyword, out var tableOnly, out var triggerTokenIndex))
             {
                 return result;
             }
 
             var intent = ResolveIntent(keyword);
 
-            if (intent == QueryEditorAutoCompleteSpaceIntent.ListDatabases
-                && request.DataSourceType != DataSourceType.SqlServer
-                && request.DataSourceType != DataSourceType.MySql)
+            if (intent == QueryEditorAutoCompleteSpaceIntent.ListDatabases && request.DataSourceType != DataSourceType.SqlServer && request.DataSourceType != DataSourceType.MySql)
             {
                 return result;
             }
@@ -127,6 +129,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
             result.ObjectName = source.ObjectName;
             result.AliasName = source.AliasName;
             result.SourceSql = source.SourceSql;
+
             return result;
         }
 
@@ -268,10 +271,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
                 return true;
             }
 
-            if (tokens.Count == 2
-                && ((tokens[0].IsWord("INSERT") && tokens[1].IsWord("INTO"))
-                    || (tokens[0].IsWord("MERGE") && tokens[1].IsWord("INTO"))
-                    || (tokens[0].IsWord("DELETE") && tokens[1].IsWord("FROM"))))
+            if (tokens.Count == 2 && ((tokens[0].IsWord("INSERT") && tokens[1].IsWord("INTO")) || (tokens[0].IsWord("MERGE") && tokens[1].IsWord("INTO")) || (tokens[0].IsWord("DELETE") && tokens[1].IsWord("FROM"))))
             {
                 triggerTokenIndex = 1;
                 return true;
@@ -419,9 +419,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
                         {
                             sourceTokenIndex = fromIndex + 1;
                         }
-                        else if (keyword == QueryEditorAutoCompleteSpaceKeyword.Where
-                                 || keyword == QueryEditorAutoCompleteSpaceKeyword.And
-                                 || keyword == QueryEditorAutoCompleteSpaceKeyword.Or)
+                        else if (keyword == QueryEditorAutoCompleteSpaceKeyword.Where || keyword == QueryEditorAutoCompleteSpaceKeyword.And || keyword == QueryEditorAutoCompleteSpaceKeyword.Or)
                         {
                             //20260816 UPDATE ... SET ... WHERE/AND/OR does not have a FROM clause on Oracle or MySQL, and FROM is optional on PostgreSQL and SQL Server.
                             //         Fall back to the UPDATE target only when no FROM source exists.
@@ -491,8 +489,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
 
             var endIndex = sourceTokenIndex;
 
-            while (endIndex + 2 < tokens.Count && tokens[endIndex + 1].Depth == depth && tokens[endIndex + 1].IsSymbol(".")
-                   && tokens[endIndex + 2].Depth == depth && IsIdentifierToken(tokens[endIndex + 2]))
+            while (endIndex + 2 < tokens.Count && tokens[endIndex + 1].Depth == depth && tokens[endIndex + 1].IsSymbol(".") && tokens[endIndex + 2].Depth == depth && IsIdentifierToken(tokens[endIndex + 2]))
             {
                 endIndex += 2;
             }
@@ -526,8 +523,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
 
         private static int SkipSourceModifiers(List<SqlToken> tokens, int index, int depth)
         {
-            while (index < tokens.Count && tokens[index].Depth == depth
-                   && (tokens[index].IsWord("ONLY") || tokens[index].IsWord("LATERAL")))
+            while (index < tokens.Count && tokens[index].Depth == depth && (tokens[index].IsWord("ONLY") || tokens[index].IsWord("LATERAL")))
             {
                 index++;
             }
@@ -560,8 +556,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
             return tokens[index].Text;
         }
 
-        private static bool TryResolveCteSql(string sql, List<SqlToken> tokens, SqlToken sourceToken,
-                                             string objectName, out string cteSql)
+        private static bool TryResolveCteSql(string sql, List<SqlToken> tokens, SqlToken sourceToken, string objectName, out string cteSql)
         {
             cteSql = string.Empty;
 
@@ -652,8 +647,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
         {
             var value = (sql ?? string.Empty).TrimStart();
 
-            return value.StartsWith("SELECT", StringComparison.OrdinalIgnoreCase)
-                   || value.StartsWith("WITH", StringComparison.OrdinalIgnoreCase);
+            return value.StartsWith("SELECT", StringComparison.OrdinalIgnoreCase) || value.StartsWith("WITH", StringComparison.OrdinalIgnoreCase);
         }
 
         private static int FindMatchingCloseParenthesis(List<SqlToken> tokens, int openIndex)
@@ -739,6 +733,112 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
             return text;
         }
 
+        private static TokenizeResult TokenizeWithSharedTokenizer(string sql, DataSourceType dataSourceType)
+        {
+            var sharedResult = SharedSqlTokenizer.Tokenize(sql, dataSourceType, AutoCompleteTokenizerOptions);
+            var result = new TokenizeResult();
+
+            foreach (var sharedToken in sharedResult.Tokens)
+            {
+                if (sharedToken.IsProtectedText)
+                {
+                    result.ProtectedRanges.Add(Tuple.Create(sharedToken.Start, sharedToken.EndExclusive));
+                }
+
+                if (sharedToken.IsComment)
+                {
+                    continue;
+                }
+
+                var kind = ConvertSharedTokenKind(sharedToken.Kind);
+
+                if (kind == SqlTokenKind.None)
+                {
+                    continue;
+                }
+
+                result.Tokens.Add
+                (
+                    new SqlToken
+                    {
+                        Kind = kind,
+                        Text = sharedToken.Text,
+                        Start = sharedToken.Start,
+                        End = sharedToken.EndExclusive,
+                        Depth = sharedToken.Depth
+                    }
+                );
+            }
+
+            return result;
+        }
+
+        private static SqlTokenKind ConvertSharedTokenKind(SharedSqlTokenKind kind)
+        {
+            switch (kind)
+            {
+                case SharedSqlTokenKind.Word:
+                    {
+                        return SqlTokenKind.Word;
+                    }
+                case SharedSqlTokenKind.DelimitedIdentifier:
+                    {
+                        return SqlTokenKind.DelimitedIdentifier;
+                    }
+                case SharedSqlTokenKind.StringLiteral:
+                    {
+                        return SqlTokenKind.StringLiteral;
+                    }
+                case SharedSqlTokenKind.Symbol:
+                    {
+                        return SqlTokenKind.Symbol;
+                    }
+                case SharedSqlTokenKind.None:
+                case SharedSqlTokenKind.LineComment:
+                case SharedSqlTokenKind.BlockComment:
+                default:
+                    {
+                        return SqlTokenKind.None;
+                    }
+            }
+        }
+
+        internal static string CreateSharedTokenizerSnapshotForParityTest(DataSourceType dataSourceType, string sql)
+        {
+            return CreateTokenizationSnapshot(TokenizeWithSharedTokenizer(sql ?? string.Empty, dataSourceType));
+        }
+
+        internal static string CreateLegacyTokenizerSnapshotForParityTest(DataSourceType dataSourceType, string sql)
+        {
+            return CreateTokenizationSnapshot(LegacyTokenize(sql ?? string.Empty, dataSourceType));
+        }
+
+        private static string CreateTokenizationSnapshot(TokenizeResult result)
+        {
+            var tokenSnapshot = string.Join
+            (
+                "\n",
+                result.Tokens.Select
+                (
+                    token =>
+                    (
+                        (int)token.Kind).ToString() + "|" +
+                        token.Start.ToString() + "|" +
+                        token.End.ToString() + "|" +
+                        token.Depth.ToString() + "|" +
+                        Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(token.Text ?? string.Empty)
+                    )
+                )
+            );
+
+            var protectedSnapshot = string.Join
+            (
+                "\n",
+                result.ProtectedRanges.Select(range => range.Item1.ToString() + "|" + range.Item2.ToString())
+            );
+
+            return tokenSnapshot + "\n#PROTECTED#\n" + protectedSnapshot;
+        }
         private static bool IsInsideProtectedRange(List<Tuple<int, int>> ranges, int caretPosition)
         {
             foreach (var range in ranges)
@@ -752,7 +852,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
             return false;
         }
 
-        private static TokenizeResult Tokenize(string sql, DataSourceType dataSourceType)
+        private static TokenizeResult LegacyTokenize(string sql, DataSourceType dataSourceType)
         {
             var result = new TokenizeResult();
             var depth = 0;
@@ -811,6 +911,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
 
                     index = index + 1 < sql.Length ? index + 2 : sql.Length;
                     result.ProtectedRanges.Add(Tuple.Create(start, index));
+
                     continue;
                 }
 
@@ -839,6 +940,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
 
                     result.Tokens.Add(new SqlToken { Kind = SqlTokenKind.StringLiteral, Text = sql.Substring(start, index - start), Start = start, End = index, Depth = depth });
                     result.ProtectedRanges.Add(Tuple.Create(start, index));
+
                     continue;
                 }
 
@@ -890,6 +992,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
                     result.Tokens.Add(new SqlToken { Kind = SqlTokenKind.Symbol, Text = "(", Start = index, End = index + 1, Depth = depth });
                     depth++;
                     index++;
+
                     continue;
                 }
 
@@ -898,6 +1001,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Resolvers
                     depth = Math.Max(0, depth - 1);
                     result.Tokens.Add(new SqlToken { Kind = SqlTokenKind.Symbol, Text = ")", Start = index, End = index + 1, Depth = depth });
                     index++;
+
                     continue;
                 }
 

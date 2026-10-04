@@ -489,6 +489,90 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
             Assert.IsFalse(escapedResult.Tokens.Any(token => token.IsWord("UPDATE")));
             Assert.IsTrue(unescapedResult.Tokens.Any(token => token.IsWord("UPDATE")));
         }
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlLexing")]
+        [TestCategory("SqlLexingMigration")]
+        public void Tokenize_DisablePostgreSqlDollarQuotedText_PreservesLegacyConsumerBehavior()
+        {
+            const string sql = "SELECT $$WHERE (x)$$ FROM t";
+
+            var defaultResult = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
+
+            var compatibilityResult = SqlTokenizer.Tokenize
+            (
+                sql,
+                DataSourceType.PostgreSql,
+                SqlTokenizerOptions.DisablePostgreSqlDollarQuotedText
+            );
+
+            Assert.IsTrue(defaultResult.Tokens.Any(token => token.Kind == SqlTokenKind.StringLiteral && token.Text == "$$WHERE (x)$$"));
+            Assert.IsFalse(compatibilityResult.Tokens.Any(token => token.Kind == SqlTokenKind.StringLiteral && token.Text == "$$WHERE (x)$$"));
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlLexing")]
+        [TestCategory("SqlLexingMigration")]
+        public void Tokenize_DisableOracleAlternativeQuotedText_PreservesLegacyConsumerBehavior()
+        {
+            const string sql = "SELECT q'[x' WHERE y]' FROM dual";
+
+            var defaultResult = SqlTokenizer.Tokenize(sql, DataSourceType.Oracle);
+
+            var compatibilityResult = SqlTokenizer.Tokenize
+            (
+                sql,
+                DataSourceType.Oracle,
+                SqlTokenizerOptions.DisableOracleAlternativeQuotedText
+            );
+
+            Assert.IsTrue(defaultResult.Tokens.Any(token => token.Kind == SqlTokenKind.StringLiteral && token.Text == "q'[x' WHERE y]'"));
+            Assert.IsFalse(compatibilityResult.Tokens.Any(token => token.Kind == SqlTokenKind.StringLiteral && token.Text == "q'[x' WHERE y]'"));
+            Assert.IsTrue(compatibilityResult.Tokens.Any(token => token.IsWord("WHERE")));
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlLexing")]
+        [TestCategory("SqlLexingMigration")]
+        public void Tokenize_DisableNestedBlockComments_StopsAtFirstClosingDelimiter()
+        {
+            const string sql = "/* outer /* inner */ WHERE */ SELECT 1";
+
+            var defaultResult = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
+
+            var compatibilityResult = SqlTokenizer.Tokenize
+            (
+                sql,
+                DataSourceType.PostgreSql,
+                SqlTokenizerOptions.DisableNestedBlockComments
+            );
+
+            Assert.IsFalse(defaultResult.Tokens.Any(token => token.IsWord("WHERE")));
+            Assert.IsTrue(compatibilityResult.Tokens.Any(token => token.IsWord("WHERE")));
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlLexing")]
+        [TestCategory("SqlLexingMigration")]
+        public void Tokenize_DisableMySqlSingleQuotedBackslashEscape_PreservesLegacyConsumerBehavior()
+        {
+            const string sql = "SELECT 'a\\' WHERE ' FROM t";
+
+            var defaultResult = SqlTokenizer.Tokenize(sql, DataSourceType.MySql);
+
+            var compatibilityResult = SqlTokenizer.Tokenize
+            (
+                sql,
+                DataSourceType.MySql,
+                SqlTokenizerOptions.DisableMySqlSingleQuotedStringBackslashEscape
+            );
+
+            Assert.IsFalse(defaultResult.Tokens.Any(token => token.IsWord("WHERE")));
+            Assert.IsTrue(compatibilityResult.Tokens.Any(token => token.IsWord("WHERE")));
+        }
         private static SqlToken FindWord(SqlTokenizationResult result, string word)
         {
             var token = result.Tokens.FirstOrDefault(candidate => candidate.IsWord(word));
