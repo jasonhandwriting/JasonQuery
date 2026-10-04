@@ -241,9 +241,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
 
             Assert.IsFalse(success);
             Assert.IsFalse(result.Success);
-            Assert.Contains(
-                "VALUES 數量",
-                result.FailureReason);
+            Assert.Contains("VALUES 數量", result.FailureReason);
         }
 
         [TestMethod]
@@ -287,6 +285,25 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
 
             Assert.IsTrue(success);
             Assert.HasCount(2, result.Values);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("PostgreSql")]
+        [TestCategory("Regression")]
+        [TestCategory("SqlLexingMigration")]
+        public void TryParse_WithDollarQuotedExpressionContainingCommaAndParenthesis_ParsesValues()
+        {
+            const string sql = "insert into a_test (t1, t2)\r\n" +
+                               "values ($$a,b)$$, 'x')";
+
+            var success = PostgreSqlInsertValuesParser.TryParse(sql, out PostgreSqlInsertValuesParseResult result);
+
+            Assert.IsTrue(success);
+            Assert.HasCount(2, result.Values);
+            Assert.AreEqual("$$a,b)$$", result.Values[0].RawText);
+            Assert.IsFalse(result.Values[0].IsStringLiteral);
+            Assert.AreEqual("x", result.Values[1].StringValue);
         }
     }
 }

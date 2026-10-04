@@ -1,4 +1,6 @@
-﻿using System;
+﻿using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Sql.Lexing;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,6 +8,8 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
 {
     internal static class PostgreSqlSqlScanner
     {
+        private const SqlTokenizerOptions DiagnosticsTokenizerOptions = SqlTokenizerOptions.None;
+
         public static string NormalizeSql(string sql)
         {
             return TrimSqlTerminator(RemoveSqlComments(sql)).Trim();
@@ -33,6 +37,36 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
         }
 
         public static int FindKeywordAtTopLevel(string text, string keyword, int startIndex)
+        {
+            if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(keyword))
+            {
+                return -1;
+            }
+
+            var tokenizationResult = Tokenize(text);
+            var firstIndex = Math.Max(0, startIndex);
+
+            for (var index = firstIndex; index <= text.Length - keyword.Length; index++)
+            {
+                if (!IsKeywordAt(text, index, keyword))
+                {
+                    continue;
+                }
+
+                var token = tokenizationResult.FindTokenContaining(index);
+
+                if (token == null || token.Depth != 0 || token.SuppressesKeywordMatching)
+                {
+                    continue;
+                }
+
+                return index;
+            }
+
+            return -1;
+        }
+
+        private static int LegacyFindKeywordAtTopLevel(string text, string keyword, int startIndex)
         {
             var depth = 0;
             var inSingleQuote = false;
@@ -223,6 +257,45 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
                 return false;
             }
 
+            var tokenizationResult = Tokenize(text);
+            var openToken = FindTokenStartingAt(tokenizationResult, index);
+
+            if (openToken == null || !openToken.IsSymbol("("))
+            {
+                return false;
+            }
+
+            foreach (var token in tokenizationResult.Tokens)
+            {
+                if (token.Start <= openToken.Start)
+                {
+                    continue;
+                }
+
+                if (!token.IsSymbol(")") || token.Depth != openToken.Depth)
+                {
+                    continue;
+                }
+
+                content = text.Substring(openToken.EndExclusive, token.Start - openToken.EndExclusive);
+                index = token.EndExclusive;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool LegacyTryReadParenthesizedContent(string text, ref int index, out string content)
+        {
+            content = string.Empty;
+
+            SkipWhiteSpace(text, ref index);
+
+            if (index >= text.Length || text[index] != '(')
+            {
+                return false;
+            }
+
             var start = index + 1;
             var depth = 0;
             var inSingleQuote = false;
@@ -307,6 +380,27 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
         {
             var result = new List<string>();
             var start = 0;
+            var tokenizationResult = Tokenize(text);
+
+            foreach (var token in tokenizationResult.Tokens)
+            {
+                if (!token.IsSymbol(",") || token.Depth != 0)
+                {
+                    continue;
+                }
+
+                result.Add(text.Substring(start, token.Start - start).Trim());
+                start = token.EndExclusive;
+            }
+
+            result.Add(text.Substring(start).Trim());
+            return result;
+        }
+
+        private static List<string> LegacySplitTopLevelComma(string text)
+        {
+            var result = new List<string>();
+            var start = 0;
             var depth = 0;
             var inSingleQuote = false;
             var inDoubleQuote = false;
@@ -384,6 +478,21 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
         }
 
         public static int FindTopLevelEqualSign(string text)
+        {
+            var tokenizationResult = Tokenize(text);
+
+            foreach (var token in tokenizationResult.Tokens)
+            {
+                if (token.IsSymbol("=") && token.Depth == 0)
+                {
+                    return token.Start;
+                }
+            }
+
+            return -1;
+        }
+
+        private static int LegacyFindTopLevelEqualSign(string text)
         {
             var depth = 0;
             var inSingleQuote = false;
@@ -469,6 +578,35 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
                 return false;
             }
 
+            var tokenizationResult = Tokenize(temp);
+
+            if (tokenizationResult.Tokens.Count != 1)
+            {
+                return false;
+            }
+
+            var token = tokenizationResult.Tokens[0];
+
+            if (token.Kind != SqlTokenKind.StringLiteral || token.Start != 0 || token.EndExclusive != temp.Length || token.Text.Length < 2 || token.Text[0] != '\'' || token.Text[token.Text.Length - 1] != '\'')
+            {
+                return false;
+            }
+
+            value = token.Text.Substring(1, token.Text.Length - 2).Replace("''", "'");
+            return true;
+        }
+
+        private static bool LegacyTryParseSingleQuotedStringLiteral(string text, out string value)
+        {
+            value = string.Empty;
+
+            var temp = text.Trim();
+
+            if (temp.Length < 2 || temp[0] != '\'')
+            {
+                return false;
+            }
+
             var sb = new StringBuilder();
 
             for (var i = 1; i < temp.Length; i++)
@@ -510,6 +648,28 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
                 return false;
             }
 
+            var tokenizationResult = Tokenize(text);
+            var token = FindTokenStartingAt(tokenizationResult, index);
+
+            if (token == null || token.Kind != SqlTokenKind.DelimitedIdentifier || token.Text.Length < 2 || token.Text[0] != '"' || token.Text[token.Text.Length - 1] != '"')
+            {
+                return false;
+            }
+
+            identifier = token.Text.Substring(1, token.Text.Length - 2).Replace("\"\"", "\"");
+            index = token.EndExclusive;
+            return true;
+        }
+
+        private static bool LegacyTryReadQuotedIdentifier(string text, ref int index, out string identifier)
+        {
+            identifier = string.Empty;
+
+            if (index >= text.Length || text[index] != '"')
+            {
+                return false;
+            }
+
             var sb = new StringBuilder();
 
             index++;
@@ -539,6 +699,64 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
             return false;
         }
 
+        private static SqlTokenizationResult Tokenize(string text)
+        {
+            return SqlTokenizer.Tokenize(text, DataSourceType.PostgreSql, DiagnosticsTokenizerOptions);
+        }
+
+        private static SqlToken FindTokenStartingAt(SqlTokenizationResult tokenizationResult, int start)
+        {
+            if (tokenizationResult == null || start < 0)
+            {
+                return null;
+            }
+
+            foreach (var token in tokenizationResult.Tokens)
+            {
+                if (token.Start == start)
+                {
+                    return token;
+                }
+
+                if (token.Start > start)
+                {
+                    break;
+                }
+            }
+
+            return null;
+        }
+
+        internal static string NormalizeSqlLegacyForParityTest(string sql)
+        {
+            return TrimSqlTerminator(LegacyRemoveSqlComments(sql)).Trim();
+        }
+
+        internal static int FindKeywordAtTopLevelLegacyForParityTest(string text, string keyword, int startIndex)
+        {
+            return LegacyFindKeywordAtTopLevel(text, keyword, startIndex);
+        }
+
+        internal static bool TryReadParenthesizedContentLegacyForParityTest(string text, ref int index, out string content)
+        {
+            return LegacyTryReadParenthesizedContent(text, ref index, out content);
+        }
+
+        internal static List<string> SplitTopLevelCommaLegacyForParityTest(string text)
+        {
+            return LegacySplitTopLevelComma(text);
+        }
+
+        internal static int FindTopLevelEqualSignLegacyForParityTest(string text)
+        {
+            return LegacyFindTopLevelEqualSign(text);
+        }
+
+        internal static bool TryParseSingleQuotedStringLiteralLegacyForParityTest(string text, out string value)
+        {
+            return LegacyTryParseSingleQuotedStringLiteral(text, out value);
+        }
+
         private static bool IsKeywordAt(string text, int index, string keyword)
         {
             if (index < 0 || index + keyword.Length > text.Length)
@@ -554,7 +772,6 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
             var before = index == 0 ? '\0' : text[index - 1];
             var afterIndex = index + keyword.Length;
             var after = afterIndex >= text.Length ? '\0' : text[afterIndex];
-
             var beforeOk = before == '\0' || !IsIdentifierPart(before);
             var afterOk = after == '\0' || !IsIdentifierPart(after);
 
@@ -574,6 +791,36 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
         private static string RemoveSqlComments(string sql)
         {
             var sb = new StringBuilder();
+            var tokenizationResult = Tokenize(sql);
+            var sourceIndex = 0;
+
+            foreach (var token in tokenizationResult.Tokens)
+            {
+                if (!token.IsComment)
+                {
+                    continue;
+                }
+
+                if (token.Start > sourceIndex)
+                {
+                    sb.Append(sql.Substring(sourceIndex, token.Start - sourceIndex));
+                }
+
+                sb.Append(' ');
+                sourceIndex = token.EndExclusive;
+            }
+
+            if (sourceIndex < sql.Length)
+            {
+                sb.Append(sql.Substring(sourceIndex));
+            }
+
+            return sb.ToString();
+        }
+
+        private static string LegacyRemoveSqlComments(string sql)
+        {
+            var sb = new StringBuilder();
             var inSingleQuote = false;
             var inDoubleQuote = false;
 
@@ -589,6 +836,7 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
                     {
                         sb.Append(sql[i + 1]);
                         i++;
+
                         continue;
                     }
 
@@ -608,6 +856,7 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
                     {
                         sb.Append(sql[i + 1]);
                         i++;
+
                         continue;
                     }
 
@@ -623,6 +872,7 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
                 {
                     inSingleQuote = true;
                     sb.Append(ch);
+
                     continue;
                 }
 
@@ -630,6 +880,7 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
                 {
                     inDoubleQuote = true;
                     sb.Append(ch);
+
                     continue;
                 }
 
@@ -655,6 +906,7 @@ namespace JasonQuery.Core.Database.Diagnostics.PostgreSql
 
                     i++;
                     sb.Append(' ');
+
                     continue;
                 }
 

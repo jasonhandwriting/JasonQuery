@@ -276,5 +276,25 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
             Assert.IsFalse(result.Success);
             Assert.Contains("欄位指定", result.FailureReason);
         }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("PostgreSql")]
+        [TestCategory("Regression")]
+        [TestCategory("SqlLexingMigration")]
+        public void TryParse_WithDollarQuotedExpressionContainingWhereCommaAndEqual_ParsesAssignments()
+        {
+            const string sql = "update a_test\r\n" +
+                               "   set t1 = $$where,=()$$, t2 = 'abc'\r\n" +
+                               " where id = 1";
+
+            var success = PostgreSqlUpdateSetParser.TryParse(sql, out PostgreSqlUpdateSetParseResult result);
+
+            Assert.IsTrue(success);
+            Assert.HasCount(2, result.SetValues);
+            Assert.AreEqual("$$where,=()$$", result.SetValues[0].RawText);
+            Assert.IsFalse(result.SetValues[0].IsStringLiteral);
+            Assert.AreEqual("abc", result.SetValues[1].StringValue);
+        }
     }
 }
