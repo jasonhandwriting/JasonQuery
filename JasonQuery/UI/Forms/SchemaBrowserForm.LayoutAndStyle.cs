@@ -125,6 +125,7 @@ namespace JasonQuery.UI.Forms
         {
             const int fontSize = 11;
             const float pcnt = 0.9F;
+
             if (_gridZoomBaseRowHeight <= 0)
             {
                 _gridZoomBaseRowHeight = c1GridSchemaBrowser.RowHeight;

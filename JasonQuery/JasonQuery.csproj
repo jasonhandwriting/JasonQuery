@@ -517,6 +517,10 @@
     <Compile Include="Core\Data\Value\DbValueHelper.cs" />
     <Compile Include="Core\Export\ExportCellValueResolution.cs" />
     <Compile Include="Core\Export\ExportCellValueResolver.cs" />
+    <Compile Include="Core\Sql\Lexing\SqlToken.cs" />
+    <Compile Include="Core\Sql\Lexing\SqlTokenKind.cs" />
+    <Compile Include="Core\Sql\Lexing\SqlTokenizationResult.cs" />
+    <Compile Include="Core\Sql\Lexing\SqlTokenizer.cs" />
     <Compile Include="Core\QueryEngine\Editor\Analysis\QueryEditorParameterAnalyzer.cs" />
     <Compile Include="Core\QueryEngine\Editor\Analysis\QueryEditorSqlNormalizer.cs" />
     <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\AutoCompleteObjectLookupMode.cs" />
