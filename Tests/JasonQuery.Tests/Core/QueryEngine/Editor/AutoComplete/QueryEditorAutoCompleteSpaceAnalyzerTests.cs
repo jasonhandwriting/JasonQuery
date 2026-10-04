@@ -151,6 +151,37 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
             Assert.IsFalse(Analyze(sql, sql.Length - 1, DataSourceType.PostgreSql).CanResolve);
         }
 
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("AutoComplete")]
+        [TestCategory("SqlLexingMigration")]
+        [DataRow(DataSourceType.Oracle, "SELECT * FROM customer WHERE ")]
+        [DataRow(DataSourceType.Oracle, "SELECT q'[WHERE ]' FROM dual")]
+        [DataRow(DataSourceType.Oracle, "SELECT q'[x' WHERE y]' FROM dual")]
+        [DataRow(DataSourceType.Oracle, "SELECT /* outer /* WHERE */ WHERE */ * FROM customer")]
+        [DataRow(DataSourceType.PostgreSql, "SELECT $$WHERE $$ FROM customer")]
+        [DataRow(DataSourceType.PostgreSql, "SELECT $tag$WHERE (x)$tag$ FROM customer")]
+        [DataRow(DataSourceType.PostgreSql, "/* outer /* WHERE */ outer */ SELECT * FROM customer")]
+        [DataRow(DataSourceType.PostgreSql, "SELECT \"WHERE\" FROM [customer]")]
+        [DataRow(DataSourceType.SqlServer, "SELECT [A]]WHERE] FROM dbo.customer")]
+        [DataRow(DataSourceType.SqlServer, "SELECT \"WHERE\" FROM [dbo].[customer]")]
+        [DataRow(DataSourceType.MySql, "-- WHERE\r\nSELECT * FROM customer")]
+        [DataRow(DataSourceType.MySql, "--WHERE\r\nSELECT * FROM customer")]
+        [DataRow(DataSourceType.MySql, "# WHERE\r\nSELECT * FROM customer")]
+        [DataRow(DataSourceType.MySql, "SELECT abc#WHERE FROM customer")]
+        [DataRow(DataSourceType.MySql, "SELECT 'a\\' WHERE ' FROM customer")]
+        [DataRow(DataSourceType.MySql, "SELECT \"a\\\" WHERE\" FROM customer")]
+        [DataRow(DataSourceType.MySql, "SELECT `a\\` WHERE` FROM customer")]
+        [DataRow(DataSourceType.Oracle, "SELECT [WHERE], `ORDER`, \"GROUP\" FROM dual")]
+        [DataRow(DataSourceType.PostgreSql, "SELECT * FROM customer WHERE name = 'unterminated WHERE ")]
+        [DataRow(DataSourceType.PostgreSql, "WITH 中文 AS (SELECT (1 + 2) AS 值) SELECT * FROM 中文 WHERE ")]
+        public void SharedTokenizerAdapter_MatchesLegacyTokenization(DataSourceType dataSourceType, string sql)
+        {
+            var shared = QueryEditorAutoCompleteSpaceAnalyzer.CreateSharedTokenizerSnapshotForParityTest(dataSourceType, sql);
+            var legacy = QueryEditorAutoCompleteSpaceAnalyzer.CreateLegacyTokenizerSnapshotForParityTest(dataSourceType, sql);
+
+            Assert.AreEqual(legacy, shared);
+        }
         private static QueryEditorAutoCompleteSpaceAnalysisResult Analyze(string sql, int caretPosition, DataSourceType dataSourceType)
         {
             return QueryEditorAutoCompleteSpaceAnalyzer.Analyze

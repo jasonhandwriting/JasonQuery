@@ -38,17 +38,21 @@ namespace JasonQuery.Core.Sql.Lexing
                     continue;
                 }
 
-                if (TryReadBlockComment(sql, ref index, depth, tokens))
+                if (TryReadBlockComment(sql, options, ref index, depth, tokens))
                 {
                     continue;
                 }
 
-                if (dataSourceType == DataSourceType.PostgreSql && TryReadPostgreSqlDollarQuotedText(sql, ref index, depth, tokens))
+                if (dataSourceType == DataSourceType.PostgreSql
+                    && !HasOption(options, SqlTokenizerOptions.DisablePostgreSqlDollarQuotedText)
+                    && TryReadPostgreSqlDollarQuotedText(sql, ref index, depth, tokens))
                 {
                     continue;
                 }
 
-                if (dataSourceType == DataSourceType.Oracle && TryReadOracleAlternativeQuotedText(sql, ref index, depth, tokens))
+                if (dataSourceType == DataSourceType.Oracle
+                    && !HasOption(options, SqlTokenizerOptions.DisableOracleAlternativeQuotedText)
+                    && TryReadOracleAlternativeQuotedText(sql, ref index, depth, tokens))
                 {
                     continue;
                 }
@@ -64,7 +68,9 @@ namespace JasonQuery.Core.Sql.Lexing
                         SqlTokenKind.StringLiteral,
                         '\'',
                         allowDoubledClosingDelimiter: true,
-                        allowBackslashEscape: dataSourceType == DataSourceType.MySql
+                        allowBackslashEscape:
+                            dataSourceType == DataSourceType.MySql
+                            && !HasOption(options, SqlTokenizerOptions.DisableMySqlSingleQuotedStringBackslashEscape)
                     );
 
                     continue;
@@ -148,7 +154,7 @@ namespace JasonQuery.Core.Sql.Lexing
             return true;
         }
 
-        private static bool TryReadBlockComment(string sql, ref int index, int depth, List<SqlToken> tokens)
+        private static bool TryReadBlockComment(string sql, SqlTokenizerOptions options, ref int index, int depth, List<SqlToken> tokens)
         {
             if (index + 1 >= sql.Length || sql[index] != '/' || sql[index + 1] != '*')
             {
@@ -157,12 +163,13 @@ namespace JasonQuery.Core.Sql.Lexing
 
             var start = index;
             var blockDepth = 1;
+            var allowNestedComments = !HasOption(options, SqlTokenizerOptions.DisableNestedBlockComments);
 
             index += 2;
 
             while (index < sql.Length && blockDepth > 0)
             {
-                if (index + 1 < sql.Length && sql[index] == '/' && sql[index + 1] == '*')
+                if (allowNestedComments && index + 1 < sql.Length && sql[index] == '/' && sql[index + 1] == '*')
                 {
                     blockDepth++;
                     index += 2;
