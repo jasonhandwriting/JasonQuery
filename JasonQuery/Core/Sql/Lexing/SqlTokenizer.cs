@@ -43,16 +43,12 @@ namespace JasonQuery.Core.Sql.Lexing
                     continue;
                 }
 
-                if (dataSourceType == DataSourceType.PostgreSql
-                    && !HasOption(options, SqlTokenizerOptions.DisablePostgreSqlDollarQuotedText)
-                    && TryReadPostgreSqlDollarQuotedText(sql, ref index, depth, tokens))
+                if (dataSourceType == DataSourceType.PostgreSql && !HasOption(options, SqlTokenizerOptions.DisablePostgreSqlDollarQuotedText) && TryReadPostgreSqlDollarQuotedText(sql, ref index, depth, tokens))
                 {
                     continue;
                 }
 
-                if (dataSourceType == DataSourceType.Oracle
-                    && !HasOption(options, SqlTokenizerOptions.DisableOracleAlternativeQuotedText)
-                    && TryReadOracleAlternativeQuotedText(sql, ref index, depth, tokens))
+                if (dataSourceType == DataSourceType.Oracle && !HasOption(options, SqlTokenizerOptions.DisableOracleAlternativeQuotedText) && TryReadOracleAlternativeQuotedText(sql, ref index, depth, tokens))
                 {
                     continue;
                 }
@@ -68,9 +64,7 @@ namespace JasonQuery.Core.Sql.Lexing
                         SqlTokenKind.StringLiteral,
                         '\'',
                         allowDoubledClosingDelimiter: true,
-                        allowBackslashEscape:
-                            dataSourceType == DataSourceType.MySql
-                            && !HasOption(options, SqlTokenizerOptions.DisableMySqlSingleQuotedStringBackslashEscape)
+                        allowBackslashEscape: dataSourceType == DataSourceType.MySql && !HasOption(options, SqlTokenizerOptions.DisableMySqlSingleQuotedStringBackslashEscape)
                     );
 
                     continue;
@@ -265,8 +259,7 @@ namespace JasonQuery.Core.Sql.Lexing
                     }
                 case '[':
                     {
-                        if (dataSourceType != DataSourceType.SqlServer
-                            && !HasOption(options, SqlTokenizerOptions.RecognizeForeignDelimitedIdentifiers))
+                        if (dataSourceType != DataSourceType.SqlServer && !HasOption(options, SqlTokenizerOptions.RecognizeForeignDelimitedIdentifiers))
                         {
                             return false;
                         }
@@ -276,8 +269,7 @@ namespace JasonQuery.Core.Sql.Lexing
                     }
                 case '`':
                     {
-                        if (dataSourceType != DataSourceType.MySql
-                            && !HasOption(options, SqlTokenizerOptions.RecognizeForeignDelimitedIdentifiers))
+                        if (dataSourceType != DataSourceType.MySql && !HasOption(options, SqlTokenizerOptions.RecognizeForeignDelimitedIdentifiers))
                         {
                             return false;
                         }

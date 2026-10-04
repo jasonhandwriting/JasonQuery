@@ -108,5 +108,130 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
 
             Assert.AreEqual(string.Empty, result);
         }
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("AutoComplete")]
+        [TestCategory("SqlLexingMigration")]
+        [DataRow("WITH x AS (SELECT id FROM customer) SELECT x.")]
+        [DataRow("WITH x AS (SELECT * FROM (SELECT id FROM customer) c) SELECT x.")]
+        [DataRow("WITH x AS (SELECT '(' AS a, ')' AS b FROM customer) SELECT x.")]
+        [DataRow("WITH x AS (SELECT \"(\" AS a FROM customer) SELECT x.")]
+        [DataRow("WITH x AS (\r\nSELECT id\r\nFROM customer\r\n) SELECT x.")]
+        [DataRow("WITH x AS (SELECT 'A''B' AS name FROM customer) SELECT x.")]
+        [DataRow("WITH x AS (SELECT \"A\"\"B\" AS name FROM customer) SELECT x.")]
+        [DataRow("WITH x AS (SELECT /* note */ id FROM customer) SELECT x.")]
+        [DataRow("WITH x AS (SELECT -- note\r\n id FROM customer) SELECT x.")]
+        [DataRow("WITH x AS (SELECT [id], `name` FROM customer) SELECT x.")]
+        public void WithAsSharedTokenizer_MatchesLegacyFragment(string sql)
+        {
+            var start = sql.IndexOf('(');
+            var shared = QueryEditorAutoCompleteWithAsResolver.GetSharedSqlForParityTest(sql, start);
+            var legacy = QueryEditorAutoCompleteWithAsResolver.GetLegacySqlForParityTest(sql, start);
+
+            Assert.AreEqual(legacy, shared);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("AutoComplete")]
+        [TestCategory("SqlLexingMigration")]
+        [DataRow("SELECT * FROM (SELECT id FROM customer) c")]
+        [DataRow("SELECT * FROM (SELECT * FROM (SELECT id FROM customer) c) x")]
+        [DataRow("SELECT * FROM (SELECT '(' AS a, ')' AS b FROM customer) c")]
+        [DataRow("SELECT * FROM (SELECT \"(\" AS a FROM customer) c")]
+        [DataRow("SELECT *\r\nFROM (\r\nSELECT id\r\nFROM customer\r\n) c")]
+        [DataRow("SELECT * FROM (SELECT 'A''B' AS name FROM customer) c")]
+        [DataRow("SELECT * FROM (SELECT \"A\"\"B\" AS name FROM customer) c")]
+        [DataRow("SELECT * FROM (SELECT [id], `name` FROM customer) c")]
+        [DataRow("SELECT * FROM (SELECT 1 + 2 AS value FROM customer) c")]
+        [DataRow("SELECT * FROM (SELECT ';' AS value FROM customer) c")]
+        public void SubquerySharedTokenizer_MatchesLegacyFragment(string sql)
+        {
+            var start = sql.LastIndexOf(')');
+            var shared = QueryEditorAutoCompleteSubqueryResolver.GetSharedSqlForParityTest(sql, start);
+            var legacy = QueryEditorAutoCompleteSubqueryResolver.GetLegacySqlForParityTest(sql, start);
+
+            Assert.AreEqual(legacy, shared);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("AutoComplete")]
+        [TestCategory("SqlLexingMigration")]
+        public void SubquerySharedTokenizer_BlockCommentWithParenthesis_ReturnsWholeFragment()
+        {
+            const string sql = "SELECT * FROM (SELECT /* ( ignored */ id FROM customer) c";
+            const string expected = "SELECT /* ( ignored */ id FROM customer";
+            var start = sql.LastIndexOf(')');
+
+            var shared = QueryEditorAutoCompleteSubqueryResolver.GetAutoCompleteSqlForSubquery(sql, start);
+            var legacy = QueryEditorAutoCompleteSubqueryResolver.GetLegacySqlForParityTest(sql, start);
+
+            Assert.AreEqual(expected, shared);
+            Assert.AreNotEqual(expected, legacy);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("AutoComplete")]
+        [TestCategory("SqlLexingMigration")]
+        public void SubquerySharedTokenizer_LineCommentWithParenthesis_ReturnsWholeFragment()
+        {
+            const string sql = "SELECT * FROM (SELECT -- ( ignored\r\n id FROM customer) c";
+            const string expected = "SELECT -- ( ignored\r\n id FROM customer";
+            var start = sql.LastIndexOf(')');
+
+            var shared = QueryEditorAutoCompleteSubqueryResolver.GetAutoCompleteSqlForSubquery(sql, start);
+            var legacy = QueryEditorAutoCompleteSubqueryResolver.GetLegacySqlForParityTest(sql, start);
+
+            Assert.AreEqual(expected, shared);
+            Assert.AreNotEqual(expected, legacy);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("AutoComplete")]
+        [TestCategory("SqlLexingMigration")]
+        public void WithAsSharedTokenizer_MoreThanNineNestedParentheses_ReturnsWholeFragment()
+        {
+            var inner = "SELECT id FROM customer";
+
+            for (var index = 0; index < 10; index++)
+            {
+                inner = "SELECT * FROM (" + inner + ") q";
+            }
+
+            var sql = "WITH x AS (" + inner + ") SELECT x.";
+            var start = sql.IndexOf('(');
+
+            var shared = QueryEditorAutoCompleteWithAsResolver.GetAutoCompleteSqlForWithAs(sql, start);
+            var legacy = QueryEditorAutoCompleteWithAsResolver.GetLegacySqlForParityTest(sql, start);
+
+            Assert.AreEqual(inner, shared);
+            Assert.AreNotEqual(inner, legacy);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("AutoComplete")]
+        [TestCategory("SqlLexingMigration")]
+        public void SubquerySharedTokenizer_MoreThanNineNestedParentheses_ReturnsWholeFragment()
+        {
+            var inner = "SELECT id FROM customer";
+
+            for (var index = 0; index < 10; index++)
+            {
+                inner = "SELECT * FROM (" + inner + ") q";
+            }
+
+            var sql = "SELECT * FROM (" + inner + ") x";
+            var start = sql.LastIndexOf(')');
+
+            var shared = QueryEditorAutoCompleteSubqueryResolver.GetAutoCompleteSqlForSubquery(sql, start);
+            var legacy = QueryEditorAutoCompleteSubqueryResolver.GetLegacySqlForParityTest(sql, start);
+
+            Assert.AreEqual(inner, shared);
+            Assert.AreNotEqual(inner, legacy);
+        }
     }
 }
