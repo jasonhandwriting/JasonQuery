@@ -299,5 +299,98 @@ namespace JasonQuery.Tests.Core.Text
                 TextHelper.GetValueFromDictionary(values, "A")
             );
         }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlLexingMigration")]
+        [TestCategory("TextHelperTransferString")]
+        [DataRow("select * from t where name = 'MixedCase'", true, false, false)]
+        [DataRow("SELECT * FROM T WHERE NAME = 'MixedCase'", false, false, false)]
+        [DataRow("select \"MixedCase\" from t", true, false, false)]
+        [DataRow("select 'a--b' as x from t", true, false, false)]
+        [DataRow("select 'a/*b*/c' as x from t", true, false, false)]
+        [DataRow("select \"a--b\" from t", true, false, false)]
+        [DataRow("select 'it''s Mixed' as x from t", true, false, false)]
+        [DataRow("select \"a\"\"b\" from t", true, false, false)]
+        [DataRow("select 1 -- MixedCase\r\nfrom t", true, false, false)]
+        [DataRow("select /* MixedCase */ 1 from t", true, false, false)]
+        [DataRow("select /* outer /* inner */ tail */ 1", true, false, false)]
+        [DataRow("select [MixedCase] from t", true, false, false)]
+        [DataRow("select `MixedCase` from t", true, false, false)]
+        [DataRow("select $$MixedCase$$ from t", true, false, false)]
+        [DataRow("select 1 -- MixedCase\r\nfrom t", true, true, false)]
+        [DataRow("with x as (select 1 /* MixedCase */) select * from x", true, true, true)]
+        public void GetTransferString_SharedTokenizer_MatchesLegacy(string sql, bool toUppercase, bool isComment, bool isReplace)
+        {
+            var shared = TextHelper.GetTransferString(toUppercase, sql, isComment, isReplace);
+            var legacy = TextHelper.GetTransferStringLegacyForParityTest(toUppercase, sql, isComment, isReplace);
+
+            Assert.AreEqual(legacy, shared);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("Regression")]
+        [TestCategory("SqlLexingMigration")]
+        [TestCategory("TextHelperTransferString")]
+        public void GetTransferString_LineCommentContainingUnmatchedQuote_DoesNotPoisonFollowingSql()
+        {
+            const string sql = "select 1 -- 'MiXeD\r\nwhere Name = 1";
+
+            Assert.AreEqual
+            (
+                "SELECT 1 -- 'MiXeD\r\nWHERE NAME = 1",
+                TextHelper.GetTransferString(true, sql)
+            );
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("Regression")]
+        [TestCategory("SqlLexingMigration")]
+        [TestCategory("TextHelperTransferString")]
+        public void GetTransferString_BlockCommentContainingUnmatchedQuote_DoesNotPoisonFollowingSql()
+        {
+            const string sql = "select /* 'MiXeD */ Name from t";
+
+            Assert.AreEqual
+            (
+                "SELECT /* 'MiXeD */ NAME FROM T",
+                TextHelper.GetTransferString(true, sql)
+            );
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("Regression")]
+        [TestCategory("SqlLexingMigration")]
+        [TestCategory("TextHelperTransferString")]
+        public void GetTransferString_LineCommentContainingBlockCommentOpener_DoesNotPoisonFollowingSql()
+        {
+            const string sql = "select 1 -- /* MiXeD\r\nfrom TableName";
+
+            Assert.AreEqual
+            (
+                "SELECT 1 -- /* MiXeD\r\nFROM TABLENAME",
+                TextHelper.GetTransferString(true, sql)
+            );
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("Regression")]
+        [TestCategory("SqlLexingMigration")]
+        [TestCategory("TextHelperTransferString")]
+        public void GetTransferString_BlockCommentContainingLineCommentMarker_DoesNotPoisonFollowingSql()
+        {
+            const string sql = "select /* -- MiXeD */ ColumnName from t";
+
+            Assert.AreEqual
+            (
+                "SELECT /* -- MiXeD */ COLUMNNAME FROM T",
+                TextHelper.GetTransferString(true, sql)
+            );
+        }
+
     }
 }
