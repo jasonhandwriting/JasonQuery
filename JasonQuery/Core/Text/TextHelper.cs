@@ -1,6 +1,8 @@
 ﻿using JasonLibrary.Core;
 using JasonQuery.Core.Config;
+using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Localization;
+using JasonQuery.Core.Sql.Lexing;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -16,6 +18,8 @@ namespace JasonQuery.Core.Text
 {
     internal static partial class TextHelper
     {
+        private const SqlTokenizerOptions TransferStringTokenizerOptions = SqlTokenizerOptions.DisableNestedBlockComments;
+
         public static string CleanVarcharString(string sql)
         {
             var parts = sql.ToUpper().Split(new[] { " " }, StringSplitOptions.None);
@@ -505,6 +509,104 @@ namespace JasonQuery.Core.Text
         /// <param name="isReplace">是否要進行置換處理</param>
         /// <returns></returns>
         public static string GetTransferString(bool toUppercase, string sql, bool isComment = false, bool isReplace = false)
+        {
+            var protectedPositions = new bool[sql.Length];
+            var commentPositions = new bool[sql.Length];
+            var tokenizationResult = SqlTokenizer.Tokenize(sql, DataSourceType.None, TransferStringTokenizerOptions);
+
+            foreach (var token in tokenizationResult.Tokens)
+            {
+                if (token.SuppressesKeywordMatching)
+                {
+                    MarkTransferStringPositions(protectedPositions, token.Start, token.EndExclusive);
+                }
+
+                if (!token.IsComment)
+                {
+                    continue;
+                }
+
+                MarkTransferStringPositions(commentPositions, token.Start, token.EndExclusive);
+
+                //Legacy GetTransferString masks the first CR/LF character that terminates a -- comment.
+                if (token.Kind == SqlTokenKind.LineComment && token.EndExclusive < sql.Length && (sql[token.EndExclusive] == '\r' || sql[token.EndExclusive] == '\n'))
+                {
+                    commentPositions[token.EndExclusive] = true;
+                }
+            }
+
+            if (isComment)
+            {
+                var array = sql.ToCharArray();
+
+                for (var i = 0; i < array.Length; i++)
+                {
+                    if (commentPositions[i])
+                    {
+                        array[i] = ' ';
+                    }
+                }
+
+                var result = new string(array);
+
+                if (isReplace)
+                {
+                    result = NormalizeTransferStringForWithClassification(result);
+                }
+
+                return result;
+            }
+
+            var sbResult = new StringBuilder(sql.Length);
+
+            for (var i = 0; i < sql.Length; i++)
+            {
+                var letterString = sql[i].ToString();
+
+                if (protectedPositions[i])
+                {
+                    sbResult.Append(letterString);
+                    continue;
+                }
+
+                sbResult.Append(toUppercase ? letterString.ToUpper() : letterString.ToLower());
+            }
+
+            return sbResult.ToString();
+        }
+
+        internal static string GetTransferStringLegacyForParityTest(bool toUppercase, string sql, bool isComment = false, bool isReplace = false)
+        {
+            return LegacyGetTransferString(toUppercase, sql, isComment, isReplace);
+        }
+
+        private static void MarkTransferStringPositions(bool[] positions, int start, int endExclusive)
+        {
+            var normalizedStart = Math.Max(0, start);
+            var normalizedEnd = Math.Min(positions.Length, endExclusive);
+
+            for (var i = normalizedStart; i < normalizedEnd; i++)
+            {
+                positions[i] = true;
+            }
+        }
+
+        private static string NormalizeTransferStringForWithClassification(string source)
+        {
+            var result = Regex.Replace(source.ToUpper(), @"\r\n|\r|\n", " ") //替換所有換行符號為空格
+                              .Replace(")", ") ") //在右括號後加空格
+                              .Replace("SELECT", " SELECT ") //在 SELECT 前後加空格
+                              .Replace("DELETE", " DELETE ") //在 DELETE 前後加空格
+                              .Replace("UPDATE", " UPDATE ") //在 UPDATE 前後加空格
+                              .Replace("INSERT", " INSERT ") //在 INSERT 前後加空格
+                              .Replace("INTO", " INTO ") //在 INTO 前後加空格
+                              .Trim(); //去除多餘的空格
+
+            //確保所有連續的空白字符替換為一個空格
+            return Regex.Replace(result, @"\s+", " ");
+        }
+
+        private static string LegacyGetTransferString(bool toUppercase, string sql, bool isComment = false, bool isReplace = false)
         {
             var result = string.Empty;
             var sbResult = new StringBuilder();
