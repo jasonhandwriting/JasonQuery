@@ -1,5 +1,7 @@
-﻿using JasonQuery.Core.Database.Diagnostics.Common;
+﻿using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Database.Diagnostics.Common;
 using JasonQuery.Core.Database.Execution;
+using JasonQuery.Core.Sql.Lexing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +11,8 @@ namespace JasonQuery.Core.Database.Diagnostics.MySql
 {
     internal static class MySqlErrorPositionResolver
     {
+        private const SqlTokenizerOptions SearchableMapTokenizerOptions = SqlTokenizerOptions.MySqlBacktickIdentifierAllowsBackslashEscape | SqlTokenizerOptions.MySqlDoubleQuotedTextAllowsBackslashEscape | SqlTokenizerOptions.MySqlHashStartsCommentInsideWord | SqlTokenizerOptions.DisableNestedBlockComments;
+
         private sealed class ExecutionContext
         {
             public int EditorStart { get; set; }
@@ -66,8 +70,7 @@ namespace JasonQuery.Core.Database.Diagnostics.MySql
 
             var context = CreateExecutionContext(request);
 
-            if (messageInfo.Kind == MySqlErrorMessageKind.SyntaxError
-                && TryResolveSyntaxError(context, messageInfo, out var syntaxMatch, out var syntaxMatchIsOriginal))
+            if (messageInfo.Kind == MySqlErrorMessageKind.SyntaxError && TryResolveSyntaxError(context, messageInfo, out var syntaxMatch, out var syntaxMatchIsOriginal))
             {
                 output.PositionResult = syntaxMatchIsOriginal ? MapOriginalMatchToEditor(context, syntaxMatch) : MapExecutedMatchToEditor(request, context, syntaxMatch);
 
@@ -150,8 +153,7 @@ namespace JasonQuery.Core.Database.Diagnostics.MySql
                 return preferredStart;
             }
 
-            if (preferredStart + originalSql.Length <= editorSql.Length
-                && string.Equals(editorSql.Substring(preferredStart, originalSql.Length), originalSql, StringComparison.Ordinal))
+            if (preferredStart + originalSql.Length <= editorSql.Length && string.Equals(editorSql.Substring(preferredStart, originalSql.Length), originalSql, StringComparison.Ordinal))
             {
                 return preferredStart;
             }
@@ -395,8 +397,7 @@ namespace JasonQuery.Core.Database.Diagnostics.MySql
             //目前 Database：sakila
             //MySQL Error：sakila.sakila.film_actor
             //只有這種三段以上、第一段為目前 Database 的情況才移除前綴
-            if (parts.Count >= 3 && !string.IsNullOrEmpty(currentDatabaseName)
-                && string.Equals(parts[0], RemoveOuterBackticks(currentDatabaseName), StringComparison.OrdinalIgnoreCase))
+            if (parts.Count >= 3 && !string.IsNullOrEmpty(currentDatabaseName) && string.Equals(parts[0], RemoveOuterBackticks(currentDatabaseName), StringComparison.OrdinalIgnoreCase))
             {
                 parts.RemoveAt(0);
             }
@@ -603,6 +604,80 @@ namespace JasonQuery.Core.Database.Diagnostics.MySql
 
         private static bool[] BuildSearchableMap(string sql)
         {
+            var value = sql ?? string.Empty;
+            var result = Enumerable.Repeat(true, value.Length).ToArray();
+
+            var tokenizationResult = SqlTokenizer.Tokenize
+            (
+                value,
+                DataSourceType.MySql,
+                SearchableMapTokenizerOptions
+            );
+
+            foreach (var token in tokenizationResult.Tokens)
+            {
+                if (!SuppressesCandidateMatching(token))
+                {
+                    continue;
+                }
+
+                MarkUnsearchable(result, token.Start, token.EndExclusive);
+
+                if (token.Kind == SqlTokenKind.LineComment && token.EndExclusive < value.Length && (value[token.EndExclusive] == '\r' || value[token.EndExclusive] == '\n'))
+                {
+                    //Legacy map marks the first line terminator as part of the line comment.
+                    MarkUnsearchable(result, token.EndExclusive, token.EndExclusive + 1);
+                }
+            }
+
+            return result;
+        }
+
+        internal static bool[] BuildSearchableMapForParityTest(string sql)
+        {
+            return BuildSearchableMap(sql);
+        }
+
+        internal static bool[] BuildSearchableMapLegacyForParityTest(string sql)
+        {
+            return BuildSearchableMapLegacy(sql ?? string.Empty);
+        }
+
+        private static bool SuppressesCandidateMatching(SqlToken token)
+        {
+            if (token == null)
+            {
+                return false;
+            }
+
+            if (token.Kind == SqlTokenKind.StringLiteral || token.IsComment)
+            {
+                return true;
+            }
+
+            //MySQL backtick identifiers must remain searchable. Legacy behavior suppresses
+            //double-quoted text, so only the double-quoted delimited-token form is hidden.
+            return token.Kind == SqlTokenKind.DelimitedIdentifier && token.Length > 0 && token.Text[0] == '"';
+        }
+
+        private static void MarkUnsearchable(bool[] searchable, int start, int endExclusive)
+        {
+            if (searchable == null || searchable.Length == 0)
+            {
+                return;
+            }
+
+            var from = Math.Max(0, start);
+            var to = Math.Min(searchable.Length, endExclusive);
+
+            for (var i = from; i < to; i++)
+            {
+                searchable[i] = false;
+            }
+        }
+
+        private static bool[] BuildSearchableMapLegacy(string sql)
+        {
             var result = Enumerable.Repeat(true, sql.Length).ToArray();
             var state = 0;
 
@@ -786,14 +861,7 @@ namespace JasonQuery.Core.Database.Diagnostics.MySql
             var target = match.Text;
 
             if (!string.IsNullOrEmpty(request.ParameterPositionMapping)
-                && SqlParameterPositionMapper.TryMapExecutedSqlPositionToOriginalSqlPosition
-                   (
-                       request.ParameterPositionMapping,
-                       request.ParameterStartPosition,
-                       request.ParameterStartPosition + relativePosition,
-                       out var mappedPosition,
-                       out var mappedParameterName
-                   ))
+                && SqlParameterPositionMapper.TryMapExecutedSqlPositionToOriginalSqlPosition(request.ParameterPositionMapping, request.ParameterStartPosition, request.ParameterStartPosition + relativePosition, out var mappedPosition, out var mappedParameterName))
             {
                 position = mappedPosition;
 
