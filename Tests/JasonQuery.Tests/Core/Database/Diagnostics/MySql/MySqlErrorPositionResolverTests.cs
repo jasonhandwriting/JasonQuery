@@ -295,6 +295,63 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.MySql
             Assert.IsFalse(result.PositionResult.ShouldSetSquiggle);
         }
 
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("MySql")]
+        [TestCategory("SqlLexingMigration")]
+        [DataRow("")]
+        [DataRow("select c1 from t")]
+        [DataRow("select 'literal' from t")]
+        [DataRow("select 'a''b' from t")]
+        [DataRow("select 'a\\'b' from t")]
+        [DataRow("select \"quoted\" from t")]
+        [DataRow("select \"a\"\"b\" from t")]
+        [DataRow("select \"a\\\"b\" from t")]
+        [DataRow("select c1 # comment\r\nfrom t")]
+        [DataRow("select c1 -- comment\r\nfrom t")]
+        [DataRow("select c1--x from t")]
+        [DataRow("select c1/* comment */ from t")]
+        [DataRow("select c1/* outer /* inner */ tail */ from t")]
+        [DataRow("select `simple_identifier` from t")]
+        [DataRow("select `a``b` from t")]
+        [DataRow("select c1 # comment\nfrom t")]
+        public void BuildSearchableMap_SharedTokenizer_MatchesLegacy(string sql)
+        {
+            var shared = MySqlErrorPositionResolver.BuildSearchableMapForParityTest(sql);
+            var legacy = MySqlErrorPositionResolver.BuildSearchableMapLegacyForParityTest(sql);
+
+            CollectionAssert.AreEqual(legacy, shared);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("MySql")]
+        [TestCategory("SqlLexingMigration")]
+        [DataRow("hash#target")]
+        [DataRow("dash-- target")]
+        [DataRow("block/*target*/")]
+        [DataRow("double\"target")]
+        public void BuildSearchableMap_SharedTokenizer_CorrectsBacktickIdentifierClassification(string identifier)
+        {
+            var quotedIdentifier = $"`{identifier}`";
+            var sql = $"select {quotedIdentifier} from t";
+            var targetPosition = sql.IndexOf("target", StringComparison.Ordinal);
+
+            var shared = MySqlErrorPositionResolver.BuildSearchableMapForParityTest(sql);
+            var legacy = MySqlErrorPositionResolver.BuildSearchableMapLegacyForParityTest(sql);
+
+            Assert.IsTrue(shared[targetPosition]);
+            Assert.IsFalse(legacy[targetPosition]);
+
+            var result = Resolve
+            (
+                sql,
+                $"Unknown column '{identifier}' in 'field list'"
+            );
+
+            AssertTarget(sql, result, quotedIdentifier);
+        }
+
         private static MySqlErrorPositionResolution Resolve(string sql, string errorMessage, string databaseName = "")
         {
             return MySqlErrorPositionResolver.Resolve
