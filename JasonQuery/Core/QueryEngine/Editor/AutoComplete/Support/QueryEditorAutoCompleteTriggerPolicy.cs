@@ -1,9 +1,15 @@
-﻿using System;
+﻿using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Sql.Lexing;
+using System;
 
 namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
 {
     internal static class QueryEditorAutoCompleteTriggerPolicy
     {
+        private const string LexicalStateProbe = ";";
+
+        private const SqlTokenizerOptions TriggerPolicyTokenizerOptions = SqlTokenizerOptions.RecognizeForeignDelimitedIdentifiers | SqlTokenizerOptions.MySqlDashCommentWithoutWhitespace | SqlTokenizerOptions.MySqlHashStartsCommentInsideWord | SqlTokenizerOptions.DisableNestedBlockComments | SqlTokenizerOptions.DisableMySqlSingleQuotedStringBackslashEscape;
+
         private enum SqlTextState
         {
             Code = 0,
@@ -64,8 +70,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
 
             if (hasDigitsBefore)
             {
-                if (tokenStart >= 0
-                    && (char.IsLetter(text[tokenStart]) || text[tokenStart] == '_' || text[tokenStart] == '$' || text[tokenStart] == '#'))
+                if (tokenStart >= 0 && (char.IsLetter(text[tokenStart]) || text[tokenStart] == '_' || text[tokenStart] == '$' || text[tokenStart] == '#'))
                 {
                     return false;
                 }
@@ -83,7 +88,26 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
                 return false;
             }
 
+            return IsCodePositionUsingSharedTokenizer(text, position);
+        }
+
+        internal static bool IsCodePositionLegacyForParityTest(string text, int position)
+        {
+            if (string.IsNullOrEmpty(text) || position < 0 || position >= text.Length)
+            {
+                return false;
+            }
+
             return GetStateBeforePosition(text, position) == SqlTextState.Code;
+        }
+
+        private static bool IsCodePositionUsingSharedTokenizer(string text, int position)
+        {
+            var textWithProbe = string.Concat(text.Substring(0, position), LexicalStateProbe);
+            var tokenizationResult = SqlTokenizer.Tokenize(textWithProbe, DataSourceType.MySql, TriggerPolicyTokenizerOptions);
+            var probeToken = tokenizationResult.FindTokenContaining(position);
+
+            return probeToken == null || !probeToken.SuppressesKeywordMatching;
         }
 
         public static bool ShouldSuppressSpaceAfterComma(string text, int caretPosition, bool isAnyPopupVisible)
@@ -93,9 +117,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
                 return false;
             }
 
-            if (!TryFindPreviousNonWhiteSpaceCharacter(text, caretPosition - 1, out var commaIndex, out var previousCharacter)
-                || previousCharacter != ','
-                || !IsCodePosition(text, commaIndex))
+            if (!TryFindPreviousNonWhiteSpaceCharacter(text, caretPosition - 1, out var commaIndex, out var previousCharacter) || previousCharacter != ',' || !IsCodePosition(text, commaIndex))
             {
                 return false;
             }
