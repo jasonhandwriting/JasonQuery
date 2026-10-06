@@ -1,4 +1,6 @@
-﻿using System;
+﻿using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Sql.Lexing;
+using System;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -6,6 +8,8 @@ namespace JasonQuery.Core.QueryEngine.Editor.Analysis
 {
     internal static class QueryEditorSqlNormalizer
     {
+        private const SqlTokenizerOptions NormalizerTokenizerOptions = SqlTokenizerOptions.RecognizeForeignDelimitedIdentifiers | SqlTokenizerOptions.DisableNestedBlockComments;
+
         /// <summary>
         /// 將整段 SQL 整理成一行 SQL，以利後續判斷用 (將註解一併移除)
         /// </summary>
@@ -20,13 +24,87 @@ namespace JasonQuery.Core.QueryEngine.Editor.Analysis
                 return string.Empty;
             }
 
-            sql = RemoveBlockComments(sql);
+            sql = RemoveCommentsUsingSharedTokenizer(sql);
 
             var parts = sql.Split(new[] { "\r\n" }, StringSplitOptions.None);
 
-            RemoveSingleLineCommentsAndTrim(parts);
+            TrimShortLines(parts);
 
-            sql = RebuildSingleLineSql(parts, 300);
+            return NormalizeSingleLineSql(parts, toUpperCase, appendTrailingSpace);
+        }
+
+        internal static string GetSingleLineSqlLegacyForParityTest(string sql, bool toUpperCase = true, bool appendTrailingSpace = false)
+        {
+            if (string.IsNullOrEmpty(sql))
+            {
+                return string.Empty;
+            }
+
+            sql = RemoveBlockCommentsLegacy(sql);
+
+            var parts = sql.Split(new[] { "\r\n" }, StringSplitOptions.None);
+
+            RemoveSingleLineCommentsAndTrimLegacy(parts);
+
+            return NormalizeSingleLineSql(parts, toUpperCase, appendTrailingSpace);
+        }
+
+        private static string RemoveCommentsUsingSharedTokenizer(string sql)
+        {
+            var tokenizationResult = SqlTokenizer.Tokenize
+            (
+                sql,
+                DataSourceType.None,
+                NormalizerTokenizerOptions
+            );
+
+            var result = new StringBuilder(sql.Length);
+            var copyStart = 0;
+
+            for (var i = 0; i < tokenizationResult.Tokens.Count; i++)
+            {
+                var token = tokenizationResult.Tokens[i];
+
+                if (!token.IsComment)
+                {
+                    continue;
+                }
+
+                if (token.Start > copyStart)
+                {
+                    result.Append(sql, copyStart, token.Start - copyStart);
+                }
+
+                copyStart = Math.Max(copyStart, token.EndExclusive);
+            }
+
+            if (copyStart < sql.Length)
+            {
+                result.Append(sql, copyStart, sql.Length - copyStart);
+            }
+
+            return result.ToString();
+        }
+
+        private static void TrimShortLines(string[] parts)
+        {
+            if (parts == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < parts.Length; i++)
+            {
+                if (parts[i].Length < 2)
+                {
+                    parts[i] = parts[i].Trim();
+                }
+            }
+        }
+
+        private static string NormalizeSingleLineSql(string[] parts, bool toUpperCase, bool appendTrailingSpace)
+        {
+            var sql = RebuildSingleLineSql(parts, 300);
 
             sql = Regex.Replace(sql, @"\r\n|\r|\n", " ");
             sql = sql.Replace(",", " , ").Replace("(", " ( ").Replace(")", " ) ");
@@ -45,7 +123,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.Analysis
             return sql;
         }
 
-        private static string RemoveBlockComments(string sql)
+        private static string RemoveBlockCommentsLegacy(string sql)
         {
             for (var i = 0; i < 100; i++)
             {
@@ -69,7 +147,7 @@ namespace JasonQuery.Core.QueryEngine.Editor.Analysis
             return sql;
         }
 
-        private static void RemoveSingleLineCommentsAndTrim(string[] parts)
+        private static void RemoveSingleLineCommentsAndTrimLegacy(string[] parts)
         {
             if (parts == null)
             {
