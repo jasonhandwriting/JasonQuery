@@ -11,8 +11,6 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
 {
     internal static class SqlServerErrorPositionResolver
     {
-        private const SqlTokenizerOptions ErrorTargetTokenizerOptions = SqlTokenizerOptions.DisableNestedBlockComments;
-
         private sealed class ExecutionContext
         {
             public int EditorStart { get; set; }
@@ -59,7 +57,7 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
                 if (TryResolveSecondaryItem(context.ExecutedSql, item, out var current))
                 {
                     //SQL Server 可能一次回傳多筆錯誤。畫面上的完整錯誤訊息
-                    //以最後一筆為結尾，因此 Cursor 與 Pointer 也採最後一筆有效目標。
+                    //以最後一筆為結尾，因此 Cursor 與 Pointer 也採最後一筆當作有效目標
                     match = current;
                 }
             }
@@ -239,11 +237,9 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
         {
             var best = new CandidateMatch();
 
-            var tokenizationResult = SqlTokenizer.Tokenize
+            var tokenizationResult = SqlServerErrorTargetLexicalPolicy.Tokenize
             (
-                text ?? string.Empty,
-                DataSourceType.SqlServer,
-                ErrorTargetTokenizerOptions
+                text
             );
 
             foreach (var candidate in BuildTargetCandidates(target))
@@ -264,7 +260,7 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
                         break;
                     }
 
-                    if (!IsInsideSingleQuotedString(tokenizationResult, index))
+                    if (!SqlServerErrorTargetLexicalPolicy.IsInsideSingleQuotedString(tokenizationResult, index))
                     {
                         var distance = Math.Abs(index - preferredPosition);
 
@@ -543,28 +539,9 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
             return result;
         }
 
-        private static bool IsInsideSingleQuotedString(SqlTokenizationResult tokenizationResult, int index)
-        {
-            if (tokenizationResult == null || index <= 0)
-            {
-                return false;
-            }
-
-            var token = tokenizationResult.FindTokenContaining(index);
-
-            return token != null && token.Kind == SqlTokenKind.StringLiteral && token.Start < index;
-        }
-
         internal static bool IsInsideSingleQuotedStringForParityTest(string text, int index)
         {
-            var tokenizationResult = SqlTokenizer.Tokenize
-            (
-                text ?? string.Empty,
-                DataSourceType.SqlServer,
-                ErrorTargetTokenizerOptions
-            );
-
-            return IsInsideSingleQuotedString(tokenizationResult, index);
+            return SqlServerErrorTargetLexicalPolicy.IsInsideSingleQuotedString(text, index);
         }
 
         internal static bool IsInsideSingleQuotedStringLegacyForParityTest(string text, int index)
@@ -655,6 +632,42 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
             }
 
             return value > maximum ? maximum : value;
+        }
+    }
+
+    internal static class SqlServerErrorTargetLexicalPolicy
+    {
+        private const SqlTokenizerOptions TokenizerOptions = SqlTokenizerOptions.DisableNestedBlockComments;
+
+        internal static SqlTokenizationResult Tokenize(string text)
+        {
+            return SqlTokenizer.Tokenize
+            (
+                text ?? string.Empty,
+                DataSourceType.SqlServer,
+                TokenizerOptions
+            );
+        }
+
+        internal static bool IsInsideSingleQuotedString(string text, int index)
+        {
+            return IsInsideSingleQuotedString
+            (
+                Tokenize(text),
+                index
+            );
+        }
+
+        internal static bool IsInsideSingleQuotedString(SqlTokenizationResult tokenizationResult, int index)
+        {
+            if (tokenizationResult == null || index <= 0)
+            {
+                return false;
+            }
+
+            var token = tokenizationResult.FindTokenContaining(index);
+
+            return token != null && token.Kind == SqlTokenKind.StringLiteral && token.Start < index;
         }
     }
 }

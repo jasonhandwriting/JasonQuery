@@ -1,5 +1,6 @@
 ﻿using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Diagnostics.SqlServer;
+using JasonQuery.Database.Providers.Readers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
@@ -457,6 +458,270 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.SqlServer
             Assert.AreEqual(expectedTarget, result.PositionResult.TargetText);
             Assert.AreEqual(expectedTarget.Length, result.PositionResult.Length);
             Assert.IsTrue(result.PositionResult.ShouldSetSquiggle);
+        }
+    }
+
+    [TestClass]
+    public sealed class SqlServerReaderErrorTargetLexicalPolicyTests
+    {
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlServer")]
+        [TestCategory("SqlLexingMigration")]
+        [DataRow("MissingColumn", "MissingColumn")]
+        [DataRow("x MissingColumn", "MissingColumn")]
+        [DataRow("'MissingColumn'", "MissingColumn")]
+        [DataRow("'x''MissingColumn'", "MissingColumn")]
+        [DataRow("'x' MissingColumn", "MissingColumn")]
+        [DataRow("'' MissingColumn", "MissingColumn")]
+        [DataRow("'a''b' MissingColumn", "MissingColumn")]
+        [DataRow("\"abc\" MissingColumn", "MissingColumn")]
+        [DataRow("[abc] MissingColumn", "MissingColumn")]
+        [DataRow("/* note */ MissingColumn", "MissingColumn")]
+        [DataRow("-- note MissingColumn", "MissingColumn")]
+        [DataRow("'unterminated MissingColumn", "MissingColumn")]
+        public void ReaderSharedPolicy_MatchesLegacy(string text, string marker)
+        {
+            var position = text.IndexOf(marker, StringComparison.Ordinal);
+
+            Assert.IsTrue(position >= 0);
+
+            var shared = SqlServerReader.IsInsideSingleQuotedStringForParityTest
+            (
+                text,
+                position
+            );
+
+            var legacy = SqlServerReader.IsInsideSingleQuotedStringLegacyForParityTest
+            (
+                text,
+                position
+            );
+
+            Assert.AreEqual(legacy, shared);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlServer")]
+        [TestCategory("SqlLexingMigration")]
+        [DataRow("/* old ' note */ MissingColumn")]
+        [DataRow("\"old'MissingColumn\"")]
+        [DataRow("[old'MissingColumn]")]
+        [DataRow("\"a\"\"'MissingColumn\"")]
+        public void ReaderSharedPolicy_CorrectsLegacyQuoteStatePoisoning(string text)
+        {
+            const string target = "MissingColumn";
+            var position = text.IndexOf(target, StringComparison.Ordinal);
+
+            Assert.IsTrue(position >= 0);
+
+            var shared = SqlServerReader.IsInsideSingleQuotedStringForParityTest
+            (
+                text,
+                position
+            );
+
+            var legacy = SqlServerReader.IsInsideSingleQuotedStringLegacyForParityTest
+            (
+                text,
+                position
+            );
+
+            Assert.IsFalse(shared);
+            Assert.IsTrue(legacy);
+
+            Assert.IsTrue
+            (
+                SqlServerReader.TryFindSqlServerErrorTokenPositionForTest
+                (
+                    text,
+                    "Invalid column name 'MissingColumn'.",
+                    target,
+                    0,
+                    out var foundPosition,
+                    out var matchedLength
+                )
+            );
+
+            Assert.AreEqual(position, foundPosition);
+            Assert.AreEqual(target.Length, matchedLength);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlServer")]
+        public void ReaderTryFind_SkipsSingleQuotedLiteralAndFindsLaterOccurrence()
+        {
+            const string text = "select 'MissingColumn' as x, MissingColumn from t";
+            const string target = "MissingColumn";
+
+            Assert.IsTrue
+            (
+                SqlServerReader.TryFindSqlServerErrorTokenPositionForTest
+                (
+                    text,
+                    "Invalid column name 'MissingColumn'.",
+                    target,
+                    0,
+                    out var position,
+                    out var matchedLength
+                )
+            );
+
+            Assert.AreEqual(text.LastIndexOf(target, StringComparison.Ordinal), position);
+            Assert.AreEqual(target.Length, matchedLength);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlServer")]
+        public void ReaderTryFind_ColumnPrefixErrorPrefersPrefixCandidate()
+        {
+            const string text = "select a.MissingColumn from dbo.TableA a";
+            const string target = "a";
+            const string message = "The column prefix 'a' does not match with a table name or alias name used in the query.";
+
+            Assert.IsTrue
+            (
+                SqlServerReader.TryFindSqlServerErrorTokenPositionForTest
+                (
+                    text,
+                    message,
+                    target,
+                    0,
+                    out var position,
+                    out var matchedLength
+                )
+            );
+
+            Assert.AreEqual(text.IndexOf("a.", StringComparison.Ordinal), position);
+            Assert.AreEqual(2, matchedLength);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlServer")]
+        public void ReaderTryFind_StartPositionSkipsEarlierOccurrence()
+        {
+            const string text = "MissingColumn x MissingColumn";
+            const string target = "MissingColumn";
+            var startPosition = text.IndexOf("x", StringComparison.Ordinal);
+
+            Assert.IsTrue
+            (
+                SqlServerReader.TryFindSqlServerErrorTokenPositionForTest
+                (
+                    text,
+                    "Invalid column name 'MissingColumn'.",
+                    target,
+                    startPosition,
+                    out var position,
+                    out var matchedLength
+                )
+            );
+
+            Assert.AreEqual(text.LastIndexOf(target, StringComparison.Ordinal), position);
+            Assert.AreEqual(target.Length, matchedLength);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlServer")]
+        public void ReaderTryFind_OnlyOccurrenceInsideSingleQuotedLiteral_ReturnsFalse()
+        {
+            const string text = "select 'MissingColumn'";
+            const string target = "MissingColumn";
+
+            Assert.IsFalse
+            (
+                SqlServerReader.TryFindSqlServerErrorTokenPositionForTest
+                (
+                    text,
+                    "Invalid column name 'MissingColumn'.",
+                    target,
+                    0,
+                    out var position,
+                    out var matchedLength
+                )
+            );
+
+            Assert.AreEqual(-1, position);
+            Assert.AreEqual(0, matchedLength);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlServer")]
+        public void ReaderTryFind_PreservesCaseSensitiveMatching()
+        {
+            const string text = "select MissingColumn";
+
+            Assert.IsFalse
+            (
+                SqlServerReader.TryFindSqlServerErrorTokenPositionForTest
+                (
+                    text,
+                    "Invalid column name 'missingcolumn'.",
+                    "missingcolumn",
+                    0,
+                    out var position,
+                    out var matchedLength
+                )
+            );
+
+            Assert.AreEqual(-1, position);
+            Assert.AreEqual(0, matchedLength);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlServer")]
+        public void ReaderTryFind_NormalTargetPreservesMatchedLength()
+        {
+            const string text = "select MissingColumn from t";
+            const string target = "MissingColumn";
+
+            Assert.IsTrue
+            (
+                SqlServerReader.TryFindSqlServerErrorTokenPositionForTest
+                (
+                    text,
+                    "Invalid column name 'MissingColumn'.",
+                    target,
+                    0,
+                    out var position,
+                    out var matchedLength
+                )
+            );
+
+            Assert.AreEqual(text.IndexOf(target, StringComparison.Ordinal), position);
+            Assert.AreEqual(target.Length, matchedLength);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlServer")]
+        public void ReaderTryFind_DoubleQuotedIdentifierRemainsEligible()
+        {
+            const string text = "select \"MissingColumn\" from t";
+            const string target = "MissingColumn";
+
+            Assert.IsTrue
+            (
+                SqlServerReader.TryFindSqlServerErrorTokenPositionForTest
+                (
+                    text,
+                    "Invalid column name 'MissingColumn'.",
+                    target,
+                    0,
+                    out var position,
+                    out var matchedLength
+                )
+            );
+
+            Assert.AreEqual(text.IndexOf(target, StringComparison.Ordinal), position);
+            Assert.AreEqual(target.Length, matchedLength);
         }
     }
 }

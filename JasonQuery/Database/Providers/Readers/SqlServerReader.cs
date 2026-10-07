@@ -2,7 +2,9 @@
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Data.DataRows;
 using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Database.Diagnostics.SqlServer;
 using JasonQuery.Core.Database.Execution;
+using JasonQuery.Core.Sql.Lexing;
 using JasonQuery.Core.Database.Transactions;
 using JasonQuery.Core.Database.Transactions.LockingQueries;
 using JasonQuery.Core.Localization;
@@ -1547,7 +1549,17 @@ namespace JasonQuery.Database.Providers.Readers
                    && message.EndsWith(" does not match with a table name or alias name used in the query.", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static bool IsInsideSingleQuotedString(string text, int index)
+        internal static bool IsInsideSingleQuotedStringForParityTest(string text, int index)
+        {
+            return SqlServerErrorTargetLexicalPolicy.IsInsideSingleQuotedString(text, index);
+        }
+
+        internal static bool IsInsideSingleQuotedStringLegacyForParityTest(string text, int index)
+        {
+            return IsInsideSingleQuotedStringLegacy(text, index);
+        }
+
+        private static bool IsInsideSingleQuotedStringLegacy(string text, int index)
         {
             if (string.IsNullOrEmpty(text) || index <= 0)
             {
@@ -1576,6 +1588,19 @@ namespace JasonQuery.Database.Providers.Readers
             return inside;
         }
 
+        internal static bool TryFindSqlServerErrorTokenPositionForTest(string lineText, string message, string token, int startPosition, out int position, out int matchedLength)
+        {
+            return TryFindSqlServerErrorTokenPosition
+            (
+                lineText,
+                message,
+                token,
+                startPosition,
+                out position,
+                out matchedLength
+            );
+        }
+
         private static bool TryFindSqlServerErrorTokenPosition(string lineText, string message, string token, int startPosition, out int position, out int matchedLength)
         {
             position = -1;
@@ -1588,20 +1613,25 @@ namespace JasonQuery.Database.Providers.Readers
 
             startPosition = Math.Max(0, Math.Min(startPosition, lineText.Length));
 
+            var tokenizationResult = SqlServerErrorTargetLexicalPolicy.Tokenize
+            (
+                lineText
+            );
+
             if (IsSqlServerColumnPrefixError(message))
             {
                 var prefixToken = $"{token}.";
 
-                if (TryFindSqlServerErrorTokenPositionCore(lineText, prefixToken, startPosition, out position, out matchedLength))
+                if (TryFindSqlServerErrorTokenPositionCore(lineText, prefixToken, startPosition, tokenizationResult, out position, out matchedLength))
                 {
                     return true;
                 }
             }
 
-            return TryFindSqlServerErrorTokenPositionCore(lineText, token, startPosition, out position, out matchedLength);
+            return TryFindSqlServerErrorTokenPositionCore(lineText, token, startPosition, tokenizationResult, out position, out matchedLength);
         }
 
-        private static bool TryFindSqlServerErrorTokenPositionCore(string lineText, string token, int startPosition, out int position, out int matchedLength)
+        private static bool TryFindSqlServerErrorTokenPositionCore(string lineText, string token, int startPosition, SqlTokenizationResult tokenizationResult, out int position, out int matchedLength)
         {
             position = -1;
             matchedLength = 0;
@@ -1624,7 +1654,7 @@ namespace JasonQuery.Database.Providers.Readers
 
                 //只避開 SQL Server 的單引號字串 literal
                 //不避開雙引號，因為 SQL Server 的 "xxx" 常代表 identifier，正是 Invalid column name 的來源
-                if (!IsInsideSingleQuotedString(lineText, index))
+                if (!SqlServerErrorTargetLexicalPolicy.IsInsideSingleQuotedString(tokenizationResult, index))
                 {
                     position = index;
                     matchedLength = token.Length;
