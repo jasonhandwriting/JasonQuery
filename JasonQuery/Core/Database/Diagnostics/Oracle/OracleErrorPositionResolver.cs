@@ -1,5 +1,7 @@
-﻿using JasonQuery.Core.Database.Diagnostics.Common;
+﻿using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Database.Diagnostics.Common;
 using JasonQuery.Core.Database.Execution;
+using JasonQuery.Core.Sql.Lexing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +12,8 @@ namespace JasonQuery.Core.Database.Diagnostics.Oracle
 {
     internal static class OracleErrorPositionResolver
     {
+        private const SqlTokenizerOptions LeadingTriviaTokenizerOptions = SqlTokenizerOptions.DisableNestedBlockComments;
+
         private sealed class ExecutionRange
         {
             public int Start { get; set; }
@@ -106,8 +110,7 @@ namespace JasonQuery.Core.Database.Diagnostics.Oracle
                 );
             }
 
-            if (TryResolveQuotedIdentifierTarget(request.EditorSql, range, request.ErrorMessage, normalizedCode, reportedPosition,
-                                                 out var quotedPosition, out var quotedTarget))
+            if (TryResolveQuotedIdentifierTarget(request.EditorSql, range, request.ErrorMessage, normalizedCode, reportedPosition, out var quotedPosition, out var quotedTarget))
             {
                 return CreateTargetResult
                 (
@@ -229,9 +232,7 @@ namespace JasonQuery.Core.Database.Diagnostics.Oracle
                 }
             }
 
-            var originalExecutedSql = !string.IsNullOrEmpty(request.OriginalExecutedSql)
-                                      ? request.OriginalExecutedSql
-                                      : request.ExecutedSql;
+            var originalExecutedSql = !string.IsNullOrEmpty(request.OriginalExecutedSql) ? request.OriginalExecutedSql : request.ExecutedSql;
 
             foreach (var candidate in BuildOracleExecutionRangeSqlCandidates(originalExecutedSql))
             {
@@ -319,8 +320,7 @@ namespace JasonQuery.Core.Database.Diagnostics.Oracle
 
             var originalTrimmedEnd = sql.TrimEnd();
 
-            if (!string.IsNullOrEmpty(originalTrimmedEnd)
-                && !string.Equals(originalTrimmedEnd, withoutLeadingTrivia, StringComparison.Ordinal))
+            if (!string.IsNullOrEmpty(originalTrimmedEnd) && !string.Equals(originalTrimmedEnd, withoutLeadingTrivia, StringComparison.Ordinal))
             {
                 yield return originalTrimmedEnd;
 
@@ -334,6 +334,55 @@ namespace JasonQuery.Core.Database.Diagnostics.Oracle
         }
 
         private static string RemoveLeadingOracleSqlTrivia(string sql)
+        {
+            if (string.IsNullOrEmpty(sql))
+            {
+                return string.Empty;
+            }
+
+            var tokenizationResult = SqlTokenizer.Tokenize
+            (
+                sql,
+                DataSourceType.Oracle,
+                LeadingTriviaTokenizerOptions
+            );
+
+            foreach (var token in tokenizationResult.Tokens)
+            {
+                if (token.Kind == SqlTokenKind.LineComment)
+                {
+                    continue;
+                }
+
+                if (token.Kind == SqlTokenKind.BlockComment && !IsOracleHintComment(token.Text))
+                {
+                    continue;
+                }
+
+                //這個方法只負責移除開頭的空白與註釋；結尾空白可能是錯誤游標的實際目標，必須保留
+                return sql.Substring(token.Start);
+            }
+
+            return string.Empty;
+        }
+
+        private static bool IsOracleHintComment(string text)
+        {
+            //Oracle hint /*+ ... */ 不視為可移除的普通註釋
+            return !string.IsNullOrEmpty(text) && text.StartsWith("/*+", StringComparison.Ordinal);
+        }
+
+        internal static string RemoveLeadingOracleSqlTriviaForParityTest(string sql)
+        {
+            return RemoveLeadingOracleSqlTrivia(sql);
+        }
+
+        internal static string RemoveLeadingOracleSqlTriviaLegacyForParityTest(string sql)
+        {
+            return RemoveLeadingOracleSqlTriviaLegacy(sql);
+        }
+
+        private static string RemoveLeadingOracleSqlTriviaLegacy(string sql)
         {
             if (string.IsNullOrEmpty(sql))
             {
@@ -416,8 +465,7 @@ namespace JasonQuery.Core.Database.Diagnostics.Oracle
                 return preferredStart;
             }
 
-            if (preferredStart + executedSql.Length <= editorSql.Length
-                && string.Equals(editorSql.Substring(preferredStart, executedSql.Length), executedSql, StringComparison.Ordinal))
+            if (preferredStart + executedSql.Length <= editorSql.Length && string.Equals(editorSql.Substring(preferredStart, executedSql.Length), executedSql, StringComparison.Ordinal))
             {
                 return preferredStart;
             }
@@ -531,9 +579,7 @@ namespace JasonQuery.Core.Database.Diagnostics.Oracle
                 return reportedPosition;
             }
 
-            var executedSql = !string.IsNullOrEmpty(range.SqlText)
-                              ? range.SqlText
-                              : request.ExecutedSql ?? string.Empty;
+            var executedSql = !string.IsNullOrEmpty(range.SqlText) ? range.SqlText : request.ExecutedSql ?? string.Empty;
 
             if (string.IsNullOrEmpty(executedSql))
             {
@@ -849,16 +895,10 @@ namespace JasonQuery.Core.Database.Diagnostics.Oracle
                 return false;
             }
 
-            var selectedMatch = matches.Cast<Match>()
-                                       .OrderByDescending(match => match.Length)
-                                       .ThenByDescending(match => match.Index)
-                                       .First();
+            var selectedMatch = matches.Cast<Match>().OrderByDescending(match => match.Length).ThenByDescending(match => match.Index).First();
 
             rawPath = selectedMatch.Value;
-            segments = Regex.Matches(rawPath, "\"(?:[^\"]|\"\")*\"")
-                            .Cast<Match>()
-                            .Select(match => UnquoteOracleIdentifier(match.Value))
-                            .ToArray();
+            segments = Regex.Matches(rawPath, "\"(?:[^\"]|\"\")*\"").Cast<Match>().Select(match => UnquoteOracleIdentifier(match.Value)).ToArray();
 
             return segments.Length > 0;
         }
@@ -985,9 +1025,7 @@ namespace JasonQuery.Core.Database.Diagnostics.Oracle
                     if (IsCandidateBoundaryMatch(source, index, candidate.Text.Length, range))
                     {
                         var distance = Math.Abs(index - reportedPosition);
-                        var isBetter = !result.Found
-                                       || distance < result.Distance
-                                       || distance == result.Distance && candidate.Priority < result.Priority
+                        var isBetter = !result.Found || distance < result.Distance || distance == result.Distance && candidate.Priority < result.Priority
                                        || distance == result.Distance && candidate.Priority == result.Priority && candidate.Text.Length > result.Text.Length;
 
                         if (isBetter)
@@ -1049,8 +1087,7 @@ namespace JasonQuery.Core.Database.Diagnostics.Oracle
             position = -1;
             target = string.Empty;
 
-            if (!OracleErrorCodeParser.Is(normalizedCode, "01722") && !OracleErrorCodeParser.Is(normalizedCode, "01843")
-                && !OracleErrorCodeParser.Is(normalizedCode, "01847"))
+            if (!OracleErrorCodeParser.Is(normalizedCode, "01722") && !OracleErrorCodeParser.Is(normalizedCode, "01843") && !OracleErrorCodeParser.Is(normalizedCode, "01847"))
             {
                 return false;
             }
