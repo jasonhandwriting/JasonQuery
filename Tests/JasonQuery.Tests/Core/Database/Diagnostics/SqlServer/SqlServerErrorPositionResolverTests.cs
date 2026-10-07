@@ -341,6 +341,89 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.SqlServer
             Assert.IsFalse(result.PositionResult.ShouldSetSquiggle);
         }
 
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlServer")]
+        [TestCategory("SqlLexingMigration")]
+        [DataRow("select MissingColumn from t", "MissingColumn")]
+        [DataRow("select 'MissingColumn' from t", "MissingColumn")]
+        [DataRow("select 'x''MissingColumn' from t", "MissingColumn")]
+        [DataRow("select 'x' as x, MissingColumn from t", "MissingColumn")]
+        [DataRow("select \"'MissingColumn'\" from t", "MissingColumn")]
+        [DataRow("select [abc'MissingColumn] from t", "MissingColumn")]
+        [DataRow("select \"a\"\"'MissingColumn'\" from t", "MissingColumn")]
+        [DataRow("select [a]]'MissingColumn] from t", "MissingColumn")]
+        [DataRow("select -- 'x'\r\nMissingColumn from t", "MissingColumn")]
+        [DataRow("select /* 'x' */ MissingColumn from t", "MissingColumn")]
+        [DataRow("select 'abc' /* x */ MissingColumn from t", "MissingColumn")]
+        [DataRow("select \"abc\" MissingColumn from t", "MissingColumn")]
+        [DataRow("select [abc] MissingColumn from t", "MissingColumn")]
+        [DataRow("select '' as x, MissingColumn from t", "MissingColumn")]
+        [DataRow("select 'prefix' + 'MissingColumn'", "MissingColumn")]
+        [DataRow("select 'a''b' as x, MissingColumn", "MissingColumn")]
+        public void IsInsideSingleQuotedString_SharedTokenizer_MatchesLegacy(string sql, string marker)
+        {
+            var position = sql.IndexOf(marker, StringComparison.Ordinal);
+
+            Assert.IsTrue(position >= 0);
+
+            var shared = SqlServerErrorPositionResolver.IsInsideSingleQuotedStringForParityTest
+            (
+                sql,
+                position
+            );
+
+            var legacy = SqlServerErrorPositionResolver.IsInsideSingleQuotedStringLegacyForParityTest
+            (
+                sql,
+                position
+            );
+
+            Assert.AreEqual(legacy, shared);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlServer")]
+        [TestCategory("SqlLexingMigration")]
+        [DataRow("-- old ' note\r\nselect MissingColumn from t")]
+        [DataRow("-- old ' note\nselect MissingColumn from t")]
+        [DataRow("-- old ' note\rselect MissingColumn from t")]
+        [DataRow("/* old ' note */ select MissingColumn from t")]
+        public void IsInsideSingleQuotedString_SharedTokenizer_CorrectsCommentQuoteStatePoisoning(string sql)
+        {
+            const string target = "MissingColumn";
+            var position = sql.IndexOf(target, StringComparison.Ordinal);
+
+            Assert.IsTrue(position >= 0);
+
+            var shared = SqlServerErrorPositionResolver.IsInsideSingleQuotedStringForParityTest
+            (
+                sql,
+                position
+            );
+
+            var legacy = SqlServerErrorPositionResolver.IsInsideSingleQuotedStringLegacyForParityTest
+            (
+                sql,
+                position
+            );
+
+            Assert.IsFalse(shared);
+            Assert.IsTrue(legacy);
+
+            var result = Resolve
+            (
+                sql,
+                "Invalid column name 'MissingColumn'."
+            );
+
+            Assert.AreEqual(position, result.PositionResult.Position);
+            Assert.AreEqual(target, result.PositionResult.TargetText);
+            Assert.AreEqual(target.Length, result.PositionResult.Length);
+            Assert.IsTrue(result.PositionResult.ShouldSetSquiggle);
+        }
+
         private static SqlServerErrorPositionResolution Resolve(string sql, string errorMessage, string secondary = "")
         {
             return SqlServerErrorPositionResolver.Resolve

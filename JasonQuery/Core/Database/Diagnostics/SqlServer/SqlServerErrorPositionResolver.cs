@@ -1,5 +1,7 @@
-﻿using JasonQuery.Core.Database.Diagnostics.Common;
+﻿using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Database.Diagnostics.Common;
 using JasonQuery.Core.Database.Execution;
+using JasonQuery.Core.Sql.Lexing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +11,8 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
 {
     internal static class SqlServerErrorPositionResolver
     {
+        private const SqlTokenizerOptions ErrorTargetTokenizerOptions = SqlTokenizerOptions.DisableNestedBlockComments;
+
         private sealed class ExecutionContext
         {
             public int EditorStart { get; set; }
@@ -42,6 +46,7 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
             }
 
             var context = CreateExecutionContext(request);
+
             var secondaryItems = SqlServerSecondaryErrorParser.Parse
             (
                 request.SecondaryErrorMessage
@@ -108,9 +113,7 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
 
         private static ExecutionContext CreateExecutionContext(SqlServerErrorPositionRequest request)
         {
-            var originalSql = !string.IsNullOrEmpty(request.OriginalExecutedSql)
-                              ? request.OriginalExecutedSql
-                              : request.ExecutedSql;
+            var originalSql = !string.IsNullOrEmpty(request.OriginalExecutedSql) ? request.OriginalExecutedSql : request.ExecutedSql;
 
             var editorStart = FindExecutionStart
             (
@@ -141,8 +144,7 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
                 return preferredStart;
             }
 
-            if (preferredStart + executedSql.Length <= editorSql.Length
-                && string.Equals(editorSql.Substring(preferredStart, executedSql.Length), executedSql, StringComparison.Ordinal))
+            if (preferredStart + executedSql.Length <= editorSql.Length && string.Equals(editorSql.Substring(preferredStart, executedSql.Length), executedSql, StringComparison.Ordinal))
             {
                 return preferredStart;
             }
@@ -237,6 +239,13 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
         {
             var best = new CandidateMatch();
 
+            var tokenizationResult = SqlTokenizer.Tokenize
+            (
+                text ?? string.Empty,
+                DataSourceType.SqlServer,
+                ErrorTargetTokenizerOptions
+            );
+
             foreach (var candidate in BuildTargetCandidates(target))
             {
                 var searchStart = 0;
@@ -255,7 +264,7 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
                         break;
                     }
 
-                    if (!IsInsideSingleQuotedString(text, index))
+                    if (!IsInsideSingleQuotedString(tokenizationResult, index))
                     {
                         var distance = Math.Abs(index - preferredPosition);
 
@@ -315,10 +324,7 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
                 AddCandidate(result, $"\"{normalized.Replace("\"", "\"\"")}\"");
             }
 
-            return result.Where(value => !string.IsNullOrEmpty(value))
-                         .Distinct(StringComparer.OrdinalIgnoreCase)
-                         .OrderByDescending(value => value.Length)
-                         .ToArray();
+            return result.Where(value => !string.IsNullOrEmpty(value)).Distinct(StringComparer.OrdinalIgnoreCase).OrderByDescending(value => value.Length).ToArray();
         }
 
         private static void AddCandidate(ICollection<string> values, string value)
@@ -462,14 +468,7 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
             var target = match.Text;
 
             if (!string.IsNullOrEmpty(request.ParameterPositionMapping)
-                && SqlParameterPositionMapper.TryMapExecutedSqlPositionToOriginalSqlPosition
-                   (
-                       request.ParameterPositionMapping,
-                       request.ParameterStartPosition,
-                       request.ParameterStartPosition + match.Position,
-                       out var mappedPosition,
-                       out var mappedParameterName
-                   ))
+                && SqlParameterPositionMapper.TryMapExecutedSqlPositionToOriginalSqlPosition(request.ParameterPositionMapping, request.ParameterStartPosition, request.ParameterStartPosition + match.Position, out var mappedPosition, out var mappedParameterName))
             {
                 position = mappedPosition;
 
@@ -537,14 +536,43 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
 
             for (var i = 0; i < lineIndex && i < lines.Length; i++)
             {
-                //QueryForm／Reader 都以 CRLF 作為 SQL 的標準換行。
+                //QueryForm、Reader 都以 CRLF 作為 SQL 的標準換行
                 result += lines[i].Length + 2;
             }
 
             return result;
         }
 
-        private static bool IsInsideSingleQuotedString(string text, int index)
+        private static bool IsInsideSingleQuotedString(SqlTokenizationResult tokenizationResult, int index)
+        {
+            if (tokenizationResult == null || index <= 0)
+            {
+                return false;
+            }
+
+            var token = tokenizationResult.FindTokenContaining(index);
+
+            return token != null && token.Kind == SqlTokenKind.StringLiteral && token.Start < index;
+        }
+
+        internal static bool IsInsideSingleQuotedStringForParityTest(string text, int index)
+        {
+            var tokenizationResult = SqlTokenizer.Tokenize
+            (
+                text ?? string.Empty,
+                DataSourceType.SqlServer,
+                ErrorTargetTokenizerOptions
+            );
+
+            return IsInsideSingleQuotedString(tokenizationResult, index);
+        }
+
+        internal static bool IsInsideSingleQuotedStringLegacyForParityTest(string text, int index)
+        {
+            return IsInsideSingleQuotedStringLegacy(text ?? string.Empty, index);
+        }
+
+        private static bool IsInsideSingleQuotedStringLegacy(string text, int index)
         {
             var insideSingle = false;
             var insideDouble = false;
