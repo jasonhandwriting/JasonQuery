@@ -145,6 +145,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.Oracle
             const string sql = "SELECT a1.C5_TIMESTAMP3, a1.C7_TIMESTAMP1, a1.C8_TIMESTAMP0,\r\n" +
                                "       a[15.C9_TIMESTAMP3_WITHTIMEZONE, a1.C13_TIMESTAMP9_WITHLOCAL\r\n" +
                                "  FROM aabbcc a1";
+
             const string expectedTarget = "a[15.C9_TIMESTAMP3_WITHTIMEZONE";
 
             AssertTarget
@@ -164,6 +165,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.Oracle
             const string sql = "SELECT a1.C5_TIMESTAMP3, a1.C7_TIMESTAMP1, a1.C8_TIMESTAMP0,\r\n" +
                                "       a\"15.C9_TIMESTAMP3_WITHTIMEZONE, a1.C13_TIMESTAMP9_WITHLOCAL\r\n" +
                                "  FROM aabbcc a1";
+
             const string expectedTarget = "a\"15.C9_TIMESTAMP3_WITHTIMEZONE";
 
             AssertTarget
@@ -201,12 +203,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.Oracle
         [DataRow("select * from AABBCC where AGE = 'a'", "ORA-01722: invalid number", "'a'")]
         [DataRow("select * from AABBCC where D = '2024/05/25 15:09:20'", "ORA-01843: not a valid month", "'2024/05/25 15:09:20'")]
         [DataRow("select * from AABBCC where D = TO_DATE('35/05/2024', 'DD/MM/YY')", "ORA-01847: day of month must be between 1 and last day of month", "'35/05/2024'")]
-        public void Resolve_KnownConversionErrors_ReturnNearestLiteral
-        (
-            string sql,
-            string errorMessage,
-            string expectedTarget
-        )
+        public void Resolve_KnownConversionErrors_ReturnNearestLiteral(string sql, string errorMessage, string expectedTarget)
         {
             AssertTarget
             (
@@ -224,6 +221,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.Oracle
         {
             const string sql = "select COLUMN22 from AABBCC\r\n" +
                                " where COLUMN1 = 1 and COLUMN22 = 2";
+
             var expectedPosition = sql.LastIndexOf
             (
                 "COLUMN22",
@@ -360,6 +358,72 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.Oracle
             );
 
             Assert.IsTrue(result.HasManyNonAsciiCharactersBeforePosition);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("Oracle")]
+        [TestCategory("SqlLexingMigration")]
+        [DataRow("", "")]
+        [DataRow("   \t\r\n", "")]
+        [DataRow("select * from A_TEST", "select * from A_TEST")]
+        [DataRow(" \tselect * from A_TEST  ", "select * from A_TEST  ")]
+        [DataRow("-- note\r\nselect * from A_TEST", "select * from A_TEST")]
+        [DataRow("-- note\nselect * from A_TEST", "select * from A_TEST")]
+        [DataRow("-- note\rselect * from A_TEST", "select * from A_TEST")]
+        [DataRow("-- note", "")]
+        [DataRow("/* note */select * from A_TEST", "select * from A_TEST")]
+        [DataRow(" \r\n/* note */ \t select * from A_TEST  ", "select * from A_TEST  ")]
+        [DataRow("-- one\r\n/* two */\r\n-- three\r\nselect * from A_TEST", "select * from A_TEST")]
+        [DataRow("/*+ INDEX(A IX_A) */ select * from A_TEST", "/*+ INDEX(A IX_A) */ select * from A_TEST")]
+        [DataRow("  /*+ INDEX(A IX_A) */ select * from A_TEST", "/*+ INDEX(A IX_A) */ select * from A_TEST")]
+        [DataRow("/* unterminated", "")]
+        [DataRow("  /*+ INDEX(A IX_A)", "/*+ INDEX(A IX_A)")]
+        [DataRow("/* outer /* inner */ SELECT */ select * from A_TEST", "SELECT */ select * from A_TEST")]
+        [DataRow("q'[-- not a comment]' from dual", "q'[-- not a comment]' from dual")]
+        [DataRow("'/* not a comment */' from dual", "'/* not a comment */' from dual")]
+        [DataRow("\"/* not a comment */\" from dual", "\"/* not a comment */\" from dual")]
+        [DataRow("/ select * from A_TEST", "/ select * from A_TEST")]
+        public void RemoveLeadingOracleSqlTrivia_SharedTokenizer_MatchesLegacy(string sql, string expected)
+        {
+            var shared = OracleErrorPositionResolver.RemoveLeadingOracleSqlTriviaForParityTest(sql);
+            var legacy = OracleErrorPositionResolver.RemoveLeadingOracleSqlTriviaLegacyForParityTest(sql);
+
+            Assert.AreEqual(expected, legacy);
+            Assert.AreEqual(legacy, shared);
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("Oracle")]
+        [TestCategory("SqlLexingMigration")]
+        [DataRow("-- leading\r\nselect * from MISSING_TABLE")]
+        [DataRow("/* leading */\r\nselect * from MISSING_TABLE")]
+        [DataRow("-- one\r\n/* two */\r\nselect * from MISSING_TABLE")]
+        [DataRow("/*+ INDEX(MISSING_TABLE IX_X) */ select * from MISSING_TABLE")]
+        public void Resolve_WithLeadingOracleTrivia_PreservesExecutionRangeBehavior(string sql)
+        {
+            const string target = "MISSING_TABLE";
+            var expectedPosition = sql.LastIndexOf(target, StringComparison.Ordinal);
+
+            var result = OracleErrorPositionResolver.Resolve
+            (
+                new OracleErrorPositionRequest
+                {
+                    EditorSql = sql,
+                    OriginalExecutedSql = sql,
+                    ExecutedSql = sql,
+                    ErrorMessage = "ORA-00942: table or view does not exist",
+                    ReportedPosition = expectedPosition,
+                    PreferredExecutionStart = 0
+                }
+            );
+
+            Assert.IsTrue(result.Found);
+            Assert.AreEqual(expectedPosition, result.Position);
+            Assert.AreEqual(target, result.TargetText);
+            Assert.AreEqual(target.Length, result.Length);
+            Assert.IsTrue(result.ShouldSetSquiggle);
         }
 
         private static void AssertTarget(string sql, string errorMessage, string expectedTarget, int reportedPosition)
