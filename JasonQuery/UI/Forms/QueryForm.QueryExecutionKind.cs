@@ -1,4 +1,5 @@
 ﻿using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.QueryEngine.Execution;
 using JasonQuery.Core.Database.Transactions.LockingQueries;
 using System;
 using System.Collections.Generic;
@@ -91,12 +92,12 @@ namespace JasonQuery.UI.Forms
             }
             else if (string.Equals(statementType, "WITH", StringComparison.OrdinalIgnoreCase))
             {
-                result = IsWithSql(sql);
+                result = !QueryExecutionMutationKeywordDetector.ContainsMutationKeyword(_currentSourceType, sql);
             }
             else if (statementText.StartsWith("DECLARE", StringComparison.OrdinalIgnoreCase)
                      && string.Equals(statementType, "BATCH", StringComparison.OrdinalIgnoreCase))
             {
-                result = IsWithSql(sql);
+                result = !QueryExecutionMutationKeywordDetector.ContainsMutationKeyword(_currentSourceType, sql);
                 isExtended = result;
             }
 
