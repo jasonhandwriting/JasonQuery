@@ -524,6 +524,7 @@
     <Compile Include="Core\Sql\Lexing\SqlTokenizer.cs" />
     <Compile Include="Core\QueryEngine\Editor\Analysis\QueryEditorParameterAnalyzer.cs" />
     <Compile Include="Core\QueryEngine\Editor\Analysis\QueryEditorSqlNormalizer.cs" />
+    <Compile Include="Core\QueryEngine\Execution\QueryExecutionMutationKeywordDetector.cs" />
     <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\AutoCompleteObjectLookupMode.cs" />
     <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\CtrlJPeriodTriggerInfo.cs" />
     <Compile Include="Core\QueryEngine\Editor\AutoComplete\Builders\QueryEditorAutoCompleteDataTableBuilder.cs" />
