@@ -33,22 +33,6 @@ namespace JasonQuery.Core.QueryEngine.Editor.Analysis
             return NormalizeSingleLineSql(parts, toUpperCase, appendTrailingSpace);
         }
 
-        internal static string GetSingleLineSqlLegacyForParityTest(string sql, bool toUpperCase = true, bool appendTrailingSpace = false)
-        {
-            if (string.IsNullOrEmpty(sql))
-            {
-                return string.Empty;
-            }
-
-            sql = RemoveBlockCommentsLegacy(sql);
-
-            var parts = sql.Split(new[] { "\r\n" }, StringSplitOptions.None);
-
-            RemoveSingleLineCommentsAndTrimLegacy(parts);
-
-            return NormalizeSingleLineSql(parts, toUpperCase, appendTrailingSpace);
-        }
-
         private static string RemoveCommentsUsingSharedTokenizer(string sql)
         {
             var tokenizationResult = SqlTokenizer.Tokenize
@@ -121,56 +105,6 @@ namespace JasonQuery.Core.QueryEngine.Editor.Analysis
             }
 
             return sql;
-        }
-
-        private static string RemoveBlockCommentsLegacy(string sql)
-        {
-            for (var i = 0; i < 100; i++)
-            {
-                var indexOfStart = sql.IndexOf("/*", StringComparison.Ordinal);
-                var indexOfEnd = sql.IndexOf("*/", StringComparison.Ordinal);
-
-                if (indexOfStart == -1 || indexOfEnd == -1)
-                {
-                    break;
-                }
-
-                if (indexOfEnd > indexOfStart)
-                {
-                    var temp1 = sql.Substring(0, indexOfStart);
-                    var temp2 = sql.Substring(indexOfEnd + 2, sql.Length - indexOfEnd - 2);
-
-                    sql = string.Concat(temp1, temp2);
-                }
-            }
-
-            return sql;
-        }
-
-        private static void RemoveSingleLineCommentsAndTrimLegacy(string[] parts)
-        {
-            if (parts == null)
-            {
-                return;
-            }
-
-            for (var i = 0; i < parts.Length; i++)
-            {
-                var index = parts[i].IndexOf("--", StringComparison.Ordinal);
-
-                if (parts[i].Length < 2)
-                {
-                    parts[i] = parts[i].Trim();
-                }
-                else if (parts[i].StartsWith("--", StringComparison.Ordinal))
-                {
-                    parts[i] = string.Empty;
-                }
-                else if (index >= 0)
-                {
-                    parts[i] = parts[i].Substring(0, index);
-                }
-            }
         }
 
         private static string RebuildSingleLineSql(string[] parts, int maxLineIndex)

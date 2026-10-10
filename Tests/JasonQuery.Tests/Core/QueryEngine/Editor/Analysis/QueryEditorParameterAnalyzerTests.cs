@@ -10,29 +10,28 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Analysis
         [TestCategory("Unit")]
         [TestCategory("SqlLexingMigration")]
         [TestCategory("QueryParameters")]
-        [DataRow("select * from t where id = :id")]
-        [DataRow("select * from t where a = :a and b = :b")]
-        [DataRow("select * from t where a = :id or b = :ID")]
-        [DataRow("select ':ignored' as x from t where id = :id")]
-        [DataRow("select \":ignored\" from t where id = :id")]
-        [DataRow("select 1 -- :ignored\r\nwhere id = :id")]
-        [DataRow("select /* :ignored */ 1 where id = :id")]
-        [DataRow("select value::text from t where id = :id")]
-        [DataRow(":ignored_at_start select 1")]
-        [DataRow("select x:ignored from t")]
-        [DataRow("select\t:ignored from t")]
-        [DataRow("select [ :legacy ]")]
-        [DataRow("select ` :legacy `")]
-        [DataRow("select $$ :legacy $$")]
-        [DataRow("select /* outer /* :ignored */ :legacy */ 1")]
-        [DataRow("select 1\n:p")]
-        public void ExtractParametersInfo_SharedTokenizer_MatchesLegacy(string sql)
+        [DataRow("select * from t where id = :id", ":id", "`:id|27`")]
+        [DataRow("select * from t where a = :a and b = :b", ":a`:b", "`:a|26`:b|37`")]
+        [DataRow("select * from t where a = :id or b = :ID", ":id", "`:id|26`:ID|37`")]
+        [DataRow("select ':ignored' as x from t where id = :id", ":id", "`:id|41`")]
+        [DataRow("select \":ignored\" from t where id = :id", ":id", "`:id|36`")]
+        [DataRow("select 1 -- :ignored\r\nwhere id = :id", ":id", "`:id|33`")]
+        [DataRow("select /* :ignored */ 1 where id = :id", ":id", "`:id|35`")]
+        [DataRow("select value::text from t where id = :id", ":id", "`:id|37`")]
+        [DataRow(":ignored_at_start select 1", "", "`")]
+        [DataRow("select x:ignored from t", "", "`")]
+        [DataRow("select\t:ignored from t", "", "`")]
+        [DataRow("select [ :legacy ]", ":legacy", "`:legacy|9`")]
+        [DataRow("select ` :legacy `", ":legacy", "`:legacy|9`")]
+        [DataRow("select $$ :legacy $$", ":legacy", "`:legacy|10`")]
+        [DataRow("select /* outer /* :ignored */ :legacy */ 1", ":legacy", "`:legacy|31`")]
+        [DataRow("select 1\n:p", ":p", "`:p|9`")]
+        public void ExtractParametersInfo_SharedTokenizer_PreservesExpectedResults(string sql, string expected, string expectedAll)
         {
-            var shared = QueryEditorParameterAnalyzer.ExtractParametersInfo(sql, out string sharedAll);
-            var legacy = QueryEditorParameterAnalyzer.ExtractParametersInfoLegacyForParityTest(sql, out string legacyAll);
+            var actual = QueryEditorParameterAnalyzer.ExtractParametersInfo(sql, out string actualAll);
 
-            Assert.AreEqual(legacy, shared);
-            Assert.AreEqual(legacyAll, sharedAll);
+            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(expectedAll, actualAll);
         }
 
         [TestMethod]
