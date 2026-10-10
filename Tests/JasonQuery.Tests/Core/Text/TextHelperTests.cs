@@ -304,28 +304,25 @@ namespace JasonQuery.Tests.Core.Text
         [TestCategory("Unit")]
         [TestCategory("SqlLexingMigration")]
         [TestCategory("TextHelperTransferString")]
-        [DataRow("select * from t where name = 'MixedCase'", true, false, false)]
-        [DataRow("SELECT * FROM T WHERE NAME = 'MixedCase'", false, false, false)]
-        [DataRow("select \"MixedCase\" from t", true, false, false)]
-        [DataRow("select 'a--b' as x from t", true, false, false)]
-        [DataRow("select 'a/*b*/c' as x from t", true, false, false)]
-        [DataRow("select \"a--b\" from t", true, false, false)]
-        [DataRow("select 'it''s Mixed' as x from t", true, false, false)]
-        [DataRow("select \"a\"\"b\" from t", true, false, false)]
-        [DataRow("select 1 -- MixedCase\r\nfrom t", true, false, false)]
-        [DataRow("select /* MixedCase */ 1 from t", true, false, false)]
-        [DataRow("select /* outer /* inner */ tail */ 1", true, false, false)]
-        [DataRow("select [MixedCase] from t", true, false, false)]
-        [DataRow("select `MixedCase` from t", true, false, false)]
-        [DataRow("select $$MixedCase$$ from t", true, false, false)]
-        [DataRow("select 1 -- MixedCase\r\nfrom t", true, true, false)]
-        [DataRow("with x as (select 1 /* MixedCase */) select * from x", true, true, true)]
-        public void GetTransferString_SharedTokenizer_MatchesLegacy(string sql, bool toUppercase, bool isComment, bool isReplace)
+        [DataRow("select * from t where name = 'MixedCase'", true, false, false, "SELECT * FROM T WHERE NAME = 'MixedCase'")]
+        [DataRow("SELECT * FROM T WHERE NAME = 'MixedCase'", false, false, false, "select * from t where name = 'MixedCase'")]
+        [DataRow("select \"MixedCase\" from t", true, false, false, "SELECT \"MixedCase\" FROM T")]
+        [DataRow("select 'a--b' as x from t", true, false, false, "SELECT 'a--b' AS X FROM T")]
+        [DataRow("select 'a/*b*/c' as x from t", true, false, false, "SELECT 'a/*b*/c' AS X FROM T")]
+        [DataRow("select \"a--b\" from t", true, false, false, "SELECT \"a--b\" FROM T")]
+        [DataRow("select 'it''s Mixed' as x from t", true, false, false, "SELECT 'it''s Mixed' AS X FROM T")]
+        [DataRow("select \"a\"\"b\" from t", true, false, false, "SELECT \"a\"\"b\" FROM T")]
+        [DataRow("select 1 -- MixedCase\r\nfrom t", true, false, false, "SELECT 1 -- MixedCase\r\nFROM T")]
+        [DataRow("select /* MixedCase */ 1 from t", true, false, false, "SELECT /* MixedCase */ 1 FROM T")]
+        [DataRow("select /* outer /* inner */ tail */ 1", true, false, false, "SELECT /* outer /* inner */ TAIL */ 1")]
+        [DataRow("select [MixedCase] from t", true, false, false, "SELECT [MIXEDCASE] FROM T")]
+        [DataRow("select `MixedCase` from t", true, false, false, "SELECT `MIXEDCASE` FROM T")]
+        [DataRow("select $$MixedCase$$ from t", true, false, false, "SELECT $$MIXEDCASE$$ FROM T")]
+        [DataRow("select 1 -- MixedCase\r\nfrom t", true, true, false, "select 1              \nfrom t")]
+        [DataRow("with x as (select 1 /* MixedCase */) select * from x", true, true, true, "WITH X AS ( SELECT 1 ) SELECT * FROM X")]
+        public void GetTransferString_SharedTokenizer_PreservesExpectedResults(string sql, bool toUppercase, bool isComment, bool isReplace, string expected)
         {
-            var shared = TextHelper.GetTransferString(toUppercase, sql, isComment, isReplace);
-            var legacy = TextHelper.GetTransferStringLegacyForParityTest(toUppercase, sql, isComment, isReplace);
-
-            Assert.AreEqual(legacy, shared);
+            Assert.AreEqual(expected, TextHelper.GetTransferString(toUppercase, sql, isComment, isReplace));
         }
 
         [TestMethod]

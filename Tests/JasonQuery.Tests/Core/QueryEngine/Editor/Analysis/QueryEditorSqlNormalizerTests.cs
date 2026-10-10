@@ -10,28 +10,25 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Analysis
         [TestCategory("Unit")]
         [TestCategory("SqlLexingMigration")]
         [TestCategory("SqlNormalizer")]
-        [DataRow("select * from t", true, false)]
-        [DataRow("select /* comment */ a from t", true, false)]
-        [DataRow("select a -- comment\r\nfrom t", true, false)]
-        [DataRow("-- comment\r\nselect 1", true, false)]
-        [DataRow("select /* one */ a /* two */ from t", true, false)]
-        [DataRow("select a,\r\nb from t;", true, false)]
-        [DataRow("select (a) from t", true, false)]
-        [DataRow("select a from t", false, false)]
-        [DataRow("select a from t", true, true)]
-        [DataRow("select a from t", false, true)]
-        [DataRow("select /* -- x */ a from t", true, false)]
-        [DataRow("select a -- /* x */\r\nfrom t", true, false)]
-        [DataRow("select /**/a from t", true, false)]
-        [DataRow("select a--x\r\nfrom t", true, false)]
-        [DataRow("select a /*x*/--y\r\nfrom t", true, false)]
-        [DataRow("select a\r\n\r\nfrom t", true, false)]
-        public void GetSingleLineSql_SharedTokenizer_MatchesLegacy(string sql, bool toUpperCase, bool appendTrailingSpace)
+        [DataRow("select * from t", true, false, "SELECT * FROM T")]
+        [DataRow("select /* comment */ a from t", true, false, "SELECT A FROM T")]
+        [DataRow("select a -- comment\r\nfrom t", true, false, "SELECT A FROM T")]
+        [DataRow("-- comment\r\nselect 1", true, false, "SELECT 1")]
+        [DataRow("select /* one */ a /* two */ from t", true, false, "SELECT A FROM T")]
+        [DataRow("select a,\r\nb from t;", true, false, "SELECT A , B FROM T")]
+        [DataRow("select (a) from t", true, false, "SELECT ( A ) FROM T")]
+        [DataRow("select a from t", false, false, "select a from t")]
+        [DataRow("select a from t", true, true, "SELECT A FROM T ")]
+        [DataRow("select a from t", false, true, "select a from t ")]
+        [DataRow("select /* -- x */ a from t", true, false, "SELECT A FROM T")]
+        [DataRow("select a -- /* x */\r\nfrom t", true, false, "SELECT A FROM T")]
+        [DataRow("select /**/a from t", true, false, "SELECT A FROM T")]
+        [DataRow("select a--x\r\nfrom t", true, false, "SELECT A FROM T")]
+        [DataRow("select a /*x*/--y\r\nfrom t", true, false, "SELECT A FROM T")]
+        [DataRow("select a\r\n\r\nfrom t", true, false, "SELECT A FROM T")]
+        public void GetSingleLineSql_SharedTokenizer_PreservesExpectedResults(string sql, bool toUpperCase, bool appendTrailingSpace, string expected)
         {
-            var shared = QueryEditorSqlNormalizer.GetSingleLineSql(sql, toUpperCase, appendTrailingSpace);
-            var legacy = QueryEditorSqlNormalizer.GetSingleLineSqlLegacyForParityTest(sql, toUpperCase, appendTrailingSpace);
-
-            Assert.AreEqual(legacy, shared);
+            Assert.AreEqual(expected, QueryEditorSqlNormalizer.GetSingleLineSql(sql, toUpperCase, appendTrailingSpace));
         }
 
         [TestMethod]
@@ -49,10 +46,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.Analysis
         public void GetSingleLineSql_SharedTokenizer_CorrectsLegacyCommentClassification(string sql, string expected)
         {
             var shared = QueryEditorSqlNormalizer.GetSingleLineSql(sql);
-            var legacy = QueryEditorSqlNormalizer.GetSingleLineSqlLegacyForParityTest(sql);
 
             Assert.AreEqual(expected, shared);
-            Assert.AreNotEqual(legacy, shared);
         }
     }
 }
