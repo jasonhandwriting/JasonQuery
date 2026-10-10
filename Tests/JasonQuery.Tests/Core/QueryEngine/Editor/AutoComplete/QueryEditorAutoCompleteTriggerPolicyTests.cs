@@ -142,32 +142,29 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
         [TestCategory("AutoComplete")]
         [TestCategory("SqlLexingMigration")]
         [TestCategory("AutoCompleteTriggerPolicy")]
-        [DataRow("a.b", 1)]
-        [DataRow("'a'.", 0)]
-        [DataRow("'a'.", 1)]
-        [DataRow("'a'.", 2)]
-        [DataRow("'a'.", 3)]
-        [DataRow("'a''b'.", 3)]
-        [DataRow("'a''b'.", 4)]
-        [DataRow("'a''b'.", 6)]
-        [DataRow("\"a\"\"b\".", 3)]
-        [DataRow("\"a\"\"b\".", 4)]
-        [DataRow("[a]]b].", 3)]
-        [DataRow("[a]]b].", 4)]
-        [DataRow("`a``b`.", 3)]
-        [DataRow("`a``b`.", 4)]
-        [DataRow("--x\r\n.", 1)]
-        [DataRow("--x\r\n.", 2)]
-        [DataRow("--x\r\n.", 4)]
-        [DataRow("abc#x\n.", 4)]
-        [DataRow("/*x*/.", 4)]
-        [DataRow("/*x*/.", 5)]
-        public void IsCodePosition_SharedTokenizer_MatchesLegacy(string text, int position)
+        [DataRow("a.b", 1, true)]
+        [DataRow("'a'.", 0, true)]
+        [DataRow("'a'.", 1, false)]
+        [DataRow("'a'.", 2, false)]
+        [DataRow("'a'.", 3, true)]
+        [DataRow("'a''b'.", 3, true)]
+        [DataRow("'a''b'.", 4, false)]
+        [DataRow("'a''b'.", 6, true)]
+        [DataRow("\"a\"\"b\".", 3, true)]
+        [DataRow("\"a\"\"b\".", 4, false)]
+        [DataRow("[a]]b].", 3, true)]
+        [DataRow("[a]]b].", 4, false)]
+        [DataRow("`a``b`.", 3, true)]
+        [DataRow("`a``b`.", 4, false)]
+        [DataRow("--x\r\n.", 1, true)]
+        [DataRow("--x\r\n.", 2, false)]
+        [DataRow("--x\r\n.", 4, true)]
+        [DataRow("abc#x\n.", 4, false)]
+        [DataRow("/*x*/.", 4, false)]
+        [DataRow("/*x*/.", 5, true)]
+        public void IsCodePosition_SharedTokenizer_MatchesGolden(string text, int position, bool expected)
         {
-            var shared = QueryEditorAutoCompleteTriggerPolicy.IsCodePosition(text, position);
-            var legacy = QueryEditorAutoCompleteTriggerPolicy.IsCodePositionLegacyForParityTest(text, position);
-
-            Assert.AreEqual(legacy, shared);
+            Assert.AreEqual(expected, QueryEditorAutoCompleteTriggerPolicy.IsCodePosition(text, position));
         }
 
         private static int ResolveCaretPosition(string sql)

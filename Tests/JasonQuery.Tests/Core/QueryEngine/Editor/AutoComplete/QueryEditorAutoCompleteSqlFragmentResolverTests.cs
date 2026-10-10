@@ -112,46 +112,44 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
         [TestCategory("Unit")]
         [TestCategory("AutoComplete")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("WITH x AS (SELECT id FROM customer) SELECT x.")]
-        [DataRow("WITH x AS (SELECT * FROM (SELECT id FROM customer) c) SELECT x.")]
-        [DataRow("WITH x AS (SELECT '(' AS a, ')' AS b FROM customer) SELECT x.")]
-        [DataRow("WITH x AS (SELECT \"(\" AS a FROM customer) SELECT x.")]
-        [DataRow("WITH x AS (\r\nSELECT id\r\nFROM customer\r\n) SELECT x.")]
-        [DataRow("WITH x AS (SELECT 'A''B' AS name FROM customer) SELECT x.")]
-        [DataRow("WITH x AS (SELECT \"A\"\"B\" AS name FROM customer) SELECT x.")]
-        [DataRow("WITH x AS (SELECT /* note */ id FROM customer) SELECT x.")]
-        [DataRow("WITH x AS (SELECT -- note\r\n id FROM customer) SELECT x.")]
-        [DataRow("WITH x AS (SELECT [id], `name` FROM customer) SELECT x.")]
-        public void WithAsSharedTokenizer_MatchesLegacyFragment(string sql)
+        [DataRow("WITH x AS (SELECT id FROM customer) SELECT x.", "SELECT id FROM customer")]
+        [DataRow("WITH x AS (SELECT * FROM (SELECT id FROM customer) c) SELECT x.", "SELECT * FROM (SELECT id FROM customer) c")]
+        [DataRow("WITH x AS (SELECT '(' AS a, ')' AS b FROM customer) SELECT x.", "SELECT '(' AS a, ')' AS b FROM customer")]
+        [DataRow("WITH x AS (SELECT \"(\" AS a FROM customer) SELECT x.", "SELECT \"(\" AS a FROM customer")]
+        [DataRow("WITH x AS (\r\nSELECT id\r\nFROM customer\r\n) SELECT x.", "SELECT id\r\nFROM customer")]
+        [DataRow("WITH x AS (SELECT 'A''B' AS name FROM customer) SELECT x.", "SELECT 'A''B' AS name FROM customer")]
+        [DataRow("WITH x AS (SELECT \"A\"\"B\" AS name FROM customer) SELECT x.", "SELECT \"A\"\"B\" AS name FROM customer")]
+        [DataRow("WITH x AS (SELECT /* note */ id FROM customer) SELECT x.", "SELECT /* note */ id FROM customer")]
+        [DataRow("WITH x AS (SELECT -- note\r\n id FROM customer) SELECT x.", "SELECT -- note\r\n id FROM customer")]
+        [DataRow("WITH x AS (SELECT [id], `name` FROM customer) SELECT x.", "SELECT [id], `name` FROM customer")]
+        public void WithAsSharedTokenizer_MatchesGoldenFragment(string sql, string expected)
         {
             var start = sql.IndexOf('(');
-            var shared = QueryEditorAutoCompleteWithAsResolver.GetSharedSqlForParityTest(sql, start);
-            var legacy = QueryEditorAutoCompleteWithAsResolver.GetLegacySqlForParityTest(sql, start);
+            var shared = QueryEditorAutoCompleteWithAsResolver.GetAutoCompleteSqlForWithAs(sql, start);
 
-            Assert.AreEqual(legacy, shared);
+            Assert.AreEqual(expected, shared);
         }
 
         [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("AutoComplete")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("SELECT * FROM (SELECT id FROM customer) c")]
-        [DataRow("SELECT * FROM (SELECT * FROM (SELECT id FROM customer) c) x")]
-        [DataRow("SELECT * FROM (SELECT '(' AS a, ')' AS b FROM customer) c")]
-        [DataRow("SELECT * FROM (SELECT \"(\" AS a FROM customer) c")]
-        [DataRow("SELECT *\r\nFROM (\r\nSELECT id\r\nFROM customer\r\n) c")]
-        [DataRow("SELECT * FROM (SELECT 'A''B' AS name FROM customer) c")]
-        [DataRow("SELECT * FROM (SELECT \"A\"\"B\" AS name FROM customer) c")]
-        [DataRow("SELECT * FROM (SELECT [id], `name` FROM customer) c")]
-        [DataRow("SELECT * FROM (SELECT 1 + 2 AS value FROM customer) c")]
-        [DataRow("SELECT * FROM (SELECT ';' AS value FROM customer) c")]
-        public void SubquerySharedTokenizer_MatchesLegacyFragment(string sql)
+        [DataRow("SELECT * FROM (SELECT id FROM customer) c", "SELECT id FROM customer")]
+        [DataRow("SELECT * FROM (SELECT * FROM (SELECT id FROM customer) c) x", "SELECT * FROM (SELECT id FROM customer) c")]
+        [DataRow("SELECT * FROM (SELECT '(' AS a, ')' AS b FROM customer) c", "SELECT '(' AS a, ')' AS b FROM customer")]
+        [DataRow("SELECT * FROM (SELECT \"(\" AS a FROM customer) c", "SELECT \"(\" AS a FROM customer")]
+        [DataRow("SELECT *\r\nFROM (\r\nSELECT id\r\nFROM customer\r\n) c", "SELECT id\r\nFROM customer")]
+        [DataRow("SELECT * FROM (SELECT 'A''B' AS name FROM customer) c", "SELECT 'A''B' AS name FROM customer")]
+        [DataRow("SELECT * FROM (SELECT \"A\"\"B\" AS name FROM customer) c", "SELECT \"A\"\"B\" AS name FROM customer")]
+        [DataRow("SELECT * FROM (SELECT [id], `name` FROM customer) c", "SELECT [id], `name` FROM customer")]
+        [DataRow("SELECT * FROM (SELECT 1 + 2 AS value FROM customer) c", "SELECT 1 + 2 AS value FROM customer")]
+        [DataRow("SELECT * FROM (SELECT ';' AS value FROM customer) c", "SELECT ';' AS value FROM customer")]
+        public void SubquerySharedTokenizer_MatchesGoldenFragment(string sql, string expected)
         {
             var start = sql.LastIndexOf(')');
-            var shared = QueryEditorAutoCompleteSubqueryResolver.GetSharedSqlForParityTest(sql, start);
-            var legacy = QueryEditorAutoCompleteSubqueryResolver.GetLegacySqlForParityTest(sql, start);
+            var shared = QueryEditorAutoCompleteSubqueryResolver.GetAutoCompleteSqlForSubquery(sql, start);
 
-            Assert.AreEqual(legacy, shared);
+            Assert.AreEqual(expected, shared);
         }
 
         [TestMethod]
@@ -165,10 +163,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
             var start = sql.LastIndexOf(')');
 
             var shared = QueryEditorAutoCompleteSubqueryResolver.GetAutoCompleteSqlForSubquery(sql, start);
-            var legacy = QueryEditorAutoCompleteSubqueryResolver.GetLegacySqlForParityTest(sql, start);
 
             Assert.AreEqual(expected, shared);
-            Assert.AreNotEqual(expected, legacy);
         }
 
         [TestMethod]
@@ -182,10 +178,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
             var start = sql.LastIndexOf(')');
 
             var shared = QueryEditorAutoCompleteSubqueryResolver.GetAutoCompleteSqlForSubquery(sql, start);
-            var legacy = QueryEditorAutoCompleteSubqueryResolver.GetLegacySqlForParityTest(sql, start);
 
             Assert.AreEqual(expected, shared);
-            Assert.AreNotEqual(expected, legacy);
         }
 
         [TestMethod]
@@ -205,10 +199,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
             var start = sql.IndexOf('(');
 
             var shared = QueryEditorAutoCompleteWithAsResolver.GetAutoCompleteSqlForWithAs(sql, start);
-            var legacy = QueryEditorAutoCompleteWithAsResolver.GetLegacySqlForParityTest(sql, start);
 
             Assert.AreEqual(inner, shared);
-            Assert.AreNotEqual(inner, legacy);
         }
 
         [TestMethod]
@@ -228,10 +220,8 @@ namespace JasonQuery.Tests.Core.QueryEngine.Editor.AutoComplete
             var start = sql.LastIndexOf(')');
 
             var shared = QueryEditorAutoCompleteSubqueryResolver.GetAutoCompleteSqlForSubquery(sql, start);
-            var legacy = QueryEditorAutoCompleteSubqueryResolver.GetLegacySqlForParityTest(sql, start);
 
             Assert.AreEqual(inner, shared);
-            Assert.AreNotEqual(inner, legacy);
         }
     }
 }
