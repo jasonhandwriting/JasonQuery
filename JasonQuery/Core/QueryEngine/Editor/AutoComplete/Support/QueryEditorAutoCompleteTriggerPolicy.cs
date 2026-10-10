@@ -10,18 +10,6 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
 
         private const SqlTokenizerOptions TriggerPolicyTokenizerOptions = SqlTokenizerOptions.RecognizeForeignDelimitedIdentifiers | SqlTokenizerOptions.MySqlDashCommentWithoutWhitespace | SqlTokenizerOptions.MySqlHashStartsCommentInsideWord | SqlTokenizerOptions.DisableNestedBlockComments | SqlTokenizerOptions.DisableMySqlSingleQuotedStringBackslashEscape;
 
-        private enum SqlTextState
-        {
-            Code = 0,
-            SingleQuotedText,
-            DoubleQuotedIdentifier,
-            BracketIdentifier,
-            BacktickIdentifier,
-            LineComment,
-            HashComment,
-            BlockComment
-        }
-
         public static bool IsPeriodTriggerAllowed(string text, int periodPosition)
         {
             if (string.IsNullOrEmpty(text) || periodPosition <= 0 || periodPosition > text.Length)
@@ -91,16 +79,6 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
             return IsCodePositionUsingSharedTokenizer(text, position);
         }
 
-        internal static bool IsCodePositionLegacyForParityTest(string text, int position)
-        {
-            if (string.IsNullOrEmpty(text) || position < 0 || position >= text.Length)
-            {
-                return false;
-            }
-
-            return GetStateBeforePosition(text, position) == SqlTextState.Code;
-        }
-
         private static bool IsCodePositionUsingSharedTokenizer(string text, int position)
         {
             var textWithProbe = string.Concat(text.Substring(0, position), LexicalStateProbe);
@@ -128,150 +106,6 @@ namespace JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support
             }
 
             return IsSqlTokenStartAfterComma(nextCharacter);
-        }
-
-        private static SqlTextState GetStateBeforePosition(string text, int position)
-        {
-            var state = SqlTextState.Code;
-
-            for (var i = 0; i < position; i++)
-            {
-                var current = text[i];
-                var next = i + 1 < position ? text[i + 1] : '\0';
-
-                switch (state)
-                {
-                    case SqlTextState.Code:
-                    {
-                        if (current == '\'')
-                        {
-                            state = SqlTextState.SingleQuotedText;
-                        }
-                        else if (current == '"')
-                        {
-                            state = SqlTextState.DoubleQuotedIdentifier;
-                        }
-                        else if (current == '[')
-                        {
-                            state = SqlTextState.BracketIdentifier;
-                        }
-                        else if (current == '`')
-                        {
-                            state = SqlTextState.BacktickIdentifier;
-                        }
-                        else if (current == '-' && next == '-')
-                        {
-                            state = SqlTextState.LineComment;
-                            i++;
-                        }
-                        else if (current == '#')
-                        {
-                            state = SqlTextState.HashComment;
-                        }
-                        else if (current == '/' && next == '*')
-                        {
-                            state = SqlTextState.BlockComment;
-                            i++;
-                        }
-
-                        break;
-                    }
-                    case SqlTextState.SingleQuotedText:
-                    {
-                        if (current != '\'')
-                        {
-                            break;
-                        }
-
-                        if (next == '\'')
-                        {
-                            i++;
-                        }
-                        else
-                        {
-                            state = SqlTextState.Code;
-                        }
-
-                        break;
-                    }
-                    case SqlTextState.DoubleQuotedIdentifier:
-                    {
-                        if (current != '"')
-                        {
-                            break;
-                        }
-
-                        if (next == '"')
-                        {
-                            i++;
-                        }
-                        else
-                        {
-                            state = SqlTextState.Code;
-                        }
-
-                        break;
-                    }
-                    case SqlTextState.BracketIdentifier:
-                    {
-                        if (current != ']')
-                        {
-                            break;
-                        }
-
-                        if (next == ']')
-                        {
-                            i++;
-                        }
-                        else
-                        {
-                            state = SqlTextState.Code;
-                        }
-
-                        break;
-                    }
-                    case SqlTextState.BacktickIdentifier:
-                    {
-                        if (current != '`')
-                        {
-                            break;
-                        }
-
-                        if (next == '`')
-                        {
-                            i++;
-                        }
-                        else
-                        {
-                            state = SqlTextState.Code;
-                        }
-
-                        break;
-                    }
-                    case SqlTextState.LineComment:
-                    case SqlTextState.HashComment:
-                    {
-                        if (current == '\r' || current == '\n')
-                        {
-                            state = SqlTextState.Code;
-                        }
-
-                        break;
-                    }
-                    case SqlTextState.BlockComment:
-                    {
-                        if (current == '*' && next == '/')
-                        {
-                            state = SqlTextState.Code;
-                            i++;
-                        }
-
-                        break;
-                    }
-                }
-            }
-
-            return state;
         }
 
         private static bool TryFindPreviousNonWhiteSpaceCharacter(string text, int startIndex, out int index, out char value)
