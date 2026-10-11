@@ -346,72 +346,61 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.SqlServer
         [TestCategory("Unit")]
         [TestCategory("SqlServer")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("select MissingColumn from t", "MissingColumn")]
-        [DataRow("select 'MissingColumn' from t", "MissingColumn")]
-        [DataRow("select 'x''MissingColumn' from t", "MissingColumn")]
-        [DataRow("select 'x' as x, MissingColumn from t", "MissingColumn")]
-        [DataRow("select \"'MissingColumn'\" from t", "MissingColumn")]
-        [DataRow("select [abc'MissingColumn] from t", "MissingColumn")]
-        [DataRow("select \"a\"\"'MissingColumn'\" from t", "MissingColumn")]
-        [DataRow("select [a]]'MissingColumn] from t", "MissingColumn")]
-        [DataRow("select -- 'x'\r\nMissingColumn from t", "MissingColumn")]
-        [DataRow("select /* 'x' */ MissingColumn from t", "MissingColumn")]
-        [DataRow("select 'abc' /* x */ MissingColumn from t", "MissingColumn")]
-        [DataRow("select \"abc\" MissingColumn from t", "MissingColumn")]
-        [DataRow("select [abc] MissingColumn from t", "MissingColumn")]
-        [DataRow("select '' as x, MissingColumn from t", "MissingColumn")]
-        [DataRow("select 'prefix' + 'MissingColumn'", "MissingColumn")]
-        [DataRow("select 'a''b' as x, MissingColumn", "MissingColumn")]
-        public void IsInsideSingleQuotedString_SharedTokenizer_MatchesLegacy(string sql, string marker)
+        [DataRow("select MissingColumn from t", "MissingColumn", false, false)]
+        [DataRow("select 'MissingColumn' from t", "MissingColumn", true, true)]
+        [DataRow("select 'x''MissingColumn' from t", "MissingColumn", true, true)]
+        [DataRow("select 'x' as x, MissingColumn from t", "MissingColumn", false, false)]
+        [DataRow("select \"'MissingColumn'\" from t", "MissingColumn", false, false)]
+        [DataRow("select [abc'MissingColumn] from t", "MissingColumn", false, false)]
+        [DataRow("select \"a\"\"'MissingColumn'\" from t", "MissingColumn", false, false)]
+        [DataRow("select [a]]'MissingColumn] from t", "MissingColumn", false, false)]
+        [DataRow("select -- 'x'\r\nMissingColumn from t", "MissingColumn", false, false)]
+        [DataRow("select /* 'x' */ MissingColumn from t", "MissingColumn", false, false)]
+        [DataRow("select 'abc' /* x */ MissingColumn from t", "MissingColumn", false, false)]
+        [DataRow("select \"abc\" MissingColumn from t", "MissingColumn", false, false)]
+        [DataRow("select [abc] MissingColumn from t", "MissingColumn", false, false)]
+        [DataRow("select '' as x, MissingColumn from t", "MissingColumn", false, false)]
+        [DataRow("select 'prefix' + 'MissingColumn'", "MissingColumn", true, true)]
+        [DataRow("select 'a''b' as x, MissingColumn", "MissingColumn", false, false)]
+        public void IsInsideSingleQuotedString_SharedTokenizer_MatchesGolden(string sql, string marker, bool expectedShared, bool expectedLegacy)
         {
             var position = sql.IndexOf(marker, StringComparison.Ordinal);
 
             Assert.IsTrue(position >= 0);
 
-            var shared = SqlServerErrorPositionResolver.IsInsideSingleQuotedStringForParityTest
+            var shared = SqlServerErrorPositionResolver.IsInsideSingleQuotedStringForGoldenTest
             (
                 sql,
                 position
             );
 
-            var legacy = SqlServerErrorPositionResolver.IsInsideSingleQuotedStringLegacyForParityTest
-            (
-                sql,
-                position
-            );
-
-            Assert.AreEqual(legacy, shared);
+            Assert.AreEqual(expectedShared, shared);
+            Assert.AreEqual(expectedLegacy, shared);
         }
 
         [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("SqlServer")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("-- old ' note\r\nselect MissingColumn from t")]
-        [DataRow("-- old ' note\nselect MissingColumn from t")]
-        [DataRow("-- old ' note\rselect MissingColumn from t")]
-        [DataRow("/* old ' note */ select MissingColumn from t")]
-        public void IsInsideSingleQuotedString_SharedTokenizer_CorrectsCommentQuoteStatePoisoning(string sql)
+        [DataRow("-- old ' note\r\nselect MissingColumn from t", false, true)]
+        [DataRow("-- old ' note\nselect MissingColumn from t", false, true)]
+        [DataRow("-- old ' note\rselect MissingColumn from t", false, true)]
+        [DataRow("/* old ' note */ select MissingColumn from t", false, true)]
+        public void IsInsideSingleQuotedString_SharedTokenizer_CorrectsCommentQuoteStatePoisoning(string sql, bool expectedShared, bool expectedLegacy)
         {
             const string target = "MissingColumn";
             var position = sql.IndexOf(target, StringComparison.Ordinal);
 
             Assert.IsTrue(position >= 0);
 
-            var shared = SqlServerErrorPositionResolver.IsInsideSingleQuotedStringForParityTest
+            var shared = SqlServerErrorPositionResolver.IsInsideSingleQuotedStringForGoldenTest
             (
                 sql,
                 position
             );
 
-            var legacy = SqlServerErrorPositionResolver.IsInsideSingleQuotedStringLegacyForParityTest
-            (
-                sql,
-                position
-            );
-
-            Assert.IsFalse(shared);
-            Assert.IsTrue(legacy);
+            Assert.AreEqual(expectedShared, shared);
+            Assert.AreNotEqual(expectedLegacy, shared);
 
             var result = Resolve
             (
@@ -419,6 +408,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.SqlServer
                 "Invalid column name 'MissingColumn'."
             );
 
+            Assert.IsTrue(result.PositionResult.Found);
             Assert.AreEqual(position, result.PositionResult.Position);
             Assert.AreEqual(target, result.PositionResult.TargetText);
             Assert.AreEqual(target.Length, result.PositionResult.Length);
@@ -468,68 +458,57 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.SqlServer
         [TestCategory("Unit")]
         [TestCategory("SqlServer")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("MissingColumn", "MissingColumn")]
-        [DataRow("x MissingColumn", "MissingColumn")]
-        [DataRow("'MissingColumn'", "MissingColumn")]
-        [DataRow("'x''MissingColumn'", "MissingColumn")]
-        [DataRow("'x' MissingColumn", "MissingColumn")]
-        [DataRow("'' MissingColumn", "MissingColumn")]
-        [DataRow("'a''b' MissingColumn", "MissingColumn")]
-        [DataRow("\"abc\" MissingColumn", "MissingColumn")]
-        [DataRow("[abc] MissingColumn", "MissingColumn")]
-        [DataRow("/* note */ MissingColumn", "MissingColumn")]
-        [DataRow("-- note MissingColumn", "MissingColumn")]
-        [DataRow("'unterminated MissingColumn", "MissingColumn")]
-        public void ReaderSharedPolicy_MatchesLegacy(string text, string marker)
+        [DataRow("MissingColumn", "MissingColumn", false, false)]
+        [DataRow("x MissingColumn", "MissingColumn", false, false)]
+        [DataRow("'MissingColumn'", "MissingColumn", true, true)]
+        [DataRow("'x''MissingColumn'", "MissingColumn", true, true)]
+        [DataRow("'x' MissingColumn", "MissingColumn", false, false)]
+        [DataRow("'' MissingColumn", "MissingColumn", false, false)]
+        [DataRow("'a''b' MissingColumn", "MissingColumn", false, false)]
+        [DataRow("\"abc\" MissingColumn", "MissingColumn", false, false)]
+        [DataRow("[abc] MissingColumn", "MissingColumn", false, false)]
+        [DataRow("/* note */ MissingColumn", "MissingColumn", false, false)]
+        [DataRow("-- note MissingColumn", "MissingColumn", false, false)]
+        [DataRow("'unterminated MissingColumn", "MissingColumn", true, true)]
+        public void ReaderSharedPolicy_MatchesGolden(string text, string marker, bool expectedShared, bool expectedLegacy)
         {
             var position = text.IndexOf(marker, StringComparison.Ordinal);
 
             Assert.IsTrue(position >= 0);
 
-            var shared = SqlServerReader.IsInsideSingleQuotedStringForParityTest
+            var shared = SqlServerReader.IsInsideSingleQuotedStringForGoldenTest
             (
                 text,
                 position
             );
 
-            var legacy = SqlServerReader.IsInsideSingleQuotedStringLegacyForParityTest
-            (
-                text,
-                position
-            );
-
-            Assert.AreEqual(legacy, shared);
+            Assert.AreEqual(expectedShared, shared);
+            Assert.AreEqual(expectedLegacy, shared);
         }
 
         [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("SqlServer")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("/* old ' note */ MissingColumn")]
-        [DataRow("\"old'MissingColumn\"")]
-        [DataRow("[old'MissingColumn]")]
-        [DataRow("\"a\"\"'MissingColumn\"")]
-        public void ReaderSharedPolicy_CorrectsLegacyQuoteStatePoisoning(string text)
+        [DataRow("/* old ' note */ MissingColumn", false, true)]
+        [DataRow("\"old'MissingColumn\"", false, true)]
+        [DataRow("[old'MissingColumn]", false, true)]
+        [DataRow("\"a\"\"'MissingColumn\"", false, true)]
+        public void ReaderSharedPolicy_CorrectsLegacyQuoteStatePoisoning(string text, bool expectedShared, bool expectedLegacy)
         {
             const string target = "MissingColumn";
             var position = text.IndexOf(target, StringComparison.Ordinal);
 
             Assert.IsTrue(position >= 0);
 
-            var shared = SqlServerReader.IsInsideSingleQuotedStringForParityTest
+            var shared = SqlServerReader.IsInsideSingleQuotedStringForGoldenTest
             (
                 text,
                 position
             );
 
-            var legacy = SqlServerReader.IsInsideSingleQuotedStringLegacyForParityTest
-            (
-                text,
-                position
-            );
-
-            Assert.IsFalse(shared);
-            Assert.IsTrue(legacy);
+            Assert.AreEqual(expectedShared, shared);
+            Assert.AreNotEqual(expectedLegacy, shared);
 
             Assert.IsTrue
             (

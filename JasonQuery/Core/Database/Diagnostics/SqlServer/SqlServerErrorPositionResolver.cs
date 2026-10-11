@@ -539,89 +539,9 @@ namespace JasonQuery.Core.Database.Diagnostics.SqlServer
             return result;
         }
 
-        internal static bool IsInsideSingleQuotedStringForParityTest(string text, int index)
+        internal static bool IsInsideSingleQuotedStringForGoldenTest(string text, int index)
         {
             return SqlServerErrorTargetLexicalPolicy.IsInsideSingleQuotedString(text, index);
-        }
-
-        internal static bool IsInsideSingleQuotedStringLegacyForParityTest(string text, int index)
-        {
-            return IsInsideSingleQuotedStringLegacy(text ?? string.Empty, index);
-        }
-
-        private static bool IsInsideSingleQuotedStringLegacy(string text, int index)
-        {
-            var insideSingle = false;
-            var insideDouble = false;
-            var insideBracket = false;
-
-            for (var i = 0; i < index && i < text.Length; i++)
-            {
-                var current = text[i];
-
-                if (insideSingle)
-                {
-                    if (current == '\'' && i + 1 < index && text[i + 1] == '\'')
-                    {
-                        i++;
-                        continue;
-                    }
-
-                    if (current == '\'')
-                    {
-                        insideSingle = false;
-                    }
-
-                    continue;
-                }
-
-                if (insideDouble)
-                {
-                    if (current == '"' && i + 1 < index && text[i + 1] == '"')
-                    {
-                        i++;
-                        continue;
-                    }
-
-                    if (current == '"')
-                    {
-                        insideDouble = false;
-                    }
-
-                    continue;
-                }
-
-                if (insideBracket)
-                {
-                    if (current == ']' && i + 1 < index && text[i + 1] == ']')
-                    {
-                        i++;
-                        continue;
-                    }
-
-                    if (current == ']')
-                    {
-                        insideBracket = false;
-                    }
-
-                    continue;
-                }
-
-                if (current == '\'')
-                {
-                    insideSingle = true;
-                }
-                else if (current == '"')
-                {
-                    insideDouble = true;
-                }
-                else if (current == '[')
-                {
-                    insideBracket = true;
-                }
-            }
-
-            return insideSingle;
         }
 
         private static int Clamp(int value, int minimum, int maximum)
