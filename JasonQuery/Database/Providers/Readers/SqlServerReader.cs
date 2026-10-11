@@ -1549,43 +1549,9 @@ namespace JasonQuery.Database.Providers.Readers
                    && message.EndsWith(" does not match with a table name or alias name used in the query.", StringComparison.OrdinalIgnoreCase);
         }
 
-        internal static bool IsInsideSingleQuotedStringForParityTest(string text, int index)
+        internal static bool IsInsideSingleQuotedStringForGoldenTest(string text, int index)
         {
             return SqlServerErrorTargetLexicalPolicy.IsInsideSingleQuotedString(text, index);
-        }
-
-        internal static bool IsInsideSingleQuotedStringLegacyForParityTest(string text, int index)
-        {
-            return IsInsideSingleQuotedStringLegacy(text, index);
-        }
-
-        private static bool IsInsideSingleQuotedStringLegacy(string text, int index)
-        {
-            if (string.IsNullOrEmpty(text) || index <= 0)
-            {
-                return false;
-            }
-
-            var inside = false;
-
-            for (var i = 0; i < index && i < text.Length; i++)
-            {
-                if (text[i] != '\'')
-                {
-                    continue;
-                }
-
-                //處理 SQL 字串中的 escaped quote：''
-                if (inside && i + 1 < index && i + 1 < text.Length && text[i + 1] == '\'')
-                {
-                    i++;
-                    continue;
-                }
-
-                inside = !inside;
-            }
-
-            return inside;
         }
 
         internal static bool TryFindSqlServerErrorTokenPositionForTest(string lineText, string message, string token, int startPosition, out int position, out int matchedLength)
