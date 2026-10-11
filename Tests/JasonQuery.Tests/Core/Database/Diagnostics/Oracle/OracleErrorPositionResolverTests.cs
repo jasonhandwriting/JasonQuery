@@ -384,13 +384,11 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.Oracle
         [DataRow("'/* not a comment */' from dual", "'/* not a comment */' from dual")]
         [DataRow("\"/* not a comment */\" from dual", "\"/* not a comment */\" from dual")]
         [DataRow("/ select * from A_TEST", "/ select * from A_TEST")]
-        public void RemoveLeadingOracleSqlTrivia_SharedTokenizer_MatchesLegacy(string sql, string expected)
+        public void RemoveLeadingOracleSqlTrivia_SharedTokenizer_MatchesGolden(string sql, string expected)
         {
-            var shared = OracleErrorPositionResolver.RemoveLeadingOracleSqlTriviaForParityTest(sql);
-            var legacy = OracleErrorPositionResolver.RemoveLeadingOracleSqlTriviaLegacyForParityTest(sql);
+            var shared = OracleErrorPositionResolver.RemoveLeadingOracleSqlTriviaForGoldenTest(sql);
 
-            Assert.AreEqual(expected, legacy);
-            Assert.AreEqual(legacy, shared);
+            Assert.AreEqual(expected, shared);
         }
 
         [TestMethod]

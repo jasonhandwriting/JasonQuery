@@ -372,68 +372,9 @@ namespace JasonQuery.Core.Database.Diagnostics.Oracle
             return !string.IsNullOrEmpty(text) && text.StartsWith("/*+", StringComparison.Ordinal);
         }
 
-        internal static string RemoveLeadingOracleSqlTriviaForParityTest(string sql)
+        internal static string RemoveLeadingOracleSqlTriviaForGoldenTest(string sql)
         {
             return RemoveLeadingOracleSqlTrivia(sql);
-        }
-
-        internal static string RemoveLeadingOracleSqlTriviaLegacyForParityTest(string sql)
-        {
-            return RemoveLeadingOracleSqlTriviaLegacy(sql);
-        }
-
-        private static string RemoveLeadingOracleSqlTriviaLegacy(string sql)
-        {
-            if (string.IsNullOrEmpty(sql))
-            {
-                return string.Empty;
-            }
-
-            var index = 0;
-
-            while (index < sql.Length)
-            {
-                while (index < sql.Length && char.IsWhiteSpace(sql[index]))
-                {
-                    index++;
-                }
-
-                if (index + 1 < sql.Length && sql[index] == '-' && sql[index + 1] == '-')
-                {
-                    index += 2;
-
-                    while (index < sql.Length && sql[index] != '\r' && sql[index] != '\n')
-                    {
-                        index++;
-                    }
-
-                    continue;
-                }
-
-                if (index + 1 < sql.Length && sql[index] == '/' && sql[index + 1] == '*')
-                {
-                    //Oracle hint /*+ ... */ 不視為可移除的普通註釋
-                    if (index + 2 < sql.Length && sql[index + 2] == '+')
-                    {
-                        break;
-                    }
-
-                    var endComment = sql.IndexOf("*/", index + 2, StringComparison.Ordinal);
-
-                    if (endComment < 0)
-                    {
-                        return string.Empty;
-                    }
-
-                    index = endComment + 2;
-                    continue;
-                }
-
-                break;
-            }
-
-            //這個方法只負責移除開頭的空白與註釋；結尾空白可能是錯誤游標的實際目標，必須保留
-            return index >= sql.Length ? string.Empty : sql.Substring(index);
         }
 
         private static string TrimTrailingStatementTerminator(string sql)
