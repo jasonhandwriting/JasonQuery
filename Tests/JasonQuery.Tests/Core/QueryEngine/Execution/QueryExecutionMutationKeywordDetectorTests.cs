@@ -26,13 +26,11 @@ namespace JasonQuery.Tests.Core.QueryEngine.Execution
         [DataRow(DataSourceType.SqlServer, "WITH c AS (SELECT 1) SELECT UPDATED FROM c", false)]
         [DataRow(DataSourceType.SqlServer, "WITH c AS (SELECT 1) SELECT 1 -- UPDATE", false)]
         [DataRow(DataSourceType.SqlServer, "WITH c AS (SELECT 1)\nUPDATE t SET a = 1", true)]
-        public void LegacyParity_StableCases(DataSourceType source, string sql, bool expected)
+        public void StableGolden_ExpectedValues(DataSourceType source, string sql, bool expected)
         {
-            var legacy = QueryExecutionMutationKeywordDetector.ContainsMutationKeywordLegacyForParityTest(sql);
             var shared = QueryExecutionMutationKeywordDetector.ContainsMutationKeyword(source, sql);
 
-            Assert.AreEqual(expected, legacy, "Legacy contract for stable input.");
-            Assert.AreEqual(legacy, shared, "New lexer must preserve stable legacy cases.");
+            Assert.AreEqual(expected, shared, "Frozen stable expected value.");
         }
 
         [TestMethod]
@@ -47,13 +45,11 @@ namespace JasonQuery.Tests.Core.QueryEngine.Execution
         [DataRow(DataSourceType.PostgreSql, "WITH c AS (SELECT 1) SELECT $$ UPDATE $$ FROM c", true, false)]
         [DataRow(DataSourceType.MySql, "WITH c AS (SELECT 1) SELECT # UPDATE\n 1 FROM c", true, false)]
         [DataRow(DataSourceType.MySql, "WITH c AS (SELECT 1) SELECT 1# UPDATE\n 1 FROM c", true, false)]
-        public void IntentionalCorrection_ExplicitlyDiffersFromLegacy(DataSourceType source, string sql, bool expectedLegacy, bool expectedShared)
+        public void IntentionalCorrection_SharedMatchesFrozenGolden(DataSourceType source, string sql, bool expectedLegacy, bool expectedShared)
         {
-            var legacy = QueryExecutionMutationKeywordDetector.ContainsMutationKeywordLegacyForParityTest(sql);
             var shared = QueryExecutionMutationKeywordDetector.ContainsMutationKeyword(source, sql);
 
             Assert.AreNotEqual(expectedLegacy, expectedShared, "Correction must be an intentional behavior delta.");
-            Assert.AreEqual(expectedLegacy, legacy);
             Assert.AreEqual(expectedShared, shared);
         }
 
