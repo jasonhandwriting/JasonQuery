@@ -318,95 +318,83 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
         [TestCategory("Unit")]
         [TestCategory("PostgreSql")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("select 1 /* note */;")]
-        [DataRow("select '--not comment', '/*still text*/';")]
-        [DataRow("select \"--Column\", \"/*Column*/\";")]
-        public void NormalizeSql_SharedTokenizer_MatchesLegacy(string sql)
+        [DataRow("select 1 /* note */;", "c2VsZWN0IDE=")]
+        [DataRow("select '--not comment', '/*still text*/';", "c2VsZWN0ICctLW5vdCBjb21tZW50JywgJy8qc3RpbGwgdGV4dCovJw==")]
+        [DataRow("select \"--Column\", \"/*Column*/\";", "c2VsZWN0ICItLUNvbHVtbiIsICIvKkNvbHVtbiovIg==")]
+        public void NormalizeSql_SharedTokenizer_MatchesGolden(string sql, string expectedBase64)
         {
-            Assert.AreEqual
-            (
-                PostgreSqlSqlScanner.NormalizeSqlLegacyForParityTest(sql),
-                PostgreSqlSqlScanner.NormalizeSql(sql)
-            );
+            var expected = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(expectedBase64));
+
+            Assert.AreEqual(expected, PostgreSqlSqlScanner.NormalizeSql(sql));
         }
 
         [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("PostgreSql")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("update a_test set t1 = 'where' where id = 1", "where")]
-        [DataRow("select \"where\" from public.a_test where id = 1", "where")]
-        [DataRow("update a_test set t1 = func(1, 2) returning t1", "returning")]
-        public void FindKeywordAtTopLevel_SharedTokenizer_MatchesLegacy(string text, string keyword)
+        [DataRow("update a_test set t1 = 'where' where id = 1", "where", 31)]
+        [DataRow("select \"where\" from public.a_test where id = 1", "where", 34)]
+        [DataRow("update a_test set t1 = func(1, 2) returning t1", "returning", 34)]
+        public void FindKeywordAtTopLevel_SharedTokenizer_MatchesGolden(string text, string keyword, int expectedPosition)
         {
-            Assert.AreEqual
-            (
-                PostgreSqlSqlScanner.FindKeywordAtTopLevelLegacyForParityTest(text, keyword, 0),
-                PostgreSqlSqlScanner.FindKeywordAtTopLevel(text, keyword, 0)
-            );
+            Assert.AreEqual(expectedPosition, PostgreSqlSqlScanner.FindKeywordAtTopLevel(text, keyword, 0));
         }
 
         [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("PostgreSql")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("(repeat('a,b', 2), func(1, 2)) tail")]
-        [DataRow("(\"a)b\", ('x')) tail")]
-        public void TryReadParenthesizedContent_SharedTokenizer_MatchesLegacy(string text)
+        [DataRow("(repeat('a,b', 2), func(1, 2)) tail", true, 30, "cmVwZWF0KCdhLGInLCAyKSwgZnVuYygxLCAyKQ==")]
+        [DataRow("(\"a)b\", ('x')) tail", true, 14, "ImEpYiIsICgneCcp")]
+        public void TryReadParenthesizedContent_SharedTokenizer_MatchesGolden(string text, bool expectedSuccess, int expectedIndex, string expectedContentBase64)
         {
-            var sharedIndex = 0;
-            var legacyIndex = 0;
+            var index = 0;
+            var success = PostgreSqlSqlScanner.TryReadParenthesizedContent(text, ref index, out string actualContent);
+            var expectedContent = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(expectedContentBase64));
 
-            var sharedSuccess = PostgreSqlSqlScanner.TryReadParenthesizedContent(text, ref sharedIndex, out string sharedContent);
-            var legacySuccess = PostgreSqlSqlScanner.TryReadParenthesizedContentLegacyForParityTest(text, ref legacyIndex, out string legacyContent);
-
-            Assert.AreEqual(legacySuccess, sharedSuccess);
-            Assert.AreEqual(legacyContent, sharedContent);
-            Assert.AreEqual(legacyIndex, sharedIndex);
+            Assert.AreEqual(expectedSuccess, success);
+            Assert.AreEqual(expectedIndex, index);
+            Assert.AreEqual(expectedContent, actualContent);
         }
 
         [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("PostgreSql")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("t1 = 'a,b', t2 = repeat('x,y', 2), t3 = func(1, 2)")]
-        [DataRow("\"a,b\", c")]
-        public void SplitTopLevelComma_SharedTokenizer_MatchesLegacy(string text)
+        [DataRow("t1 = 'a,b', t2 = repeat('x,y', 2), t3 = func(1, 2)", "dDEgPSAnYSxiJw==|dDIgPSByZXBlYXQoJ3gseScsIDIp|dDMgPSBmdW5jKDEsIDIp")]
+        [DataRow("\"a,b\", c", "ImEsYiI=|Yw==")]
+        public void SplitTopLevelComma_SharedTokenizer_MatchesGolden(string text, string expectedItemsBase64)
         {
-            var shared = PostgreSqlSqlScanner.SplitTopLevelComma(text);
-            var legacy = PostgreSqlSqlScanner.SplitTopLevelCommaLegacyForParityTest(text);
+            var expected = System.Array.ConvertAll(expectedItemsBase64.Split('|'), value => System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(value)));
+            var actual = PostgreSqlSqlScanner.SplitTopLevelComma(text);
 
-            CollectionAssert.AreEqual(legacy.ToArray(), shared.ToArray());
+            CollectionAssert.AreEqual(expected, actual.ToArray());
         }
 
         [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("PostgreSql")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("t1 = replace('a=b', '=', '-')")]
-        [DataRow("t1 = func(1, 2)")]
-        public void FindTopLevelEqualSign_SharedTokenizer_MatchesLegacy(string text)
+        [DataRow("t1 = replace('a=b', '=', '-')", 3)]
+        [DataRow("t1 = func(1, 2)", 3)]
+        public void FindTopLevelEqualSign_SharedTokenizer_MatchesGolden(string text, int expectedPosition)
         {
-            Assert.AreEqual
-            (
-                PostgreSqlSqlScanner.FindTopLevelEqualSignLegacyForParityTest(text),
-                PostgreSqlSqlScanner.FindTopLevelEqualSign(text)
-            );
+            Assert.AreEqual(expectedPosition, PostgreSqlSqlScanner.FindTopLevelEqualSign(text));
         }
 
         [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("PostgreSql")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("'abc'")]
-        [DataRow("'a''b'")]
-        public void TryParseSingleQuotedStringLiteral_SharedTokenizer_MatchesLegacy(string text)
+        [DataRow("'abc'", true, "YWJj")]
+        [DataRow("'a''b'", true, "YSdi")]
+        public void TryParseSingleQuotedStringLiteral_SharedTokenizer_MatchesGolden(string text, bool expectedSuccess, string expectedValueBase64)
         {
-            var sharedSuccess = PostgreSqlSqlScanner.TryParseSingleQuotedStringLiteral(text, out string sharedValue);
-            var legacySuccess = PostgreSqlSqlScanner.TryParseSingleQuotedStringLiteralLegacyForParityTest(text, out string legacyValue);
+            var actualSuccess = PostgreSqlSqlScanner.TryParseSingleQuotedStringLiteral(text, out string actualValue);
+            var expectedValue = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(expectedValueBase64));
 
-            Assert.AreEqual(legacySuccess, sharedSuccess);
-            Assert.AreEqual(legacyValue, sharedValue);
+            Assert.AreEqual(expectedSuccess, actualSuccess);
+            Assert.AreEqual(expectedValue, actualValue);
         }
 
         [TestMethod]
@@ -429,8 +417,8 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.PostgreSql
         public void TryReadParenthesizedContent_DollarQuotedParenthesis_ReturnsWholeContent()
         {
             const string text = "($$value ) still quoted$$, func(1, 2)) tail";
-            var index = 0;
 
+            var index = 0;
             var success = PostgreSqlSqlScanner.TryReadParenthesizedContent(text, ref index, out string content);
 
             Assert.IsTrue(success);
