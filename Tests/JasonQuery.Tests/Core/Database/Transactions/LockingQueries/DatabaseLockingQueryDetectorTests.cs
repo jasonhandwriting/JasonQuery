@@ -217,30 +217,30 @@ namespace JasonQuery.Tests.Core.Database.Transactions.LockingQueries
         [TestCategory("Unit")]
         [TestCategory("LockingQuery")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("Oracle", "SELECT q'[FOR UPDATE]' FROM dual")]
-        [DataRow("Oracle", "SELECT q'[x' FOR UPDATE y]' FROM dual")]
-        [DataRow("Oracle", "SELECT ['FOR UPDATE'] FROM dual")]
-        [DataRow("Oracle", "SELECT ';' FROM dual FOR UPDATE; SELECT 1 FROM dual")]
-        [DataRow("PostgreSql", "SELECT $$FOR UPDATE$$")]
-        [DataRow("PostgreSql", "SELECT $tag$FOR NO KEY UPDATE; (x)$tag$")]
-        [DataRow("PostgreSql", "/* outer /* FOR UPDATE */ outer */ SELECT 1")]
-        [DataRow("PostgreSql", "SELECT * FROM `FOR UPDATE`")]
-        [DataRow("MySql", "SELECT 1--FOR UPDATE\r\nSELECT 2")]
-        [DataRow("MySql", "SELECT abc#FOR UPDATE\r\nSELECT 2")]
-        [DataRow("MySql", "SELECT \"a\\\" FOR UPDATE\" FROM a_test")]
-        [DataRow("MySql", "SELECT `a\\` FOR UPDATE` FROM a_test")]
-        [DataRow("MySql", "SELECT 'FOR UPDATE' FROM a_test")]
-        [DataRow("SqlServer", "SELECT [WITH (UPDLOCK)] FROM dbo.a_test")]
-        [DataRow("SqlServer", "SELECT `'WITH (UPDLOCK)'`")]
-        [DataRow("SqlServer", "SELECT /* WITH (XLOCK) */ 1")]
-        [DataRow("PostgreSql", "SELECT 'unterminated FOR UPDATE")]
-        public void SharedTokenizerMasking_MatchesLegacyMasking(string dataSourceTypeName, string sql)
+        [DataRow("Oracle", "SELECT q'[FOR UPDATE]' FROM dual", "U0VMRUNUICAgICAgICAgICAgICAgICBGUk9NIGR1YWw=")]
+        [DataRow("Oracle", "SELECT q'[x' FOR UPDATE y]' FROM dual", "U0VMRUNUICAgICAgICAgICAgICAgICAgICAgIEZST00gZHVhbA==")]
+        [DataRow("Oracle", "SELECT ['FOR UPDATE'] FROM dual", "U0VMRUNUIFsgICAgICAgICAgICBdIEZST00gZHVhbA==")]
+        [DataRow("Oracle", "SELECT ';' FROM dual FOR UPDATE; SELECT 1 FROM dual", "U0VMRUNUICAgICBGUk9NIGR1YWwgRk9SIFVQREFURTsgU0VMRUNUIDEgRlJPTSBkdWFs")]
+        [DataRow("PostgreSql", "SELECT $$FOR UPDATE$$", "U0VMRUNUICAgICAgICAgICAgICAg")]
+        [DataRow("PostgreSql", "SELECT $tag$FOR NO KEY UPDATE; (x)$tag$", "U0VMRUNUICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg")]
+        [DataRow("PostgreSql", "/* outer /* FOR UPDATE */ outer */ SELECT 1", "ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBTRUxFQ1QgMQ==")]
+        [DataRow("PostgreSql", "SELECT * FROM `FOR UPDATE`", "U0VMRUNUICogRlJPTSBgRk9SIFVQREFURWA=")]
+        [DataRow("MySql", "SELECT 1--FOR UPDATE\r\nSELECT 2", "U0VMRUNUIDEgICAgICAgICAgICANClNFTEVDVCAy")]
+        [DataRow("MySql", "SELECT abc#FOR UPDATE\r\nSELECT 2", "U0VMRUNUIGFiYyAgICAgICAgICAgDQpTRUxFQ1QgMg==")]
+        [DataRow("MySql", "SELECT \"a\\\" FOR UPDATE\" FROM a_test", "U0VMRUNUICAgICAgRk9SIFVQREFURSAgICAgICAgICAgICA=")]
+        [DataRow("MySql", "SELECT `a\\` FOR UPDATE` FROM a_test", "U0VMRUNUICAgICAgICAgICAgICAgICAgRlJPTSBhX3Rlc3Q=")]
+        [DataRow("MySql", "SELECT 'FOR UPDATE' FROM a_test", "U0VMRUNUICAgICAgICAgICAgICBGUk9NIGFfdGVzdA==")]
+        [DataRow("SqlServer", "SELECT [WITH (UPDLOCK)] FROM dbo.a_test", "U0VMRUNUICAgICAgICAgICAgICAgICAgRlJPTSBkYm8uYV90ZXN0")]
+        [DataRow("SqlServer", "SELECT `'WITH (UPDLOCK)'`", "U0VMRUNUIGAgICAgICAgICAgICAgICAgYA==")]
+        [DataRow("SqlServer", "SELECT /* WITH (XLOCK) */ 1", "U0VMRUNUICAgICAgICAgICAgICAgICAgICAx")]
+        [DataRow("PostgreSql", "SELECT 'unterminated FOR UPDATE", "U0VMRUNUICAgICAgICAgICAgICAgICAgICAgICAgIA==")]
+        public void SharedTokenizerMasking_MatchesGoldenMask(string dataSourceTypeName, string sql, string expectedMaskUtf8Base64)
         {
             var dataSourceType = ParseDataSourceType(dataSourceTypeName);
-            var shared = DatabaseLockingQueryDetector.CreateSearchableSqlForParityTest(dataSourceType, sql);
-            var legacy = DatabaseLockingQueryDetector.CreateLegacySearchableSqlForParityTest(dataSourceType, sql);
+            var actual = DatabaseLockingQueryDetector.CreateSearchableSqlForGoldenTest(dataSourceType, sql);
+            var expected = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(expectedMaskUtf8Base64));
 
-            Assert.AreEqual(legacy, shared);
+            Assert.AreEqual(expected, actual);
         }
         private static DataSourceType ParseDataSourceType(string value)
         {
