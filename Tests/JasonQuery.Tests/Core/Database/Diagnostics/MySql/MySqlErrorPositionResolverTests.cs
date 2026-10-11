@@ -221,6 +221,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.MySql
         {
             const string first = "select * from t1;";
             const string second = "SELECT u.Host FROM `mysql`.`user` u\r\nwhere ";
+
             var editorSql = first + "\r\n\r\n" + second;
 
             var result = MySqlErrorPositionResolver.Resolve
@@ -249,6 +250,7 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.MySql
         {
             const string originalSql = "select * from t where id = :id and missing = 1";
             const string executedSql = "select * from t where id = 'aaaaaaaaaaaaaaaaaaaa' and missing = 1";
+
             var parameterPosition = originalSql.IndexOf(":id", StringComparison.Ordinal);
 
             var result = MySqlErrorPositionResolver.Resolve
@@ -299,57 +301,72 @@ namespace JasonQuery.Tests.Core.Database.Diagnostics.MySql
         [TestCategory("Unit")]
         [TestCategory("MySql")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("")]
-        [DataRow("select c1 from t")]
-        [DataRow("select 'literal' from t")]
-        [DataRow("select 'a''b' from t")]
-        [DataRow("select 'a\\'b' from t")]
-        [DataRow("select \"quoted\" from t")]
-        [DataRow("select \"a\"\"b\" from t")]
-        [DataRow("select \"a\\\"b\" from t")]
-        [DataRow("select c1 # comment\r\nfrom t")]
-        [DataRow("select c1 -- comment\r\nfrom t")]
-        [DataRow("select c1--x from t")]
-        [DataRow("select c1/* comment */ from t")]
-        [DataRow("select c1/* outer /* inner */ tail */ from t")]
-        [DataRow("select `simple_identifier` from t")]
-        [DataRow("select `a``b` from t")]
-        [DataRow("select c1 # comment\nfrom t")]
-        public void BuildSearchableMap_SharedTokenizer_MatchesLegacy(string sql)
+        [DataRow("", "")]
+        [DataRow("select c1 from t", "1111111111111111")]
+        [DataRow("select 'literal' from t", "11111110000000001111111")]
+        [DataRow("select 'a''b' from t", "11111110000001111111")]
+        [DataRow("select 'a\\'b' from t", "11111110000001111111")]
+        [DataRow("select \"quoted\" from t", "1111111000000001111111")]
+        [DataRow("select \"a\"\"b\" from t", "11111110000001111111")]
+        [DataRow("select \"a\\\"b\" from t", "11111110000001111111")]
+        [DataRow("select c1 # comment\r\nfrom t", "111111111100000000001111111")]
+        [DataRow("select c1 -- comment\r\nfrom t", "1111111111000000000001111111")]
+        [DataRow("select c1--x from t", "1111111111111111111")]
+        [DataRow("select c1/* comment */ from t", "11111111100000000000001111111")]
+        [DataRow("select c1/* outer /* inner */ tail */ from t", "11111111100000000000000000000111111111111111")]
+        [DataRow("select `simple_identifier` from t", "111111111111111111111111111111111")]
+        [DataRow("select `a``b` from t", "11111111111111111111")]
+        [DataRow("select c1 # comment\nfrom t", "11111111110000000000111111")]
+        public void BuildSearchableMap_SharedTokenizer_MatchesGolden(string sql, string expectedMaskBits)
         {
-            var shared = MySqlErrorPositionResolver.BuildSearchableMapForParityTest(sql);
-            var legacy = MySqlErrorPositionResolver.BuildSearchableMapLegacyForParityTest(sql);
+            var actual = MySqlErrorPositionResolver.BuildSearchableMapForGoldenTest(sql);
 
-            CollectionAssert.AreEqual(legacy, shared);
+            Assert.AreEqual(sql.Length, expectedMaskBits.Length);
+
+            var expected = System.Array.ConvertAll(expectedMaskBits.ToCharArray(), bit => bit == '1');
+
+            CollectionAssert.AreEqual(expected, actual);
         }
 
         [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("MySql")]
         [TestCategory("SqlLexingMigration")]
-        [DataRow("hash#target")]
-        [DataRow("dash-- target")]
-        [DataRow("block/*target*/")]
-        [DataRow("double\"target")]
-        public void BuildSearchableMap_SharedTokenizer_CorrectsBacktickIdentifierClassification(string identifier)
+        [DataRow("hash#target", "111111111111111111111111111", "111111111111000000000000000", 13, 7, 13, "YGhhc2gjdGFyZ2V0YA==")]
+        [DataRow("dash-- target", "11111111111111111111111111111", "11111111111100000000000000000", 15, 7, 15, "YGRhc2gtLSB0YXJnZXRg")]
+        [DataRow("block/*target*/", "1111111111111111111111111111111", "1111111111111000000000011111111", 15, 7, 17, "YGJsb2NrLyp0YXJnZXQqL2A=")]
+        [DataRow("double\"target", "11111111111111111111111111111", "11111111111111000000000000000", 15, 7, 15, "YGRvdWJsZSJ0YXJnZXRg")]
+        public void BuildSearchableMap_SharedTokenizer_CorrectsBacktickIdentifierClassification(string identifier, string expectedSharedBits, string expectedLegacyBits, int expectedMarkerPosition, int expectedPosition, int expectedLength, string expectedTargetBase64)
         {
             var quotedIdentifier = $"`{identifier}`";
             var sql = $"select {quotedIdentifier} from t";
             var targetPosition = sql.IndexOf("target", StringComparison.Ordinal);
 
-            var shared = MySqlErrorPositionResolver.BuildSearchableMapForParityTest(sql);
-            var legacy = MySqlErrorPositionResolver.BuildSearchableMapLegacyForParityTest(sql);
+            Assert.AreEqual(expectedMarkerPosition, targetPosition);
+            Assert.AreEqual(sql.Length, expectedSharedBits.Length);
+            Assert.AreEqual(sql.Length, expectedLegacyBits.Length);
 
+            var shared = MySqlErrorPositionResolver.BuildSearchableMapForGoldenTest(sql);
+            var expected = System.Array.ConvertAll(expectedSharedBits.ToCharArray(), bit => bit == '1');
+
+            CollectionAssert.AreEqual(expected, shared);
+            Assert.AreEqual('1', expectedSharedBits[targetPosition]);
+            Assert.AreEqual('0', expectedLegacyBits[targetPosition]);
+            Assert.AreNotEqual(expectedSharedBits, expectedLegacyBits);
             Assert.IsTrue(shared[targetPosition]);
-            Assert.IsFalse(legacy[targetPosition]);
 
-            var result = Resolve
-            (
-                sql,
-                $"Unknown column '{identifier}' in 'field list'"
-            );
+            var result = Resolve(sql, $"Unknown column '{identifier}' in 'field list'");
+            var expectedTarget = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(expectedTargetBase64));
 
-            AssertTarget(sql, result, quotedIdentifier);
+            AssertTarget(sql, result, expectedTarget);
+            Assert.AreEqual(expectedPosition, result.PositionResult.Position);
+            Assert.AreEqual(expectedLength, result.PositionResult.Length);
+            Assert.AreEqual(MySqlErrorMessageKind.UnknownColumn, result.MessageKind);
+            Assert.IsFalse(result.ShouldShowSelectDatabaseFirstMessage);
+            Assert.AreEqual(string.Empty, result.PositionResult.NormalizedErrorCode);
+            Assert.IsFalse(result.PositionResult.UsedReportedPositionFallback);
+            Assert.IsFalse(result.PositionResult.HadUtf8PositionAdjustment);
+            Assert.IsFalse(result.PositionResult.HasManyNonAsciiCharactersBeforePosition);
         }
 
         private static MySqlErrorPositionResolution Resolve(string sql, string errorMessage, string databaseName = "")

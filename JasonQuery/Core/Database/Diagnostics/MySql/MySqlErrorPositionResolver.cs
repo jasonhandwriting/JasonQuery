@@ -633,14 +633,9 @@ namespace JasonQuery.Core.Database.Diagnostics.MySql
             return result;
         }
 
-        internal static bool[] BuildSearchableMapForParityTest(string sql)
+        internal static bool[] BuildSearchableMapForGoldenTest(string sql)
         {
             return BuildSearchableMap(sql);
-        }
-
-        internal static bool[] BuildSearchableMapLegacyForParityTest(string sql)
-        {
-            return BuildSearchableMapLegacy(sql ?? string.Empty);
         }
 
         private static bool SuppressesCandidateMatching(SqlToken token)
@@ -674,136 +669,6 @@ namespace JasonQuery.Core.Database.Diagnostics.MySql
             {
                 searchable[i] = false;
             }
-        }
-
-        private static bool[] BuildSearchableMapLegacy(string sql)
-        {
-            var result = Enumerable.Repeat(true, sql.Length).ToArray();
-            var state = 0;
-
-            for (var i = 0; i < sql.Length; i++)
-            {
-                var current = sql[i];
-                var next = i + 1 < sql.Length ? sql[i + 1] : '\0';
-
-                if (state == 1) //single quoted string
-                {
-                    result[i] = false;
-
-                    if (current == '\\' && next != '\0')
-                    {
-                        result[i + 1] = false;
-                        i++;
-                        continue;
-                    }
-
-                    if (current == '\'' && next == '\'')
-                    {
-                        result[i + 1] = false;
-                        i++;
-                        continue;
-                    }
-
-                    if (current == '\'')
-                    {
-                        state = 0;
-                    }
-
-                    continue;
-                }
-
-                if (state == 2) //double quoted string
-                {
-                    result[i] = false;
-
-                    if (current == '\\' && next != '\0')
-                    {
-                        result[i + 1] = false;
-                        i++;
-                        continue;
-                    }
-
-                    if (current == '"' && next == '"')
-                    {
-                        result[i + 1] = false;
-                        i++;
-                        continue;
-                    }
-
-                    if (current == '"')
-                    {
-                        state = 0;
-                    }
-
-                    continue;
-                }
-
-                if (state == 3) //line comment
-                {
-                    result[i] = false;
-
-                    if (current == '\r' || current == '\n')
-                    {
-                        state = 0;
-                    }
-
-                    continue;
-                }
-
-                if (state == 4) //block comment
-                {
-                    result[i] = false;
-
-                    if (current == '*' && next == '/')
-                    {
-                        result[i + 1] = false;
-                        i++;
-                        state = 0;
-                    }
-
-                    continue;
-                }
-
-                if (current == '\'')
-                {
-                    result[i] = false;
-                    state = 1;
-                    continue;
-                }
-
-                if (current == '"')
-                {
-                    result[i] = false;
-                    state = 2;
-                    continue;
-                }
-
-                if (current == '#')
-                {
-                    result[i] = false;
-                    state = 3;
-                    continue;
-                }
-
-                if (current == '-' && next == '-' && (i + 2 >= sql.Length || char.IsWhiteSpace(sql[i + 2])))
-                {
-                    result[i] = false;
-                    result[i + 1] = false;
-                    i++;
-                    state = 3;
-                    continue;
-                }
-
-                if (current == '/' && next == '*')
-                {
-                    result[i] = false;
-                    result[i + 1] = false;
-                    i++;
-                    state = 4;
-                }
-            }
-
-            return result;
         }
 
         private static bool IsCandidateSearchable(bool[] searchable, int position, int length)
