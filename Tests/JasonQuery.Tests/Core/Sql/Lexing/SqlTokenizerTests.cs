@@ -24,6 +24,7 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_CommonSql_PreservesExactSourceSpans()
         {
             const string sql = "SELECT * FROM t WHERE id = 1";
+
             var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
 
             Assert.IsTrue(result.Tokens.Count > 0);
@@ -49,8 +50,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_NestedParentheses_AssignsExpectedDepth()
         {
             const string sql = "SELECT f(a, (b + c)) FROM t";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
             var b = FindWord(result, "b");
             var from = FindWord(result, "FROM");
 
@@ -64,8 +65,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_ParenthesesInsideString_DoNotChangeDepth()
         {
             const string sql = "SELECT func('(x)', (1 + 2)) FROM t";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
             var literal = FindToken(result, "'(x)'");
             var from = FindWord(result, "FROM");
 
@@ -80,8 +81,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_DoubledSingleQuote_RemainsOneStringToken()
         {
             const string sql = "SELECT 'a''b' FROM t";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.Oracle);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.Oracle);
             var literal = FindToken(result, "'a''b'");
 
             Assert.AreEqual(SqlTokenKind.StringLiteral, literal.Kind);
@@ -94,8 +95,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_LineComment_ProducesProtectedToken()
         {
             const string sql = "SELECT * FROM t -- FOR UPDATE\r\nWHERE id = 1";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
             var comment = FindToken(result, "-- FOR UPDATE");
             var where = FindWord(result, "WHERE");
 
@@ -110,8 +111,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_BlockComment_ProducesProtectedToken()
         {
             const string sql = "SELECT /* FOR UPDATE */ 1";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.Oracle);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.Oracle);
             var comment = FindToken(result, "/* FOR UPDATE */");
 
             Assert.AreEqual(SqlTokenKind.BlockComment, comment.Kind);
@@ -124,8 +125,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_UnterminatedString_ConsumesRemainder()
         {
             const string sql = "SELECT 'unterminated FOR UPDATE";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
             var literal = result.Tokens.Last();
 
             Assert.AreEqual(SqlTokenKind.StringLiteral, literal.Kind);
@@ -140,8 +141,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_UnterminatedBlockComment_ConsumesRemainder()
         {
             const string sql = "SELECT /* unterminated FOR UPDATE";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.SqlServer);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.SqlServer);
             var comment = result.Tokens.Last();
 
             Assert.AreEqual(SqlTokenKind.BlockComment, comment.Kind);
@@ -155,8 +156,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_DoubleQuotedIdentifier_SuppressesKeywordMatching()
         {
             const string sql = "SELECT \"FOR UPDATE\" FROM t";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
             var quoted = FindToken(result, "\"FOR UPDATE\"");
 
             Assert.AreEqual(SqlTokenKind.DelimitedIdentifier, quoted.Kind);
@@ -188,8 +189,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_OracleAlternativeQuote_BracketFormIsOneStringToken()
         {
             const string sql = "SELECT q'[FOR UPDATE]' FROM dual";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.Oracle);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.Oracle);
             var token = FindToken(result, "q'[FOR UPDATE]'");
 
             Assert.AreEqual(SqlTokenKind.StringLiteral, token.Kind);
@@ -202,8 +203,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_OracleAlternativeQuote_ParenthesesDoNotChangeDepth()
         {
             const string sql = "SELECT q'{(FOR UPDATE)}', (1) FROM dual";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.Oracle);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.Oracle);
             var literal = FindToken(result, "q'{(FOR UPDATE)}'");
             var one = FindToken(result, "1");
             var from = FindWord(result, "FROM");
@@ -219,8 +220,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_PostgreSqlDollarQuote_IsOneStringToken()
         {
             const string sql = "SELECT $$FOR UPDATE$$";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
             var token = FindToken(result, "$$FOR UPDATE$$");
 
             Assert.AreEqual(SqlTokenKind.StringLiteral, token.Kind);
@@ -233,8 +234,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_PostgreSqlTaggedDollarQuote_IsOneStringToken()
         {
             const string sql = "SELECT $tag$FOR NO KEY UPDATE$tag$";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
             var token = FindToken(result, "$tag$FOR NO KEY UPDATE$tag$");
 
             Assert.AreEqual(SqlTokenKind.StringLiteral, token.Kind);
@@ -247,8 +248,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_PostgreSqlDollarQuotedParentheses_DoNotChangeDepth()
         {
             const string sql = "SELECT $tag$(x)$tag$, (1)";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
             var literal = FindToken(result, "$tag$(x)$tag$");
             var one = FindToken(result, "1");
 
@@ -262,6 +263,7 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_NestedBlockComment_RemainsOneCommentToken()
         {
             const string sql = "/* outer /* inner */ outer */ SELECT 1";
+
             var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
 
             Assert.AreEqual(SqlTokenKind.BlockComment, result.Tokens[0].Kind);
@@ -275,8 +277,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_SqlServerBracketIdentifier_WithEscapedBracketIsOneToken()
         {
             const string sql = "SELECT [A]]B] FROM t";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.SqlServer);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.SqlServer);
             var token = FindToken(result, "[A]]B]");
 
             Assert.AreEqual(SqlTokenKind.DelimitedIdentifier, token.Kind);
@@ -288,8 +290,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_SqlServerLockHint_LeavesExecutableHintWords()
         {
             const string sql = "SELECT * FROM t WITH (UPDLOCK)";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.SqlServer);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.SqlServer);
             var withToken = FindWord(result, "WITH");
             var updateLock = FindWord(result, "UPDLOCK");
 
@@ -303,8 +305,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_MySqlBackslashEscape_DoesNotEndStringEarly()
         {
             const string sql = "SELECT 'a\\' FOR UPDATE' FROM t";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.MySql);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.MySql);
             var literal = FindToken(result, "'a\\' FOR UPDATE'");
 
             Assert.AreEqual(SqlTokenKind.StringLiteral, literal.Kind);
@@ -317,6 +319,7 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_MySqlHashComment_IsProtected()
         {
             const string sql = "# FOR UPDATE\r\nSELECT 1";
+
             var result = SqlTokenizer.Tokenize(sql, DataSourceType.MySql);
 
             Assert.AreEqual(SqlTokenKind.LineComment, result.Tokens[0].Kind);
@@ -330,6 +333,7 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_MySqlDashComment_WithWhitespaceIsProtected()
         {
             const string sql = "-- FOR UPDATE\r\nSELECT 1";
+
             var result = SqlTokenizer.Tokenize(sql, DataSourceType.MySql);
 
             Assert.AreEqual(SqlTokenKind.LineComment, result.Tokens[0].Kind);
@@ -342,6 +346,7 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_MySqlDashWithoutWhitespace_IsNotComment()
         {
             const string sql = "--FOR UPDATE\r\nSELECT 1";
+
             var result = SqlTokenizer.Tokenize(sql, DataSourceType.MySql);
 
             Assert.IsFalse(result.Tokens.Any(token => token.Kind == SqlTokenKind.LineComment));
@@ -355,8 +360,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_UnicodeText_PreservesDotNetStringIndexes()
         {
             const string sql = "SELECT 中文, '測試' FROM t";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
             var from = FindWord(result, "FROM");
 
             Assert.AreEqual(sql.IndexOf("FROM", StringComparison.Ordinal), from.Start);
@@ -369,8 +374,8 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_CrLf_PreservesOriginalIndexes()
         {
             const string sql = "prefix\r\nSELECT *\r\nFROM t";
-            var result = SqlTokenizer.Tokenize(sql, DataSourceType.SqlServer);
 
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.SqlServer);
             var from = FindWord(result, "FROM");
 
             Assert.AreEqual(sql.IndexOf("FROM", StringComparison.Ordinal), from.Start);
@@ -382,6 +387,7 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void IsInsideProtectedText_ReturnsTrueForStringAndComment()
         {
             const string sql = "SELECT 'abc' /* def */ FROM t";
+
             var result = SqlTokenizer.Tokenize(sql, DataSourceType.Oracle);
 
             Assert.IsTrue(result.IsInsideProtectedText(sql.IndexOf("abc", StringComparison.Ordinal)));
@@ -395,6 +401,7 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void IsInsideKeywordSuppressedText_IncludesDelimitedIdentifier()
         {
             const string sql = "SELECT \"WHERE\" FROM t";
+
             var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
             var position = sql.IndexOf("WHERE", StringComparison.Ordinal);
 
@@ -448,6 +455,7 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
         public void Tokenize_WithoutForeignDelimitedIdentifierOption_AllowsNestedStringToRemainProtected()
         {
             const string sql = "SELECT ['FOR UPDATE'] FROM dual";
+
             var result = SqlTokenizer.Tokenize(sql, DataSourceType.Oracle, SqlTokenizerOptions.None);
 
             Assert.IsFalse(result.Tokens.Any(token => token.Kind == SqlTokenKind.DelimitedIdentifier && token.Text.StartsWith("[")));
@@ -489,6 +497,7 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
             Assert.IsFalse(escapedResult.Tokens.Any(token => token.IsWord("UPDATE")));
             Assert.IsTrue(unescapedResult.Tokens.Any(token => token.IsWord("UPDATE")));
         }
+
         [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("SqlLexing")]
@@ -573,6 +582,69 @@ namespace JasonQuery.Tests.Core.Sql.Lexing
             Assert.IsFalse(defaultResult.Tokens.Any(token => token.IsWord("WHERE")));
             Assert.IsTrue(compatibilityResult.Tokens.Any(token => token.IsWord("WHERE")));
         }
+
+        // BEGIN POST-T4 PG DOLLAR QUOTE GOLDEN CORRECTION TESTS (18 qualified cases)
+        [TestMethod]
+        [TestCategory("Unit")]
+        [TestCategory("SqlLexing")]
+        [TestCategory("PostT4PgDollarQuote")]
+        [DataRow("PQ-01", "SELECT $$FOR UPDATE$$", "$$FOR UPDATE$$", "ValidEmptyTag", "StringLiteral", 0)]
+        [DataRow("PQ-02", "SELECT $tag$FOR UPDATE$tag$", "$tag$FOR UPDATE$tag$", "ValidNamedTag", "StringLiteral", 0)]
+        [DataRow("PQ-03", "SELECT $_tag$DELETE$_tag$", "$_tag$DELETE$_tag$", "ValidUnderscoreInitial", "StringLiteral", 0)]
+        [DataRow("PQ-04", "SELECT $tag123$INSERT$tag123$", "$tag123$INSERT$tag123$", "ValidDigitAfterInitial", "StringLiteral", 0)]
+        [DataRow("PQ-05", "SELECT $測試$FOR UPDATE$測試$", "$測試$FOR UPDATE$測試$", "ValidNonAsciiLetter", "StringLiteral", 0)]
+        [DataRow("PQ-06", "SELECT $123$payload$123$", "$123$payload$123$", "InvalidDigitInitial", "Word", 0)]
+        [DataRow("PQ-07", "SELECT $1$payload$1$", "$1$payload$1$", "InvalidDigitInitial", "Word", 0)]
+        [DataRow("PQ-08", "SELECT $0_abc$payload$0_abc$", "$0_abc$payload$0_abc$", "InvalidDigitInitial", "Word", 0)]
+        [DataRow("PQ-09", "SELECT $123$FOR UPDATE$123$", "$123$FOR UPDATE$123$", "InvalidDigitInitialKeyword", "None", 0)]
+        [DataRow("PQ-10", "SELECT $tag$unfinished FOR UPDATE", "$tag$unfinished FOR UPDATE", "Unterminated", "StringLiteral", 0)]
+        [DataRow("PQ-11", "SELECT $tag$FOR UPDATE$TAG$", "$tag$FOR UPDATE$TAG$", "CaseSensitiveMissingCloser", "StringLiteral", 0)]
+        [DataRow("PQ-12", "SELECT foo$tag$bar$tag$", "foo$tag$bar$tag$", "AdjacentIdentifier", "Word", 0)]
+        [DataRow("PQ-13", "SELECT foo $tag$bar$tag$", "$tag$bar$tag$", "SeparatedIdentifier", "StringLiteral", 0)]
+        [DataRow("PQ-14", "SELECT ($tag$(x)$tag$)", "$tag$(x)$tag$", "PunctuationBoundary", "StringLiteral", 1)]
+        [DataRow("PQ-15", "SELECT $outer$A $inner$B$inner$ C$outer$", "$outer$A $inner$B$inner$ C$outer$", "DifferentNestedTag", "StringLiteral", 0)]
+        [DataRow("PQ-16", "SELECT $tag$WITH\n-- UPDATE\n$tag$", "$tag$WITH\n-- UPDATE\n$tag$", "MultilineBody", "StringLiteral", 0)]
+        [DataRow("PQ-17", "SELECT $tag$", "$tag$", "UnterminatedOpenerOnly", "StringLiteral", 0)]
+        [DataRow("PQ-18", "SELECT $9$unfinished", "$9$unfinished", "DigitInitialUnterminated", "Word", 0)]
+        public void Tokenize_PostT4_PostgreSqlDollarQuote_QualifiedGoldenAfterFix(string caseId, string sql, string targetText, string category, string expectedKind, int expectedDepth)
+        {
+            var result = SqlTokenizer.Tokenize(sql, DataSourceType.PostgreSql);
+            var matching = result.Tokens.Where(token => string.Equals(token.Text, targetText, StringComparison.Ordinal)).ToArray();
+            var label = caseId + " / " + category;
+
+            foreach (var token in result.Tokens)
+            {
+                Assert.AreEqual(token.Text, sql.Substring(token.Start, token.EndExclusive - token.Start), label + " span");
+                Assert.AreEqual(token.Start + token.Text.Length, token.EndExclusive, label + " EndExclusive");
+            }
+
+            if (string.Equals(expectedKind, "None", StringComparison.Ordinal))
+            {
+                Assert.AreEqual(0, matching.Length, label + " must not form one complete token");
+            }
+
+            if (!string.Equals(expectedKind, "None", StringComparison.Ordinal))
+            {
+                Assert.AreEqual(1, matching.Length, label + " exact-token count");
+                Assert.AreEqual(expectedKind, matching[0].Kind.ToString(), label + " token kind");
+                Assert.AreEqual(expectedDepth, matching[0].Depth, label + " depth");
+                Assert.AreEqual(sql.IndexOf(targetText, StringComparison.Ordinal), matching[0].Start, label + " start");
+                Assert.AreEqual(matching[0].Start + targetText.Length, matching[0].EndExclusive, label + " end");
+            }
+
+            if (caseId == "PQ-06" || caseId == "PQ-07" || caseId == "PQ-08" || caseId == "PQ-09" || caseId == "PQ-18")
+            {
+                Assert.IsFalse(result.Tokens.Any(token => token.Kind == SqlTokenKind.StringLiteral && token.Text.StartsWith("$", StringComparison.Ordinal)), label + " must reject digit-initial tag");
+            }
+
+            if (caseId == "PQ-09")
+            {
+                Assert.IsTrue(result.Tokens.Any(token => token.Kind == SqlTokenKind.Word && token.Text.Contains("FOR")), label + " FOR word segment must be present");
+                Assert.IsTrue(result.Tokens.Any(token => token.Kind == SqlTokenKind.Word && token.Text.Contains("UPDATE")), label + " UPDATE word segment must be present");
+            }
+        }
+        // END POST-T4 PG DOLLAR QUOTE GOLDEN CORRECTION TESTS
+
         private static SqlToken FindWord(SqlTokenizationResult result, string word)
         {
             var token = result.Tokens.FirstOrDefault(candidate => candidate.IsWord(word));
