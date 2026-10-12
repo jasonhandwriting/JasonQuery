@@ -191,6 +191,11 @@ namespace JasonQuery.Core.Sql.Lexing
                 return false;
             }
 
+            if (index + 1 < sql.Length && sql[index + 1] >= '0' && sql[index + 1] <= '9')
+            {
+                return false;
+            }
+
             var delimiterEnd = index + 1;
 
             while (delimiterEnd < sql.Length && (char.IsLetterOrDigit(sql[delimiterEnd]) || sql[delimiterEnd] == '_'))
@@ -314,6 +319,7 @@ namespace JasonQuery.Core.Sql.Lexing
                                                bool allowDoubledClosingDelimiter, bool allowBackslashEscape)
         {
             var start = index;
+
             index++;
 
             while (index < sql.Length)
