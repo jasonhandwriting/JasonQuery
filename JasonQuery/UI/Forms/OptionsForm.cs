@@ -2493,7 +2493,7 @@ namespace JasonQuery.UI.Forms
                 pnlCharacter.Tag = "#FFFF00";
                 pnlBuiltInFunctions.Tag = "#FFC000";
                 pnlBuiltInKeywords.Tag = "#00FFFF";
-                pnlUserDefinedKeywords.Tag = "#00FFFF";
+                pnlUserDefinedKeywords.Tag = "#FFA500";
                 pnlWhiteSpace.Tag = "#7030A0";
                 pnlHighlightForeColor.Tag = "#FFFF00";
                 pnlUserTables.Tag = "#9BBB59";
@@ -2527,7 +2527,7 @@ namespace JasonQuery.UI.Forms
                 pnlCharacter.Tag = "#FF0000";
                 pnlBuiltInFunctions.Tag = "#FF00FF";
                 pnlBuiltInKeywords.Tag = "#0000FF";
-                pnlUserDefinedKeywords.Tag = "#0000FF";
+                pnlUserDefinedKeywords.Tag = "#FFA500";
                 pnlWhiteSpace.Tag = "#00FFFF";
                 pnlHighlightForeColor.Tag = "#000000";
                 pnlUserTables.Tag = "#808000";
