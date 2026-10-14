@@ -216,6 +216,12 @@ When the pull request opens, complete the existing `.github/pull_request_templat
 
 A documentation-only pull request may mark rebuild, unit-test, integration-test, and smoke-test items as not applicable when the change truly does not affect those areas. Explain the basis for any non-applicable gate.
 
+## AI-assisted contributions
+
+AI-assisted contributions are welcome. Contributors remain accountable for understanding the submitted changes and ensuring correctness, maintainability, security, licensing compliance, and appropriate tests. Material AI assistance should be disclosed in the pull-request description when relevant to review, particularly for generated code, tests, scripts, or documentation.
+
+The maintainer also uses AI tools for selected refactoring, regression tests, automation, and documentation. AI assistance does not replace maintainer decisions, applicable review, or required qualification. A pull request records a reviewed change, not necessarily an external community contribution.
+
 ## C# compatibility
 
 Production projects are built with C# 8.0 and .NET Framework 4.8.

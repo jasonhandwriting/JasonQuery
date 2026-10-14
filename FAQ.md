@@ -23,6 +23,10 @@ JasonQuery supports:
 
 Provider-specific behavior is kept separate where the platforms differ in SQL syntax, metadata, transactions, locking, or data types.
 
+### Does MySQL support extend automatically to other MySQL-compatible database products?
+
+No. A database provider's compatibility claims are not the same as independently qualified JasonQuery support. The four platforms listed above are the currently supported scope; other database products have not been independently qualified by JasonQuery.
+
 ### Is JasonQuery Windows-only?
 
 Yes. JasonQuery is currently a Windows x64 desktop application.
@@ -128,6 +132,10 @@ The public repository intentionally does **not** contain every binary dependency
 Some inputs are proprietary, separately licensed, privately maintained, or supplied as qualified local runtime binaries. Examples include MESCIUS ComponentOne WinForms, Devart .NET Framework providers, the private `IconLibrary` assembly, and qualified SQLite / SQLCipher runtime files.
 
 Follow [BUILD.md](BUILD.md) to prepare the required `.local` dependency tree before rebuilding the solution.
+
+### Is the repository a self-contained community build?
+
+No. The repository deliberately supports source inspection, audits, and documented release-provenance verification, but it is not a turnkey, dependency-inclusive build distribution. Independent builds can be attempted using [BUILD.md](BUILD.md), provided users obtain compatible proprietary/private inputs under appropriate licenses and configure `.local`. A successful independent build is not automatically equivalent to a maintainer-qualified official release.
 
 ### What development environment is supported?
 
