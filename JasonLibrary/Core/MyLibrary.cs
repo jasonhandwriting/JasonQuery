@@ -652,13 +652,13 @@ namespace JasonLibrary.Core
         public static string ColorBuiltInKeywords
         {
             get => _colorBuiltInKeywords;
-            set => _colorBuiltInKeywords = value.Length == 7 && CheckColorCode(value) ? value : "#0000FF"; //LightSeaGreen
+            set => _colorBuiltInKeywords = value.Length == 7 && CheckColorCode(value) ? value : "#0000FF";
         }
 
         public static string ColorUserDefinedKeywords
         {
             get => _colorUserDefinedKeywords;
-            set => _colorUserDefinedKeywords = value.Length == 7 && CheckColorCode(value) ? value : "#0000FF"; //LightSeaGreen
+            set => _colorUserDefinedKeywords = value.Length == 7 && CheckColorCode(value) ? value : "#FFA500";
         }
 
         public static string ColorNumber
