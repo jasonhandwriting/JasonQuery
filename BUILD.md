@@ -6,6 +6,8 @@ A fresh source clone intentionally does **not** contain every binary dependency 
 
 This document describes the build path qualified on a clean Windows x64 virtual machine.
 
+**Build and provenance scope:** JasonQuery publishes its owned source and documents source-audit and release-provenance verification practices. It does not distribute a self-contained community build with bundled proprietary/private dependencies, nor does it promise byte-for-byte reproducibility of an official release from a fresh clone. Independent builds are technically supported by these instructions when users lawfully obtain and configure the required local inputs. Official release qualification remains a separate maintainer-controlled Windows process.
+
 > [!IMPORTANT]
 > **Third-party licensing:** This document describes JasonQuery's technical build setup; it does not grant license rights to proprietary dependencies. ComponentOne and Devart remain subject to their vendors' current license/EULA terms. A trial or evaluation installation must not be treated as a substitute for an appropriate development license. Before developing, compiling, or submitting a contribution that depends on these products, contributors are responsible for confirming that their intended use is permitted by the applicable vendor terms.
 

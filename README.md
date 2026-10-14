@@ -92,14 +92,16 @@ JasonQuery is designed around a few deliberate operating principles:
 - **Conservative database safety** — transaction, locking, migration, recovery, updater, and internal-storage behavior are treated as explicit compatibility and qualification boundaries.
 ## Supported database platforms
 
-| Database | JasonQuery support |
-| --- | --- |
-| Oracle | Query, metadata/schema, editor and provider-specific workflows |
-| PostgreSQL | Query, metadata/schema, editor and provider-specific workflows |
-| SQL Server | Query, metadata/schema, editor and provider-specific workflows |
-| MySQL | Query, metadata/schema, editor and provider-specific workflows |
+All four supported databases provide SQL editing and execution, AutoComplete, schema/metadata workflows, SQL History, formatting, diagnostics, and transaction controls. Database-specific handling is implemented and qualified separately where SQL dialects or server behavior differ.
 
-The application and its automated integration coverage keep database-specific behavior separate where the platforms differ in SQL, metadata, transactions, locking, and special data types.
+| Database | Database-specific handling |
+| --- | --- |
+| **Oracle** | Oracle schema objects, PL/SQL-oriented editing, Oracle-specific syntax and error handling, and transaction/locking workflows. |
+| **PostgreSQL** | Schema-aware metadata, PostgreSQL-specific syntax including dollar-quoted strings, diagnostics, and transaction/locking workflows. |
+| **SQL Server** | T-SQL metadata and syntax, Microsoft SQL ScriptDOM formatting option, SQL Server-specific diagnostics, and locking-hint handling. |
+| **MySQL** | MySQL metadata and SQL syntax, backtick-quoted identifiers and comment handling, diagnostics, and transaction workflows. |
+
+Support describes selected qualified JasonQuery workflows, not every feature or version of each database server. Provider compatibility alone does not imply that additional database products are officially supported.
 
 ## Project scope and maintainer expectations
 
@@ -187,6 +189,8 @@ The separate `Updater` executable performs the file-system mutation side of an u
 JasonQuery-owned source is licensed under the [MIT License](LICENSE.md).
 
 The public repository intentionally does **not** contain every binary required for a full build. Some dependencies are proprietary, separately licensed, private, or locally qualified and therefore remain outside source control.
+
+**Source and build commitment:** The repository provides JasonQuery-owned source for inspection, auditing, and contributions, together with documented release-provenance verification practices. It does **not** provide a self-contained, dependency-inclusive community build or guarantee that an independent build is identical to the official release. Independent builds remain possible when users obtain compatible `.local` dependencies under appropriate licenses and follow [BUILD.md](BUILD.md). Official releases are qualified in the maintainer's trusted Windows environment.
 
 Important examples include:
 
@@ -276,6 +280,12 @@ JasonQuery has been developed continuously by a single maintainer since 2018.
 The current repository changelog begins at v0.94. Earlier versions v0.27 through v0.93 were documented through historical JasonQuery Release Notes rather than the present `CHANGELOG.md`.
 
 [EVOLUTION.md](EVOLUTION.md) explains the project's longer development history and the transition from years of private development to the current public repository.
+
+## AI-assisted development
+
+JasonQuery is maintained by a single developer. Some recent refactoring, regression tests, automation scripts, and documentation have been developed with AI assistance. Architecture decisions, change acceptance, verification requirements, and official releases remain under maintainer control. AI-assisted changes are subject to the same applicable review, testing, licensing, and security requirements as other changes.
+
+Maintainer-authored pull requests are also used for change management and qualification; a large pull-request count does not indicate an equivalent number of external contributors.
 
 ## Documentation
 
