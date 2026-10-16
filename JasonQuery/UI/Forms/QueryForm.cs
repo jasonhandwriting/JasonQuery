@@ -3542,7 +3542,13 @@ namespace JasonQuery.UI.Forms
         {
             try
             {
-                return _editorBlockSelectionService.SelectCurrentBlock(select);
+                if (select)
+                {
+                    return _editorBlockSelectionService.SelectCurrentStatement(_currentSourceType);
+                }
+
+                //Space/Period AutoComplete depends on the unchanged legacy block.
+                return _editorBlockSelectionService.SelectCurrentBlock(false);
             }
             catch (Exception ex)
             {

@@ -994,6 +994,7 @@
     <Compile Include="Core\QueryEngine\Editor\AutoComplete\Resolvers\QueryEditorAutoCompleteWithAsResolver.cs" />
     <Compile Include="Core\QueryEngine\Editor\AutoComplete\Resolvers\QueryEditorCtrlJPeriodResolver.cs" />
     <Compile Include="Core\QueryEngine\Editor\Editing\EditorBlockSelectionService.cs" />
+    <Compile Include="Core\QueryEngine\Editor\Editing\EditorSqlStatementSelectionPolicy.cs" />
     <Compile Include="Core\QueryEngine\Editor\Editing\EditorCommentService.cs" />
     <Compile Include="Core\QueryEngine\Editor\Editing\EditorIndentService.cs" />
     <Compile Include="Core\QueryEngine\Editor\Editing\EditorLineSelectionService.cs" />
