@@ -61,9 +61,15 @@ namespace JasonQuery.UI.Forms
 
             var tabTitle = BuildEditorTabTitle(canUndo);
 
-            UpdateEditorBackupInfoIfNeeded(canUndo);
+            //Never perform backup metadata database I/O on TextChanged/KeyUp.
+            //Debounce actual backup file + metadata persistence until typing is idle.
+            tmrBackup.Stop();
 
-            tmrBackup.Enabled = AppConfigHelper.IsBackupFile && canUndo;
+            if (AppConfigHelper.IsBackupFile && canUndo)
+            {
+                tmrBackup.Interval = 2000;
+                tmrBackup.Start();
+            }
 
             //更新主畫面頁籤文字
             TransferValueToMainForm($"UpdateCanUndo`{AccessibleDescription}`{tabTitle}");
