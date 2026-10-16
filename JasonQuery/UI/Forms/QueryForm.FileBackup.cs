@@ -22,7 +22,15 @@ namespace JasonQuery.UI.Forms
                     return;
                 }
 
+                //The recovery metadata must describe a successfully written backup file.
+                //Timer.Tick is the persistence boundary, not the editor input events.
+                if (!AppConfigHelper.IsBackupFile || !editor.CanUndo)
+                {
+                    return;
+                }
+
                 File.WriteAllText(GetBackupFileFullName(), editor.Text, Encoding.UTF8);
+                UpdateEditorBackupInfoIfNeeded(editor.CanUndo);
 
                 //此處不可調整檔案異動的時間判定，否則，針對已存檔的情況，會一直出現誤判 (如果是已存檔的情況，直接以使用者儲存後的檔案時間為依據，檢查是否有被外部程式變更過即可)
                 //btnSaveRed.Tag = File.GetLastWriteTime(MyGlobal.sBackupPath + _backupFileName).ToString("yyyy/MM/dd HH:mm:ss");
