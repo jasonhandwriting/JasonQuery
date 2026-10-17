@@ -7,13 +7,10 @@ using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
-using JasonQuery.Core.Text;
 using JasonQuery.Editor.FindAndReplace;
 using JasonQuery.UI.Helpers;
-using System;
 using System.Data;
 using System.Drawing;
-using System.IO;
 using System.Windows.Forms;
 
 namespace JasonQuery.UI.Forms
@@ -214,7 +211,7 @@ namespace JasonQuery.UI.Forms
             InitializeAutoReplaceOnFormLoad();
 
             c1TrueDBGrid1.AllowFilter = false;
-            c1TrueDBGrid1.Filter += C1TrueDBGrid_Filter;
+            c1TrueDBGrid1.FilterChange += C1TrueDBGrid_FilterChange;
 
             using (TraceLogger.Time("Set Grid Style for Query Grid"))
             {
