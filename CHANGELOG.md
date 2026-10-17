@@ -2,6 +2,51 @@
 
 All notable changes to JasonQuery from version 0.94 onward are documented in this file. Versions 0.27 through 0.93 predate this changelog and are covered by the historical JasonQuery Release Notes.
 
+## [0.97] - 2026-10-18
+
+### Enhancements
+
+1. SQL Editor - Improved SQL Tokenization and Cross-Database Compatibility
+1.1. Introduced a shared SQL Tokenizer to unify lexical analysis of SQL strings, comments, identifiers, and parenthesis depth while preserving database-specific syntax for Oracle, PostgreSQL, SQL Server, and MySQL.
+1.2. Improved the accuracy of SQL AutoComplete, SQL normalization, and parameter detection, addressing edge cases involving quotes, comments, and nested SQL structures.
+1.3. Enhanced the reliability of locking-query detection, SQL execution classification, and SQL error position resolution.
+1.4. Fixed PostgreSQL SQL tokenization to prevent invalid dollar-quote delimiters with digit-leading tags from being treated as valid delimiters.
+1.5. Removed obsolete and duplicated SQL lexical scanners to improve code consistency and maintainability.
+2. SQL Editor - Improved SQL Statement Selection
+2.1. When using Ctrl+Enter, Ctrl+B, or Select Current Block, JasonQuery can now select the individual SQL statement at the cursor position, even when multiple statements are separated by semicolons without blank lines.
+2.2. Improved handling of semicolons inside strings, comments, and quoted identifiers prevents incorrect statement splitting. Complex or ambiguous procedural SQL continues to use the existing blank-line block selection behavior, while AutoComplete remains unchanged.
+3. Improved default SQL syntax highlighting keywords for Oracle, PostgreSQL, SQL Server, and MySQL.
+3.1. Changed the default and fallback color for User-defined Keywords to orange (#FFA500), including initialization and theme-switching defaults.
+3.2. Updated keyword lists are applied only as defaults. Existing saved connection-specific keyword customizations are preserved and are not automatically overwritten.
+4. Improved SQL editor responsiveness by reducing backup-related operations during typing.
+4.1. Automatic editor backups are now deferred until two seconds after typing stops, reducing unnecessary disk and recovery metadata operations during continuous input.
+4.2. Recovery metadata is updated only after the corresponding backup file has been successfully written, while preserving the existing backup and recovery functionality.
+4.3. Because backups are deferred, the most recent edits may not be included in automatic recovery if JasonQuery terminates unexpectedly before a pending backup is completed.
+5. Software Updates - Added GitHub Releases as an Update Information Source
+5.1. Enabled GitHub Releases as a selectable source for software update information, with support for saving and restoring the selected update source across application restarts.
+5.2. Added support for checking GitHub Releases through the existing manual and startup update-check workflows.
+6. User Interface - Improved Runtime Language Switching and Layouts
+6.1. Improved runtime language switching so open Query Editor, SQL History, Schema Browser, and Oracle Create Table windows are updated immediately when the language is changed in Options. Cancelling the change restores the previous language.
+6.2. Improved Oracle Create Table localization by refreshing Grid headers, drop-down values, and SQL Preview interface elements while preserving existing Columns, Indexes, and Constraints settings.
+6.3. Improved Oracle Create Table Grid sizing by automatically recalculating column widths when the window is opened or the interface language changes.
+6.4. Improved Options and Update window layouts, including the SQL Formatter selector and update information areas.
+
+### Bug Fixes
+
+1. Fixed SQL query result export issues.
+1.1. Fixed an issue where exporting query results containing NULL values in numeric columns could fail due to a Decimal type conversion error.
+1.2. Improved export handling to preserve applied data filters, sorting, and user-defined column order.
+1.3. Improved handling of special numeric values by preserving their displayed text when values exceed the Decimal range or cannot be converted, preventing export failures.
+2. Fixed Multi-Filter issues in query results.
+2.1. Fixed text filtering failures and incorrect filtering when combining multiple columns.
+2.2. Added support for numeric comparison operators: >, >=, <, <=, =, !=, and <>.
+2.3. Fixed errors when filtering displayed content in large text and binary columns.
+2.4. Improved handling of NULL values, non-numeric values, incomplete filter conditions, and special characters.
+3. Fixed runtime localization issues in Schema Browser.
+3.1. Fixed an issue where some Grid headers were not correctly updated after changing the interface language.
+3.2. Fixed an issue where repeatedly switching interface languages could cause Grid row heights to increase unexpectedly.
+
+
 ## [0.96] - 2026-09-29
 
 ### New Features
