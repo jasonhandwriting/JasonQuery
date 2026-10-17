@@ -5570,88 +5570,35 @@ namespace JasonQuery.UI.Forms
             var c1Grid = GetWhichGrid();
 
             //20230824 c1Grid1.FocusedSplit.Rows.Count：可能是篩選前的總筆數，也可能是篩選後的總筆數；如果為 0，表示篩選前 或 篩選後的總筆數 = 0
-            if (c1Grid.FocusedSplit.Rows.Count == 0)
+            if (c1Grid == null || c1Grid.FocusedSplit.Rows.Count == 0)
             {
                 return;
             }
 
+            var sourceTable = c1Grid.GetDataTableSourceOrNull();
+
+            if (sourceTable == null)
+            {
+                return;
+            }
+
+            DataTable exportData;
+
             Cursor = Cursors.WaitCursor;
 
-            var dtData = new DataTable();
-            var dt = c1Grid.GetDataTableSourceOrNull();
-            var sbHeaderGrid = new StringBuilder();
-
-            for (var i = 0; i < c1Grid.Columns.Count; i++)
+            try
             {
-                var name = c1Grid.Splits[0].DisplayColumns[i].Name;
-
-                sbHeaderGrid.Append($"{name}`");
+                //Use the bound DataTable's DefaultView: it preserves the current filter/sort without relying on the selected grid row or bookmark.
+                exportData = CreateExportDataTableInDisplayOrder(c1Grid, sourceTable);
             }
-
-            var sbHeaderDataTable = new StringBuilder();
-            var dtColumnData = new DataTable();
-
-            dtColumnData.Columns.Add("ColumnName");
-            dtColumnData.Columns.Add("ColumnType");
-
-            for (var i = 0; i < dt.Columns.Count; i++)
+            finally
             {
-                var columnName = dt.Columns[i].ColumnName;
-
-                if (!_columnInfoCollector.TryGet(columnName, out var columnInfo))
-                {
-                    continue;
-                }
-
-                sbHeaderDataTable.Append($"{columnName}`");
-
-                var type = "string";
-
-                switch (columnInfo.CategoryDataTypeKind)
-                {
-                    case CategoryDataTypeKind.Number:
-                        {
-                            type = "numeric";
-                            break;
-                        }
-                    default:
-                        {
-                            break;
-                        }
-                }
-
-                var row = dtColumnData.NewRow();
-
-                row["ColumnName"] = columnName;
-                row["ColumnType"] = type;
-                dtColumnData.Rows.Add(row);
+                Cursor = Cursors.Default;
             }
-
-            //20230823 判斷是否有篩選
-            if (c1Grid.FocusedSplit.Rows[c1Grid.Row].RowType == RowTypeEnum.DataRow)
-            {
-                var dr = (DataRowView)c1Grid[c1Grid.RowBookmark(c1Grid.Row)];
-
-                //取得篩選後的數據
-                dt = dr.DataView[0].Row.Table.DefaultView.ToTable();
-            }
-
-            dtData = CreateExportDataTableInDisplayOrder(c1Grid, dt);
-
-            //將前 5 筆資料呈現在預覽畫面上
-            var dtPreviewData = dtData.Clone(); //複製資料表結構
-
-            //將前 5 筆資料加入預覽資料表
-            foreach (DataRow row in dtData.Rows.Cast<DataRow>().Take(5))
-            {
-                dtPreviewData.Rows.Add(row.ItemArray);
-            }
-
-            Cursor = Cursors.Default;
 
             using (var form = new ExportToFileForm())
             {
-                form.dtData = dtData;
+                form.dtData = exportData;
                 form.dtSchemaTable = _dtExportedSchemaTable;
                 form.FontName = c1Grid.Font.Name;
                 form.FontSize = c1Grid.Font.Size;
@@ -5662,42 +5609,162 @@ namespace JasonQuery.UI.Forms
 
         private DataTable CreateExportDataTableInDisplayOrder(C1TrueDBGrid c1Grid, DataTable sourceTable)
         {
+            if (c1Grid == null || sourceTable == null)
+            {
+                return new DataTable();
+            }
+
+            var columnOrder = new List<string>();
+
+            foreach (C1DisplayColumn displayColumn in c1Grid.Splits[_splitsIndex].DisplayColumns)
+            {
+                var field = displayColumn.DataColumn?.DataField;
+
+                if (!string.IsNullOrWhiteSpace(field))
+                {
+                    columnOrder.Add(field);
+                }
+            }
+
+            return BuildExportDataTable
+            (
+                sourceTable,
+                columnOrder,
+                field => GetExportColumnDataType(field) == typeof(decimal),
+                MyLibrary.GridNullShowAs
+            );
+        }
+
+        //Testable without a C1TrueDBGrid instance. The input is the grid's display DataTable; its DefaultView holds the active filter and sort.
+        internal static DataTable BuildExportDataTable(DataTable sourceTable, IEnumerable<string> columnOrder,
+                                                       Func<string, bool> isNumericColumn, string configuredNullText)
+        {
             var result = new DataTable();
 
-            if (c1Grid == null || sourceTable == null)
+            if (sourceTable == null || columnOrder == null)
             {
                 return result;
             }
 
-            foreach (C1DisplayColumn displayColumn in c1Grid.Splits[_splitsIndex].DisplayColumns)
-            {
-                var columnName = displayColumn.DataColumn?.DataField;
+            var viewTable = sourceTable.DefaultView.ToTable();
+            var orderedColumns = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var numericColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var nullText = string.Equals(configuredNullText, "NONE", StringComparison.OrdinalIgnoreCase) ? string.Empty : (configuredNullText ?? string.Empty);
 
-                if (string.IsNullOrWhiteSpace(columnName) || !sourceTable.Columns.Contains(columnName) || result.Columns.Contains(columnName))
+            foreach (var field in columnOrder)
+            {
+                if (string.IsNullOrWhiteSpace(field) || !viewTable.Columns.Contains(field) || !seen.Add(field))
                 {
                     continue;
                 }
 
-                result.Columns.Add(columnName, GetExportColumnDataType(columnName));
+                orderedColumns.Add(field);
+
+                if (isNumericColumn != null && isNumericColumn(field))
+                {
+                    numericColumns.Add(field);
+                }
             }
 
-            foreach (DataRow sourceRow in sourceTable.Rows)
+            //Decide the type from the *actual exported rows*. A display table
+            //can contain formatted numbers, NULL markers or a value outside
+            //Decimal's range. Never abort export or silently coerce such data.
+            foreach (var field in orderedColumns)
+            {
+                var useDecimal = numericColumns.Contains(field);
+
+                if (useDecimal)
+                {
+                    foreach (DataRow row in viewTable.Rows)
+                    {
+                        var value = row[field];
+
+                        if (IsExportNull(value, nullText, true))
+                        {
+                            continue;
+                        }
+
+                        if (!TryGetExportDecimal(value, out _))
+                        {
+                            useDecimal = false;
+                            break;
+                        }
+                    }
+                }
+
+                result.Columns.Add(field, useDecimal ? typeof(decimal) : typeof(string));
+            }
+
+            foreach (DataRow sourceRow in viewTable.Rows)
             {
                 var targetRow = result.NewRow();
 
-                foreach (DataColumn targetColumn in result.Columns)
+                foreach (DataColumn column in result.Columns)
                 {
-                    var columnName = targetColumn.ColumnName;
-                    var value = sourceRow[columnName];
-                    var displayValue = value?.ToString();
+                    var value = sourceRow[column.ColumnName];
+                    var numeric = numericColumns.Contains(column.ColumnName);
 
-                    targetRow[columnName] = displayValue == MyLibrary.GridNullShowAs ? string.Empty : value;
+                    if (IsExportNull(value, nullText, numeric))
+                    {
+                        targetRow[column] = DBNull.Value;
+                    }
+                    else if (column.DataType == typeof(decimal))
+                    {
+                        if (!TryGetExportDecimal(value, out var number))
+                        {
+                            throw new InvalidOperationException("Validated export numeric value changed unexpectedly.");
+                        }
+
+                        targetRow[column] = number;
+                    }
+                    else
+                    {
+                        targetRow[column] = Convert.ToString(value) ?? string.Empty;
+                    }
                 }
 
                 result.Rows.Add(targetRow);
             }
 
             return result;
+        }
+
+        private static bool IsExportNull(object value, string nullText, bool numeric)
+        {
+            if (value == null || value == DBNull.Value)
+            {
+                return true;
+            }
+
+            if (!(value is string text))
+            {
+                return false;
+            }
+
+            if (numeric && string.IsNullOrWhiteSpace(text))
+            {
+                return true;
+            }
+
+            //When NULL is displayed as NONE (blank), a blank *text* cell may also be a legitimate empty string. Do not erase it.
+            return nullText.Length > 0 && string.Equals(text, nullText, StringComparison.Ordinal);
+        }
+
+        private static bool TryGetExportDecimal(object value, out decimal result)
+        {
+            if (value is decimal decimalValue)
+            {
+                result = decimalValue;
+                return true;
+            }
+
+            //Grid display values may use current-culture numeric formatting.
+            var text = Convert.ToString(value, System.Globalization.CultureInfo.CurrentCulture);
+
+            const System.Globalization.NumberStyles styles = System.Globalization.NumberStyles.Float | System.Globalization.NumberStyles.AllowThousands;
+
+            return decimal.TryParse(text, styles, System.Globalization.CultureInfo.CurrentCulture, out result) || decimal.TryParse(text, styles, System.Globalization.CultureInfo.InvariantCulture, out result);
         }
 
         private Type GetExportColumnDataType(string columnName)
