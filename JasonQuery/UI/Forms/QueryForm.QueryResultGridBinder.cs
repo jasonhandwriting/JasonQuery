@@ -1,9 +1,7 @@
 ﻿using C1.Win.C1Command;
 using C1.Win.C1TrueDBGrid;
 using JasonLibrary.Core;
-using JasonLibrary.UI.Controls;
 using JasonQuery.Core.Config;
-using JasonQuery.Core.Data;
 using JasonQuery.UI.Helpers;
 using System;
 using System.Data;
@@ -100,7 +98,7 @@ namespace JasonQuery.UI.Forms
 
             grid.AllowFilter = false;
             grid.FilterBar = chkShowFilterRow.Checked;
-            grid.Filter += C1TrueDBGrid_Filter;
+            grid.FilterChange += C1TrueDBGrid_FilterChange;
             grid.MouseWheel += c1TrueDBGrid1_MouseWheel;
             grid.KeyDown += Detect_KeyDown;
             grid.OwnerDrawCell += c1TrueDBGrid1_OwnerDrawCell;
