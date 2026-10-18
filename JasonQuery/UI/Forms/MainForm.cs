@@ -81,6 +81,7 @@ namespace JasonQuery.UI.Forms
         public MainForm()
         {
             InitializeComponent();
+            InitializeSharedLeftPanelHost();
         }
 
         private void InitializePendingTransactionStatus()
@@ -2520,6 +2521,7 @@ namespace JasonQuery.UI.Forms
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            DisposeSharedLeftPanelHost();
             SystemEvents.SessionEnding -= SystemEvents_SessionEnding;
             MessageBoxManager.Unregister();
         }
