@@ -1232,6 +1232,7 @@
     <Compile Include="UI\Forms\OptionsForm.Designer.cs">
       <DependentUpon>OptionsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\LeftPanel\LeftPanelContracts.cs" />
     <Compile Include="UI\Forms\QueryForm.cs">
       <SubType>Form</SubType>
     </Compile>
