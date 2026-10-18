@@ -1234,6 +1234,10 @@
     </Compile>
     <Compile Include="UI\LeftPanel\LeftPanelContracts.cs" />
     <Compile Include="UI\LeftPanel\WorkspaceTabNavigation.cs" />
+    <Compile Include="UI\LeftPanel\SchemaExplorerActionDispatchBridge.cs" />
+    <Compile Include="UI\Forms\MainForm.SchemaExplorerDispatch.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\Forms\MainForm.LeftPanelBridge.cs">
       <SubType>Form</SubType>
     </Compile>
