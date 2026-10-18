@@ -29,6 +29,7 @@ namespace JasonQuery.UI.Forms
             Controls.Add(host);
             _sharedLeftPanelHostPanel = host;
             InitializeSharedSchemaExplorerGrid();
+            InitializeSharedSchemaExplorerPreviewUI();
 
             //One subscription per MainForm lifetime; no QueryForm or Grid event hooks.
             tabControl1.SelectionChanged += SharedLeftPanelTabSelectionChanged;
@@ -66,6 +67,7 @@ namespace JasonQuery.UI.Forms
             );
 
             InvalidateSharedSchemaExplorerMetadataIfStale();
+            SyncSharedSchemaExplorerPreviewUI();
         }
 
         //Later F7/F6/F8/F9 hosts can read a fresh state without a cached child reference.
@@ -85,6 +87,7 @@ namespace JasonQuery.UI.Forms
             tabControl1.SelectionChanged -= SharedLeftPanelTabSelectionChanged;
             tabControl1.VisibleChanged -= SharedLeftPanelWorkspaceVisibilityChanged;
 
+            DisposeSharedSchemaExplorerPreviewUI();
             DisposeSharedSchemaExplorerGrid();
 
             var host = _sharedLeftPanelHostPanel;
