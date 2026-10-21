@@ -6,10 +6,11 @@ using JasonQuery.UI.LeftPanel;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace JasonQuery.UI.Forms
 {
-    //B1-C3C1: temporary, user-opt-in F7 preview. Legacy F7 remains the functional editor.
+    //B1-C3C2A: shared F7 preview supports limited typed actions; legacy F7 retains full context commands.
     public partial class MainForm
     {
         private ToolStripMenuItem _sharedSchemaPreviewMenu;
@@ -19,6 +20,22 @@ namespace JasonQuery.UI.Forms
         private bool _sharedSchemaPreviewRequested;
         private bool _sharedSchemaPreviewChangingLayout;
         private bool _sharedSchemaPreviewBinding;
+        private FormWindowState _sharedSchemaPreviewPreviousWindowState;
+        private bool _sharedSchemaPreviewRepaintQueued;
+
+        private const uint RedrawInvalidate = 0x0001;
+        private const uint RedrawErase = 0x0004;
+        private const uint RedrawAllChildren = 0x0080;
+        private const uint RedrawUpdateNow = 0x0100;
+        private const uint RedrawFrame = 0x0400;
+        private const uint SetRedrawMessage = 0x000B;
+
+        [DllImport("user32.dll", ExactSpelling = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool RedrawWindow(IntPtr handle, IntPtr updateRectangle, IntPtr updateRegion, uint flags);
+
+        [DllImport("user32.dll", EntryPoint = "SendMessageW", ExactSpelling = true)]
+        private static extern IntPtr SendRedrawMessage(IntPtr handle, uint message, IntPtr wParam, IntPtr lParam);
 
         private void InitializeSharedSchemaExplorerPreviewUI()
         {
@@ -29,7 +46,7 @@ namespace JasonQuery.UI.Forms
 
             var menu = new ToolStripMenuItem("F7 Preview")
             {
-                ToolTipText = "Read-only MainForm Schema Explorer preview; legacy F7 remains active."
+                ToolTipText = "Shared F7: double-click or Enter for typed actions; original F7 retains full context commands."
             };
 
             menu.Click += SharedSchemaPreviewMenuClick;
@@ -49,7 +66,7 @@ namespace JasonQuery.UI.Forms
                 Dock = DockStyle.Top,
                 AutoEllipsis = true,
                 Height = 32,
-                Text = "F7 Preview (read-only). Use the original F7 for actions."
+                Text = "F7 Preview: double-click / Enter; full context actions remain in original F7."
             };
 
             var refreshButton = new Button
@@ -66,7 +83,7 @@ namespace JasonQuery.UI.Forms
             header.Controls.Add(refreshButton);
             _sharedLeftPanelHostPanel.BorderStyle = BorderStyle.FixedSingle;
             _sharedLeftPanelHostPanel.BackColor = SystemColors.Control;
-            _sharedLeftPanelHostPanel.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            _sharedLeftPanelHostPanel.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _sharedLeftPanelHostPanel.Controls.Add(header);
             _sharedLeftPanelHostPanel.SizeChanged += SharedSchemaPreviewHostSizeChanged;
             header.BringToFront();
@@ -74,7 +91,10 @@ namespace JasonQuery.UI.Forms
             _sharedSchemaPreviewStatus = status;
             _sharedSchemaPreviewRefreshButton = refreshButton;
 
+            tabLeftSchemaExplorer.SizeChanged += SharedSchemaPreviewPageSizeChanged;
+            _sharedSchemaPreviewPreviousWindowState = WindowState;
             SizeChanged += SharedSchemaPreviewMainFormSizeChanged;
+            LayoutSharedSchemaPreviewHost();
             SyncSharedSchemaExplorerPreviewUI();
         }
 
@@ -96,6 +116,13 @@ namespace JasonQuery.UI.Forms
             }
 
             _sharedSchemaPreviewRequested = !_sharedSchemaPreviewRequested;
+
+            if (_sharedSchemaPreviewRequested)
+            {
+                //Opening the F7 preview always selects the shared F7 page.
+                c1DockingTabLeftPanel.SelectedIndex = 1;
+            }
+
             SyncSharedSchemaExplorerPreviewUI();
 
             if (_sharedSchemaPreviewRequested)
@@ -117,8 +144,18 @@ namespace JasonQuery.UI.Forms
 
         private void SharedSchemaPreviewMainFormSizeChanged(object sender, EventArgs e)
         {
+            var currentWindowState = WindowState;
+            var restoredFromMinimized = _sharedSchemaPreviewPreviousWindowState == FormWindowState.Minimized && currentWindowState != FormWindowState.Minimized;
+
+            _sharedSchemaPreviewPreviousWindowState = currentWindowState;
+
             SyncSharedSchemaExplorerPreviewUI();
             LayoutSharedSchemaExplorerPreviewGrid();
+
+            if (restoredFromMinimized)
+            {
+                QueueSharedSchemaPreviewWorkspaceRepaint();
+            }
         }
 
         private void SharedSchemaPreviewHostSizeChanged(object sender, EventArgs e)
@@ -126,11 +163,28 @@ namespace JasonQuery.UI.Forms
             LayoutSharedSchemaExplorerPreviewGrid();
         }
 
+        private void SharedSchemaPreviewPageSizeChanged(object sender, EventArgs e)
+        {
+            LayoutSharedSchemaPreviewHost();
+        }
+
+        private void LayoutSharedSchemaPreviewHost()
+        {
+            if (_sharedLeftPanelHostPanel == null || _sharedLeftPanelHostPanel.IsDisposed || tabLeftSchemaExplorer.IsDisposed)
+            {
+                return;
+            }
+
+            //Keep the Designer-owned F7 filter toolbar visible above the temporary read-only preview.
+            var top = tsSchemaBrowser.Bottom;
+            var height = Math.Max(0, tabLeftSchemaExplorer.ClientSize.Height - top);
+
+            _sharedLeftPanelHostPanel.Bounds = new Rectangle(0, top, tabLeftSchemaExplorer.ClientSize.Width, height);
+        }
+
         private int GetSharedSchemaPreviewAvailableWidth()
         {
-            var previewWidth = _sharedLeftPanelHostPanel != null && _sharedLeftPanelHostPanel.Visible ? _sharedLeftPanelHostPanel.Width : 0;
-
-            return tabControl1.Width + previewWidth;
+            return splitContainerMainWorkspace.ClientSize.Width;
         }
 
         //B1-C3C1 hotfix: keep the Grid below the header, irrespective of WinForms Dock z-order.
@@ -206,44 +260,120 @@ namespace JasonQuery.UI.Forms
 
             var show = _sharedSchemaPreviewRequested && canOffer;
             var host = _sharedLeftPanelHostPanel;
+            var workspace = splitContainerMainWorkspace;
 
-            if (host.Visible == show)
+            //The SplitContainer is the sole owner of workspace geometry. No TabControl.SetBounds calls.
+            //Checking Panel1Collapsed (rather than host.Visible) also works when the F6/F8/F9 tab is selected.
+            if (workspace.Panel1Collapsed == !show)
             {
+                host.Visible = show;
                 _sharedSchemaPreviewMenu.Checked = show;
                 return;
             }
 
             _sharedSchemaPreviewChangingLayout = true;
 
+            var rightPanel = workspace.Panel2;
+            var redrawWasSuspended = false;
+
             try
             {
+                //WM_SETREDRAW prevents native Crownwood/C1/Scintilla descendants from painting intermediate coordinates while Panel1Collapsed relocates Panel2.
+                //Always restore it in finally, even if a layout callback throws.
+                if (!rightPanel.IsDisposed && rightPanel.IsHandleCreated)
+                {
+                    SendRedrawMessage(rightPanel.Handle, SetRedrawMessage, IntPtr.Zero, IntPtr.Zero);
+                    redrawWasSuspended = true;
+                }
+
+                workspace.SuspendLayout();
+                rightPanel.SuspendLayout();
                 tabControl1.SuspendLayout();
+                workspace.Panel1Collapsed = !show;
+                host.Visible = show;
 
                 if (show)
                 {
-                    var previewWidth = SharedSchemaExplorerPreviewPolicy.PreviewWidth;
-
-                    host.Bounds = new Rectangle(tabControl1.Left, tabControl1.Top, previewWidth, tabControl1.Height);
-                    tabControl1.SetBounds(tabControl1.Left + previewWidth, tabControl1.Top, tabControl1.Width - previewWidth, tabControl1.Height);
-                    host.Visible = true;
-                    host.BringToFront();
-                }
-
-                if (!show)
-                {
-                    var previewWidth = host.Width;
-
-                    host.Visible = false;
-                    tabControl1.SetBounds(tabControl1.Left - previewWidth, tabControl1.Top, tabControl1.Width + previewWidth, tabControl1.Height);
+                    LayoutSharedSchemaPreviewHost();
+                    LayoutSharedSchemaExplorerPreviewGrid();
                 }
 
                 _sharedSchemaPreviewMenu.Checked = show;
             }
             finally
             {
-                tabControl1.ResumeLayout(true);
-                _sharedSchemaPreviewChangingLayout = false;
+                try
+                {
+                    tabControl1.ResumeLayout(true);
+                    rightPanel.ResumeLayout(true);
+                    workspace.ResumeLayout(true);
+                }
+                finally
+                {
+                    if (redrawWasSuspended && !rightPanel.IsDisposed && rightPanel.IsHandleCreated)
+                    {
+                        SendRedrawMessage(rightPanel.Handle, SetRedrawMessage, new IntPtr(1), IntPtr.Zero);
+                    }
+
+                    _sharedSchemaPreviewChangingLayout = false;
+                }
             }
+
+            //WinForms/C1 child windows may paint asynchronously after the splitter moves.
+            //Schedule one descendant redraw after the entire layout transaction completes.
+            QueueSharedSchemaPreviewWorkspaceRepaint();
+        }
+
+        private void QueueSharedSchemaPreviewWorkspaceRepaint()
+        {
+            if (_sharedSchemaPreviewRepaintQueued || IsDisposed || Disposing || !IsHandleCreated || WindowState == FormWindowState.Minimized)
+            {
+                return;
+            }
+
+            _sharedSchemaPreviewRepaintQueued = true;
+
+            try
+            {
+                BeginInvoke(new MethodInvoker(RedrawSharedSchemaPreviewWorkspace));
+            }
+            catch (InvalidOperationException)
+            {
+                _sharedSchemaPreviewRepaintQueued = false;
+            }
+        }
+
+        private void RedrawSharedSchemaPreviewWorkspace()
+        {
+            _sharedSchemaPreviewRepaintQueued = false;
+
+            if (IsDisposed || Disposing || WindowState == FormWindowState.Minimized)
+            {
+                return;
+            }
+
+            var workspace = splitContainerMainWorkspace;
+
+            if (workspace.IsDisposed || !workspace.Visible || !workspace.IsHandleCreated || !tabControl1.Visible)
+            {
+                return;
+            }
+
+            var rightPanel = workspace.Panel2;
+
+            if (rightPanel.IsDisposed || !rightPanel.Visible || !rightPanel.IsHandleCreated)
+            {
+                return;
+            }
+
+            //Revalidate the actual right-hand layout without recreating editors, Grids or tabs.
+            rightPanel.PerformLayout();
+            tabControl1.PerformLayout();
+            rightPanel.Invalidate(true);
+            rightPanel.Update();
+
+            //Include native child windows owned by Crownwood, Scintilla and ComponentOne.
+            RedrawWindow(rightPanel.Handle, IntPtr.Zero, IntPtr.Zero, RedrawInvalidate | RedrawErase | RedrawAllChildren | RedrawFrame | RedrawUpdateNow);
         }
 
         private void RefreshSharedSchemaExplorerPreviewMetadata()
@@ -283,7 +413,7 @@ namespace JasonQuery.UI.Forms
 
                     var visibleRows = _sharedSchemaExplorerGrid.Splits.Count > 0 ? _sharedSchemaExplorerGrid.Splits[0].Rows.Count : 0;
 
-                    _sharedSchemaPreviewStatus.Text = visibleRows > 1 ? "F7 Preview (read-only). Use the original F7 for actions." : "F7 Preview: metadata bound, but grouped rows have not expanded.";
+                    _sharedSchemaPreviewStatus.Text = visibleRows > 1 ? "F7 Preview: double-click / Enter; full context actions remain in original F7." : "F7 Preview: metadata bound, but grouped rows have not expanded.";
                 }
 
                 if (!bound)
@@ -313,6 +443,7 @@ namespace JasonQuery.UI.Forms
         private void DisposeSharedSchemaExplorerPreviewUI()
         {
             SizeChanged -= SharedSchemaPreviewMainFormSizeChanged;
+            tabLeftSchemaExplorer.SizeChanged -= SharedSchemaPreviewPageSizeChanged;
 
             if (_sharedLeftPanelHostPanel != null && !_sharedLeftPanelHostPanel.IsDisposed)
             {

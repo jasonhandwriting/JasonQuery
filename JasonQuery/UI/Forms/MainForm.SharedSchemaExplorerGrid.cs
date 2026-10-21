@@ -39,6 +39,7 @@ namespace JasonQuery.UI.Forms
 
             _sharedLeftPanelHostPanel.Controls.Add(grid);
             _sharedSchemaExplorerGrid = grid;
+            AttachSharedSchemaExplorerInputHandlers(grid);
         }
 
         //Explicit staging entry for the future shared F7 UI. No automatic DB query or UI switch.
@@ -81,6 +82,7 @@ namespace JasonQuery.UI.Forms
                 }
 
                 _sharedLeftPanelHostPanel.Controls.Add(candidate);
+                AttachSharedSchemaExplorerInputHandlers(candidate);
             }
             catch (Exception)
             {
@@ -95,6 +97,7 @@ namespace JasonQuery.UI.Forms
 
             if (previous != null)
             {
+                DetachSharedSchemaExplorerInputHandlers(previous);
                 _sharedLeftPanelHostPanel.Controls.Remove(previous);
                 previous.Dispose();
             }
@@ -129,6 +132,8 @@ namespace JasonQuery.UI.Forms
 
             var grid = _sharedSchemaExplorerGrid;
 
+            DetachSharedSchemaExplorerInputHandlers(grid);
+            DisposeSharedSchemaExplorerInputHandlers();
             _sharedSchemaExplorerGrid = null;
 
             if (grid != null && !grid.IsDisposed)

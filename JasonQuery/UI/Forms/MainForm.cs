@@ -1411,16 +1411,16 @@ namespace JasonQuery.UI.Forms
                 picArrow.Visible = true;
                 lblPrompt4NewConnection.Visible = true;
 
-                //20250413
                 tabControl1.Visible = false;
+                splitContainerMainWorkspace.Visible = false;
             }
             else
             {
                 //20250413 提示訊息
                 pnlArrow.Visible = false;
 
-                //20250413
                 tabControl1.Visible = true;
+                splitContainerMainWorkspace.Visible = true;
 
                 using (TraceLogger.Time("Load Default Setting"))
                 {

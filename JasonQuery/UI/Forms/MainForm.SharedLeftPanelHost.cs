@@ -26,7 +26,10 @@ namespace JasonQuery.UI.Forms
                 TabStop = false
             };
 
-            Controls.Add(host);
+            //The Designer-owned MainForm SplitContainer controls workspace geometry.
+            //The temporary preview host is a child of the shared F7 page, never a sibling of the workspace.
+            splitContainerMainWorkspace.Panel1Collapsed = true;
+            tabLeftSchemaExplorer.Controls.Add(host);
             _sharedLeftPanelHostPanel = host;
             InitializeSharedSchemaExplorerGrid();
             InitializeSharedSchemaExplorerPreviewUI();
@@ -96,7 +99,7 @@ namespace JasonQuery.UI.Forms
 
             if (!host.IsDisposed)
             {
-                Controls.Remove(host);
+                tabLeftSchemaExplorer.Controls.Remove(host);
                 host.Dispose();
             }
 

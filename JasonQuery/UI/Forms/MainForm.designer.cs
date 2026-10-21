@@ -130,14 +130,49 @@
             this.pnlArrow = new System.Windows.Forms.Panel();
             this.lblPrompt4NewConnection = new System.Windows.Forms.Label();
             this.picArrow = new System.Windows.Forms.PictureBox();
-            this.tmrPendingTransactionIdleCheck = new System.Windows.Forms.Timer(this.components);
+            this.splitContainerMainWorkspace = new System.Windows.Forms.SplitContainer();
+            this.c1DockingTabLeftPanel = new C1.Win.C1Command.C1DockingTab();
+            this.tabLeftAutoReplace = new C1.Win.C1Command.C1DockingTabPage();
+            this.lblAutoReplacePosition = new System.Windows.Forms.Label();
+            this.btnHelp_AutoReplace = new C1.Win.C1Input.C1Button();
+            this.tsAutoReplace = new System.Windows.Forms.ToolStrip();
+            this.lblAutoReplace = new System.Windows.Forms.ToolStripLabel();
+            this.tabLeftSchemaExplorer = new C1.Win.C1Command.C1DockingTabPage();
+            this.lblSchemaFilterPosition = new System.Windows.Forms.Label();
+            this.txtSchemaFilter = new C1.Win.C1Input.C1TextBox();
+            this.tsSchemaBrowser = new System.Windows.Forms.ToolStrip();
+            this.btnRefresh = new System.Windows.Forms.ToolStripButton();
+            this.btnExpandCollapse = new System.Windows.Forms.ToolStripSplitButton();
+            this.mnuExpandAll = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuCollapseAll = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator15 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnSettingOfFocus = new System.Windows.Forms.ToolStripSplitButton();
+            this.mnuFocusOnDataGrid = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuFocusOnQueryEditor = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnHelp_SchemaFilter = new System.Windows.Forms.ToolStripButton();
+            this.lblSchemaFilter = new System.Windows.Forms.ToolStripLabel();
+            this.tabLeftTabList = new C1.Win.C1Command.C1DockingTabPage();
+            this.tabLeftSqlNavigator = new C1.Win.C1Command.C1DockingTabPage();
             this.tabControl1 = new Crownwood.Magic.Controls.TabControl();
+            this.tmrPendingTransactionIdleCheck = new System.Windows.Forms.Timer(this.components);
             this.mnuMainForm.SuspendLayout();
             this.tsMainMenuToolBar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.c1ThemeController1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.c1StatusBar1)).BeginInit();
             this.pnlArrow.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picArrow)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainerMainWorkspace)).BeginInit();
+            this.splitContainerMainWorkspace.Panel1.SuspendLayout();
+            this.splitContainerMainWorkspace.Panel2.SuspendLayout();
+            this.splitContainerMainWorkspace.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.c1DockingTabLeftPanel)).BeginInit();
+            this.c1DockingTabLeftPanel.SuspendLayout();
+            this.tabLeftAutoReplace.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.btnHelp_AutoReplace)).BeginInit();
+            this.tsAutoReplace.SuspendLayout();
+            this.tabLeftSchemaExplorer.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.txtSchemaFilter)).BeginInit();
+            this.tsSchemaBrowser.SuspendLayout();
             this.SuspendLayout();
             // 
             // mnuMainForm
@@ -948,14 +983,12 @@
             // 
             // pnlArrow
             // 
-            this.pnlArrow.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlArrow.Controls.Add(this.lblPrompt4NewConnection);
             this.pnlArrow.Controls.Add(this.picArrow);
+            this.pnlArrow.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlArrow.Location = new System.Drawing.Point(0, 26);
             this.pnlArrow.Name = "pnlArrow";
-            this.pnlArrow.Size = new System.Drawing.Size(1008, 680);
+            this.pnlArrow.Size = new System.Drawing.Size(1008, 681);
             this.pnlArrow.TabIndex = 117;
             this.c1ThemeController1.SetTheme(this.pnlArrow, "(default)");
             // 
@@ -982,27 +1015,274 @@
             this.picArrow.TabStop = false;
             this.picArrow.Visible = false;
             // 
-            // tmrPendingTransactionIdleCheck
+            // splitContainerMainWorkspace
             // 
-            this.tmrPendingTransactionIdleCheck.Tick += new System.EventHandler(this.tmrPendingTransactionIdleCheck_Tick);
+            this.splitContainerMainWorkspace.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainerMainWorkspace.Location = new System.Drawing.Point(0, 26);
+            this.splitContainerMainWorkspace.Name = "splitContainerMainWorkspace";
+            // 
+            // splitContainerMainWorkspace.Panel1
+            // 
+            this.splitContainerMainWorkspace.Panel1.Controls.Add(this.c1DockingTabLeftPanel);
+            this.c1ThemeController1.SetTheme(this.splitContainerMainWorkspace.Panel1, "(default)");
+            this.splitContainerMainWorkspace.Panel1MinSize = 150;
+            // 
+            // splitContainerMainWorkspace.Panel2
+            // 
+            this.splitContainerMainWorkspace.Panel2.Controls.Add(this.tabControl1);
+            this.c1ThemeController1.SetTheme(this.splitContainerMainWorkspace.Panel2, "(default)");
+            this.splitContainerMainWorkspace.Panel2MinSize = 400;
+            this.splitContainerMainWorkspace.Size = new System.Drawing.Size(1008, 677);
+            this.splitContainerMainWorkspace.SplitterDistance = 250;
+            this.splitContainerMainWorkspace.TabIndex = 120;
+            this.c1ThemeController1.SetTheme(this.splitContainerMainWorkspace, "(default)");
+            this.splitContainerMainWorkspace.Visible = false;
+            // 
+            // c1DockingTabLeftPanel
+            // 
+            this.c1DockingTabLeftPanel.Alignment = System.Windows.Forms.TabAlignment.Left;
+            this.c1DockingTabLeftPanel.Controls.Add(this.tabLeftAutoReplace);
+            this.c1DockingTabLeftPanel.Controls.Add(this.tabLeftSchemaExplorer);
+            this.c1DockingTabLeftPanel.Controls.Add(this.tabLeftTabList);
+            this.c1DockingTabLeftPanel.Controls.Add(this.tabLeftSqlNavigator);
+            this.c1DockingTabLeftPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.c1DockingTabLeftPanel.Font = new System.Drawing.Font("微軟正黑體", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.c1DockingTabLeftPanel.Location = new System.Drawing.Point(0, 0);
+            this.c1DockingTabLeftPanel.MultiLine = true;
+            this.c1DockingTabLeftPanel.Name = "c1DockingTabLeftPanel";
+            this.c1DockingTabLeftPanel.SelectedIndex = 1;
+            this.c1DockingTabLeftPanel.ShowToolTips = true;
+            this.c1DockingTabLeftPanel.Size = new System.Drawing.Size(250, 677);
+            this.c1DockingTabLeftPanel.TabIndex = 68;
+            this.c1DockingTabLeftPanel.TabsSpacing = 0;
+            this.c1DockingTabLeftPanel.TextDirection = C1.Win.C1Command.TabTextDirectionEnum.VerticalRight;
+            this.c1ThemeController1.SetTheme(this.c1DockingTabLeftPanel, "(default)");
+            this.c1DockingTabLeftPanel.VisualStyle = C1.Win.C1Command.VisualStyle.Office2010Blue;
+            this.c1DockingTabLeftPanel.VisualStyleBase = C1.Win.C1Command.VisualStyle.Office2010Blue;
+            // 
+            // tabLeftAutoReplace
+            // 
+            this.tabLeftAutoReplace.Controls.Add(this.lblAutoReplacePosition);
+            this.tabLeftAutoReplace.Controls.Add(this.btnHelp_AutoReplace);
+            this.tabLeftAutoReplace.Controls.Add(this.tsAutoReplace);
+            this.tabLeftAutoReplace.Image = ((System.Drawing.Image)(resources.GetObject("tabLeftAutoReplace.Image")));
+            this.tabLeftAutoReplace.Location = new System.Drawing.Point(26, 1);
+            this.tabLeftAutoReplace.Name = "tabLeftAutoReplace";
+            this.tabLeftAutoReplace.Size = new System.Drawing.Size(223, 675);
+            this.tabLeftAutoReplace.TabIndex = 0;
+            this.tabLeftAutoReplace.Text = "Auto Replace";
+            // 
+            // lblAutoReplacePosition
+            // 
+            this.lblAutoReplacePosition.AutoSize = true;
+            this.lblAutoReplacePosition.Font = new System.Drawing.Font("微軟正黑體", 9F);
+            this.lblAutoReplacePosition.Location = new System.Drawing.Point(0, 15);
+            this.lblAutoReplacePosition.Name = "lblAutoReplacePosition";
+            this.lblAutoReplacePosition.Size = new System.Drawing.Size(15, 16);
+            this.lblAutoReplacePosition.TabIndex = 98;
+            this.lblAutoReplacePosition.Text = "A";
+            this.c1ThemeController1.SetTheme(this.lblAutoReplacePosition, "(default)");
+            this.lblAutoReplacePosition.Visible = false;
+            // 
+            // btnHelp_AutoReplace
+            // 
+            this.btnHelp_AutoReplace.Image = ((System.Drawing.Image)(resources.GetObject("btnHelp_AutoReplace.Image")));
+            this.btnHelp_AutoReplace.Location = new System.Drawing.Point(86, 1);
+            this.btnHelp_AutoReplace.Name = "btnHelp_AutoReplace";
+            this.btnHelp_AutoReplace.Size = new System.Drawing.Size(21, 21);
+            this.btnHelp_AutoReplace.TabIndex = 90;
+            this.c1ThemeController1.SetTheme(this.btnHelp_AutoReplace, "(default)");
+            this.btnHelp_AutoReplace.UseVisualStyleBackColor = true;
+            this.btnHelp_AutoReplace.VisualStyleBaseStyle = C1.Win.C1Input.VisualStyle.Office2010Blue;
+            // 
+            // tsAutoReplace
+            // 
+            this.tsAutoReplace.BackColor = System.Drawing.Color.Transparent;
+            this.tsAutoReplace.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.tsAutoReplace.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.lblAutoReplace});
+            this.tsAutoReplace.Location = new System.Drawing.Point(0, 0);
+            this.tsAutoReplace.Name = "tsAutoReplace";
+            this.tsAutoReplace.Size = new System.Drawing.Size(223, 25);
+            this.tsAutoReplace.TabIndex = 67;
+            this.tsAutoReplace.Text = "toolStrip1";
+            // 
+            // lblAutoReplace
+            // 
+            this.lblAutoReplace.Font = new System.Drawing.Font("微軟正黑體", 9F);
+            this.lblAutoReplace.Name = "lblAutoReplace";
+            this.lblAutoReplace.Size = new System.Drawing.Size(83, 22);
+            this.lblAutoReplace.Text = "Auto Replace";
+            // 
+            // tabLeftSchemaExplorer
+            // 
+            this.tabLeftSchemaExplorer.Controls.Add(this.lblSchemaFilterPosition);
+            this.tabLeftSchemaExplorer.Controls.Add(this.txtSchemaFilter);
+            this.tabLeftSchemaExplorer.Controls.Add(this.tsSchemaBrowser);
+            this.tabLeftSchemaExplorer.Image = ((System.Drawing.Image)(resources.GetObject("tabLeftSchemaExplorer.Image")));
+            this.tabLeftSchemaExplorer.Location = new System.Drawing.Point(26, 1);
+            this.tabLeftSchemaExplorer.Name = "tabLeftSchemaExplorer";
+            this.tabLeftSchemaExplorer.Size = new System.Drawing.Size(223, 675);
+            this.tabLeftSchemaExplorer.TabIndex = 1;
+            this.tabLeftSchemaExplorer.Text = "Schema Browser";
+            // 
+            // lblSchemaFilterPosition
+            // 
+            this.lblSchemaFilterPosition.AutoSize = true;
+            this.lblSchemaFilterPosition.BackColor = System.Drawing.Color.Transparent;
+            this.lblSchemaFilterPosition.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.lblSchemaFilterPosition.Location = new System.Drawing.Point(116, 14);
+            this.lblSchemaFilterPosition.Name = "lblSchemaFilterPosition";
+            this.lblSchemaFilterPosition.Size = new System.Drawing.Size(13, 16);
+            this.lblSchemaFilterPosition.TabIndex = 95;
+            this.lblSchemaFilterPosition.Text = "F";
+            this.lblSchemaFilterPosition.Visible = false;
+            // 
+            // txtSchemaFilter
+            // 
+            this.txtSchemaFilter.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(234)))), ((int)(((byte)(242)))), ((int)(((byte)(255)))));
+            this.txtSchemaFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtSchemaFilter.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.txtSchemaFilter.Location = new System.Drawing.Point(154, 2);
+            this.txtSchemaFilter.Name = "txtSchemaFilter";
+            this.txtSchemaFilter.Size = new System.Drawing.Size(74, 20);
+            this.txtSchemaFilter.TabIndex = 89;
+            this.txtSchemaFilter.Tag = null;
+            this.txtSchemaFilter.Text = "*";
+            this.txtSchemaFilter.TextDetached = true;
+            this.c1ThemeController1.SetTheme(this.txtSchemaFilter, "(default)");
+            this.txtSchemaFilter.VisualStyleBaseStyle = C1.Win.C1Input.VisualStyle.Office2010Blue;
+            // 
+            // tsSchemaBrowser
+            // 
+            this.tsSchemaBrowser.BackColor = System.Drawing.Color.Transparent;
+            this.tsSchemaBrowser.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.tsSchemaBrowser.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btnRefresh,
+            this.btnExpandCollapse,
+            this.toolStripSeparator15,
+            this.btnSettingOfFocus,
+            this.btnHelp_SchemaFilter,
+            this.lblSchemaFilter});
+            this.tsSchemaBrowser.Location = new System.Drawing.Point(0, 0);
+            this.tsSchemaBrowser.Name = "tsSchemaBrowser";
+            this.tsSchemaBrowser.Size = new System.Drawing.Size(223, 25);
+            this.tsSchemaBrowser.TabIndex = 7;
+            this.tsSchemaBrowser.Text = "toolStrip1";
+            // 
+            // btnRefresh
+            // 
+            this.btnRefresh.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnRefresh.Image = ((System.Drawing.Image)(resources.GetObject("btnRefresh.Image")));
+            this.btnRefresh.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnRefresh.Name = "btnRefresh";
+            this.btnRefresh.Size = new System.Drawing.Size(23, 22);
+            // 
+            // btnExpandCollapse
+            // 
+            this.btnExpandCollapse.BackColor = System.Drawing.Color.Transparent;
+            this.btnExpandCollapse.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnExpandCollapse.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuExpandAll,
+            this.mnuCollapseAll});
+            this.btnExpandCollapse.Image = ((System.Drawing.Image)(resources.GetObject("btnExpandCollapse.Image")));
+            this.btnExpandCollapse.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnExpandCollapse.Name = "btnExpandCollapse";
+            this.btnExpandCollapse.Size = new System.Drawing.Size(32, 22);
+            // 
+            // mnuExpandAll
+            // 
+            this.mnuExpandAll.Name = "mnuExpandAll";
+            this.mnuExpandAll.Size = new System.Drawing.Size(140, 22);
+            this.mnuExpandAll.Tag = "mnuExpandAll";
+            this.mnuExpandAll.Text = "Expand All";
+            // 
+            // mnuCollapseAll
+            // 
+            this.mnuCollapseAll.Name = "mnuCollapseAll";
+            this.mnuCollapseAll.Size = new System.Drawing.Size(140, 22);
+            this.mnuCollapseAll.Tag = "mnuCollapseAll";
+            this.mnuCollapseAll.Text = "Collapse All";
+            // 
+            // toolStripSeparator15
+            // 
+            this.toolStripSeparator15.Name = "toolStripSeparator15";
+            this.toolStripSeparator15.Size = new System.Drawing.Size(6, 25);
+            // 
+            // btnSettingOfFocus
+            // 
+            this.btnSettingOfFocus.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnSettingOfFocus.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuFocusOnDataGrid,
+            this.mnuFocusOnQueryEditor});
+            this.btnSettingOfFocus.Image = ((System.Drawing.Image)(resources.GetObject("btnSettingOfFocus.Image")));
+            this.btnSettingOfFocus.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnSettingOfFocus.Name = "btnSettingOfFocus";
+            this.btnSettingOfFocus.Size = new System.Drawing.Size(32, 22);
+            this.btnSettingOfFocus.Text = "toolStripSplitButton1";
+            // 
+            // mnuFocusOnDataGrid
+            // 
+            this.mnuFocusOnDataGrid.Name = "mnuFocusOnDataGrid";
+            this.mnuFocusOnDataGrid.Size = new System.Drawing.Size(364, 22);
+            this.mnuFocusOnDataGrid.Text = "After Pasting to Query Editor, Focus on Data Grid";
+            // 
+            // mnuFocusOnQueryEditor
+            // 
+            this.mnuFocusOnQueryEditor.Name = "mnuFocusOnQueryEditor";
+            this.mnuFocusOnQueryEditor.Size = new System.Drawing.Size(364, 22);
+            this.mnuFocusOnQueryEditor.Text = "After Pasting to Query Editor, Focus on Query Editor";
+            // 
+            // btnHelp_SchemaFilter
+            // 
+            this.btnHelp_SchemaFilter.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnHelp_SchemaFilter.Image = ((System.Drawing.Image)(resources.GetObject("btnHelp_SchemaFilter.Image")));
+            this.btnHelp_SchemaFilter.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnHelp_SchemaFilter.Name = "btnHelp_SchemaFilter";
+            this.btnHelp_SchemaFilter.Size = new System.Drawing.Size(23, 22);
+            // 
+            // lblSchemaFilter
+            // 
+            this.lblSchemaFilter.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.lblSchemaFilter.Name = "lblSchemaFilter";
+            this.lblSchemaFilter.Size = new System.Drawing.Size(37, 22);
+            this.lblSchemaFilter.Text = "Filter:";
+            // 
+            // tabLeftTabList
+            // 
+            this.tabLeftTabList.Image = ((System.Drawing.Image)(resources.GetObject("tabLeftTabList.Image")));
+            this.tabLeftTabList.Location = new System.Drawing.Point(26, 1);
+            this.tabLeftTabList.Name = "tabLeftTabList";
+            this.tabLeftTabList.Size = new System.Drawing.Size(223, 675);
+            this.tabLeftTabList.TabIndex = 2;
+            this.tabLeftTabList.Text = "Tab List";
+            // 
+            // tabLeftSqlNavigator
+            // 
+            this.tabLeftSqlNavigator.Image = ((System.Drawing.Image)(resources.GetObject("tabLeftSqlNavigator.Image")));
+            this.tabLeftSqlNavigator.Location = new System.Drawing.Point(26, 1);
+            this.tabLeftSqlNavigator.Name = "tabLeftSqlNavigator";
+            this.tabLeftSqlNavigator.Size = new System.Drawing.Size(223, 675);
+            this.tabLeftSqlNavigator.TabIndex = 3;
+            this.tabLeftSqlNavigator.Text = "SQL Navigator";
             // 
             // tabControl1
             // 
             this.tabControl1.AllowDrop = false;
-            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.BoldSelectedPage = true;
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Font = new System.Drawing.Font("微軟正黑體", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.tabControl1.ForeColor = System.Drawing.Color.Empty;
             this.tabControl1.IDEPixelArea = false;
-            this.tabControl1.Location = new System.Drawing.Point(0, 26);
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tabControl1.MouseLeaveTimeout = 100;
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.PositionTop = true;
             this.tabControl1.ShowArrows = true;
-            this.tabControl1.Size = new System.Drawing.Size(1008, 677);
+            this.tabControl1.Size = new System.Drawing.Size(754, 677);
             this.tabControl1.TabIndex = 8;
             this.tabControl1.TextColor = System.Drawing.Color.Empty;
             this.tabControl1.TextInactiveColor = System.Drawing.Color.Silver;
@@ -1013,6 +1293,10 @@
             this.tabControl1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tabControl1_MouseDown);
             this.tabControl1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.tabControl1_MouseMove);
             // 
+            // tmrPendingTransactionIdleCheck
+            // 
+            this.tmrPendingTransactionIdleCheck.Tick += new System.EventHandler(this.tmrPendingTransactionIdleCheck_Tick);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -1020,8 +1304,8 @@
             this.BackColor = System.Drawing.SystemColors.ButtonFace;
             this.ClientSize = new System.Drawing.Size(1008, 729);
             this.Controls.Add(this.pnlArrow);
+            this.Controls.Add(this.splitContainerMainWorkspace);
             this.Controls.Add(this.c1StatusBar1);
-            this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.tsMainMenuToolBar);
             this.Controls.Add(this.mnuMainForm);
             this.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
@@ -1048,6 +1332,22 @@
             this.pnlArrow.ResumeLayout(false);
             this.pnlArrow.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picArrow)).EndInit();
+            this.splitContainerMainWorkspace.Panel1.ResumeLayout(false);
+            this.splitContainerMainWorkspace.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainerMainWorkspace)).EndInit();
+            this.splitContainerMainWorkspace.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.c1DockingTabLeftPanel)).EndInit();
+            this.c1DockingTabLeftPanel.ResumeLayout(false);
+            this.tabLeftAutoReplace.ResumeLayout(false);
+            this.tabLeftAutoReplace.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.btnHelp_AutoReplace)).EndInit();
+            this.tsAutoReplace.ResumeLayout(false);
+            this.tsAutoReplace.PerformLayout();
+            this.tabLeftSchemaExplorer.ResumeLayout(false);
+            this.tabLeftSchemaExplorer.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.txtSchemaFilter)).EndInit();
+            this.tsSchemaBrowser.ResumeLayout(false);
+            this.tsSchemaBrowser.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1156,5 +1456,28 @@
         private C1.Win.C1Ribbon.RibbonSeparator spNotCommitYet;
         private C1.Win.C1Ribbon.RibbonLabel lblNotCommitYet;
         private C1.Win.C1Ribbon.RibbonLabel lblNotCommitYetTime;
+        private System.Windows.Forms.SplitContainer splitContainerMainWorkspace;
+        private C1.Win.C1Command.C1DockingTab c1DockingTabLeftPanel;
+        private C1.Win.C1Command.C1DockingTabPage tabLeftAutoReplace;
+        private System.Windows.Forms.Label lblAutoReplacePosition;
+        private C1.Win.C1Input.C1Button btnHelp_AutoReplace;
+        private System.Windows.Forms.ToolStrip tsAutoReplace;
+        private System.Windows.Forms.ToolStripLabel lblAutoReplace;
+        private C1.Win.C1Command.C1DockingTabPage tabLeftSchemaExplorer;
+        private System.Windows.Forms.Label lblSchemaFilterPosition;
+        private C1.Win.C1Input.C1TextBox txtSchemaFilter;
+        private System.Windows.Forms.ToolStrip tsSchemaBrowser;
+        private System.Windows.Forms.ToolStripButton btnRefresh;
+        private System.Windows.Forms.ToolStripSplitButton btnExpandCollapse;
+        private System.Windows.Forms.ToolStripMenuItem mnuExpandAll;
+        private System.Windows.Forms.ToolStripMenuItem mnuCollapseAll;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator15;
+        private System.Windows.Forms.ToolStripSplitButton btnSettingOfFocus;
+        private System.Windows.Forms.ToolStripMenuItem mnuFocusOnDataGrid;
+        private System.Windows.Forms.ToolStripMenuItem mnuFocusOnQueryEditor;
+        private System.Windows.Forms.ToolStripButton btnHelp_SchemaFilter;
+        private System.Windows.Forms.ToolStripLabel lblSchemaFilter;
+        private C1.Win.C1Command.C1DockingTabPage tabLeftTabList;
+        private C1.Win.C1Command.C1DockingTabPage tabLeftSqlNavigator;
     }
 }

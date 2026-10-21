@@ -983,7 +983,6 @@
     <Compile Include="UI\QueryEditor\AutoComplete\Popup\IQueryEditorAutoCompletePopupPresenter.cs" />
     <Compile Include="UI\QueryEditor\AutoComplete\Popup\QueryEditorAutoCompletePopupContext.cs" />
     <Compile Include="UI\QueryEditor\AutoComplete\Popup\QueryEditorAutoCompletePopupController.cs" />
-    <Compile Include="UI\QueryEditor\AutoComplete\Popup\QueryEditorAutoCompletePopupOffsetResolver.cs" />
     <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompleteRequest.cs" />
     <Compile Include="Core\QueryEngine\Editor\AutoComplete\Models\QueryEditorAutoCompleteResolveContextBase.cs" />
     <Compile Include="Core\QueryEngine\Editor\AutoComplete\Support\QueryEditorAutoCompleteSchemaQueryExecutor.cs" />
@@ -1247,6 +1246,10 @@
     <Compile Include="UI\Forms\MainForm.SharedSchemaExplorerPreview.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="UI\Forms\MainForm.SharedSchemaExplorerEvents.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LeftPanel\SharedSchemaExplorerInteractionPolicy.cs" />
     <Compile Include="UI\LeftPanel\SharedSchemaExplorerPreviewPolicy.cs" />
     <Compile Include="UI\Forms\QueryForm.SchemaExplorerReceiver.cs">
       <SubType>Form</SubType>
