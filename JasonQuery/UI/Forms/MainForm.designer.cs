@@ -1020,6 +1020,7 @@
             this.splitContainerMainWorkspace.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainerMainWorkspace.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainerMainWorkspace.Location = new System.Drawing.Point(0, 26);
             this.splitContainerMainWorkspace.Name = "splitContainerMainWorkspace";
             // 

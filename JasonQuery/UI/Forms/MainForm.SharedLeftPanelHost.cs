@@ -1,4 +1,6 @@
 ﻿using JasonQuery.UI.LeftPanel;
+using JasonQuery.Database.Internal.Repositories;
+using System.Globalization;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
@@ -33,6 +35,7 @@ namespace JasonQuery.UI.Forms
             _sharedLeftPanelHostPanel = host;
             InitializeSharedSchemaExplorerGrid();
             InitializeSharedSchemaExplorerPreviewUI();
+            InitializeSharedWorkspaceSplitterPersistence();
 
             //One subscription per MainForm lifetime; no QueryForm or Grid event hooks.
             tabControl1.SelectionChanged += SharedLeftPanelTabSelectionChanged;
@@ -89,6 +92,7 @@ namespace JasonQuery.UI.Forms
 
             tabControl1.SelectionChanged -= SharedLeftPanelTabSelectionChanged;
             tabControl1.VisibleChanged -= SharedLeftPanelWorkspaceVisibilityChanged;
+            DisposeSharedWorkspaceSplitterPersistence();
 
             DisposeSharedSchemaExplorerPreviewUI();
             DisposeSharedSchemaExplorerGrid();
@@ -104,6 +108,173 @@ namespace JasonQuery.UI.Forms
             }
 
             _sharedLeftPanelHostState = SharedLeftPanelHostStatePolicy.MarkDisposed(_sharedLeftPanelHostState);
+        }
+
+        //L2-A: the shared MainForm width is independent from QueryForm/SchemaBrowserForm splitters.
+        private const string SharedWorkspaceSplitterSettingKey = "SplitterConfig";
+        private const string SharedWorkspaceSplitterSettingName = "MainForm_L/R";
+        private bool _sharedWorkspaceSplitterUserDragging;
+        private bool _sharedWorkspaceSplitterRestoring;
+        private int? _sharedWorkspacePreferredDistance;
+
+        private void InitializeSharedWorkspaceSplitterPersistence()
+        {
+            splitContainerMainWorkspace.SplitterMoving += SharedWorkspaceSplitterMoving;
+            splitContainerMainWorkspace.SplitterMoved += SharedWorkspaceSplitterMoved;
+            splitContainerMainWorkspace.Panel1.VisibleChanged += SharedWorkspaceLeftPanelVisibleChanged;
+        }
+
+        private void DisposeSharedWorkspaceSplitterPersistence()
+        {
+            splitContainerMainWorkspace.SplitterMoving -= SharedWorkspaceSplitterMoving;
+            splitContainerMainWorkspace.SplitterMoved -= SharedWorkspaceSplitterMoved;
+            splitContainerMainWorkspace.Panel1.VisibleChanged -= SharedWorkspaceLeftPanelVisibleChanged;
+            _sharedWorkspaceSplitterUserDragging = false;
+        }
+
+        private void RestoreSharedWorkspaceSplitterDistance()
+        {
+            var workspace = splitContainerMainWorkspace;
+
+            if (IsDisposed || Disposing || workspace.IsDisposed)
+            {
+                return;
+            }
+
+            //Like QueryForm, the setting uses the current DomainUser and database MPID.
+            //A missing or malformed setting leaves the VS2022 Designer width intact.
+            var saved = JasonQueryRepository.GetSettingValue
+            (
+                SharedWorkspaceSplitterSettingKey,
+                SharedWorkspaceSplitterSettingName
+            );
+
+            if (!int.TryParse(saved, NumberStyles.Integer, CultureInfo.InvariantCulture, out var distance) || distance <= 0)
+            {
+                _sharedWorkspacePreferredDistance = null;
+                return;
+            }
+
+            _sharedWorkspacePreferredDistance = distance;
+            ApplySharedWorkspacePreferredDistance();
+        }
+
+        private void SharedWorkspaceLeftPanelVisibleChanged(object sender, EventArgs e)
+        {
+            if (!splitContainerMainWorkspace.Panel1.Visible)
+            {
+                return;
+            }
+
+            //Panel1 may have been collapsed while restoring; apply the saved width only after it becomes visible. Programmatic layout must never write SystemConfig.
+            ApplySharedWorkspacePreferredDistance();
+        }
+
+        private void ApplySharedWorkspacePreferredDistance()
+        {
+            var workspace = splitContainerMainWorkspace;
+
+            if (!_sharedWorkspacePreferredDistance.HasValue || _sharedWorkspaceSplitterRestoring || workspace.IsDisposed || !workspace.Visible || workspace.Panel1Collapsed)
+            {
+                return;
+            }
+
+            var distance = MainFormSplitterDistancePolicy.Clamp
+            (
+                _sharedWorkspacePreferredDistance.Value,
+                workspace.ClientSize.Width,
+                workspace.SplitterWidth,
+                workspace.Panel1MinSize,
+                workspace.Panel2MinSize
+            );
+
+            if (distance < 0 || distance == workspace.SplitterDistance)
+            {
+                return;
+            }
+
+            _sharedWorkspaceSplitterRestoring = true;
+
+            try
+            {
+                workspace.SplitterDistance = distance;
+            }
+            finally
+            {
+                _sharedWorkspaceSplitterRestoring = false;
+            }
+        }
+
+        private void SharedWorkspaceSplitterMoving(object sender, SplitterCancelEventArgs e)
+        {
+            var workspace = splitContainerMainWorkspace;
+
+            if (_sharedWorkspaceSplitterRestoring || IsDisposed || Disposing || !workspace.Visible || workspace.Panel1Collapsed)
+            {
+                return;
+            }
+
+            _sharedWorkspaceSplitterUserDragging = true;
+        }
+
+        private void SharedWorkspaceSplitterMoved(object sender, SplitterEventArgs e)
+        {
+            var workspace = splitContainerMainWorkspace;
+            var userDragging = _sharedWorkspaceSplitterUserDragging;
+
+            _sharedWorkspaceSplitterUserDragging = false;
+
+            if (IsDisposed || Disposing || workspace.IsDisposed)
+            {
+                return;
+            }
+
+            var currentDistance = workspace.SplitterDistance;
+
+            var allowedDistance = MainFormSplitterDistancePolicy.Clamp
+            (
+                currentDistance,
+                workspace.ClientSize.Width,
+                workspace.SplitterWidth,
+                workspace.Panel1MinSize,
+                workspace.Panel2MinSize
+            );
+
+            if (allowedDistance != currentDistance || !MainFormSplitterDistancePolicy.ShouldPersist(userDragging, _sharedWorkspaceSplitterRestoring, workspace.Visible, workspace.Panel1Collapsed, currentDistance, _sharedWorkspacePreferredDistance ?? -1))
+            {
+                return;
+            }
+
+            _sharedWorkspacePreferredDistance = currentDistance;
+
+            JasonQueryRepository.UpdateSetting
+            (
+                SharedWorkspaceSplitterSettingKey,
+                SharedWorkspaceSplitterSettingName,
+                currentDistance.ToString(CultureInfo.InvariantCulture)
+            );
+        }
+    }
+
+    //Pure layout policy: leaves VS2022 Designer output and C1 layout ownership untouched.
+    internal static class MainFormSplitterDistancePolicy
+    {
+        internal static int Clamp(int preferred, int clientWidth, int splitterWidth, int minLeft, int minRight)
+        {
+            var minimum = Math.Max(0, minLeft);
+            var maximum = clientWidth - Math.Max(0, splitterWidth) - Math.Max(0, minRight);
+
+            if (maximum < minimum)
+            {
+                return -1;
+            }
+
+            return Math.Max(minimum, Math.Min(maximum, preferred));
+        }
+
+        internal static bool ShouldPersist(bool userDragging, bool restoring, bool visible, bool collapsed, int distance, int previousDistance)
+        {
+            return userDragging && !restoring && visible && !collapsed && distance >= 0 && distance != previousDistance;
         }
     }
 }

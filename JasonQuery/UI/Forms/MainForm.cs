@@ -1421,6 +1421,7 @@ namespace JasonQuery.UI.Forms
 
                 tabControl1.Visible = true;
                 splitContainerMainWorkspace.Visible = true;
+                RestoreSharedWorkspaceSplitterDistance();
 
                 using (TraceLogger.Time("Load Default Setting"))
                 {
