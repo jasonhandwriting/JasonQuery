@@ -258,16 +258,24 @@ namespace JasonQuery.UI.Forms
                 _sharedSchemaExplorerGrid.Visible = false;
             }
 
-            var show = _sharedSchemaPreviewRequested && canOffer;
+            var showPreview = _sharedSchemaPreviewRequested && canOffer;
             var host = _sharedLeftPanelHostPanel;
             var workspace = splitContainerMainWorkspace;
+            var showWorkspace = SharedSchemaExplorerPreviewPolicy.ShouldShowWorkspace(state, workspace.Visible);
 
-            //The SplitContainer is the sole owner of workspace geometry. No TabControl.SetBounds calls.
-            //Checking Panel1Collapsed (rather than host.Visible) also works when the F6/F8/F9 tab is selected.
-            if (workspace.Panel1Collapsed == !show)
+            //L2-B: right-hand Tab selection and F7 Preview availability never own the left SplitContainer panel.
+            //The L1 paint transaction below is reserved for actual connected-workspace transitions only.
+            if (workspace.Panel1Collapsed == !showWorkspace)
             {
-                host.Visible = show;
-                _sharedSchemaPreviewMenu.Checked = show;
+                //Showing an existing F7 preview never relocates Panel2, but its bounds must still follow the current page size.
+                if (showPreview)
+                {
+                    LayoutSharedSchemaPreviewHost();
+                    LayoutSharedSchemaExplorerPreviewGrid();
+                }
+
+                host.Visible = showPreview;
+                _sharedSchemaPreviewMenu.Checked = showPreview;
                 return;
             }
 
@@ -289,16 +297,16 @@ namespace JasonQuery.UI.Forms
                 workspace.SuspendLayout();
                 rightPanel.SuspendLayout();
                 tabControl1.SuspendLayout();
-                workspace.Panel1Collapsed = !show;
-                host.Visible = show;
+                workspace.Panel1Collapsed = !showWorkspace;
+                host.Visible = showPreview;
 
-                if (show)
+                if (showPreview)
                 {
                     LayoutSharedSchemaPreviewHost();
                     LayoutSharedSchemaExplorerPreviewGrid();
                 }
 
-                _sharedSchemaPreviewMenu.Checked = show;
+                _sharedSchemaPreviewMenu.Checked = showPreview;
             }
             finally
             {

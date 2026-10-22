@@ -1421,6 +1421,9 @@ namespace JasonQuery.UI.Forms
 
                 tabControl1.Visible = true;
                 splitContainerMainWorkspace.Visible = true;
+
+                //The shared left workspace belongs to MainForm, not to the selected right-hand Tab.
+                RefreshSharedLeftPanelHostState();
                 RestoreSharedWorkspaceSplitterDistance();
 
                 using (TraceLogger.Time("Load Default Setting"))

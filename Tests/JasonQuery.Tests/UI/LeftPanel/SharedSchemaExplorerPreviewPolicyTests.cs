@@ -193,9 +193,9 @@ namespace JasonQuery.Tests.UI.LeftPanel
         }
 
         [TestMethod]
-        public void NoTabDenied()
+        public void NoTabCanStillOfferSharedPreview()
         {
-            Assert.IsFalse(SharedSchemaExplorerPreviewPolicy.CanOffer(WithoutTab(), DataSourceType.PostgreSql, true, 1000));
+            Assert.IsTrue(SharedSchemaExplorerPreviewPolicy.CanOffer(WithoutTab(), DataSourceType.PostgreSql, true, 1000));
         }
 
         [TestMethod]
@@ -217,15 +217,15 @@ namespace JasonQuery.Tests.UI.LeftPanel
         }
 
         [TestMethod]
-        public void OtherFormDenied()
+        public void OtherFormDoesNotHideSharedPreview()
         {
-            Assert.IsFalse(SharedSchemaExplorerPreviewPolicy.CanOffer(OtherForm(), DataSourceType.PostgreSql, true, 1000));
+            Assert.IsTrue(SharedSchemaExplorerPreviewPolicy.CanOffer(OtherForm(), DataSourceType.PostgreSql, true, 1000));
         }
 
         [TestMethod]
-        public void NoneTargetDenied()
+        public void NoneTargetDoesNotHideSharedPreview()
         {
-            Assert.IsFalse(SharedSchemaExplorerPreviewPolicy.CanOffer(NoneTarget(), DataSourceType.PostgreSql, true, 1000));
+            Assert.IsTrue(SharedSchemaExplorerPreviewPolicy.CanOffer(NoneTarget(), DataSourceType.PostgreSql, true, 1000));
         }
 
         [TestMethod]
@@ -310,6 +310,60 @@ namespace JasonQuery.Tests.UI.LeftPanel
         public void MissingStateDoesNotReuse()
         {
             Assert.IsFalse(SharedSchemaExplorerPreviewPolicy.CanReuse(null, Snapshot(), DataSourceType.PostgreSql));
+        }
+
+        [TestMethod]
+        public void LeftWorkspaceVisibleWhenConnectedWithEditor()
+        {
+            Assert.IsTrue(SharedSchemaExplorerPreviewPolicy.ShouldShowWorkspace(Ready(), true));
+        }
+
+        [TestMethod]
+        public void LeftWorkspaceVisibleWithNonEditorActiveTab()
+        {
+            Assert.IsTrue(SharedSchemaExplorerPreviewPolicy.ShouldShowWorkspace(OtherForm(), true));
+        }
+
+        [TestMethod]
+        public void LeftWorkspaceVisibleDuringZeroTabTransition()
+        {
+            Assert.IsTrue(SharedSchemaExplorerPreviewPolicy.ShouldShowWorkspace(WithoutTab(), true));
+        }
+
+        [TestMethod]
+        public void LeftWorkspaceHiddenUntilConnectedWorkspaceIsVisible()
+        {
+            Assert.IsFalse(SharedSchemaExplorerPreviewPolicy.ShouldShowWorkspace(Ready(), false));
+        }
+
+        [TestMethod]
+        public void LeftWorkspaceHiddenWhenDisconnected()
+        {
+            Assert.IsFalse(SharedSchemaExplorerPreviewPolicy.ShouldShowWorkspace(Disconnected(), true));
+        }
+
+        [TestMethod]
+        public void LeftWorkspaceHiddenAfterDisposal()
+        {
+            Assert.IsFalse(SharedSchemaExplorerPreviewPolicy.ShouldShowWorkspace(Disposed(), true));
+        }
+
+        [TestMethod]
+        public void LeftWorkspaceMissingStateCannotShow()
+        {
+            Assert.IsFalse(SharedSchemaExplorerPreviewPolicy.ShouldShowWorkspace(null, true));
+        }
+
+        [TestMethod]
+        public void NonEditorTabPreservesBoundPreviewGroupState()
+        {
+            Assert.IsFalse(SharedSchemaExplorerPreviewPolicy.ShouldRefreshOnShow(OtherForm(), Snapshot(), DataSourceType.PostgreSql, true));
+        }
+
+        [TestMethod]
+        public void ZeroTabTransitionPreservesBoundPreviewGroupState()
+        {
+            Assert.IsFalse(SharedSchemaExplorerPreviewPolicy.ShouldRefreshOnShow(WithoutTab(), Snapshot(), DataSourceType.PostgreSql, true));
         }
 
         [TestMethod]

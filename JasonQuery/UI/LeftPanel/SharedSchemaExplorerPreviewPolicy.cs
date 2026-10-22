@@ -30,12 +30,17 @@ namespace JasonQuery.UI.LeftPanel
             return state != null
                    && !state.IsDisposed
                    && state.IsConnected
-                   && state.HasActiveTab
                    && state.ConnectionRevision > 0
                    && workspaceVisible
                    && sourceType != DataSourceType.None
-                   && workspaceWidth >= MinimumWorkspaceWidth
-                   && (state.ActiveTarget == LeftPanelTargetKind.QueryForm || state.ActiveTarget == LeftPanelTargetKind.SchemaBrowserForm);
+                   && workspaceWidth >= MinimumWorkspaceWidth;
+        }
+
+        //The left workspace belongs to MainForm and cannot be collapsed by a Tab switch or an F7 Preview toggle.
+        //Connection visibility is logical, never a per-SQL-command physical connection state.
+        public static bool ShouldShowWorkspace(SharedLeftPanelHostState state, bool workspaceVisible)
+        {
+            return state != null && !state.IsDisposed && state.IsConnected && workspaceVisible;
         }
 
         //The preview Grid must never overlap the fixed-height preview header.

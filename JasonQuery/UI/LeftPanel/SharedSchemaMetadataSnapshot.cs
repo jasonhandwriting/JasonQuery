@@ -22,6 +22,7 @@ namespace JasonQuery.UI.LeftPanel
 
         public DataSourceType SourceType { get; }
         public int ConnectionRevision { get; }
+
         //Owned copy. A grid may modify this copy but never the caller's DataTable.
         public DataTable Table { get; }
         public string[] GroupColumns => (string[])_groupColumns.Clone();
@@ -92,10 +93,10 @@ namespace JasonQuery.UI.LeftPanel
 
         public static bool CanBind(SharedLeftPanelHostState state, SharedSchemaMetadataSnapshot snapshot, DataSourceType currentSourceType)
         {
+            //Snapshot validity follows the connection, not the selected right-hand Tab.
             return state != null
                    && !state.IsDisposed
                    && state.IsConnected
-                   && state.HasActiveTab
                    && snapshot != null
                    && currentSourceType != DataSourceType.None
                    && snapshot.SourceType == currentSourceType

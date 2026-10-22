@@ -378,11 +378,19 @@ namespace JasonQuery.Tests.UI.LeftPanel
         }
 
         [TestMethod]
-        public void NoActiveTab_DoesNotBind()
+        public void NoActiveTab_PreservesConnectionScopedMetadata()
         {
             var s = SharedLeftPanelHostStatePolicy.Refresh(Active(), true, false, null, LeftPanelTargetKind.None);
 
-            Assert.IsFalse(SharedSchemaMetadataSnapshotPolicy.CanBind(s, Capture(), DataSourceType.PostgreSql));
+            Assert.IsTrue(SharedSchemaMetadataSnapshotPolicy.CanBind(s, Capture(), DataSourceType.PostgreSql));
+        }
+
+        [TestMethod]
+        public void NonEditorTab_PreservesConnectionScopedMetadata()
+        {
+            var s = SharedLeftPanelHostStatePolicy.Refresh(Active(), true, true, "options", LeftPanelTargetKind.OtherForm);
+
+            Assert.IsTrue(SharedSchemaMetadataSnapshotPolicy.CanBind(s, Capture(), DataSourceType.PostgreSql));
         }
 
         [TestMethod]
