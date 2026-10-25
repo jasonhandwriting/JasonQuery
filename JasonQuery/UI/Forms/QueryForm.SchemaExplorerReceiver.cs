@@ -14,6 +14,36 @@ namespace JasonQuery.UI.Forms
 
         public LeftPanelTargetKind TargetKind => LeftPanelTargetKind.QueryForm;
 
+        //L2-C3-C1: context-menu Paste is distinct from typed F7 DoubleClick.
+        //Only the currently selected, editable QueryForm can receive the text.
+        internal bool CanAcceptSharedSchemaExplorerPaste => !IsDisposed && !Disposing && !InvokeRequired && _isFormLoadFinished && editor != null && !editor.IsDisposed && !editor.ReadOnly;
+
+        internal bool TryPasteSharedSchemaExplorerText(string pasteText)
+        {
+            if (!CanAcceptSharedSchemaExplorerPaste || string.IsNullOrWhiteSpace(pasteText))
+            {
+                return false;
+            }
+
+            try
+            {
+                TextHelper.CopyTextToClipboard(pasteText, "F7SharedContextMenuPaste");
+                editor.Paste();
+
+                if (AppConfigHelper.IsAfterPasteFocusOnQueryEditor)
+                {
+                    editor.Focus();
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ShowExceptionMessage(ex);
+                return false;
+            }
+        }
+
         public bool TryHandleSchemaExplorerAction(SchemaExplorerSelectionInfo selection, SchemaExplorerActionKind action)
         {
             if (IsDisposed || InvokeRequired || !_isFormLoadFinished || editor == null || editor.IsDisposed || editor.ReadOnly)

@@ -1249,7 +1249,13 @@
     <Compile Include="UI\Forms\MainForm.SharedSchemaExplorerEvents.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="UI\Forms\MainForm.SharedSchemaExplorerObjectCommands.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\LeftPanel\SharedSchemaExplorerInteractionPolicy.cs" />
+    <Compile Include="UI\LeftPanel\SharedSchemaExplorerContextMenuPolicy.cs" />
+    <Compile Include="UI\LeftPanel\SharedSchemaExplorerPastePolicy.cs" />
+    <Compile Include="UI\LeftPanel\SharedSchemaExplorerObjectCommandPolicy.cs" />
     <Compile Include="UI\LeftPanel\SharedSchemaExplorerPreviewPolicy.cs" />
     <Compile Include="UI\Forms\QueryForm.SchemaExplorerReceiver.cs">
       <SubType>Form</SubType>

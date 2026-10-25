@@ -138,6 +138,7 @@
             this.tsAutoReplace = new System.Windows.Forms.ToolStrip();
             this.lblAutoReplace = new System.Windows.Forms.ToolStripLabel();
             this.tabLeftSchemaExplorer = new C1.Win.C1Command.C1DockingTabPage();
+            this.c1GridSharedSchemaExplorer = new C1.Win.C1TrueDBGrid.C1TrueDBGrid();
             this.lblSchemaFilterPosition = new System.Windows.Forms.Label();
             this.txtSchemaFilter = new C1.Win.C1Input.C1TextBox();
             this.tsSchemaBrowser = new System.Windows.Forms.ToolStrip();
@@ -171,6 +172,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.btnHelp_AutoReplace)).BeginInit();
             this.tsAutoReplace.SuspendLayout();
             this.tabLeftSchemaExplorer.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.c1GridSharedSchemaExplorer)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtSchemaFilter)).BeginInit();
             this.tsSchemaBrowser.SuspendLayout();
             this.SuspendLayout();
@@ -1119,6 +1121,7 @@
             // 
             // tabLeftSchemaExplorer
             // 
+            this.tabLeftSchemaExplorer.Controls.Add(this.c1GridSharedSchemaExplorer);
             this.tabLeftSchemaExplorer.Controls.Add(this.lblSchemaFilterPosition);
             this.tabLeftSchemaExplorer.Controls.Add(this.txtSchemaFilter);
             this.tabLeftSchemaExplorer.Controls.Add(this.tsSchemaBrowser);
@@ -1128,6 +1131,38 @@
             this.tabLeftSchemaExplorer.Size = new System.Drawing.Size(223, 675);
             this.tabLeftSchemaExplorer.TabIndex = 1;
             this.tabLeftSchemaExplorer.Text = "Schema Browser";
+            // 
+            // c1GridSharedSchemaExplorer
+            // 
+            this.c1GridSharedSchemaExplorer.AllowUpdate = false;
+            this.c1GridSharedSchemaExplorer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.c1GridSharedSchemaExplorer.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
+            this.c1GridSharedSchemaExplorer.ColumnHeaders = false;
+            this.c1GridSharedSchemaExplorer.DataView = C1.Win.C1TrueDBGrid.DataViewEnum.GroupBy;
+            this.c1GridSharedSchemaExplorer.FetchRowStyles = true;
+            this.c1GridSharedSchemaExplorer.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.c1GridSharedSchemaExplorer.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.c1GridSharedSchemaExplorer.GroupByAreaVisible = false;
+            this.c1GridSharedSchemaExplorer.GroupByCaption = "將欄位標題拖拽到這裡以便按照該欄位進行分組";
+            this.c1GridSharedSchemaExplorer.Images.Add(((System.Drawing.Image)(resources.GetObject("c1GridSharedSchemaExplorer.Images"))));
+            this.c1GridSharedSchemaExplorer.Location = new System.Drawing.Point(1, 25);
+            this.c1GridSharedSchemaExplorer.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.c1GridSharedSchemaExplorer.MultiSelect = C1.Win.C1TrueDBGrid.MultiSelectEnum.None;
+            this.c1GridSharedSchemaExplorer.Name = "c1GridSharedSchemaExplorer";
+            this.c1GridSharedSchemaExplorer.PreviewInfo.Caption = "PrintPreview窗口";
+            this.c1GridSharedSchemaExplorer.PreviewInfo.Location = new System.Drawing.Point(0, 0);
+            this.c1GridSharedSchemaExplorer.PreviewInfo.Size = new System.Drawing.Size(0, 0);
+            this.c1GridSharedSchemaExplorer.PreviewInfo.ZoomFactor = 75D;
+            this.c1GridSharedSchemaExplorer.PrintInfo.MeasurementDevice = C1.Win.C1TrueDBGrid.PrintInfo.MeasurementDeviceEnum.Screen;
+            this.c1GridSharedSchemaExplorer.PrintInfo.MeasurementPrinterName = null;
+            this.c1GridSharedSchemaExplorer.RowHeight = 19;
+            this.c1GridSharedSchemaExplorer.Size = new System.Drawing.Size(221, 649);
+            this.c1GridSharedSchemaExplorer.TabIndex = 96;
+            this.c1ThemeController1.SetTheme(this.c1GridSharedSchemaExplorer, "(default)");
+            this.c1GridSharedSchemaExplorer.UseCompatibleTextRendering = false;
+            this.c1GridSharedSchemaExplorer.PropBag = resources.GetString("c1GridSharedSchemaExplorer.PropBag");
             // 
             // lblSchemaFilterPosition
             // 
@@ -1346,6 +1381,7 @@
             this.tsAutoReplace.PerformLayout();
             this.tabLeftSchemaExplorer.ResumeLayout(false);
             this.tabLeftSchemaExplorer.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.c1GridSharedSchemaExplorer)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtSchemaFilter)).EndInit();
             this.tsSchemaBrowser.ResumeLayout(false);
             this.tsSchemaBrowser.PerformLayout();
@@ -1480,5 +1516,6 @@
         private System.Windows.Forms.ToolStripLabel lblSchemaFilter;
         private C1.Win.C1Command.C1DockingTabPage tabLeftTabList;
         private C1.Win.C1Command.C1DockingTabPage tabLeftSqlNavigator;
+        private C1.Win.C1TrueDBGrid.C1TrueDBGrid c1GridSharedSchemaExplorer;
     }
 }

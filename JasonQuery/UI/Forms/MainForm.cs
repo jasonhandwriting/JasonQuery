@@ -4272,7 +4272,11 @@ namespace JasonQuery.UI.Forms
                     }
                     catch (Exception ex)
                     {
-                        var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
+                        var root = ex.GetBaseException();
+
+                        var message = $"Root Exception: {root.GetType().FullName}\r\n"
+                                      + $"Root Message: {root.Message}\r\n\r\n"
+                                      + ex.ToString();
 
                         MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }

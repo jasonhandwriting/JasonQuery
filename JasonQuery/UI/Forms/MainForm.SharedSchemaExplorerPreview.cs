@@ -50,6 +50,7 @@ namespace JasonQuery.UI.Forms
             };
 
             menu.Click += SharedSchemaPreviewMenuClick;
+
             mnuMainForm.Items.Add(menu);
             _sharedSchemaPreviewMenu = menu;
 
@@ -79,14 +80,18 @@ namespace JasonQuery.UI.Forms
             };
 
             refreshButton.Click += SharedSchemaPreviewRefreshClick;
+
             header.Controls.Add(status);
             header.Controls.Add(refreshButton);
+
             _sharedLeftPanelHostPanel.BorderStyle = BorderStyle.FixedSingle;
             _sharedLeftPanelHostPanel.BackColor = SystemColors.Control;
             _sharedLeftPanelHostPanel.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _sharedLeftPanelHostPanel.Controls.Add(header);
             _sharedLeftPanelHostPanel.SizeChanged += SharedSchemaPreviewHostSizeChanged;
+
             header.BringToFront();
+
             _sharedSchemaPreviewHeader = header;
             _sharedSchemaPreviewStatus = status;
             _sharedSchemaPreviewRefreshButton = refreshButton;
@@ -94,6 +99,7 @@ namespace JasonQuery.UI.Forms
             tabLeftSchemaExplorer.SizeChanged += SharedSchemaPreviewPageSizeChanged;
             _sharedSchemaPreviewPreviousWindowState = WindowState;
             SizeChanged += SharedSchemaPreviewMainFormSizeChanged;
+
             LayoutSharedSchemaPreviewHost();
             SyncSharedSchemaExplorerPreviewUI();
         }
@@ -112,6 +118,7 @@ namespace JasonQuery.UI.Forms
             {
                 _sharedSchemaPreviewRequested = false;
                 SyncSharedSchemaExplorerPreviewUI();
+
                 return;
             }
 
@@ -175,11 +182,13 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
-            //Keep the Designer-owned F7 filter toolbar visible above the temporary read-only preview.
+            //The temporary host now contains ONLY the Preview status/Refresh header.
+            //The C1 Grid itself remains a direct Designer-owned child of the F7 page.
             var top = tsSchemaBrowser.Bottom;
-            var height = Math.Max(0, tabLeftSchemaExplorer.ClientSize.Height - top);
+            var headerHeight = _sharedSchemaPreviewHeader == null ? 0 : _sharedSchemaPreviewHeader.Height;
 
-            _sharedLeftPanelHostPanel.Bounds = new Rectangle(0, top, tabLeftSchemaExplorer.ClientSize.Width, height);
+            _sharedLeftPanelHostPanel.Bounds = new Rectangle(0, top, tabLeftSchemaExplorer.ClientSize.Width, headerHeight);
+            LayoutSharedSchemaExplorerPreviewGrid();
         }
 
         private int GetSharedSchemaPreviewAvailableWidth()
@@ -187,24 +196,24 @@ namespace JasonQuery.UI.Forms
             return splitContainerMainWorkspace.ClientSize.Width;
         }
 
-        //B1-C3C1 hotfix: keep the Grid below the header, irrespective of WinForms Dock z-order.
+        //The Designer Grid is a page sibling of the transient Preview header, not its child.
         private void LayoutSharedSchemaExplorerPreviewGrid()
         {
             var host = _sharedLeftPanelHostPanel;
             var header = _sharedSchemaPreviewHeader;
             var grid = _sharedSchemaExplorerGrid;
 
-            if (host == null || host.IsDisposed || header == null || header.IsDisposed || grid == null || grid.IsDisposed)
+            if (host == null || host.IsDisposed || header == null || header.IsDisposed || grid == null || grid.IsDisposed || !ReferenceEquals(grid.Parent, tabLeftSchemaExplorer))
             {
                 return;
             }
 
-            grid.Dock = DockStyle.None;
-            grid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            var top = tsSchemaBrowser.Bottom;
+            var areaHeight = Math.Max(0, tabLeftSchemaExplorer.ClientSize.Height - top);
+            var bounds = SharedSchemaExplorerPreviewPolicy.GetGridBounds(tabLeftSchemaExplorer.ClientSize.Width, areaHeight, header.Height);
 
-            var bounds = SharedSchemaExplorerPreviewPolicy.GetGridBounds(host.ClientSize.Width, host.ClientSize.Height, header.Height);
-
-            grid.Bounds = new Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            //Preserve the Designer's one-pixel side inset, Anchor, PropBag and grid styles.
+            grid.Bounds = new Rectangle(1, top + bounds.Y, Math.Max(0, bounds.Width - 2), bounds.Height);
         }
 
         //GroupBy initially exposes only its collapsed root; expand it after the Grid becomes visible.
@@ -253,12 +262,15 @@ namespace JasonQuery.UI.Forms
 
             _sharedSchemaPreviewMenu.Enabled = canOffer;
 
-            if (_sharedSchemaMetadataSnapshot == null && _sharedSchemaExplorerGrid != null && !_sharedSchemaExplorerGrid.IsDisposed)
+            var showPreview = _sharedSchemaPreviewRequested && canOffer;
+            var grid = _sharedSchemaExplorerGrid;
+            var showGrid = showPreview && grid != null && !grid.IsDisposed && grid.DataSource != null && SharedSchemaMetadataSnapshotPolicy.CanBind(state, _sharedSchemaMetadataSnapshot, _currentSourceType);
+
+            if (grid != null && !grid.IsDisposed)
             {
-                _sharedSchemaExplorerGrid.Visible = false;
+                grid.Visible = showGrid;
             }
 
-            var showPreview = _sharedSchemaPreviewRequested && canOffer;
             var host = _sharedLeftPanelHostPanel;
             var workspace = splitContainerMainWorkspace;
             var showWorkspace = SharedSchemaExplorerPreviewPolicy.ShouldShowWorkspace(state, workspace.Visible);
@@ -276,6 +288,7 @@ namespace JasonQuery.UI.Forms
 
                 host.Visible = showPreview;
                 _sharedSchemaPreviewMenu.Checked = showPreview;
+
                 return;
             }
 
@@ -297,6 +310,7 @@ namespace JasonQuery.UI.Forms
                 workspace.SuspendLayout();
                 rightPanel.SuspendLayout();
                 tabControl1.SuspendLayout();
+
                 workspace.Panel1Collapsed = !showWorkspace;
                 host.Visible = showPreview;
 
@@ -415,7 +429,7 @@ namespace JasonQuery.UI.Forms
                 {
                     _sharedSchemaExplorerGrid.Visible = true;
                     _sharedSchemaExplorerGrid.BringToFront();
-                    _sharedSchemaPreviewHeader.BringToFront();
+                    _sharedLeftPanelHostPanel.BringToFront();
                     LayoutSharedSchemaExplorerPreviewGrid();
                     ExpandSharedSchemaExplorerPreviewDefaultGroups();
 

@@ -3,49 +3,86 @@ using JasonQuery.Core.Database.Connection;
 using JasonQuery.UI.LeftPanel;
 using System;
 using System.Data;
-using System.Windows.Forms;
 
 namespace JasonQuery.UI.Forms
 {
-    //B1-C3B: a separate dormant MainForm-owned F7 grid; existing F7 grids remain untouched.
+    //L2-C3-D0-B: the shared F7 grid is Designer-owned and never replaced at runtime.
     public partial class MainForm
     {
         private C1TrueDBGrid _sharedSchemaExplorerGrid;
         private SharedSchemaMetadataSnapshot _sharedSchemaMetadataSnapshot;
 
-        private static C1TrueDBGrid CreateSharedSchemaExplorerGrid()
-        {
-            return new C1TrueDBGrid
-            {
-                Name = "sharedSchemaExplorerGrid",
-                AllowUpdate = false,
-                ColumnHeaders = false,
-                DataView = DataViewEnum.GroupBy,
-                Dock = DockStyle.Fill,
-                GroupByAreaVisible = false,
-                TabStop = false,
-                Visible = false
-            };
-        }
-
         private void InitializeSharedSchemaExplorerGrid()
         {
-            if (_sharedSchemaExplorerGrid != null || _sharedLeftPanelHostPanel == null || _sharedLeftPanelHostPanel.IsDisposed)
+            if (_sharedSchemaExplorerGrid != null)
             {
                 return;
             }
 
-            var grid = CreateSharedSchemaExplorerGrid();
+            var grid = c1GridSharedSchemaExplorer;
 
-            _sharedLeftPanelHostPanel.Controls.Add(grid);
+            if (grid == null || grid.IsDisposed || !ReferenceEquals(grid.Parent, tabLeftSchemaExplorer))
+            {
+                throw new InvalidOperationException("The shared F7 Designer Grid is unavailable.");
+            }
+
+            //Never reparent, recreate or dispose the control owned by MainForm.Designer.
             _sharedSchemaExplorerGrid = grid;
+            grid.Visible = false;
+
             AttachSharedSchemaExplorerInputHandlers(grid);
+        }
+
+        //C1TrueDBGrid may retain GroupBy definitions and hidden columns after a DataSource change.
+        //Reset the old binding before assigning a different connection-scoped snapshot.
+        private static void ClearSharedSchemaExplorerGridBinding(C1TrueDBGrid grid)
+        {
+            if (grid == null || grid.IsDisposed)
+            {
+                return;
+            }
+
+            grid.GroupedColumns.Clear();
+            grid.DataSource = null;
+        }
+
+        private static void BindSharedSchemaExplorerSnapshot(C1TrueDBGrid grid, SharedSchemaMetadataSnapshot snapshot)
+        {
+            ClearSharedSchemaExplorerGridBinding(grid);
+            grid.DataSource = snapshot.Table;
+
+            foreach (var name in snapshot.GroupColumns)
+            {
+                grid.GroupedColumns.Add(grid.Columns[name]);
+                grid.GroupedColumns[grid.GroupedColumns.Count - 1].GroupInfo.HeaderText = "{0}";
+            }
+
+            if (grid.Splits.Count == 0)
+            {
+                throw new InvalidOperationException("The shared F7 Grid has no C1 split after binding.");
+            }
+
+            //The old implementation started with a fresh grid, where every display column was initially visible. Restore that baseline before applying DB-specific hides.
+            foreach (C1DisplayColumn column in grid.Splits[0].DisplayColumns)
+            {
+                column.Visible = true;
+            }
+
+            foreach (var name in snapshot.HiddenColumns)
+            {
+                if (snapshot.Table.Columns.Contains(name))
+                {
+                    grid.Splits[0].DisplayColumns[name].Visible = false;
+                }
+            }
         }
 
         //Explicit staging entry for the future shared F7 UI. No automatic DB query or UI switch.
         internal bool TryBindSharedSchemaExplorerMetadata(DataTable source, DataSourceType sourceType, bool includeColumnGroup)
         {
-            if (IsDisposed || Disposing || InvokeRequired || _sharedLeftPanelHostPanel == null || _sharedLeftPanelHostPanel.IsDisposed || sourceType != _currentSourceType)
+            if (IsDisposed || Disposing || InvokeRequired || _sharedLeftPanelHostPanel == null || _sharedLeftPanelHostPanel.IsDisposed
+                || _sharedSchemaExplorerGrid == null || _sharedSchemaExplorerGrid.IsDisposed
+                || !ReferenceEquals(_sharedSchemaExplorerGrid, c1GridSharedSchemaExplorer) || sourceType != _currentSourceType)
             {
                 return false;
             }
@@ -60,49 +97,32 @@ namespace JasonQuery.UI.Forms
                 return false;
             }
 
-            //Fresh grouped grid per binding: no stale C1 group definitions survive a refresh.
-            var candidate = CreateSharedSchemaExplorerGrid();
+            var grid = _sharedSchemaExplorerGrid;
+
+            //Fail closed when C1 rejects a rebind: never retain a snapshot that describes different columns from the live control. The original QueryForm F7 is unaffected.
+            _sharedSchemaMetadataSnapshot = null;
 
             try
             {
-                candidate.DataSource = snapshot.Table;
+                BindSharedSchemaExplorerSnapshot(grid, snapshot);
+                _sharedSchemaMetadataSnapshot = snapshot;
 
-                foreach (var name in snapshot.GroupColumns)
-                {
-                    candidate.GroupedColumns.Add(candidate.Columns[name]);
-                    candidate.GroupedColumns[candidate.GroupedColumns.Count - 1].GroupInfo.HeaderText = "{0}";
-                }
-
-                foreach (var name in snapshot.HiddenColumns)
-                {
-                    if (snapshot.Table.Columns.Contains(name))
-                    {
-                        candidate.Splits[0].DisplayColumns[name].Visible = false;
-                    }
-                }
-
-                _sharedLeftPanelHostPanel.Controls.Add(candidate);
-                AttachSharedSchemaExplorerInputHandlers(candidate);
+                return true;
             }
             catch (Exception)
             {
-                candidate.Dispose();
+                try
+                {
+                    ClearSharedSchemaExplorerGridBinding(grid);
+                }
+                catch (Exception)
+                {
+                    //An invalid C1 layout must not crash or replace a Designer control.
+                }
+
+                grid.Visible = false;
                 return false;
             }
-
-            var previous = _sharedSchemaExplorerGrid;
-
-            _sharedSchemaExplorerGrid = candidate;
-            _sharedSchemaMetadataSnapshot = snapshot;
-
-            if (previous != null)
-            {
-                DetachSharedSchemaExplorerInputHandlers(previous);
-                _sharedLeftPanelHostPanel.Controls.Remove(previous);
-                previous.Dispose();
-            }
-
-            return true;
         }
 
         //The grid remains hidden until a later F7 UI activation batch.
@@ -122,7 +142,16 @@ namespace JasonQuery.UI.Forms
 
             if (_sharedSchemaExplorerGrid != null && !_sharedSchemaExplorerGrid.IsDisposed)
             {
-                _sharedSchemaExplorerGrid.DataSource = null;
+                _sharedSchemaExplorerGrid.Visible = false;
+
+                try
+                {
+                    ClearSharedSchemaExplorerGridBinding(_sharedSchemaExplorerGrid);
+                }
+                catch (Exception)
+                {
+                    //Reject the stale snapshot even if the C1 Grid cannot reset cleanly.
+                }
             }
         }
 
@@ -138,7 +167,16 @@ namespace JasonQuery.UI.Forms
 
             if (grid != null && !grid.IsDisposed)
             {
-                grid.Dispose();
+                grid.Visible = false;
+
+                try
+                {
+                    ClearSharedSchemaExplorerGridBinding(grid);
+                }
+                catch (Exception)
+                {
+                    //The Form/Designer owns disposal of this control.
+                }
             }
         }
     }

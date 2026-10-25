@@ -423,7 +423,7 @@
   <data name="mnuOptions.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        vQAADr0BR/uQrQAAAaxJREFUOE+VkN8rQ2Ecxr8XUtxsLriQ1HZjSpQoXCAtJcpGZjfsghQXtKtRspsl
+        vAAADrwBlbxySQAAAaxJREFUOE+VkN8rQ2Ecxr8XUtxsLriQ1HZjSpQoXCAtJcpGZjfsghQXtKtRspsl
         Py40UYb82FrZzoUlubDy4wYX6jTCBbPyD5w/4es8O++ZmYk99el83+d9nve859BvckrvrtGTDwaYhf27
         hqJJgz342CCW5Ii8yk4pqZaT7Ii8ycImZJAVS03WwL3BFnyWB8IvbA89pWyhp33M2cDDXnpWs+iIOlHP
         bmKmdy/BfWke/iDByKIj6toNurfuuRC+3QBq99/IHf4b7vTf6ihdG3de0Ll+q+g+MsiKGlHzYtzVsnwl
@@ -436,7 +436,7 @@
   <data name="mnuSqlHistory.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        wAAADsABataJCQAAAPNJREFUOE+NkqEWgkAQRfkGi/6CgePxEzQaiVai0SaViE0b1UjkF4xEI9UozTju
+        vgAADr4B6kKxwAAAAPNJREFUOE+NkqEWgkAQRfkGi/6CgePxEzQaiVai0SaViE0b1UjkF4xEI9UozTju
         252FcdkV7znvMDPvzWwhAnEckxX3Z9kDWY9wTd/i5AEr22tD4ZsFccP4/nXABmXInbn9b66rP0Ieuq6b
         6WVxYL45nRfbjKQwY9shsOziPzKxXNc1V4bxEbEMEHi9Oa1QI64M8JAZXpZSrNOSowb3AEAG2e8jzHJ/
         oad6xUqNehUX4yGDrEEsg31e0e3eUvsivYCvFDxkOO4nySpqnkQPtSCFGTyOhdkdctodSyqqRi9BqDGD
@@ -566,7 +566,7 @@
   <data name="mnuAbout.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        vQAADr0BR/uQrQAAAk9JREFUOE+FUk1oE2EQXfEkhUJPXlXoLakhUGoOEmISENRLIRfJIQcr3jyboLl4
+        vAAADrwBlbxySQAAAk9JREFUOE+FUk1oE2EQXfEkhUJPXlXoLakhUGoOEmISENRLIRfJIQcr3jyboLl4
         6UlDL1IpQQwVD7a2qNRjEFKKQbEqIphAbExi0iRf9iebn90dv/flp2uJ+GBg+Xbmzcx7Ix1HuWxN/Wbq
         5VpLu19h2lqlpa7UZO1mgennhimTQUQnig3tmqZpnxVVNX6xNn2r6ZSrt6khaxZ/ZzWmPtwvsJlhyRFQ
         XGlot1VV7eyVdLr1rkeebYPmNgxybxp09W2fVr92qc6Jmoqyu5urnB6WDlDmnXlx99n3Ds1vGeTcMEW4
@@ -743,7 +743,7 @@
   <data name="btnHelp_AutoReplace.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        vwAADr8BOAVTJAAAAeVJREFUOE+NkUFI21AYx3MRL8JOgkPFXnvyoujJY8ANUUd39jxQSILoUDR4KQiJ
+        vQAADr0BR/uQrQAAAeVJREFUOE+NkUFI21AYx3MRL8JOgkPFXnvyoujJY8ANUUd39jxQSILoUDR4KQiJ
         CCLayxSjU0+CQidCUUTMsJYKtjCYoMJIL4JtUV+1muz9XxJ9bRX84M973/f9f/8mqVBeapyI48dEH48X
         TDVRcMYSBRM95p7l9VKTJKAmiDaTurdi/4qTd0XH8YUec+zh85CXGjZJ4PvvW2PtrJAHUHyyXdm4U9k2
         C8IePvg91C3lIKsZf24Z/KxHTtwcPmU/q3moIHyLXYnq4bVFF2EYbh5sJxKJ6AOS4tQ3NDoDksx6LiAM
@@ -766,6 +766,16 @@
         zIuvwRgkCWPjEkPmg/QySGYs+T/l/CswBknC2MhiyOLIbJBeBsGEuf8nnH0JxiBJGBsZwwxBlwfpZeCK
         mPa/+/QLsjBIL+UGgACIQQ5mYGBgAADIBZcYBM2HSwAAAABJRU5ErkJggg==
 </value>
+  </data>
+  <data name="c1GridSharedSchemaExplorer.Images" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVChTdYkBCgAgDAL9/6eLIsd0eSCKhw/r9aCLtC88
+        vAdHMEIXKUIUhMK76EfagglgA6CqHOQpL6GyAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="c1GridSharedSchemaExplorer.PropBag" xml:space="preserve">
+    <value>&lt;?xml version="1.0"?&gt;&lt;Blob&gt;&lt;Styles type="C1.Win.C1TrueDBGrid.Design.ContextWrapper"&gt;&lt;Data&gt;Caption{AlignHorz:Center;}ColumnSelector{}Editor{}EvenRow{}FilterBar{}FilterWatermark{}Footer{}Group{Border:None,,0, 0, 0, 0;}Heading{BackColor:Control;Border:Flat,ControlDark,0, 0, 0, 0;}HeadingHot{}HighlightRow{BackColor:Highlight;}Inactive{}Normal{}OddRow{}RecordSelector{}RowSelector{}Selected{BackColor:Highlight;ForeColor:HighlightText;}Style1{}Style17{}Style18{}Style19{}Style20{}Style21{}Style22{}Style23{}Style24{}Style25{}Style26{}Style27{}Style28{}Style29{}Style30{}Style31{}Style32{}Style33{}Style34{}&lt;/Data&gt;&lt;/Styles&gt;&lt;Splits&gt;&lt;C1.Win.C1TrueDBGrid.GroupByView Name="" CaptionHeight="19" ColumnCaptionHeight="19" ColumnFooterHeight="19" FetchRowStyles="True" FilterBorderStyle="Raised" MarqueeStyle="DottedCellBorder" RecordSelectorWidth="17" DefRecSelWidth="17" VerticalScrollGroup="1" HorizontalScrollGroup="1"&gt;&lt;CaptionStyle parent="Heading" me="Style28" /&gt;&lt;EditorStyle parent="Editor" me="Style20" /&gt;&lt;EvenRowStyle parent="EvenRow" me="Style26" /&gt;&lt;FilterBarStyle parent="FilterBar" me="Style33" /&gt;&lt;FilterWatermarkStyle parent="FilterWatermark" me="Style34" /&gt;&lt;FooterStyle parent="Footer" me="Style22" /&gt;&lt;GroupStyle parent="Group" me="Style30" /&gt;&lt;HeadingStyle parent="Heading" me="Style21" /&gt;&lt;HighLightRowStyle parent="HighlightRow" me="Style25" /&gt;&lt;InactiveStyle parent="Inactive" me="Style24" /&gt;&lt;OddRowStyle parent="OddRow" me="Style27" /&gt;&lt;RecordSelectorStyle parent="RecordSelector" me="Style29" /&gt;&lt;RowSelectorStyle parent="RowSelector" me="Style31" /&gt;&lt;ColumnSelectorStyle parent="ColumnSelector" me="Style32" /&gt;&lt;SelectedStyle parent="Selected" me="Style23" /&gt;&lt;Style parent="Normal" me="Style19" /&gt;&lt;ClientRect&gt;0, 0, 219, 647&lt;/ClientRect&gt;&lt;BorderSide&gt;0&lt;/BorderSide&gt;&lt;BorderStyle&gt;Sunken&lt;/BorderStyle&gt;&lt;/C1.Win.C1TrueDBGrid.GroupByView&gt;&lt;/Splits&gt;&lt;NamedStyles&gt;&lt;Style parent="" me="Normal" /&gt;&lt;Style parent="Normal" me="Heading" /&gt;&lt;Style parent="Heading" me="Footer" /&gt;&lt;Style parent="Heading" me="Caption" /&gt;&lt;Style parent="Heading" me="Inactive" /&gt;&lt;Style parent="Normal" me="Selected" /&gt;&lt;Style parent="Normal" me="Editor" /&gt;&lt;Style parent="Normal" me="HighlightRow" /&gt;&lt;Style parent="Normal" me="EvenRow" /&gt;&lt;Style parent="Normal" me="OddRow" /&gt;&lt;Style parent="Heading" me="RecordSelector" /&gt;&lt;Style parent="Normal" me="FilterBar" /&gt;&lt;Style parent="FilterBar" me="FilterWatermark" /&gt;&lt;Style parent="Caption" me="Group" /&gt;&lt;Style parent="RecordSelector" me="RowSelector" /&gt;&lt;Style parent="Heading" me="ColumnSelector" /&gt;&lt;Style parent="Heading" me="HeadingHot" /&gt;&lt;/NamedStyles&gt;&lt;vertSplits&gt;1&lt;/vertSplits&gt;&lt;horzSplits&gt;1&lt;/horzSplits&gt;&lt;Layout&gt;None&lt;/Layout&gt;&lt;DefaultRecSelWidth&gt;17&lt;/DefaultRecSelWidth&gt;&lt;ClientArea&gt;0, 0, 219, 647&lt;/ClientArea&gt;&lt;PrintPageHeaderStyle parent="" me="Style17" /&gt;&lt;PrintPageFooterStyle parent="" me="Style18" /&gt;&lt;/Blob&gt;</value>
   </data>
   <metadata name="tsSchemaBrowser.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 91</value>
@@ -813,15 +823,15 @@
   <data name="btnHelp_SchemaFilter.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAHeSURBVDhPjZExSONQGMezFJfCTYJHFbs63VJRuFUK1UEH
-        d2c5xTSIilLDLQUhEaHD2UWlUQ8XBZXeIVcQEXNUQy0I3nCgRYiL0FLU17Oa+P4vib62CvfBn/e+7/v/
-        /k1Sob7kYxKePSFqLFvRZaNix4yKjh5z1/J2yTkSlA2iJPL/zMxVde6+atue0GOOPXwu8lqTOglO/b7T
-        1v/elQFUnyxHFu5UlsWCsIcPfhd1SjosKdofB37RIyduDp90UFJcVBCGMzdh+aho0kUchtsHy04mk+qo
-        KNmB1jZ7VIyynguIww+OBQylr9XUaZF4BpgBQktrG+yE+JBUvkjAsYDBrYLu/boXkNQ22N0Ttdn8DH5w
-        LKAvdV7izbxGRFGNDAzaHwNt7M7veinHAj4vn70ZQN/9qIWCnzq7G2AIHAsILeb06M9Czf8OIYCua2ae
-        4A99yzmv0DGfVcd2L18+4v9obLdAOhayzkcMxg/DXQndrH+K954Avq6EYYJjAajmrxklspor8yFfxOgF
-        XTXA/aunZfgd0q0Pkz+C/uk9rWfFqAmph7H3z+xp8LvoazXRoW88rbTHf5n93/Mktn99AhAnesx9E2kF
-        Phd5p8TtsCDuqIK0owvSpsVO9Jg3lCA8A3SOd9cLieTLAAAAAElFTkSuQmCC
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAHeSURBVDhPjZFBSNtgGIZzKbsUPAkbtazXnnZxKHiVyuah
+        O/S+89DSNAwdSg27FIREhB5cL9s0dVIYDFrohqwgIo10jUFQ8CC4MkgvgqWo6VaX7H//JPq3tbAPXv7/
+        +773eZukXG+JP8zIUs2UU9W2KmptO6W1VfSYu5b7S9TNkKiZUubwt1H+1Vm+7ti2J/SYYw+fi9zVvGqG
+        3uxfKZ9Or1oAOn8tRxbuRJZFg7CHD34XdUrYa0rKiQPf6oYRM4dP2G1KLspxr8rnEbFyYZBFGobLP5ad
+        zWblOC/YgZGgHeeTtGcC0vCDowEvSw15Q78wPQPMAKH3m3l6QmwI/OBoQOxLXfV+3QvIKnl690RsNjuD
+        HxwNmF4/brJmVrM8Lz97EbMfBYL0zu6eE44GTHw4ujeAvHvlIQGfPB3vgyFwNGD0na4mv9W7/ncIAWTd
+        NfME/+ia7rxCeKUqJwo/bz/i/yhRqJvh1arzEUPpvchYpmL0PsWgJ4BvLKMZ4GgAavhtWZrKaS02ZIZP
+        npFVHxzNHbTgd0i3hua/hvwL28rkx+6QXhh7/+K2Ar+L3tUDMvS9LkmP09+N6JZupnYaNYA40WPumytJ
+        8LnIgOILEY4vypxQVDnhs0VP9Jj3Fcf9A1Fpd71lj0j0AAAAAElFTkSuQmCC
 </value>
   </data>
   <data name="tabLeftSchemaExplorer.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
