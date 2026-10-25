@@ -1432,12 +1432,23 @@ namespace JasonQuery.Core.Database.Execution
                 columnInfoSql = SqlServerTableColumnInfoSqlBuilder.BuildTableColumnInfo(schemaNode, schemaDbo, schemaName);
 
                 ExecuteQueryToDataTable(columnInfoSql, ref dtColumnName);
+                return;
             }
 
-            var resolvedObjectId = ResolveSqlServerViewObjectId(schemaNode, schemaDbo, schemaName, objectId);
-            var viewColumnSql = SqlServerViewMetadataSqlBuilder.BuildViewColumnInfo(schemaNode, schemaDbo, resolvedObjectId);
+            if (SchemaObjectTypeHelper.Is(schemaType, SchemaObjectNames.Views))
+            {
+                var resolvedObjectId = ResolveSqlServerViewObjectId(schemaNode, schemaDbo, schemaName, objectId);
 
-            ExecuteQueryToDataTable(viewColumnSql, ref dtColumnName);
+                if (!int.TryParse(resolvedObjectId, out var viewObjectId) || viewObjectId <= 0)
+                {
+                    throw new InvalidOperationException($"Could not resolve a valid SQL Server View ObjectId for '{schemaDbo}.{schemaName}'.");
+                }
+
+                columnInfoSql = SqlServerViewMetadataSqlBuilder.BuildViewColumnInfo(schemaNode, schemaDbo, viewObjectId.ToString());
+
+                ExecuteQueryToDataTable(columnInfoSql, ref dtColumnName);
+                return;
+            }
         }
 
         private static string LoadSqlServerPrimaryKeyText(string schemaNode, string schemaDbo, string schemaName)
