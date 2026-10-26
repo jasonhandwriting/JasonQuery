@@ -46,6 +46,7 @@ namespace JasonQuery.UI.Forms
         private string _operationObject = string.Empty;
         private ContextMenuStrip _editorContextMenu = new ContextMenuStrip();
         private bool _isFormClosing = true;
+        private bool _postgreSqlCommentMetadataReady = true;
 
         //20250602 簡化資料庫判斷方式
         private DataSourceType _currentSourceType;
@@ -182,19 +183,32 @@ namespace JasonQuery.UI.Forms
                                     }
                                 case DataSourceType.PostgreSql:
                                     {
-                                        sbSql.AppendLine("SELECT (pg_catalog.COL_DESCRIPTION((Table_Schema || '.' || Table_Name)::regclass::oid, Ordinal_Position::int)) AS Comments");
-                                        sbSql.AppendLine("  FROM Information_Schema.Columns cols");
-                                        sbSql.AppendLine($" WHERE cols.Table_Schema = '{SchemaName}'");
-                                        sbSql.AppendLine($"   AND cols.Table_Name = '{TableName}'");
-                                        sbSql.Append($"   AND cols.Column_Name = '{ColumnName}'");
+                                        var schemaName = (SchemaName ?? string.Empty).Replace("'", "''");
+                                        var tableName = (TableName ?? string.Empty).Replace("'", "''");
+                                        var columnName = (ColumnName ?? string.Empty).Replace("'", "''");
+
+                                        sbSql.AppendLine("SELECT pg_catalog.COL_DESCRIPTION(c.oid, a.attnum) AS Comments");
+                                        sbSql.AppendLine("  FROM pg_catalog.pg_class c");
+                                        sbSql.AppendLine("       INNER JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace");
+                                        sbSql.AppendLine("       INNER JOIN pg_catalog.pg_attribute a ON a.attrelid = c.oid");
+                                        sbSql.AppendLine(" WHERE c.relkind = 'r'");
+                                        sbSql.AppendLine("   AND a.attnum > 0 AND NOT a.attisdropped");
+                                        sbSql.AppendLine($"   AND n.nspname = '{schemaName}'");
+                                        sbSql.AppendLine($"   AND c.relname = '{tableName}'");
+                                        sbSql.Append($"   AND a.attname = '{columnName}'");
+
+                                        _postgreSqlCommentMetadataReady = false;
 
                                         var sql = sbSql.ToString();
-                                        var dtData = MyGlobal.PostgreSqlReader.ExecuteQueryToDataTable(sql, false);
+                                        var dtData = MyGlobal.PostgreSqlReader.ExecuteMetadataQueryToDataTable(sql);
 
-                                        if (dtData?.Rows.Count > 0)
+                                        if (dtData == null || dtData.Rows.Count != 1)
                                         {
-                                            _columnComment = dtData.Rows[0].GetSafeString("Comments");
+                                            throw new InvalidOperationException("PostgreSQL column comment metadata did not identify exactly one column. DDL execution is blocked.");
                                         }
+
+                                        _columnComment = dtData.Rows[0].GetSafeString("Comments");
+                                        _postgreSqlCommentMetadataReady = true;
 
                                         break;
                                     }
@@ -280,6 +294,14 @@ namespace JasonQuery.UI.Forms
             }
             catch (Exception ex)
             {
+                if (IsPostgreSql && EditMode == EditColumnMode.Comment)
+                {
+                    _postgreSqlCommentMetadataReady = false;
+                    txtComment.Enabled = false;
+                    UpdateSqlPreviewText(string.Empty);
+                    btnExecute.Enabled = false;
+                }
+
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -305,6 +327,12 @@ namespace JasonQuery.UI.Forms
         {
             try
             {
+                if (!_postgreSqlCommentMetadataReady)
+                {
+                    UpdateSqlPreviewText(string.Empty);
+                    return;
+                }
+
                 if (txtComment.Text == TextHelper.GetSafeString(txtComment.Tag))
                 {
                     UpdateSqlPreviewText("");
@@ -400,7 +428,7 @@ namespace JasonQuery.UI.Forms
 
         private void editorSqlPreview_TextChanged(object sender, EventArgs e)
         {
-            btnExecute.Enabled = !string.IsNullOrEmpty(editorSqlPreview.Text);
+            btnExecute.Enabled = _postgreSqlCommentMetadataReady && !string.IsNullOrEmpty(editorSqlPreview.Text);
         }
 
         private void ApplyLocalizedFormSettings()
@@ -550,6 +578,11 @@ namespace JasonQuery.UI.Forms
 
         private void btnExecute_Click(object sender, EventArgs e)
         {
+            if (!_postgreSqlCommentMetadataReady)
+            {
+                return; //Fail-closed: metadata could not be qualified; do not run DDL.
+            }
+
             var errorMessage = string.Empty;
             var hasPendingTransactionAfterExecute = false;
             var isTransactionClosedBySqlCommand = false;

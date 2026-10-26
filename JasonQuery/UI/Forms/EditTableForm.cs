@@ -41,6 +41,7 @@ namespace JasonQuery.UI.Forms
         private string _operationObject = string.Empty;
         private ContextMenuStrip _editorMenu = new ContextMenuStrip();
         private bool _isFormClosing = true;
+        private bool _postgreSqlCommentMetadataReady = true;
 
         private readonly HashSet<char> _invalidChars = new HashSet<char>
         {
@@ -69,7 +70,7 @@ namespace JasonQuery.UI.Forms
             try
             {
                 ApplyEditorSetting();
-                LocalizationHelper.ApplyLanguageInfo(this);
+                LocalizationHelper.ApplyLanguageInfo(this, false);
 
                 lblPrompt2_Oracle.Visible = IsOracle;
                 lblPrompt2_PostgreSql.Visible = IsPostgreSql;
@@ -169,7 +170,11 @@ namespace JasonQuery.UI.Forms
                     btnShowAllCharacters2.Visible = false;
                 }
 
-                tsTool.BackColor = ColorTranslator.FromHtml(MyLibrary.ColorToolstripBackground);
+                if (!MyLibrary.IsDarkMode)
+                {
+                    tsTool.BackColor = ColorTranslator.FromHtml(MyLibrary.ColorToolstripBackground);
+                }
+
                 _tableComment = string.Empty;
                 _hasSqlServerTableComment = false;
 
@@ -206,21 +211,30 @@ namespace JasonQuery.UI.Forms
                                     }
                                 case DataSourceType.PostgreSql:
                                     {
+                                        var schemaName = (SchemaName ?? string.Empty).Replace("'", "''");
+                                        var tableName = (TableName ?? string.Empty).Replace("'", "''");
+
                                         sbSql.AppendLine("SELECT pg_catalog.COL_DESCRIPTION(c.oid, 0) AS TableComment");
                                         sbSql.AppendLine("  FROM pg_catalog.pg_class c");
                                         sbSql.AppendLine("       LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace");
                                         sbSql.AppendLine(" WHERE c.relkind = 'r' --'r': regular table");
                                         sbSql.AppendLine("   AND n.nspname NOT LIKE 'pg_%'");
                                         sbSql.AppendLine("   AND n.nspname NOT LIKE 'information_schema%'");
-                                        sbSql.Append($"   AND c.relname = '{SchemaName}.{TableName}'");
+                                        sbSql.AppendLine($"   AND n.nspname = '{schemaName}'");
+                                        sbSql.Append($"   AND c.relname = '{tableName}'");
+
+                                        _postgreSqlCommentMetadataReady = false;
 
                                         var sql = sbSql.ToString();
-                                        var dtData = MyGlobal.PostgreSqlReader.ExecuteQueryToDataTable(sql, false);
+                                        var dtData = MyGlobal.PostgreSqlReader.ExecuteMetadataQueryToDataTable(sql);
 
-                                        if (dtData?.Rows.Count > 0)
+                                        if (dtData == null || dtData.Rows.Count != 1)
                                         {
-                                            _tableComment = dtData.Rows[0].GetSafeString("TableComment");
+                                            throw new InvalidOperationException("PostgreSQL table comment metadata did not identify exactly one table. DDL execution is blocked.");
                                         }
+
+                                        _tableComment = dtData.Rows[0].GetSafeString("TableComment");
+                                        _postgreSqlCommentMetadataReady = true;
 
                                         break;
                                     }
@@ -318,6 +332,14 @@ namespace JasonQuery.UI.Forms
             }
             catch (Exception ex)
             {
+                if (IsPostgreSql && EditMode == EditTableMode.Comment)
+                {
+                    _postgreSqlCommentMetadataReady = false;
+                    txtComment.Enabled = false;
+                    UpdateSqlPreviewText(string.Empty);
+                    btnExecute.Enabled = false;
+                }
+
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -343,6 +365,12 @@ namespace JasonQuery.UI.Forms
         {
             try
             {
+                if (!_postgreSqlCommentMetadataReady)
+                {
+                    UpdateSqlPreviewText(string.Empty);
+                    return;
+                }
+
                 if (string.Equals(txtComment.Text, _tableComment, StringComparison.Ordinal))
                 {
                     UpdateSqlPreviewText("");
@@ -439,7 +467,7 @@ namespace JasonQuery.UI.Forms
 
         private void editorSqlPreview_TextChanged(object sender, EventArgs e)
         {
-            btnExecute.Enabled = !string.IsNullOrEmpty(editorSqlPreview.Text);
+            btnExecute.Enabled = _postgreSqlCommentMetadataReady && !string.IsNullOrEmpty(editorSqlPreview.Text);
         }
 
         private void ApplyEditorSetting()
@@ -596,18 +624,16 @@ namespace JasonQuery.UI.Forms
 
             editorSqlPreview.ContextMenuStrip = _editorMenu;
 
-            if (MyLibrary.IsDarkMode)
-            {
-                _editorMenu.BackColor = ColorTranslator.FromHtml("#2D2D30");
-                _editorMenu.ForeColor = Color.White;
-                _editorMenu.RenderMode = ToolStripRenderMode.System;
-            }
-
             _editorMenu.Show(editorSqlPreview, new Point(e.X, e.Y));
         }
 
         private void btnExecute_Click(object sender, EventArgs e)
         {
+            if (!_postgreSqlCommentMetadataReady)
+            {
+                return; //Fail-closed: metadata could not be qualified; do not run DDL.
+            }
+
             var errorMessage = string.Empty;
             var sqlText = editorSqlPreview.Text;
             var hasPendingTransactionAfterExecute = false;

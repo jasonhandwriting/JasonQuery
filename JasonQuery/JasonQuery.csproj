@@ -484,6 +484,7 @@
     <Compile Include="Core\Database\Transactions\DatabaseTransactionActionResult.cs" />
     <Compile Include="Core\Database\Transactions\DatabaseTransactionImpact.cs" />
     <Compile Include="Core\Database\Transactions\DatabaseTransactionStatePolicy.cs" />
+    <Compile Include="Core\Database\Transactions\PostgreSqlMetadataSavepointExecutor.cs" />
     <Compile Include="Core\Database\Transactions\LockingQueries\DatabaseLockingQueryCompletionDecision.cs" />
     <Compile Include="Core\Database\Transactions\LockingQueries\DatabaseLockingQueryCompletionKind.cs" />
     <Compile Include="Core\Database\Transactions\LockingQueries\DatabaseLockingQueryCompletionPolicy.cs" />
