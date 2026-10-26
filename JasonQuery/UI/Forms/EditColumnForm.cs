@@ -143,7 +143,11 @@ namespace JasonQuery.UI.Forms
                     btnShowAllCharacters2.Visible = false;
                 }
 
-                tsTool.BackColor = ColorTranslator.FromHtml(MyLibrary.ColorToolstripBackground);
+                if (!MyLibrary.IsDarkMode)
+                {
+                    tsTool.BackColor = ColorTranslator.FromHtml(MyLibrary.ColorToolstripBackground);
+                }
+
                 txtNewColumnName.Tag = string.Empty;
 
                 switch (EditMode)
@@ -433,7 +437,12 @@ namespace JasonQuery.UI.Forms
 
         private void ApplyLocalizedFormSettings()
         {
-            LocalizationHelper.ApplyLanguageInfo(this);
+            LocalizationHelper.ApplyLanguageInfo(this, false);
+
+            // 根據目前資料庫類型，載入對應的交易安全提示。
+            var prompt2Id = $"lblPrompt2_{_currentSourceType}";
+
+            lblPrompt2.Text = LocalizationHelper.GetLanguageString(lblPrompt2.Text, "form", GetType().Name, "object", prompt2Id, "Text");
 
             //ApplyLanguageInfo 會將一般 Label 的 ForeColor 統一套用為標準前景色，
             //因此這些具有特殊提示語意的 Label 必須在語系套用後恢復指定顏色。
@@ -566,13 +575,6 @@ namespace JasonQuery.UI.Forms
 
             editorSqlPreview.ContextMenuStrip = _editorContextMenu;
 
-            if (MyLibrary.IsDarkMode)
-            {
-                _editorContextMenu.BackColor = ColorTranslator.FromHtml("#2D2D30");
-                _editorContextMenu.ForeColor = Color.White;
-                _editorContextMenu.RenderMode = ToolStripRenderMode.System;
-            }
-
             _editorContextMenu.Show(editorSqlPreview, new Point(e.X, e.Y));
         }
 
@@ -642,11 +644,11 @@ namespace JasonQuery.UI.Forms
                 }
 
                 var completionDecision = DdlExecutionCompletionPolicy.Evaluate
-                                         (
-                                             errorMessage,
-                                             hasPendingTransactionAfterExecute,
-                                             isTransactionClosedBySqlCommand
-                                         );
+                (
+                    errorMessage,
+                    hasPendingTransactionAfterExecute,
+                    isTransactionClosedBySqlCommand
+                );
 
                 var note = string.Empty;
 

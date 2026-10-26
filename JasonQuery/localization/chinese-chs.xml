@@ -1340,10 +1340,10 @@
   <language category="form" class="EditColumnForm" type="object" id="lblAddInfo" attribute="Text" name="添加(Add)指定的字段" />
   <language category="form" class="EditColumnForm" type="object" id="lblColumnName_Add" attribute="Text" name="字段名称:" />
   <language category="form" class="EditColumnForm" type="object" id="lblPrompt1" attribute="Text" name="请注意:&#x000A;1. 所有执行过的 SQL 语句，会被记录在 “SQL 历史记录” 中。" />
-  <language category="form" class="EditColumnForm" type="object" id="lblPrompt2_Oracle" attribute="Text" name="2. Oracle 会在执行 DDL 前后自动执行隐式 COMMIT。&#x000A;    任何尚未 Commit 的事务都会被自动 Commit，且 DDL 变更无法 Rollback。" />
-  <language category="form" class="EditColumnForm" type="object" id="lblPrompt2_PostgreSql" attribute="Text" name="2. PostgreSQL 在此窗口执行的数据表操作会受事务控制。&#x000A;    成功执行后，事务将保持尚未完成状态，直到您执行 COMMIT 或 ROLLBACK。&#x000A;    在事务尚未完成期间，JasonQuery 会每 5 分钟提醒一次。" />
-  <language category="form" class="EditColumnForm" type="object" id="lblPrompt2_SqlServer" attribute="Text" name="2. SQL Server 在此窗口执行的数据表操作会由 JasonQuery 的事务机制控制。&#x000A;    成功执行后，事务将保持尚未完成状态，直到您执行 COMMIT 或 ROLLBACK。&#x000A;    在事务尚未完成期间，JasonQuery 会每 5 分钟提醒一次。" />
-  <language category="form" class="EditColumnForm" type="object" id="lblPrompt2_MySql" attribute="Text" name="2. MySQL 可能会在执行 DDL 前后自动执行隐式 COMMIT。任何尚未 Commit 的事务可能会被自动 Commit，且许多 DDL 变更无法 Rollback。" />
+  <language category="form" class="EditColumnForm" type="object" id="lblPrompt2_Oracle" attribute="Text" name="2. Oracle 的列 DDL 会在执行前隐式提交事务，成功后也会提交；之前未提交的更改可能一并提交。&#x000A;    这是 Oracle 的行为，并非 JasonQuery 主动 Commit；已提交的更改无法通过 Rollback 撤销。" />
+  <language category="form" class="EditColumnForm" type="object" id="lblPrompt2_PostgreSql" attribute="Text" name="2. PostgreSQL 的列操作受事务控制。SQL 成功执行后，JasonQuery 不会主动 Commit。&#x000A;    若事务尚未结束，请返回主窗口选择 Commit 或 Rollback，以完成事务并释放相关锁定。" />
+  <language category="form" class="EditColumnForm" type="object" id="lblPrompt2_SqlServer" attribute="Text" name="2. SQL Server 的列操作可受事务控制。SQL 成功执行后，JasonQuery 不会主动 Commit。&#x000A;    若事务尚未结束，请返回主窗口选择 Commit 或 Rollback，以完成事务并释放相关锁定。" />
+  <language category="form" class="EditColumnForm" type="object" id="lblPrompt2_MySql" attribute="Text" name="2. MySQL 的列 DDL 通常会在执行前及成功后隐式提交事务，之前未提交的更改也可能一并提交。&#x000A;    这是 MySQL 的行为，并非 JasonQuery 主动 Commit；已提交的更改无法通过 Rollback 撤销。" />
   <language category="form" class="EditColumnForm" type="object" id="btnExecute" attribute="Text" name="执行(&amp;X)" />
   <language category="form" class="EditColumnForm" type="object" id="btnClose" attribute="Text" name="关闭(&amp;C)" />
   <language category="form" class="EditColumnForm" type="object" id="grpSqlPreview" attribute="Text" name="SQL 预览" />
@@ -1421,7 +1421,10 @@
   <language category="form" class="EditTableForm" type="object" id="chkTruncateCascade" attribute="Text" name="Cascade" />
   <language category="form" class="EditTableForm" type="msg" id="Help_TruncateCascade" attribute="Text" name="Automatically truncate all tables that have foreign-key references to any of the named tables, or to any tables added to the group due to CASCADE." />
   <language category="form" class="EditTableForm" type="object" id="lblPrompt1" attribute="Text" name="请注意:&#x000A;1. 所有执行过的 SQL 语句，会被记录在 “SQL 历史记录” 中。" />
-  <language category="form" class="EditTableForm" type="object" id="lblPrompt2" attribute="Text" name="2. 执行 SQL 语句后，会有一个隐式 Commit。 (DDL 变更无法 Rollback。)" />
+  <language category="form" class="EditTableForm" type="object" id="lblPrompt2_Oracle" attribute="Text" name="2. Oracle 的数据表 DDL 会在执行前隐式提交事务，成功后也会提交；之前未提交的更改可能一并提交。&#x000A;    这是 Oracle 的行为，并非 JasonQuery 主动 Commit；已提交的更改无法通过 Rollback 撤销。" />
+  <language category="form" class="EditTableForm" type="object" id="lblPrompt2_PostgreSql" attribute="Text" name="2. PostgreSQL 的数据表操作受事务控制。SQL 成功执行后，JasonQuery 不会自动提交事务。&#x000A;    请返回主窗口选择 Commit 或 Rollback，以完成事务并释放相关锁定。" />
+  <language category="form" class="EditTableForm" type="object" id="lblPrompt2_SqlServer" attribute="Text" name="2. SQL Server 的数据表操作可受事务控制。SQL 成功执行后，JasonQuery 不会主动 Commit。&#x000A;    若事务尚未结束，请返回主窗口选择 Commit 或 Rollback，以完成事务并释放相关锁定。" />
+  <language category="form" class="EditTableForm" type="object" id="lblPrompt2_MySql" attribute="Text" name="2. MySQL 的数据表 DDL 通常会在执行前及成功后隐式提交事务，之前未提交的更改也可能一并提交。&#x000A;    这是 MySQL 的行为，并非 JasonQuery 主动 Commit；已提交的更改无法通过 Rollback 撤销。" />
   <language category="form" class="EditTableForm" type="object" id="btnExecute" attribute="Text" name="执行(&amp;X)" />
   <language category="form" class="EditTableForm" type="object" id="btnClose" attribute="Text" name="关闭(&amp;C)" />
   <language category="form" class="EditTableForm" type="object" id="grpSqlPreview" attribute="Text" name="SQL 预览" />
