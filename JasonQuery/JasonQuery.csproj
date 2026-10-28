@@ -306,6 +306,7 @@
     <Compile Include="Core\Database\DdlPreview\DdlExecutionCompletionDecision.cs" />
     <Compile Include="Core\Database\DdlPreview\DdlExecutionCompletionPolicy.cs" />
     <Compile Include="Core\Database\DdlPreview\DdlIdentifierQuotingPolicy.cs" />
+    <Compile Include="Core\Database\DdlPreview\OracleCommentOwnerIdentityPolicy.cs" />
     <Compile Include="Core\Database\Metadata\MetadataCommentQueryBuilder.cs" />
     <Compile Include="Core\Database\Metadata\MetadataCommentQualificationPolicy.cs" />
     <Compile Include="Core\Database\DdlPreview\DdlMainFormNotificationKind.cs" />

@@ -1,6 +1,5 @@
 ﻿using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Database.DdlPreview.ColumnDefinitions;
-using System;
 
 namespace JasonQuery.Core.Database.DdlPreview
 {
@@ -46,6 +45,15 @@ namespace JasonQuery.Core.Database.DdlPreview
             switch (request.DataSourceType)
             {
                 case DataSourceType.Oracle:
+                    {
+                        //D1-B3-F01: the DDL Owner must be the Owner matched by Metadata.
+                        var owner = OracleCommentOwnerIdentityPolicy.QuoteDdlOwner(request.SchemaName);
+                        var table = DdlIdentifierQuotingPolicy.QuoteExistingIdentifier(DataSourceType.Oracle, request.TableName);
+                        var column = DdlIdentifierQuotingPolicy.QuoteExistingIdentifier(DataSourceType.Oracle, request.ColumnName);
+                        var columnName = string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(table) || string.IsNullOrEmpty(column) ? string.Empty : owner + "." + table + "." + column;
+
+                        return string.IsNullOrEmpty(columnName) ? string.Empty : $"COMMENT ON COLUMN {columnName} IS '{comment}';";
+                    }
                 case DataSourceType.PostgreSql:
                     {
                         var columnName = DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(request.DataSourceType, request.SchemaName, request.TableName, request.ColumnName);
@@ -204,8 +212,7 @@ namespace JasonQuery.Core.Database.DdlPreview
                     }
                 case DataSourceType.SqlServer:
                     {
-                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(DataSourceType.SqlServer, request.SchemaDatabase,
-                                                                                     request.SchemaName, request.TableName);
+                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(DataSourceType.SqlServer, request.SchemaDatabase, request.SchemaName, request.TableName);
                     }
                 case DataSourceType.MySql:
                     {

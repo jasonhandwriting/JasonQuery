@@ -93,12 +93,10 @@ namespace JasonQuery.Core.Database.Metadata
             {
                 case DataSourceType.Oracle:
                     {
-                        //Oracle folds unquoted schema identifiers to uppercase. Explicitly quoted schema identifiers remain case-sensitive (D1-B1 G04).
-                        var isQuotedSchema = !string.IsNullOrEmpty(request.SchemaName) && request.SchemaName.Length >= 2 && request.SchemaName[0] == '"' && request.SchemaName[request.SchemaName.Length - 1] == '"';
+                        //D1-B3-F01: Comment Metadata and Comment DDL share one Owner identity.
+                        var oracleOwner = OracleCommentOwnerIdentityPolicy.ResolveMetadataOwner(request.SchemaName);
 
-                        var oracleSchema = isQuotedSchema ? schema : schema.ToUpperInvariant();
-
-                        return BuildOracle(request.ObjectKind, oracleSchema, table, column);
+                        return string.IsNullOrEmpty(oracleOwner) ? string.Empty : BuildOracle(request.ObjectKind, oracleOwner, table, column);
                     }
                 case DataSourceType.PostgreSql:
                     {

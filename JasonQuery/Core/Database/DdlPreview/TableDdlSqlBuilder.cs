@@ -1,5 +1,4 @@
 ﻿using JasonQuery.Core.Database.Connection;
-using System;
 
 namespace JasonQuery.Core.Database.DdlPreview
 {
@@ -41,6 +40,15 @@ namespace JasonQuery.Core.Database.DdlPreview
         private static string BuildComment(TableDdlRequest request)
         {
             var tableName = BuildQualifiedTableName(request);
+
+            if (request.DataSourceType == DataSourceType.Oracle)
+            {
+                //D1-B3-F01: use exactly the Owner selected by Oracle Comment Metadata.
+                var owner = OracleCommentOwnerIdentityPolicy.QuoteDdlOwner(request.SchemaName);
+                var table = DdlIdentifierQuotingPolicy.QuoteExistingIdentifier(DataSourceType.Oracle, request.TableName);
+
+                tableName = string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(table) ? string.Empty : owner + "." + table;
+            }
 
             if (string.IsNullOrEmpty(tableName))
             {
@@ -131,9 +139,7 @@ namespace JasonQuery.Core.Database.DdlPreview
             var tableName = BuildQualifiedTableName(request);
             var newTableName = DdlIdentifierQuotingPolicy.QuoteNewIdentifier(request.DataSourceType, request.NewTableName, caseMode);
 
-            if (string.IsNullOrEmpty(tableName)
-                || string.IsNullOrEmpty(newTableName)
-                || DdlIdentifierQuotingPolicy.AreExistingAndNewEquivalent(request.DataSourceType, request.TableName, request.NewTableName, caseMode))
+            if (string.IsNullOrEmpty(tableName) || string.IsNullOrEmpty(newTableName) || DdlIdentifierQuotingPolicy.AreExistingAndNewEquivalent(request.DataSourceType, request.TableName, request.NewTableName, caseMode))
             {
                 return string.Empty;
             }
@@ -230,8 +236,7 @@ namespace JasonQuery.Core.Database.DdlPreview
                     }
                 case DataSourceType.SqlServer:
                     {
-                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(DataSourceType.SqlServer, request.SchemaDatabase,
-                                                                                     request.SchemaName, request.TableName);
+                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(DataSourceType.SqlServer, request.SchemaDatabase, request.SchemaName, request.TableName);
                     }
                 case DataSourceType.MySql:
                     {

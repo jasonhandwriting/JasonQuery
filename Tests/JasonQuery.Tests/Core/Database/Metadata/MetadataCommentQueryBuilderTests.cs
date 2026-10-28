@@ -249,6 +249,168 @@ namespace JasonQuery.Tests.Core.Database.Metadata
         }
 
         [TestMethod]
+        [TestCategory("Regression")]
+        [TestCategory("D1B3F01")]
+        [DataRow("Table")]
+        [DataRow("Column")]
+        public void F01_OracleUnquotedOwner_MetadataMatchesCommentDdlTarget(string kindName)
+        {
+            var kind = kindName == "Column" ? MetadataCommentObjectKind.Column : MetadataCommentObjectKind.Table;
+            var request = Request(DataSourceType.Oracle, kind);
+
+            request.SchemaName = "sys";
+            request.TableName = "AABBCC";
+            request.ColumnName = "COL_A";
+
+            var metadataSql = MetadataCommentQueryBuilder.Build(request);
+
+            Assert.Contains("x.OWNER = 'SYS'", metadataSql);
+
+            if (kind == MetadataCommentObjectKind.Table)
+            {
+                var ddl = TableDdlSqlBuilder.Build(new TableDdlRequest
+                {
+                    DataSourceType = DataSourceType.Oracle,
+                    Operation = TableDdlOperation.Comment,
+                    SchemaName = request.SchemaName,
+                    TableName = request.TableName,
+                    Comment = "review only"
+                });
+
+                Assert.Contains("COMMENT ON TABLE \"SYS\".\"AABBCC\"", ddl);
+                Assert.DoesNotContain("\"sys\".", ddl);
+            }
+            else
+            {
+                var ddl = ColumnDdlSqlBuilder.Build(new ColumnDdlRequest
+                {
+                    DataSourceType = DataSourceType.Oracle,
+                    Operation = ColumnDdlOperation.Comment,
+                    SchemaName = request.SchemaName,
+                    TableName = request.TableName,
+                    ColumnName = request.ColumnName,
+                    Comment = "review only"
+                });
+
+                Assert.Contains("COMMENT ON COLUMN \"SYS\".\"AABBCC\".\"COL_A\"", ddl);
+                Assert.DoesNotContain("\"sys\".", ddl);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Regression")]
+        [TestCategory("D1B3F01")]
+        [DataRow("\"sys\"")]
+        [DataRow("\"MiXeD\"")]
+        public void F01_OracleQuotedOwner_MetadataAndDdlPreserveCase(string quotedSchema)
+        {
+            var request = Request(DataSourceType.Oracle, MetadataCommentObjectKind.Table);
+
+            request.SchemaName = quotedSchema;
+            request.TableName = "AABBCC";
+
+            var exactOwner = quotedSchema.Substring(1, quotedSchema.Length - 2);
+
+            Assert.Contains("x.OWNER = '" + exactOwner + "'", MetadataCommentQueryBuilder.Build(request));
+
+            Assert.Contains
+            (
+                "COMMENT ON TABLE " + quotedSchema + ".\"AABBCC\"",
+                TableDdlSqlBuilder.Build(new TableDdlRequest
+                {
+                    DataSourceType = DataSourceType.Oracle,
+                    Operation = TableDdlOperation.Comment,
+                    SchemaName = request.SchemaName,
+                    TableName = request.TableName,
+                    Comment = "review only"
+                })
+            );
+        }
+
+        [TestMethod]
+        [TestCategory("Regression")]
+        [TestCategory("D1B3F01")]
+        public void F01_OracleQuotedOwner_WithApostrophe_EscapedForMetadataAndDdl()
+        {
+            var request = Request(DataSourceType.Oracle, MetadataCommentObjectKind.Column);
+
+            request.SchemaName = "\"Mixed'Owner\"";
+            request.TableName = "AABBCC";
+            request.ColumnName = "COL_A";
+
+            Assert.Contains("x.OWNER = 'Mixed''Owner'", MetadataCommentQueryBuilder.Build(request));
+
+            Assert.Contains
+            (
+                "COMMENT ON COLUMN \"Mixed'Owner\".\"AABBCC\".\"COL_A\"",
+                ColumnDdlSqlBuilder.Build(new ColumnDdlRequest
+                {
+                    DataSourceType = DataSourceType.Oracle,
+                    Operation = ColumnDdlOperation.Comment,
+                    SchemaName = request.SchemaName,
+                    TableName = request.TableName,
+                    ColumnName = request.ColumnName,
+                    Comment = "review only"
+                })
+            );
+        }
+
+        [TestMethod]
+        [TestCategory("Regression")]
+        [TestCategory("D1B3F01")]
+        public void F01_OracleOtherTableDdlOperations_RetainExistingNamePolicy()
+        {
+            var drop = TableDdlSqlBuilder.Build(new TableDdlRequest
+            {
+                DataSourceType = DataSourceType.Oracle,
+                Operation = TableDdlOperation.Drop,
+                SchemaName = "sys",
+                TableName = "AABBCC"
+            });
+
+            Assert.Contains("DROP TABLE \"sys\".\"AABBCC\"", drop);
+        }
+
+        [TestMethod]
+        [TestCategory("Safety")]
+        [TestCategory("D1B3F01")]
+        [DataRow("Table")]
+        [DataRow("Column")]
+        public void F01_OracleMalformedQuotedOwner_FailsClosed(string kindName)
+        {
+            var kind = kindName == "Column" ? MetadataCommentObjectKind.Column : MetadataCommentObjectKind.Table;
+            var request = Request(DataSourceType.Oracle, kind);
+
+            request.SchemaName = "\"broken";
+
+            Assert.AreEqual(string.Empty, MetadataCommentQueryBuilder.Build(request));
+
+            if (kind == MetadataCommentObjectKind.Table)
+            {
+                Assert.AreEqual(string.Empty, TableDdlSqlBuilder.Build(new TableDdlRequest
+                {
+                    DataSourceType = DataSourceType.Oracle,
+                    Operation = TableDdlOperation.Comment,
+                    SchemaName = request.SchemaName,
+                    TableName = request.TableName,
+                    Comment = "review only"
+                }));
+            }
+            else
+            {
+                Assert.AreEqual(string.Empty, ColumnDdlSqlBuilder.Build(new ColumnDdlRequest
+                {
+                    DataSourceType = DataSourceType.Oracle,
+                    Operation = ColumnDdlOperation.Comment,
+                    SchemaName = request.SchemaName,
+                    TableName = request.TableName,
+                    ColumnName = request.ColumnName,
+                    Comment = "review only"
+                }));
+            }
+        }
+
+        [TestMethod]
         [TestCategory("Golden")]
         [TestCategory("D1B1")]
         public void G18_PostgreSqlRelkind_RemainsOrdinaryTableOnlyUntilExplicitDecision()
