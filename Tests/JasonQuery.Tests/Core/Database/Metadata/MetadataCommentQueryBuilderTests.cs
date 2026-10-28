@@ -2,6 +2,7 @@
 using JasonQuery.Core.Database.DdlPreview;
 using JasonQuery.Core.Database.Metadata;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace JasonQuery.Tests.Core.Database.Metadata
 {
@@ -42,7 +43,7 @@ namespace JasonQuery.Tests.Core.Database.Metadata
             Assert.Contains(" AS MetadataComment", sql);
             Assert.Contains(" AS HasExistingComment", sql);
             Assert.Contains("Orders", sql);
-            Assert.Contains("store", sql);
+            Assert.Contains(provider == DataSourceType.Oracle ? "STORE" : "store", sql);
 
             if (kind == MetadataCommentObjectKind.Column)
             {
@@ -175,7 +176,7 @@ namespace JasonQuery.Tests.Core.Database.Metadata
                 var sql = MetadataCommentQueryBuilder.Build(request);
 
                 Assert.IsFalse(string.IsNullOrEmpty(sql), provider.ToString());
-                Assert.Contains("Sc''h", sql);
+                Assert.Contains(provider == DataSourceType.Oracle ? "SC''H" : "Sc''h", sql);
                 Assert.Contains("O''rders", sql);
                 Assert.Contains("C''ol", sql);
                 Assert.DoesNotContain("O'rders", sql);
@@ -193,7 +194,8 @@ namespace JasonQuery.Tests.Core.Database.Metadata
         {
             var request = Request(provider, MetadataCommentObjectKind.Column);
 
-            request.SchemaName = "MiXeD";
+            //Oracle quoted owners must preserve the exact case (unquoted owners fold to uppercase).
+            request.SchemaName = provider == DataSourceType.Oracle ? "\"MiXeD\"" : "MiXeD";
             request.SchemaDatabase = "MiXeD";
             request.TableName = "TableCase";
             request.ColumnName = "ColCase";
@@ -203,6 +205,47 @@ namespace JasonQuery.Tests.Core.Database.Metadata
             Assert.Contains("MiXeD", sql);
             Assert.Contains("TableCase", sql);
             Assert.Contains("ColCase", sql);
+        }
+
+        [TestMethod]
+        [TestCategory("Regression")]
+        [TestCategory("D1B2")]
+        [DataRow("Table")]
+        [DataRow("Column")]
+        public void OracleUnquotedOwner_IsUppercaseForMetadataIdentity(string kindName)
+        {
+            var kind = kindName == "Column" ? MetadataCommentObjectKind.Column : MetadataCommentObjectKind.Table;
+            var request = Request(DataSourceType.Oracle, kind);
+
+            request.SchemaName = "sys";
+            request.TableName = "AABBCC";
+
+            var sql = MetadataCommentQueryBuilder.Build(request);
+
+            Assert.Contains("x.OWNER = 'SYS'", sql);
+            Assert.DoesNotContain("x.OWNER = 'sys'", sql);
+        }
+
+        [TestMethod]
+        [TestCategory("Regression")]
+        [TestCategory("D1B2")]
+        [DataRow(DataSourceType.Oracle, "Table")]
+        [DataRow(DataSourceType.Oracle, "Column")]
+        [DataRow(DataSourceType.PostgreSql, "Table")]
+        [DataRow(DataSourceType.PostgreSql, "Column")]
+        [DataRow(DataSourceType.SqlServer, "Table")]
+        [DataRow(DataSourceType.SqlServer, "Column")]
+        [DataRow(DataSourceType.MySql, "Table")]
+        [DataRow(DataSourceType.MySql, "Column")]
+        public void AllEightMetadataQueries_AreReadableMultilineSql(DataSourceType provider, string kindName)
+        {
+            var kind = kindName == "Column" ? MetadataCommentObjectKind.Column : MetadataCommentObjectKind.Table;
+            var sql = MetadataCommentQueryBuilder.Build(Request(provider, kind));
+
+            Assert.Contains(Environment.NewLine + "  FROM ", sql);
+            Assert.Contains(Environment.NewLine + " WHERE ", sql);
+            Assert.Contains(Environment.NewLine + "   AND ", sql);
+            Assert.Contains(" AS MetadataComment", sql);
         }
 
         [TestMethod]

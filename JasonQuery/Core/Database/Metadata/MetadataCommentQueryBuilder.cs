@@ -93,7 +93,12 @@ namespace JasonQuery.Core.Database.Metadata
             {
                 case DataSourceType.Oracle:
                     {
-                        return BuildOracle(request.ObjectKind, schema, table, column);
+                        //Oracle folds unquoted schema identifiers to uppercase. Explicitly quoted schema identifiers remain case-sensitive (D1-B1 G04).
+                        var isQuotedSchema = !string.IsNullOrEmpty(request.SchemaName) && request.SchemaName.Length >= 2 && request.SchemaName[0] == '"' && request.SchemaName[request.SchemaName.Length - 1] == '"';
+
+                        var oracleSchema = isQuotedSchema ? schema : schema.ToUpperInvariant();
+
+                        return BuildOracle(request.ObjectKind, oracleSchema, table, column);
                     }
                 case DataSourceType.PostgreSql:
                     {
@@ -125,23 +130,28 @@ namespace JasonQuery.Core.Database.Metadata
 
         private static string BuildOracle(MetadataCommentObjectKind kind, string schema, string table, string column)
         {
+            var sb = new StringBuilder();
+
+            sb.AppendLine("SELECT x.COMMENTS AS MetadataComment,");
+            sb.AppendLine("       CASE WHEN x.COMMENTS IS NULL THEN 0 ELSE 1 END AS HasExistingComment");
+
             if (kind == MetadataCommentObjectKind.Table)
             {
-                return "SELECT x.COMMENTS AS MetadataComment, "
-                       + "CASE WHEN x.COMMENTS IS NULL THEN 0 ELSE 1 END AS HasExistingComment "
-                       + "FROM ALL_TAB_COMMENTS x "
-                       + "WHERE x.TABLE_TYPE = 'TABLE' "
-                       + $"AND x.OWNER = '{Literal(schema)}' "
-                       + $"AND x.TABLE_NAME = '{Literal(table)}'";
+                sb.AppendLine("  FROM ALL_TAB_COMMENTS x");
+                sb.AppendLine(" WHERE x.TABLE_TYPE = 'TABLE'");
+                sb.AppendLine($"   AND x.OWNER = '{Literal(schema)}'");
+                sb.Append($"   AND x.TABLE_NAME = '{Literal(table)}'");
+            }
+            else
+            {
+                sb.AppendLine("  FROM ALL_COL_COMMENTS x");
+                sb.AppendLine(" INNER JOIN ALL_TABLES t ON t.OWNER = x.OWNER AND t.TABLE_NAME = x.TABLE_NAME");
+                sb.AppendLine($" WHERE x.OWNER = '{Literal(schema)}'");
+                sb.AppendLine($"   AND x.TABLE_NAME = '{Literal(table)}'");
+                sb.Append($"   AND x.COLUMN_NAME = '{Literal(column)}'");
             }
 
-            return "SELECT x.COMMENTS AS MetadataComment, "
-                   + "CASE WHEN x.COMMENTS IS NULL THEN 0 ELSE 1 END AS HasExistingComment "
-                   + "FROM ALL_COL_COMMENTS x "
-                   + "INNER JOIN ALL_TABLES t ON t.OWNER = x.OWNER AND t.TABLE_NAME = x.TABLE_NAME "
-                   + $"WHERE x.OWNER = '{Literal(schema)}' "
-                   + $"AND x.TABLE_NAME = '{Literal(table)}' "
-                   + $"AND x.COLUMN_NAME = '{Literal(column)}'";
+            return sb.ToString();
         }
 
         private static string BuildPostgreSql(MetadataCommentObjectKind kind, string schema, string table, string column)
@@ -149,25 +159,26 @@ namespace JasonQuery.Core.Database.Metadata
             var commentExpr = kind == MetadataCommentObjectKind.Table ? "pg_catalog.col_description(c.oid, 0)" : "pg_catalog.col_description(c.oid, a.attnum)";
             var sb = new StringBuilder();
 
-            sb.Append($"SELECT {commentExpr} AS MetadataComment, ");
-            sb.Append($"CASE WHEN {commentExpr} IS NULL THEN 0 ELSE 1 END AS HasExistingComment ");
-            sb.Append("FROM pg_catalog.pg_class c ");
-            sb.Append("INNER JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace ");
+            sb.AppendLine($"SELECT {commentExpr} AS MetadataComment,");
+            sb.AppendLine($"       CASE WHEN {commentExpr} IS NULL THEN 0 ELSE 1 END AS HasExistingComment");
+            sb.AppendLine("  FROM pg_catalog.pg_class c");
+            sb.AppendLine(" INNER JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace");
 
             if (kind == MetadataCommentObjectKind.Column)
             {
-                sb.Append("INNER JOIN pg_catalog.pg_attribute a ON a.attrelid = c.oid ");
+                sb.AppendLine(" INNER JOIN pg_catalog.pg_attribute a ON a.attrelid = c.oid");
             }
 
             //Preserve currently supported ordinary-table scope. 'p' partitioned tables require a separate, explicit capability decision (D1-B3).
-            sb.Append("WHERE c.relkind = 'r' ");
-            sb.Append($"AND n.nspname = '{Literal(schema)}' ");
-            sb.Append($"AND c.relname = '{Literal(table)}'");
+            sb.AppendLine(" WHERE c.relkind = 'r'");
+            sb.AppendLine($"   AND n.nspname = '{Literal(schema)}'");
+            sb.Append($"   AND c.relname = '{Literal(table)}'");
 
             if (kind == MetadataCommentObjectKind.Column)
             {
-                sb.Append(" AND a.attnum > 0 AND NOT a.attisdropped ");
-                sb.Append($"AND a.attname = '{Literal(column)}'");
+                sb.AppendLine();
+                sb.AppendLine("   AND a.attnum > 0 AND NOT a.attisdropped");
+                sb.Append($"   AND a.attname = '{Literal(column)}'");
             }
 
             return sb.ToString();
@@ -177,26 +188,27 @@ namespace JasonQuery.Core.Database.Metadata
         {
             var sb = new StringBuilder();
 
-            sb.Append("SELECT CAST(ep.value AS nvarchar(max)) AS MetadataComment, ");
-            sb.Append("CASE WHEN ep.major_id IS NULL THEN 0 ELSE 1 END AS HasExistingComment ");
-            sb.Append($"FROM {db}.sys.tables t ");
-            sb.Append($"INNER JOIN {db}.sys.schemas s ON s.schema_id = t.schema_id ");
+            sb.AppendLine("SELECT CAST(ep.value AS nvarchar(max)) AS MetadataComment,");
+            sb.AppendLine("       CASE WHEN ep.major_id IS NULL THEN 0 ELSE 1 END AS HasExistingComment");
+            sb.AppendLine($"  FROM {db}.sys.tables t");
+            sb.AppendLine($" INNER JOIN {db}.sys.schemas s ON s.schema_id = t.schema_id");
 
             if (kind == MetadataCommentObjectKind.Column)
             {
-                sb.Append($"INNER JOIN {db}.sys.columns c ON c.object_id = t.object_id ");
+                sb.AppendLine($" INNER JOIN {db}.sys.columns c ON c.object_id = t.object_id");
             }
 
-            sb.Append($"LEFT JOIN {db}.sys.extended_properties ep ON ep.class = 1 ");
-            sb.Append("AND ep.major_id = t.object_id ");
-            sb.Append(kind == MetadataCommentObjectKind.Table ? "AND ep.minor_id = 0 " : "AND ep.minor_id = c.column_id ");
-            sb.Append("AND ep.name = N'MS_Description' ");
-            sb.Append($"WHERE s.name = N'{Literal(schema)}' ");
-            sb.Append($"AND t.name = N'{Literal(table)}'");
+            sb.AppendLine($"  LEFT JOIN {db}.sys.extended_properties ep ON ep.class = 1");
+            sb.AppendLine("   AND ep.major_id = t.object_id");
+            sb.AppendLine(kind == MetadataCommentObjectKind.Table ? "   AND ep.minor_id = 0" : "   AND ep.minor_id = c.column_id");
+            sb.AppendLine("   AND ep.name = N'MS_Description'");
+            sb.AppendLine($" WHERE s.name = N'{Literal(schema)}'");
+            sb.Append($"   AND t.name = N'{Literal(table)}'");
 
             if (kind == MetadataCommentObjectKind.Column)
             {
-                sb.Append($" AND c.name = N'{Literal(column)}'");
+                sb.AppendLine();
+                sb.Append($"   AND c.name = N'{Literal(column)}'");
             }
 
             return sb.ToString();
@@ -207,23 +219,24 @@ namespace JasonQuery.Core.Database.Metadata
             var commentExpr = kind == MetadataCommentObjectKind.Table ? "t.TABLE_COMMENT" : "c.COLUMN_COMMENT";
             var sb = new StringBuilder();
 
-            sb.Append($"SELECT {commentExpr} AS MetadataComment, ");
-            sb.Append($"CASE WHEN {commentExpr} IS NULL OR {commentExpr} = '' THEN 0 ELSE 1 END AS HasExistingComment ");
-            sb.Append("FROM INFORMATION_SCHEMA.TABLES t ");
+            sb.AppendLine($"SELECT {commentExpr} AS MetadataComment,");
+            sb.AppendLine($"       CASE WHEN {commentExpr} IS NULL OR {commentExpr} = '' THEN 0 ELSE 1 END AS HasExistingComment");
+            sb.AppendLine("  FROM INFORMATION_SCHEMA.TABLES t");
 
             if (kind == MetadataCommentObjectKind.Column)
             {
-                sb.Append("INNER JOIN INFORMATION_SCHEMA.COLUMNS c ON c.TABLE_SCHEMA = t.TABLE_SCHEMA ");
-                sb.Append("AND c.TABLE_NAME = t.TABLE_NAME ");
+                sb.AppendLine(" INNER JOIN INFORMATION_SCHEMA.COLUMNS c ON c.TABLE_SCHEMA = t.TABLE_SCHEMA");
+                sb.AppendLine("   AND c.TABLE_NAME = t.TABLE_NAME");
             }
 
-            sb.Append("WHERE t.TABLE_TYPE = 'BASE TABLE' ");
-            sb.Append($"AND t.TABLE_SCHEMA = '{Literal(database)}' ");
-            sb.Append($"AND t.TABLE_NAME = '{Literal(table)}'");
+            sb.AppendLine(" WHERE t.TABLE_TYPE = 'BASE TABLE'");
+            sb.AppendLine($"   AND t.TABLE_SCHEMA = '{Literal(database)}'");
+            sb.Append($"   AND t.TABLE_NAME = '{Literal(table)}'");
 
             if (kind == MetadataCommentObjectKind.Column)
             {
-                sb.Append($" AND c.COLUMN_NAME = '{Literal(column)}'");
+                sb.AppendLine();
+                sb.Append($"   AND c.COLUMN_NAME = '{Literal(column)}'");
             }
 
             return sb.ToString();

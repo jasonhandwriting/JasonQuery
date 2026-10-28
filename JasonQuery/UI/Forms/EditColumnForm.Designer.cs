@@ -362,13 +362,13 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtComment.BackColor = System.Drawing.Color.White;
             this.txtComment.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtComment.ImeMode = System.Windows.Forms.ImeMode.Disable;
+            this.txtComment.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.txtComment.Location = new System.Drawing.Point(100, 95);
-            this.txtComment.MaxLength = 25;
+            this.txtComment.MaxLength = 32767;
             this.txtComment.Multiline = true;
             this.txtComment.Name = "txtComment";
-            this.txtComment.ShortcutsEnabled = false;
-            this.txtComment.ShowContextMenu = false;
+            this.txtComment.ShortcutsEnabled = true;
+            this.txtComment.ShowContextMenu = true;
             this.txtComment.Size = new System.Drawing.Size(587, 50);
             this.txtComment.TabIndex = 121;
             this.txtComment.Tag = null;

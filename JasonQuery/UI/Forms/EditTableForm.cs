@@ -3,10 +3,10 @@ using JasonLibrary.Core;
 using JasonLibrary.UI.Controls.Stylers;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Data;
-using JasonQuery.Core.Data.DataRows;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Database.DdlPreview;
 using JasonQuery.Core.Database.Execution;
+using JasonQuery.Core.Database.Metadata;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
 using JasonQuery.Database.Internal.Repositories;
@@ -41,7 +41,7 @@ namespace JasonQuery.UI.Forms
         private string _operationObject = string.Empty;
         private ContextMenuStrip _editorMenu = new ContextMenuStrip();
         private bool _isFormClosing = true;
-        private bool _postgreSqlCommentMetadataReady = true;
+        private bool _commentMetadataReady = true;
 
         private readonly HashSet<char> _invalidChars = new HashSet<char>
         {
@@ -178,8 +178,6 @@ namespace JasonQuery.UI.Forms
                 _tableComment = string.Empty;
                 _hasSqlServerTableComment = false;
 
-                var sbSql = new StringBuilder();
-
                 switch (EditMode)
                 {
                     case EditTableMode.Comment:
@@ -189,104 +187,12 @@ namespace JasonQuery.UI.Forms
                             txtTableName_Comment.Text = TableName;
                             _operationObject = lblCommentInfo.Text;
 
-                            SqlTraceHelper.AppendHeader(sbSql, "---Get Table Comment");
+                            _commentMetadataReady = false;
 
-                            switch (_currentSourceType)
-                            {
-                                case DataSourceType.Oracle:
-                                    {
-                                        sbSql.AppendLine("SELECT Comments AS TableComment FROM All_Tab_Comments");
-                                        sbSql.AppendLine($" WHERE Table_Name = '{TableName}'");
-                                        sbSql.Append($"   AND UPPER(Owner) = '{(SchemaName ?? string.Empty).ToUpperInvariant()}'");
-
-                                        var sql = sbSql.ToString();
-                                        var dtData = MyGlobal.OracleReader.ExecuteQueryToDataTable(sql, false);
-
-                                        if (dtData?.Rows.Count > 0)
-                                        {
-                                            _tableComment = dtData.Rows[0].GetSafeString("TableComment");
-                                        }
-
-                                        break;
-                                    }
-                                case DataSourceType.PostgreSql:
-                                    {
-                                        var schemaName = (SchemaName ?? string.Empty).Replace("'", "''");
-                                        var tableName = (TableName ?? string.Empty).Replace("'", "''");
-
-                                        sbSql.AppendLine("SELECT pg_catalog.COL_DESCRIPTION(c.oid, 0) AS TableComment");
-                                        sbSql.AppendLine("  FROM pg_catalog.pg_class c");
-                                        sbSql.AppendLine("       LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace");
-                                        sbSql.AppendLine(" WHERE c.relkind = 'r' --'r': regular table");
-                                        sbSql.AppendLine("   AND n.nspname NOT LIKE 'pg_%'");
-                                        sbSql.AppendLine("   AND n.nspname NOT LIKE 'information_schema%'");
-                                        sbSql.AppendLine($"   AND n.nspname = '{schemaName}'");
-                                        sbSql.Append($"   AND c.relname = '{tableName}'");
-
-                                        _postgreSqlCommentMetadataReady = false;
-
-                                        var sql = sbSql.ToString();
-                                        var dtData = MyGlobal.PostgreSqlReader.ExecuteMetadataQueryToDataTable(sql);
-
-                                        if (dtData == null || dtData.Rows.Count != 1)
-                                        {
-                                            throw new InvalidOperationException("PostgreSQL table comment metadata did not identify exactly one table. DDL execution is blocked.");
-                                        }
-
-                                        _tableComment = dtData.Rows[0].GetSafeString("TableComment");
-                                        _postgreSqlCommentMetadataReady = true;
-
-                                        break;
-                                    }
-                                case DataSourceType.SqlServer:
-                                    {
-                                        sbSql.AppendLine("SELECT t.name AS TableName,");
-                                        sbSql.AppendLine("       CAST(ep.value AS nvarchar(max)) AS TableComment,");
-                                        sbSql.AppendLine("       CASE WHEN ep.major_id IS NULL THEN 0 ELSE 1 END AS HasTableComment");
-                                        sbSql.AppendLine("  FROM sys.tables t");
-                                        sbSql.AppendLine("       INNER JOIN sys.schemas s");
-                                        sbSql.AppendLine("               ON s.schema_id = t.schema_id");
-                                        sbSql.AppendLine("       LEFT JOIN sys.extended_properties ep");
-                                        sbSql.AppendLine("              ON ep.class = 1");
-                                        sbSql.AppendLine("             AND ep.major_id = t.object_id");
-                                        sbSql.AppendLine("             AND ep.minor_id = 0"); //minor_id = 0 → Table / View / Procedure 等物件本身的 extended property
-                                        sbSql.AppendLine("             AND ep.name = N'MS_Description'");
-                                        sbSql.AppendLine($" WHERE s.name = N'{SchemaName}'");
-                                        sbSql.Append($"   AND t.name = N'{TableName}';");
-
-                                        var sql = sbSql.ToString();
-                                        var dtData = MyGlobal.SqlServerReader.ExecuteQueryToDataTable(sql, false);
-
-                                        if (dtData?.Rows.Count > 0)
-                                        {
-                                            var row = dtData.Rows[0];
-
-                                            _tableComment = row.GetSafeString("TableComment");
-                                            _hasSqlServerTableComment = row.GetSafeString("HasTableComment") == "1"; //判斷註解狀態：空值代表 add；其餘代表 update
-                                        }
-
-                                        break;
-                                    }
-                                case DataSourceType.MySql:
-                                    {
-                                        sbSql.AppendLine("SELECT Table_Comment AS TableComment");
-                                        sbSql.AppendLine("  FROM Information_Schema.Tables");
-                                        sbSql.AppendLine($" WHERE Table_Schema = '{SchemaName}'");
-                                        sbSql.Append($"   AND Table_Name = '{TableName}'");
-
-                                        var sql = sbSql.ToString();
-                                        var dtData = MyGlobal.MySqlReader.ExecuteQueryToDataTable(sql, false);
-
-                                        if (dtData?.Rows.Count > 0)
-                                        {
-                                            _tableComment = dtData.Rows[0].GetSafeString("TableComment");
-                                        }
-
-                                        break;
-                                    }
-                            }
-
+                            LoadCommentMetadata();
                             txtComment.Text = _tableComment;
+                            _commentMetadataReady = true;
+
                             break;
                         }
                     case EditTableMode.Drop:
@@ -310,6 +216,7 @@ namespace JasonQuery.UI.Forms
                             txtTableName_Rename.Text = TableName;
                             txtNewTableName.Text = TableName;
                             _operationObject = lblRenameInfo.Text;
+
                             break;
                         }
                     case EditTableMode.Truncate:
@@ -332,9 +239,9 @@ namespace JasonQuery.UI.Forms
             }
             catch (Exception ex)
             {
-                if (IsPostgreSql && EditMode == EditTableMode.Comment)
+                if (EditMode == EditTableMode.Comment)
                 {
-                    _postgreSqlCommentMetadataReady = false;
+                    _commentMetadataReady = false;
                     txtComment.Enabled = false;
                     UpdateSqlPreviewText(string.Empty);
                     btnExecute.Enabled = false;
@@ -361,11 +268,76 @@ namespace JasonQuery.UI.Forms
             JasonQueryRepository.UpdateSetting("GlobalConfig", "EditTableFormHeight", Size.Height.ToString());
         }
 
+        private void LoadCommentMetadata()
+        {
+            var request = new MetadataCommentQueryRequest
+            {
+                DataSourceType = _currentSourceType,
+                ObjectKind = MetadataCommentObjectKind.Table,
+                SchemaDatabase = SchemaDatabase,
+                SchemaName = SchemaName,
+                TableName = TableName
+            };
+
+            var metadataSql = MetadataCommentQueryBuilder.Build(request);
+
+            if (string.IsNullOrWhiteSpace(metadataSql))
+            {
+                throw new InvalidOperationException("Table comment metadata identity is invalid. DDL execution is blocked.");
+            }
+
+            var sbSql = new StringBuilder();
+
+            SqlTraceHelper.AppendHeader(sbSql, "---Get Table Comment");
+            sbSql.Append(metadataSql);
+
+            var sql = sbSql.ToString();
+
+            System.Data.DataTable dtData;
+
+            switch (_currentSourceType)
+            {
+                case DataSourceType.Oracle:
+                    {
+                        dtData = MyGlobal.OracleReader.ExecuteQueryToDataTable(sql, false);
+                        break;
+                    }
+                case DataSourceType.PostgreSql:
+                    {
+                        //D1-A: preserve the dedicated metadata savepoint path.
+                        dtData = MyGlobal.PostgreSqlReader.ExecuteMetadataQueryToDataTable(sql);
+                        break;
+                    }
+                case DataSourceType.SqlServer:
+                    {
+                        dtData = MyGlobal.SqlServerReader.ExecuteQueryToDataTable(sql, false);
+                        break;
+                    }
+                case DataSourceType.MySql:
+                    {
+                        dtData = MyGlobal.MySqlReader.ExecuteQueryToDataTable(sql, false);
+                        break;
+                    }
+                default:
+                    {
+                        throw new InvalidOperationException("Unsupported metadata provider. DDL execution is blocked.");
+                    }
+            }
+
+            if (!MetadataCommentQualificationPolicy.TryQualify(dtData, out var metadata))
+            {
+                throw new InvalidOperationException("Table comment metadata did not identify exactly one valid object. DDL execution is blocked.");
+            }
+
+            _tableComment = metadata.Comment;
+            _hasSqlServerTableComment = metadata.HasExistingComment;
+        }
+
         private void txtComment_TextChanged(object sender, EventArgs e)
         {
             try
             {
-                if (!_postgreSqlCommentMetadataReady)
+                if (!_commentMetadataReady)
                 {
                     UpdateSqlPreviewText(string.Empty);
                     return;
@@ -382,6 +354,11 @@ namespace JasonQuery.UI.Forms
             }
             catch (Exception ex)
             {
+                _commentMetadataReady = false;
+                txtComment.Enabled = false;
+                UpdateSqlPreviewText(string.Empty);
+                btnExecute.Enabled = false;
+
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -410,6 +387,11 @@ namespace JasonQuery.UI.Forms
 
         private string BuildTableDdlSql(TableDdlOperation operation)
         {
+            if (operation == TableDdlOperation.Comment && !_commentMetadataReady)
+            {
+                return string.Empty;
+            }
+
             var tableName = TableName;
 
             switch (operation)
@@ -467,7 +449,7 @@ namespace JasonQuery.UI.Forms
 
         private void editorSqlPreview_TextChanged(object sender, EventArgs e)
         {
-            btnExecute.Enabled = _postgreSqlCommentMetadataReady && !string.IsNullOrEmpty(editorSqlPreview.Text);
+            btnExecute.Enabled = _commentMetadataReady && !string.IsNullOrEmpty(editorSqlPreview.Text);
         }
 
         private void ApplyEditorSetting()
@@ -629,9 +611,9 @@ namespace JasonQuery.UI.Forms
 
         private void btnExecute_Click(object sender, EventArgs e)
         {
-            if (!_postgreSqlCommentMetadataReady)
+            if (!_commentMetadataReady)
             {
-                return; //Fail-closed: metadata could not be qualified; do not run DDL.
+                return; //Fail-closed: unqualified Comment metadata cannot execute DDL.
             }
 
             var errorMessage = string.Empty;
@@ -694,11 +676,11 @@ namespace JasonQuery.UI.Forms
                 }
 
                 var completionDecision = DdlExecutionCompletionPolicy.Evaluate
-                                         (
-                                             errorMessage,
-                                             hasPendingTransactionAfterExecute,
-                                             isTransactionClosedBySqlCommand
-                                         );
+                (
+                    errorMessage,
+                    hasPendingTransactionAfterExecute,
+                    isTransactionClosedBySqlCommand
+                );
 
                 var resultExecuted = completionDecision.Succeeded ? "Complete" : "Error";
 
@@ -799,14 +781,12 @@ namespace JasonQuery.UI.Forms
             {
                 case DdlMainFormNotificationKind.PendingTransaction:
                     {
-                        TransferValueToMainForm(
-                            "UpdateCommitRollbackButton`");
+                        TransferValueToMainForm("UpdateCommitRollbackButton`");
                         break;
                     }
                 case DdlMainFormNotificationKind.TransactionClosed:
                     {
-                        TransferValueToMainForm(
-                            "ExecuteCommitRollback`");
+                        TransferValueToMainForm("ExecuteCommitRollback`");
                         break;
                     }
             }
