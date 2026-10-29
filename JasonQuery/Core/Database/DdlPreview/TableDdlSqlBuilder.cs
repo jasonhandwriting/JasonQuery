@@ -11,6 +11,11 @@ namespace JasonQuery.Core.Database.DdlPreview
                 return string.Empty;
             }
 
+            if (request.DataSourceType == DataSourceType.Oracle && request.RequireOracleDdlTargetIdentity && !OracleDdlTargetIdentityPolicy.TryQuoteOwner(request.OracleTargetIdentity, out _))
+            {
+                return string.Empty;
+            }
+
             switch (request.Operation)
             {
                 case TableDdlOperation.Comment:
@@ -44,7 +49,7 @@ namespace JasonQuery.Core.Database.DdlPreview
             if (request.DataSourceType == DataSourceType.Oracle)
             {
                 //D1-B3-F01: use exactly the Owner selected by Oracle Comment Metadata.
-                var owner = OracleCommentOwnerIdentityPolicy.QuoteDdlOwner(request.SchemaName);
+                var owner = request.RequireOracleDdlTargetIdentity ? QuoteTrustedOracleOwner(request) : OracleCommentOwnerIdentityPolicy.QuoteDdlOwner(request.SchemaName);
                 var table = DdlIdentifierQuotingPolicy.QuoteExistingIdentifier(DataSourceType.Oracle, request.TableName);
 
                 tableName = string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(table) ? string.Empty : owner + "." + table;
@@ -230,9 +235,20 @@ namespace JasonQuery.Core.Database.DdlPreview
             switch (request.DataSourceType)
             {
                 case DataSourceType.Oracle:
+                    {
+                        if (request.RequireOracleDdlTargetIdentity)
+                        {
+                            var owner = QuoteTrustedOracleOwner(request);
+                            var table = DdlIdentifierQuotingPolicy.QuoteExistingIdentifier(DataSourceType.Oracle, request.TableName);
+
+                            return string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(table) ? string.Empty : owner + "." + table;
+                        }
+
+                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(DataSourceType.Oracle, request.SchemaName, request.TableName);
+                    }
                 case DataSourceType.PostgreSql:
                     {
-                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(request.DataSourceType, request.SchemaName, request.TableName);
+                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(DataSourceType.PostgreSql, request.SchemaName, request.TableName);
                     }
                 case DataSourceType.SqlServer:
                     {
@@ -248,6 +264,11 @@ namespace JasonQuery.Core.Database.DdlPreview
                         return string.Empty;
                     }
             }
+        }
+
+        private static string QuoteTrustedOracleOwner(TableDdlRequest request)
+        {
+            return OracleDdlTargetIdentityPolicy.TryQuoteOwner(request.OracleTargetIdentity, out string owner) ? owner : string.Empty;
         }
 
         private static string GetMySqlDatabaseName(TableDdlRequest request)
