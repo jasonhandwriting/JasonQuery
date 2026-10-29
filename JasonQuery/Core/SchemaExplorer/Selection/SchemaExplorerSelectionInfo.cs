@@ -24,6 +24,12 @@ namespace JasonQuery.Core.SchemaExplorer.Selection
             }
         }
 
+        //Qualified only when the caller provides BOTH an authenticated session user and a metadata-derived owner with exact ordinal equality.
+        //This is not authorization to execute DDL; B3 must validate the target again.
+        public string OracleSelectedOwner { get; set; } = string.Empty;
+
+        public bool HasQualifiedOracleSelectedOwner { get; set; }
+
         public string SchemaNode { get; set; } = string.Empty;
 
         public string SchemaType { get; set; } = string.Empty;

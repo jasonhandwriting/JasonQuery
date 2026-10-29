@@ -18,7 +18,7 @@ namespace JasonQuery.Core.SchemaExplorer.Selection
 
             if (request.IsExternalSelection)
             {
-                return ResolveExternalSelection(request);
+                return QualifyOracleOwnerIfRequested(request, ResolveExternalSelection(request));
             }
 
             if (rowReader == null)
@@ -33,10 +33,37 @@ namespace JasonQuery.Core.SchemaExplorer.Selection
 
             if (rowReader.IsGroupRow(request.DisplayRowIndex))
             {
-                return ResolveGroupRow(request, rowReader);
+                return QualifyOracleOwnerIfRequested(request, ResolveGroupRow(request, rowReader));
             }
 
-            return ResolveDataRow(request, rowReader);
+            return QualifyOracleOwnerIfRequested(request, ResolveDataRow(request, rowReader));
+        }
+
+        private static SchemaExplorerSelectionInfo QualifyOracleOwnerIfRequested(SchemaExplorerSelectionResolveRequest request, SchemaExplorerSelectionInfo selection)
+        {
+            if (request.SourceType != DataSourceType.Oracle || !request.RequireOracleOwnerIdentity || selection == null || !selection.CanDisplayObject)
+            {
+                return selection;
+            }
+
+            var verifiedUser = request.OracleVerifiedSessionUser;
+            var metadataOwner = request.OracleMetadataOwner;
+
+            //Never infer OWNER from the connection form, CURRENT_SCHEMA, row caption or an uppercase transformation. Reject unknown or different identities.
+            if (string.IsNullOrWhiteSpace(verifiedUser) || string.IsNullOrWhiteSpace(metadataOwner) || !string.Equals(verifiedUser, metadataOwner, StringComparison.Ordinal))
+            {
+                selection.Kind = SchemaExplorerSelectionKind.Invalid;
+                selection.SchemaNode = string.Empty;
+                selection.OracleSelectedOwner = string.Empty;
+                selection.HasQualifiedOracleSelectedOwner = false;
+                return selection;
+            }
+
+            selection.OracleSelectedOwner = metadataOwner;
+            selection.HasQualifiedOracleSelectedOwner = true;
+            selection.SchemaNode = metadataOwner;
+
+            return selection;
         }
 
         private static SchemaExplorerSelectionInfo ResolveExternalSelection(SchemaExplorerSelectionResolveRequest request)
