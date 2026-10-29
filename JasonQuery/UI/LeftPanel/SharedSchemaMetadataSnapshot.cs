@@ -77,6 +77,11 @@ namespace JasonQuery.UI.LeftPanel
 
             string[] hidden = Array.Empty<string>();
 
+            if (sourceType == DataSourceType.Oracle && owned.Columns.Contains("OracleMetadataOwner"))
+            {
+                hidden = new[] { "OracleMetadataOwner" };
+            }
+
             if (sourceType == DataSourceType.SqlServer)
             {
                 hidden = new[] { "SchemaDbo", "ObjectID", "CreateDate", "ModifyDate" };

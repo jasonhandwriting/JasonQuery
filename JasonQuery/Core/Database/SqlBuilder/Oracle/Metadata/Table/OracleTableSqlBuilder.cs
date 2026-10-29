@@ -13,6 +13,7 @@ namespace JasonQuery.Core.Database.SqlBuilder.Oracle.Metadata.Table
 
             sbSql.AppendLine("SELECT 'TABLE' AS SchemaType,");
             sbSql.AppendLine("       c.Table_Name AS TableName,");
+            sbSql.AppendLine("       c.Owner AS OracleMetadataOwner,");
             sbSql.AppendLine("       c.Column_Name AS ColumnName,");
             sbSql.AppendLine("       c.Column_ID AS ColumnID,");
             sbSql.AppendLine("       c.Data_Type AS DataType,");

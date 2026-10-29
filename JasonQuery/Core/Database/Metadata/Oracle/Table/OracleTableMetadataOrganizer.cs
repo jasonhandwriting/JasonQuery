@@ -63,6 +63,7 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Table
                         foreach (DataRow drTableInfo in dtTableInfo?.AsEnumerable() ?? Enumerable.Empty<DataRow>())
                         {
                             var tableName = drTableInfo.GetSafeString("TableName");
+                            var metadataOwner = drTableInfo.GetSafeString("OracleMetadataOwner");
 
                             if (context.NeedSchemaRows)
                             {
@@ -75,7 +76,8 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Table
                                     context.DbConnectionName,
                                     tableSchemaType,
                                     tableSchemaName,
-                                    columnInfo
+                                    columnInfo,
+                                    metadataOwner
                                 );
 
                                 context.TargetSchemaTable.Rows.Add(row);

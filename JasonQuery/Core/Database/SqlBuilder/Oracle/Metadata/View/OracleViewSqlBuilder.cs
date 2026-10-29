@@ -12,6 +12,7 @@ namespace JasonQuery.Core.Database.SqlBuilder.Oracle.Metadata.View
             SqlTraceHelper.AppendHeader(sbSql, "---Get View Information");
 
             sbSql.AppendLine("SELECT o.Object_Name AS ViewName,");
+            sbSql.AppendLine("       o.Owner AS OracleMetadataOwner,");
             sbSql.AppendLine("       v.Text_Length AS TextLength,");
             sbSql.AppendLine("       o.Status,");
             sbSql.AppendLine("       o.Created");
@@ -33,6 +34,7 @@ namespace JasonQuery.Core.Database.SqlBuilder.Oracle.Metadata.View
             SqlTraceHelper.AppendHeader(sbSql, "---Get View Information (Including Column Name and Type)");
 
             sbSql.AppendLine("SELECT c.Table_Name AS ViewName,");
+            sbSql.AppendLine("       c.Owner AS OracleMetadataOwner,");
             sbSql.AppendLine("       c.Column_Name AS ColumnName,");
             sbSql.AppendLine("       c.Column_ID AS ColumnID,");
             sbSql.AppendLine("       c.Data_Type ||");

@@ -61,10 +61,11 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.View
                         foreach (DataRow drViewInfo in dtViewInfo?.AsEnumerable() ?? Enumerable.Empty<DataRow>())
                         {
                             var viewName = drViewInfo.GetSafeString("ViewName");
+                            var viewOwner = drViewInfo.GetSafeString("OracleMetadataOwner");
 
                             if (context.NeedSchemaRows)
                             {
-                                AddSchemaRows(context, schemaColumns, viewSchemaType, viewName, viewColumnInfoMap);
+                                AddSchemaRows(context, schemaColumns, viewSchemaType, viewName, viewOwner, viewColumnInfoMap);
                             }
 
                             if (!string.IsNullOrWhiteSpace(viewName))
@@ -120,15 +121,22 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.View
             return (dtViewColumnInfo?.AsEnumerable() ?? Enumerable.Empty<DataRow>())
                    .GroupBy
                     (
-                        r => r.GetSafeString("ViewName"),
-                        StringComparer.OrdinalIgnoreCase
+                        r => BuildViewIdentityKey(r.GetSafeString("OracleMetadataOwner"), r.GetSafeString("ViewName")),
+                        StringComparer.Ordinal
                     )
                    .ToDictionary
                     (
                         g => g.Key,
                         g => g.ToList(),
-                        StringComparer.OrdinalIgnoreCase
+                        StringComparer.Ordinal
                     );
+        }
+
+        private static string BuildViewIdentityKey(string owner, string viewName)
+        {
+            //Distinct Oracle owners and quoted object names must not share columns.
+            owner = owner ?? string.Empty;
+            return string.Concat(owner.Length.ToString(System.Globalization.CultureInfo.InvariantCulture), ":", owner, viewName ?? string.Empty);
         }
 
         private static string BuildColumnInfo(DataRow drViewColumnInfo)
@@ -142,13 +150,13 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.View
 
         #region Organize / Create
         private static void AddSchemaRows(OracleMetadataContext context, DataColumnCollection schemaColumns, string viewSchemaType,
-                                          string viewName, Dictionary<string, List<DataRow>> viewColumnInfoMap)
+                                          string viewName, string viewOwner, Dictionary<string, List<DataRow>> viewColumnInfoMap)
         {
             List<DataRow> viewColumns = null;
 
             if (viewColumnInfoMap != null)
             {
-                viewColumnInfoMap.TryGetValue(viewName, out viewColumns);
+                viewColumnInfoMap.TryGetValue(BuildViewIdentityKey(viewOwner, viewName), out viewColumns);
             }
 
             foreach (var drViewColumnInfo in viewColumns ?? Enumerable.Empty<DataRow>())
@@ -157,6 +165,11 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.View
 
                 row["SchemaObject"] = context.DbConnectionName;
                 row["SchemaType"] = viewSchemaType;
+
+                if (schemaColumns.Contains("OracleMetadataOwner"))
+                {
+                    row["OracleMetadataOwner"] = viewOwner ?? string.Empty;
+                }
 
                 if (schemaColumns.Contains("Schema_Browser"))
                 {

@@ -1608,6 +1608,12 @@ namespace JasonQuery.Core.Database.Execution
                 dtNewSchema.Columns.Add("ColumnInfo");
             }
 
+            if (effectiveDataSourceType == DataSourceType.Oracle)
+            {
+                //Internal metadata provenance only. Never derive DDL authorization from this field alone.
+                dtNewSchema.Columns.Add("OracleMetadataOwner");
+            }
+
             switch (effectiveDataSourceType)
             {
                 case DataSourceType.SqlServer:

@@ -6,7 +6,7 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Table
     internal static class OracleTableSchemaRowBuilder
     {
         public static DataRow Build(DataTable targetSchemaTable, string connectionName, string tableSchemaType,
-                                    string tableSchemaName, string columnInfo)
+                                    string tableSchemaName, string columnInfo, string oracleMetadataOwner = null)
         {
             if (targetSchemaTable == null)
             {
@@ -19,6 +19,11 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Table
             row["SchemaType"] = tableSchemaType;
             row["SchemaName"] = tableSchemaName;
             row["ColumnInfo"] = columnInfo;
+
+            if (targetSchemaTable.Columns.Contains("OracleMetadataOwner"))
+            {
+                row["OracleMetadataOwner"] = oracleMetadataOwner ?? string.Empty;
+            }
 
             return row;
         }
