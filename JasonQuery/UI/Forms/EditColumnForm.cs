@@ -30,6 +30,9 @@ namespace JasonQuery.UI.Forms
 
     public partial class EditColumnForm : Form
     {
+        //B3-B1 opt-in only. A qualified F7 bridge must supply authoritative metadata-owner and selection-connection identity. Legacy callers remain unchanged until B3-B2; do not treat their DbUser/SchemaName as proof.
+        internal OracleDdlTargetIdentity OracleTargetIdentity { get; set; }
+
         public string Result { get; set; } //20250204 回傳值給呼叫方，判斷是否需要更新 Schema Info
         public string SchemaDatabase { get; set; }
         public string SchemaName { get; set; }
@@ -236,6 +239,30 @@ namespace JasonQuery.UI.Forms
             JasonQueryRepository.UpdateSetting("GlobalConfig", "EditColumnFormHeight", Size.Height.ToString());
         }
 
+        private bool TryRefreshOracleTarget(out OracleDdlTargetIdentity verified)
+        {
+            verified = null;
+
+            var reader = MyGlobal.OracleReader;
+
+            return DatabaseSqlExecutor.CurrentDataSource == DataSourceType.Oracle && reader != null && OracleDdlGuiGate.TryRefresh(OracleTargetIdentity, reader.VerifiedSessionUser, reader.VerifiedConnectionId, out verified);
+        }
+
+        private string GetCommentMetadataOwner()
+        {
+            if (!IsOracle || OracleTargetIdentity == null)
+            {
+                return SchemaName;
+            }
+
+            if (!TryRefreshOracleTarget(out var verified))
+            {
+                throw new InvalidOperationException("Oracle DDL target identity is not current. Comment metadata is blocked.");
+            }
+
+            return "\"" + verified.MetadataOwner.Replace("\"", "\"\"") + "\"";
+        }
+
         private void LoadCommentMetadata()
         {
             var request = new MetadataCommentQueryRequest
@@ -243,7 +270,7 @@ namespace JasonQuery.UI.Forms
                 DataSourceType = _currentSourceType,
                 ObjectKind = MetadataCommentObjectKind.Column,
                 SchemaDatabase = SchemaDatabase,
-                SchemaName = SchemaName,
+                SchemaName = GetCommentMetadataOwner(),
                 TableName = TableName,
                 ColumnName = ColumnName
             };
@@ -392,12 +419,21 @@ namespace JasonQuery.UI.Forms
                     }
             }
 
+            OracleDdlTargetIdentity validatedTarget = null;
+
+            if (IsOracle && OracleTargetIdentity != null && !TryRefreshOracleTarget(out validatedTarget))
+            {
+                return string.Empty;
+            }
+
             var request = new ColumnDdlRequest
             {
                 DataSourceType = _currentSourceType,
                 Operation = operation,
                 SchemaDatabase = SchemaDatabase,
                 SchemaName = SchemaName,
+                RequireOracleDdlTargetIdentity = IsOracle && OracleTargetIdentity != null,
+                OracleTargetIdentity = validatedTarget,
                 TableName = TableName,
                 ColumnName = columnName,
                 NewColumnName = txtNewColumnName.Text,
@@ -426,13 +462,12 @@ namespace JasonQuery.UI.Forms
         {
             LocalizationHelper.ApplyLanguageInfo(this, false);
 
-            // 根據目前資料庫類型，載入對應的交易安全提示。
+            //根據目前資料庫類型，載入對應的交易安全提示
             var prompt2Id = $"lblPrompt2_{_currentSourceType}";
 
             lblPrompt2.Text = LocalizationHelper.GetLanguageString(lblPrompt2.Text, "form", GetType().Name, "object", prompt2Id, "Text");
 
-            //ApplyLanguageInfo 會將一般 Label 的 ForeColor 統一套用為標準前景色，
-            //因此這些具有特殊提示語意的 Label 必須在語系套用後恢復指定顏色。
+            //ApplyLanguageInfo 會將一般 Label 的 ForeColor 統一套用為標準前景色，因此這些具有特殊提示語意的 Label 必須在語系套用後恢復指定顏色。
             ApplySpecialLabelColors();
             ApplyLocalizedControlLayout();
         }
@@ -578,6 +613,50 @@ namespace JasonQuery.UI.Forms
 
             try
             {
+                if (IsOracle && OracleTargetIdentity != null)
+                {
+                    ColumnDdlOperation operation = ColumnDdlOperation.None;
+
+                    switch (EditMode)
+                    {
+                        case EditColumnMode.Comment:
+                            {
+                                operation = ColumnDdlOperation.Comment;
+                                break;
+                            }
+                        case EditColumnMode.Drop:
+                            {
+                                operation = ColumnDdlOperation.Drop;
+                                break;
+                            }
+                        case EditColumnMode.Rename:
+                            {
+                                operation = ColumnDdlOperation.Rename;
+                                break;
+                            }
+                        case EditColumnMode.Add:
+                            {
+                                operation = ColumnDdlOperation.Add;
+                                break;
+                            }
+                    }
+
+                    var rebuiltSql = BuildColumnDdlSql(operation);
+                    var reader = MyGlobal.OracleReader;
+                    var sessionUser = reader?.VerifiedSessionUser;
+                    var connectionId = reader?.VerifiedConnectionId ?? Guid.Empty;
+
+                    if (!OracleDdlGuiGate.CanExecute(OracleTargetIdentity, sessionUser, connectionId, editorSqlPreview.Text, rebuiltSql))
+                    {
+                        //Fail closed if the connection changed after Preview, or the displayed SQL no longer matches the rebuilt SQL.
+                        UpdateSqlPreviewText(string.Empty);
+
+                        btnExecute.Enabled = false;
+
+                        return;
+                    }
+                }
+
                 switch (_currentSourceType)
                 {
                     case DataSourceType.Oracle:
