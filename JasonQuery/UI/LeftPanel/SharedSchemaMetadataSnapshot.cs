@@ -11,10 +11,12 @@ namespace JasonQuery.UI.LeftPanel
         private readonly string[] _groupColumns;
         private readonly string[] _hiddenColumns;
 
-        internal SharedSchemaMetadataSnapshot(DataSourceType sourceType, int connectionRevision, DataTable table, string[] groupColumns, string[] hiddenColumns)
+        internal SharedSchemaMetadataSnapshot(DataSourceType sourceType, int connectionRevision, DataTable table, string[] groupColumns, string[] hiddenColumns, string oracleVerifiedSessionUser, Guid oracleConnectionId)
         {
             SourceType = sourceType;
             ConnectionRevision = connectionRevision;
+            OracleVerifiedSessionUser = oracleVerifiedSessionUser ?? string.Empty;
+            OracleConnectionId = oracleConnectionId;
             Table = table;
             _groupColumns = (string[])groupColumns.Clone();
             _hiddenColumns = (string[])hiddenColumns.Clone();
@@ -22,6 +24,8 @@ namespace JasonQuery.UI.LeftPanel
 
         public DataSourceType SourceType { get; }
         public int ConnectionRevision { get; }
+        public string OracleVerifiedSessionUser { get; }
+        public Guid OracleConnectionId { get; }
 
         //Owned copy. A grid may modify this copy but never the caller's DataTable.
         public DataTable Table { get; }
@@ -33,7 +37,23 @@ namespace JasonQuery.UI.LeftPanel
     {
         public static bool TryCapture(DataTable source, DataSourceType sourceType, bool includeColumnGroup, int connectionRevision, out SharedSchemaMetadataSnapshot snapshot)
         {
+            //Preserve the legacy, source-neutral capture API for existing callers/tests.
+            return TryCaptureCore(source, sourceType, includeColumnGroup, connectionRevision, out snapshot, string.Empty, Guid.Empty, false);
+        }
+
+        public static bool TryCapture(DataTable source, DataSourceType sourceType, bool includeColumnGroup, int connectionRevision, out SharedSchemaMetadataSnapshot snapshot, string oracleVerifiedSessionUser, Guid oracleConnectionId)
+        {
+            return TryCaptureCore(source, sourceType, includeColumnGroup, connectionRevision, out snapshot, oracleVerifiedSessionUser, oracleConnectionId, true);
+        }
+
+        private static bool TryCaptureCore(DataTable source, DataSourceType sourceType, bool includeColumnGroup, int connectionRevision, out SharedSchemaMetadataSnapshot snapshot, string oracleVerifiedSessionUser, Guid oracleConnectionId, bool requireVerifiedOracleSession)
+        {
             snapshot = null;
+
+            if (requireVerifiedOracleSession && sourceType == DataSourceType.Oracle && (string.IsNullOrWhiteSpace(oracleVerifiedSessionUser) || oracleConnectionId == Guid.Empty || source == null || !source.Columns.Contains("OracleMetadataOwner")))
+            {
+                return false;
+            }
 
             if (source == null || sourceType == DataSourceType.None || connectionRevision <= 0)
             {
@@ -92,7 +112,7 @@ namespace JasonQuery.UI.LeftPanel
                 hidden = new[] { "CreateDate", "ModifyDate" };
             }
 
-            snapshot = new SharedSchemaMetadataSnapshot(sourceType, connectionRevision, owned, groups.ToArray(), hidden);
+            snapshot = new SharedSchemaMetadataSnapshot(sourceType, connectionRevision, owned, groups.ToArray(), hidden, oracleVerifiedSessionUser, oracleConnectionId);
             return true;
         }
 

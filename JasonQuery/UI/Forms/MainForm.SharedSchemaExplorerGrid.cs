@@ -1,4 +1,5 @@
 ﻿using C1.Win.C1TrueDBGrid;
+using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.UI.LeftPanel;
 using System;
@@ -90,8 +91,11 @@ namespace JasonQuery.UI.Forms
             var state = CaptureSharedLeftPanelHostState();
 
             SharedSchemaMetadataSnapshot snapshot;
+            var oracleReader = sourceType == DataSourceType.Oracle ? MyGlobal.OracleReader : null;
+            var verifiedSessionUser = oracleReader?.VerifiedSessionUser ?? string.Empty;
+            var verifiedConnectionId = oracleReader?.VerifiedConnectionId ?? Guid.Empty;
 
-            if (!SharedSchemaMetadataSnapshotPolicy.TryCapture(source, sourceType, includeColumnGroup, state.ConnectionRevision, out snapshot)
+            if (!SharedSchemaMetadataSnapshotPolicy.TryCapture(source, sourceType, includeColumnGroup, state.ConnectionRevision, out snapshot, verifiedSessionUser, verifiedConnectionId)
                 || !SharedSchemaMetadataSnapshotPolicy.CanBind(state, snapshot, _currentSourceType))
             {
                 return false;

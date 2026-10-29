@@ -1,4 +1,6 @@
 ﻿using C1.Win.C1TrueDBGrid;
+using JasonQuery.Core.Config;
+using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.SchemaExplorer.Selection;
 using JasonQuery.Core.Localization;
 using JasonQuery.UI.LeftPanel;
@@ -59,7 +61,26 @@ namespace JasonQuery.UI.Forms
                    && !grid.IsDisposed
                    && grid.Visible
                    && ReferenceEquals(grid, _sharedSchemaExplorerGrid)
-                   && SharedSchemaMetadataSnapshotPolicy.CanBind(CaptureSharedLeftPanelHostState(), _sharedSchemaMetadataSnapshot, _currentSourceType);
+                   && SharedSchemaMetadataSnapshotPolicy.CanBind(CaptureSharedLeftPanelHostState(), _sharedSchemaMetadataSnapshot, _currentSourceType)
+                   && IsSharedOracleSessionIdentityCurrent();
+        }
+
+        //Never reuse a snapshot after reconnect, including reconnecting as the SAME Oracle user.
+        private bool IsSharedOracleSessionIdentityCurrent()
+        {
+            if (_currentSourceType != DataSourceType.Oracle)
+            {
+                return true;
+            }
+
+            var reader = MyGlobal.OracleReader;
+            var snapshot = _sharedSchemaMetadataSnapshot;
+
+            return reader != null
+                   && snapshot != null
+                   && snapshot.OracleConnectionId != Guid.Empty
+                   && string.Equals(snapshot.OracleVerifiedSessionUser, reader.VerifiedSessionUser, StringComparison.Ordinal)
+                   && snapshot.OracleConnectionId == reader.VerifiedConnectionId;
         }
 
         private SchemaExplorerSelectionInfo ResolveSharedSchemaExplorerInput(C1TrueDBGrid grid, int displayRowIndex)
@@ -74,7 +95,10 @@ namespace JasonQuery.UI.Forms
                 SourceType = _currentSourceType,
                 DisplayRowIndex = displayRowIndex,
                 IsExternalSelection = false,
-                IsShowColumnInfo = Array.IndexOf(_sharedSchemaMetadataSnapshot.GroupColumns, "SchemaName") >= 0
+                IsShowColumnInfo = Array.IndexOf(_sharedSchemaMetadataSnapshot.GroupColumns, "SchemaName") >= 0,
+                //Only Table/View metadata currently has authoritative per-row OracleMetadataOwner.
+                RequireOracleOwnerIdentity = _currentSourceType == DataSourceType.Oracle,
+                OracleVerifiedSessionUser = _currentSourceType == DataSourceType.Oracle ? _sharedSchemaMetadataSnapshot.OracleVerifiedSessionUser : string.Empty
             };
 
             //Resolve from the MainForm grid. Never reuse a QueryForm or SchemaBrowserForm row index.
