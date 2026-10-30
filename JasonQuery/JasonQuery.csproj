@@ -1262,6 +1262,7 @@
     <Compile Include="UI\LeftPanel\SharedSchemaExplorerContextMenuPolicy.cs" />
     <Compile Include="UI\LeftPanel\SharedSchemaExplorerPastePolicy.cs" />
     <Compile Include="UI\LeftPanel\SharedSchemaExplorerObjectCommandPolicy.cs" />
+    <Compile Include="UI\LeftPanel\OracleSharedTableDdlBridgePolicy.cs" />
     <Compile Include="UI\LeftPanel\SharedSchemaExplorerPreviewPolicy.cs" />
     <Compile Include="UI\Forms\QueryForm.SchemaExplorerReceiver.cs">
       <SubType>Form</SubType>

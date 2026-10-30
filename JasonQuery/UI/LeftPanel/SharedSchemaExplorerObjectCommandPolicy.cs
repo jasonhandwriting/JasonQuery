@@ -10,7 +10,8 @@ namespace JasonQuery.UI.LeftPanel
     {
         public static bool CanExecute(LeftPanelTargetKind target, SchemaExplorerSelectionInfo selection, SharedSchemaExplorerMenuCommand command)
         {
-            if (selection == null || selection.IsGroupRow || selection.IsColumnInfoRow
+            //Only structural Table commands may consider a C1 object group. All other group actions keep their previous safety boundary; Table classification is checked by the bridge policy.
+            if (selection == null || (selection.IsGroupRow && !IsOracleTableDdlCommand(command)) || selection.IsColumnInfoRow
                 || (selection.Kind != SchemaExplorerSelectionKind.SchemaObject && selection.Kind != SchemaExplorerSelectionKind.ExternalObject)
                 || string.IsNullOrWhiteSpace(selection.SchemaType) || string.IsNullOrWhiteSpace(selection.SchemaName))
             {
@@ -51,6 +52,32 @@ namespace JasonQuery.UI.LeftPanel
                 case SharedSchemaExplorerMenuCommand.GenerateSqlStatement:
                     {
                         return SchemaObjectTypeHelper.IsAny(selection.SchemaType, SchemaObjectNames.Tables, SchemaObjectNames.Views) && HasRequiredObjectScope(selection);
+                    }
+                case SharedSchemaExplorerMenuCommand.CommentTable:
+                case SharedSchemaExplorerMenuCommand.DropTable:
+                case SharedSchemaExplorerMenuCommand.RenameTable:
+                case SharedSchemaExplorerMenuCommand.TruncateTable:
+                    {
+                        //B3-B2-T GUI correction: only a G2-qualified Oracle TABLE data row or object-level group row may expose commands. MainForm and EditTableForm independently check live OracleReader identity before Preview/Execute.
+                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm) && OracleSharedTableDdlBridgePolicy.IsTableObjectRow(selection);
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+        }
+
+        private static bool IsOracleTableDdlCommand(SharedSchemaExplorerMenuCommand command)
+        {
+            switch (command)
+            {
+                case SharedSchemaExplorerMenuCommand.CommentTable:
+                case SharedSchemaExplorerMenuCommand.DropTable:
+                case SharedSchemaExplorerMenuCommand.RenameTable:
+                case SharedSchemaExplorerMenuCommand.TruncateTable:
+                    {
+                        return true;
                     }
                 default:
                     {

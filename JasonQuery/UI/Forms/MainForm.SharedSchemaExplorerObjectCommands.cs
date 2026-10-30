@@ -1,6 +1,7 @@
 ﻿using IconLibrary;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Database.DdlPreview;
 using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.SchemaExplorer.Selection;
@@ -69,6 +70,14 @@ namespace JasonQuery.UI.Forms
                             OpenSharedGenerateSql(selection, activeTab.AccessibleDescription);
                             break;
                         }
+                    case SharedSchemaExplorerMenuCommand.CommentTable:
+                    case SharedSchemaExplorerMenuCommand.DropTable:
+                    case SharedSchemaExplorerMenuCommand.RenameTable:
+                    case SharedSchemaExplorerMenuCommand.TruncateTable:
+                        {
+                            TryOpenSharedOracleTableDdl(selection, command);
+                            break;
+                        }
                     default:
                         {
                             break;
@@ -79,6 +88,87 @@ namespace JasonQuery.UI.Forms
             {
                 MessageBox.Show(ex.Message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
+        }
+
+        //Click-time identity and row re-resolution: a menu captured before a rebind or a reconnect cannot authorize a DDL form, including reconnect as the same user.
+        private bool TryOpenSharedOracleTableDdl(SchemaExplorerSelectionInfo captured, SharedSchemaExplorerMenuCommand command)
+        {
+            if (_currentSourceType != DataSourceType.Oracle || _sharedSchemaMetadataSnapshot == null || !CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))
+            {
+                return false;
+            }
+
+            var current = ResolveSharedSchemaExplorerInput(_sharedSchemaExplorerGrid, captured.DisplayRowIndex);
+
+            if (!OracleSharedTableDdlBridgePolicy.IsSameTableDataRow(captured, current))
+            {
+                return false;
+            }
+
+            var reader = MyGlobal.OracleReader;
+            var snapshot = _sharedSchemaMetadataSnapshot;
+            OracleDdlTargetIdentity qualified;
+
+            if (reader == null || !OracleSharedTableDdlBridgePolicy.TryCreate(current, snapshot.OracleVerifiedSessionUser, snapshot.OracleConnectionId, reader.VerifiedSessionUser, reader.VerifiedConnectionId, out qualified))
+            {
+                return false;
+            }
+
+            EditTableMode mode;
+            string icon;
+
+            switch (command)
+            {
+                case SharedSchemaExplorerMenuCommand.CommentTable:
+                    {
+                        mode = EditTableMode.Comment;
+                        icon = "Table Comment.ico";
+                        break;
+                    }
+                case SharedSchemaExplorerMenuCommand.DropTable:
+                    {
+                        mode = EditTableMode.Drop;
+                        icon = "Table Drop.ico";
+                        break;
+                    }
+                case SharedSchemaExplorerMenuCommand.RenameTable:
+                    {
+                        mode = EditTableMode.Rename;
+                        icon = "Table Rename.ico";
+                        break;
+                    }
+                case SharedSchemaExplorerMenuCommand.TruncateTable:
+                    {
+                        mode = EditTableMode.Truncate;
+                        icon = "Table Truncate.ico";
+                        break;
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+
+            using (var form = new EditTableForm())
+            {
+                form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, icon);
+                form.ShowInTaskbar = false;
+                form.StartPosition = FormStartPosition.CenterParent;
+                form.SchemaName = qualified.MetadataOwner;
+                form.TableName = current.SchemaName;
+                form.EditMode = mode;
+                form.OracleTargetIdentity = qualified;
+
+                UIHelper.ApplyEditTableFormSize(form);
+                form.ShowDialog(this);
+
+                if (string.Equals(form.Result, "REFRESH", StringComparison.Ordinal) && !IsDisposed && !Disposing && CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))
+                {
+                    RefreshSharedSchemaExplorerPreviewMetadata();
+                }
+            }
+
+            return true;
         }
 
         private static void ShowSharedSchemaDdl(SchemaExplorerSelectionInfo selection)
