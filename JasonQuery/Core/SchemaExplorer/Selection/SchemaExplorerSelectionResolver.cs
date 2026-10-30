@@ -63,6 +63,7 @@ namespace JasonQuery.Core.SchemaExplorer.Selection
                 selection.SchemaNode = string.Empty;
                 selection.OracleSelectedOwner = string.Empty;
                 selection.HasQualifiedOracleSelectedOwner = false;
+
                 return selection;
             }
 
