@@ -1,12 +1,14 @@
-﻿using C1.Win.C1TrueDBGrid;
-using IconLibrary;
-using C1.Win.C1Command;
+﻿using C1.Win.C1Command;
 using C1.Win.C1Input;
-using JasonLibrary.Core;
+using C1.Win.C1TrueDBGrid;
+using IconLibrary;
 using JasonLibrary.UI.Controls;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Data.DataRows;
+using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Database.CreateScript.PostgreSql;
 using JasonQuery.Core.Database.Execution;
+using JasonQuery.Core.Database.Metadata;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
 using JasonQuery.Database.Internal.Repositories;
@@ -18,9 +20,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using JasonQuery.Core.Database.Connection;
-using JasonQuery.Core.Database.Metadata;
-using JasonQuery.Core.Database.CreateScript.PostgreSql;
 
 namespace JasonQuery.UI.Helpers
 {
@@ -184,6 +183,7 @@ namespace JasonQuery.UI.Helpers
 
         public static void GenerateRightMenuForCopyOnly(bool isFromSchemaBrowser, ContextMenuStrip schemaBrowserContextMenu, C1TrueDBGrid c1Grid, ScintillaEditor editor, string title1, string title2, string schemaName, int x, int y, bool isExtraPaste = true, string schemaNode = "", string tableName = "", string columnType = "", string databaseName = "", string schemaType = "", string packageSpecBody = "", string schemaDbo = "")
         {
+            var legacyDdlMenuSource = DatabaseSqlExecutor.CurrentDataSource;
             var languageText = string.Empty;
             var headerItem = schemaBrowserContextMenu.Items.Add(schemaName);
 
@@ -219,8 +219,17 @@ namespace JasonQuery.UI.Helpers
 
                 var addColumnItem = new ToolStripMenuItem(languageText);
 
+                //Legacy Oracle ColumnInfo captions do not establish a trusted DDL identity.
+                addColumnItem.Enabled = LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource);
+
                 addColumnItem.Click += delegate
                 {
+                    //Recheck at click time, including same-user reconnect/provider switch.
+                    if (!LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource))
+                    {
+                        return;
+                    }
+
                     using (var form = new EditColumnForm())
                     {
                         form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Column Add.ico");
@@ -247,8 +256,17 @@ namespace JasonQuery.UI.Helpers
 
                 var commentColumnItem = new ToolStripMenuItem(languageText);
 
+                //Legacy Oracle ColumnInfo captions do not establish a trusted DDL identity.
+                commentColumnItem.Enabled = LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource);
+
                 commentColumnItem.Click += delegate
                 {
+                    //Recheck at click time, including same-user reconnect/provider switch.
+                    if (!LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource))
+                    {
+                        return;
+                    }
+
                     using (var form = new EditColumnForm())
                     {
                         form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Column Comment.ico");
@@ -275,8 +293,17 @@ namespace JasonQuery.UI.Helpers
 
                 var dropColumnItem = new ToolStripMenuItem(languageText);
 
+                //Legacy Oracle ColumnInfo captions do not establish a trusted DDL identity.
+                dropColumnItem.Enabled = LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource);
+
                 dropColumnItem.Click += delegate
                 {
+                    //Recheck at click time, including same-user reconnect/provider switch.
+                    if (!LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource))
+                    {
+                        return;
+                    }
+
                     using (var form = new EditColumnForm())
                     {
                         form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Column Drop.ico");
@@ -310,8 +337,17 @@ namespace JasonQuery.UI.Helpers
 
                 var renameColumnItem = new ToolStripMenuItem(languageText);
 
+                //Legacy Oracle ColumnInfo captions do not establish a trusted DDL identity.
+                renameColumnItem.Enabled = LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource);
+
                 renameColumnItem.Click += delegate
                 {
+                    //Recheck at click time, including same-user reconnect/provider switch.
+                    if (!LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource))
+                    {
+                        return;
+                    }
+
                     using (var form = new EditColumnForm())
                     {
                         form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Column Rename.ico");
@@ -641,21 +677,8 @@ namespace JasonQuery.UI.Helpers
 
                 var commentTableItem = new ToolStripMenuItem(languageText);
 
-                commentTableItem.Click += delegate
-                {
-                    using (var form = new EditTableForm())
-                    {
-                        form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Table Comment.ico");
-                        form.ShowInTaskbar = false;
-                        form.StartPosition = FormStartPosition.CenterScreen;
-                        form.SchemaName = DatabaseSqlExecutor.DbUser;
-                        form.TableName = schemaName;
-                        form.EditMode = EditTableMode.Comment;
-
-                        ApplyEditTableFormSize(form);
-                        form.ShowDialog();
-                    }
-                };
+                //No authoritative owner/snapshot in the legacy Oracle menu: keep visible but blocked.
+                commentTableItem.Enabled = false;
 
                 commentTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Comment.ico");
 
@@ -666,28 +689,8 @@ namespace JasonQuery.UI.Helpers
 
                 var dropTableItem = new ToolStripMenuItem(languageText);
 
-                dropTableItem.Click += delegate
-                {
-                    using (var form = new EditTableForm())
-                    {
-                        form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Table Drop.ico");
-                        form.ShowInTaskbar = false;
-                        form.StartPosition = FormStartPosition.CenterScreen;
-                        form.SchemaName = DatabaseSqlExecutor.DbUser;
-                        form.TableName = schemaName;
-                        form.EditMode = EditTableMode.Drop;
-
-                        ApplyEditTableFormSize(form);
-                        form.ShowDialog();
-
-                        //20250204 更新 Schema 訊息
-                        if (form.Result != null && form.Result == "REFRESH")
-                        {
-                            MyGlobal.GlobalTemp4 = "REFRESH";
-                            MyGlobal.GlobalTemp5 = "UpdateSchemaInformation`";
-                        }
-                    }
-                };
+                //No authoritative owner/snapshot in the legacy Oracle menu: keep visible but blocked.
+                dropTableItem.Enabled = false;
 
                 dropTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Drop.ico");
 
@@ -698,28 +701,8 @@ namespace JasonQuery.UI.Helpers
 
                 var renameTableItem = new ToolStripMenuItem(languageText);
 
-                renameTableItem.Click += delegate
-                {
-                    using (var form = new EditTableForm())
-                    {
-                        form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Table Rename.ico");
-                        form.ShowInTaskbar = false;
-                        form.StartPosition = FormStartPosition.CenterScreen;
-                        form.SchemaName = DatabaseSqlExecutor.DbUser;
-                        form.TableName = schemaName;
-                        form.EditMode = EditTableMode.Rename;
-
-                        ApplyEditTableFormSize(form);
-                        form.ShowDialog();
-
-                        //20250204 更新 Schema 訊息
-                        if (form.Result != null && form.Result == "REFRESH")
-                        {
-                            MyGlobal.GlobalTemp4 = "REFRESH";
-                            MyGlobal.GlobalTemp5 = "UpdateSchemaInformation`";
-                        }
-                    }
-                };
+                //No authoritative owner/snapshot in the legacy Oracle menu: keep visible but blocked.
+                renameTableItem.Enabled = false;
 
                 renameTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Rename.ico");
 
@@ -730,21 +713,8 @@ namespace JasonQuery.UI.Helpers
 
                 var truncateTableItem = new ToolStripMenuItem(languageText);
 
-                truncateTableItem.Click += delegate
-                {
-                    using (var form = new EditTableForm())
-                    {
-                        form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Table Truncate.ico");
-                        form.ShowInTaskbar = false;
-                        form.StartPosition = FormStartPosition.CenterScreen;
-                        form.SchemaName = DatabaseSqlExecutor.DbUser;
-                        form.TableName = schemaName;
-                        form.EditMode = EditTableMode.Truncate;
-
-                        ApplyEditTableFormSize(form);
-                        form.ShowDialog();
-                    }
-                };
+                //No authoritative owner/snapshot in the legacy Oracle menu: keep visible but blocked.
+                truncateTableItem.Enabled = false;
 
                 truncateTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Truncate.ico");
 
