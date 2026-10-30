@@ -53,6 +53,17 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Table
 
                 if (context.NeedSchemaRows)
                 {
+                    // Oracle-only internal provenance fields. F7 never uses the formatted ColumnInfo caption as the authoritative DDL column identifier.
+                    if (!context.TargetSchemaTable.Columns.Contains("OracleMetadataTableName"))
+                    {
+                        context.TargetSchemaTable.Columns.Add("OracleMetadataTableName", typeof(string));
+                    }
+
+                    if (!context.TargetSchemaTable.Columns.Contains("OracleMetadataColumnName"))
+                    {
+                        context.TargetSchemaTable.Columns.Add("OracleMetadataColumnName", typeof(string));
+                    }
+
                     context.TargetSchemaTable.BeginLoadData();
                 }
 
@@ -64,20 +75,23 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Table
                         {
                             var tableName = drTableInfo.GetSafeString("TableName");
                             var metadataOwner = drTableInfo.GetSafeString("OracleMetadataOwner");
+                            var rawColumnName = drTableInfo.GetSafeString("ColumnName");
 
                             if (context.NeedSchemaRows)
                             {
                                 var tableSchemaName = BuildSchemaNameText(tableName, tableRowCountMap);
                                 var columnInfo = BuildColumnInfo(drTableInfo);
 
-                                var row = OracleTableSchemaRowBuilder.Build
+                                var row = OracleTableSchemaRowBuilder.BuildWithRawIdentifiers
                                 (
                                     context.TargetSchemaTable,
                                     context.DbConnectionName,
                                     tableSchemaType,
                                     tableSchemaName,
                                     columnInfo,
-                                    metadataOwner
+                                    metadataOwner,
+                                    tableName,
+                                    rawColumnName
                                 );
 
                                 context.TargetSchemaTable.Rows.Add(row);

@@ -97,9 +97,20 @@ namespace JasonQuery.UI.LeftPanel
 
             string[] hidden = Array.Empty<string>();
 
-            if (sourceType == DataSourceType.Oracle && owned.Columns.Contains("OracleMetadataOwner"))
+            if (sourceType == DataSourceType.Oracle)
             {
-                hidden = new[] { "OracleMetadataOwner" };
+                // Keep raw table/column identifiers in the owned DataTable for the next qualified Column bridge, but never display them as normal grid columns.
+                var oracleHidden = new List<string>();
+
+                foreach (var name in new[] { "OracleMetadataOwner", "OracleMetadataTableName", "OracleMetadataColumnName" })
+                {
+                    if (owned.Columns.Contains(name))
+                    {
+                        oracleHidden.Add(name);
+                    }
+                }
+
+                hidden = oracleHidden.ToArray();
             }
 
             if (sourceType == DataSourceType.SqlServer)
