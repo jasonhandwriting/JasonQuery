@@ -214,7 +214,7 @@ namespace JasonQuery.Tests.UI.Forms
             return table;
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("Winnie", "2")]
         [DataRow("Normal", "3")]
         public void LargeTextWrapper_UsesDisplayPreviewForContains(string text, string expected)

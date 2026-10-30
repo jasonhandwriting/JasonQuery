@@ -1373,6 +1373,98 @@ namespace JasonQuery.Database.Providers.Readers
             return result;
         }
 
+        /// <summary>
+        /// Runs an internal PostgreSQL metadata SELECT inside a dedicated savepoint.
+        /// An error is surfaced to the caller; it never performs a full transaction rollback.
+        /// Do not use this method for arbitrary user SQL.
+        /// </summary>
+        public DataTable ExecuteMetadataQueryToDataTable(string sql)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+            {
+                throw new ArgumentException("Metadata SQL must not be empty.", nameof(sql));
+            }
+
+            if (!TryEnsureTransactionOpen(out var transactionError))
+            {
+                throw new InvalidOperationException("PostgreSQL metadata query was not executed because its transaction is unavailable: " + transactionError);
+            }
+
+            var metadataTransaction = _transaction;
+            var savepointName = "jq_metadata_" + Guid.NewGuid().ToString("N");
+            var queryWatch = Stopwatch.StartNew();
+
+            DataTable result = null;
+            Exception failure = null;
+
+            try
+            {
+                result = PostgreSqlMetadataSavepointExecutor.Execute
+                (
+                    () => metadataTransaction.Save(savepointName),
+                    () =>
+                    {
+                        var data = new DataTable();
+
+                        using (var metadataCommand = new PgSqlCommand())
+                        {
+                            metadataCommand.Connection = _conn;
+                            metadataCommand.Transaction = metadataTransaction;
+                            metadataCommand.CommandText = sql;
+                            metadataCommand.CommandType = CommandType.Text;
+                            metadataCommand.CommandTimeout = QueryTimeout;
+                            metadataCommand.FetchSize = 1000;
+
+                            using (var reader = metadataCommand.ExecuteReader(CommandBehavior.Default))
+                            {
+                                data.Load(reader);
+                            }
+                        }
+
+                        return data;
+                    },
+                    () => metadataTransaction.Rollback(savepointName),
+                    () => metadataTransaction.Release(savepointName)
+                );
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                failure = ex;
+                throw;
+            }
+            finally
+            {
+                queryWatch.Stop();
+
+                if (!string.IsNullOrEmpty(JasonQueryRepository.DbMotherPid))
+                {
+                    var elapsed = queryWatch.Elapsed;
+                    var time = elapsed.TotalMilliseconds < 1 && elapsed.TotalMilliseconds > 0 ? "< 0.001" : $"{elapsed.Minutes:D2}:{elapsed.Seconds:D2}.{elapsed.Milliseconds:D3}";
+
+                    try
+                    {
+                        JasonQueryRepository.UpdateSqlHistory
+                        (
+                            JasonQueryRepository.DbMotherPid, MyGlobal.DateTimeNowfff(), time, time,
+                            result?.Rows.Count ?? 0, failure == null ? "Complete" : "Error",
+                            failure?.ToString() ?? string.Empty, sql, "JQ_SYSTEM"
+                        );
+                    }
+                    catch (Exception historyError)
+                    {
+                        if (failure == null)
+                        {
+                            throw new InvalidOperationException("PostgreSQL metadata SQL History recording failed.", historyError);
+                        }
+
+                        Trace.TraceError("PostgreSQL metadata SQL History recording failed: " + historyError);
+                    }
+                }
+            }
+        }
+
         public DataTable ExecuteQueryToDataTable(string sql, bool showAlertOnError = true)
         {
             var queryWatch = new Stopwatch();

@@ -1,6 +1,8 @@
 ﻿using IconLibrary;
 using JasonLibrary.Core;
 using JasonQuery.Core.Config;
+using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Text;
 using JasonQuery.UI.Helpers;
@@ -167,6 +169,27 @@ namespace JasonQuery.UI.Forms
 
         private void BindEditorTableMenuEvents()
         {
+            //Enforce visual disabling whenever the context menu opens, after other UI state changes.
+            _queryEditorContextMenu.Opening += (sender, e) =>
+            {
+                if (_currentSourceType == DataSourceType.Oracle || DatabaseSqlExecutor.CurrentDataSource == DataSourceType.Oracle)
+                {
+                    GetEditorMenuItem(QueryEditorColumn.TableComment).Enabled = false;
+                    GetEditorMenuItem(QueryEditorColumn.TableDrop).Enabled = false;
+                    GetEditorMenuItem(QueryEditorColumn.TableRename).Enabled = false;
+                    GetEditorMenuItem(QueryEditorColumn.TableTruncate).Enabled = false;
+                }
+            };
+
+            //Disable legacy Oracle Table DDL menu entries; this source has no authoritative owner binding.
+            if (_currentSourceType == DataSourceType.Oracle)
+            {
+                GetEditorMenuItem(QueryEditorColumn.TableComment).Enabled = false;
+                GetEditorMenuItem(QueryEditorColumn.TableDrop).Enabled = false;
+                GetEditorMenuItem(QueryEditorColumn.TableRename).Enabled = false;
+                GetEditorMenuItem(QueryEditorColumn.TableTruncate).Enabled = false;
+            }
+
             BindEditorMenuClick(QueryEditorColumn.TableComment, () => ShowEditTableFormFromEditorMenu(QueryEditorColumn.TableComment, EditTableMode.Comment, "Table Comment.ico"));
             BindEditorMenuClick(QueryEditorColumn.TableDrop, () => ShowEditTableFormFromEditorMenu(QueryEditorColumn.TableDrop, EditTableMode.Drop, "Table Drop.ico"));
             BindEditorMenuClick(QueryEditorColumn.TableRename, () => ShowEditTableFormFromEditorMenu(QueryEditorColumn.TableRename, EditTableMode.Rename, "Table Rename.ico"));
@@ -175,6 +198,12 @@ namespace JasonQuery.UI.Forms
 
         private void ShowEditTableFormFromEditorMenu(int menuIndex, EditTableMode editMode, string iconFileName)
         {
+            //The click-time gate is authoritative even if another UI path re-enables an item.
+            if (!LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(_currentSourceType, DatabaseSqlExecutor.CurrentDataSource))
+            {
+                return;
+            }
+
             using (var form = new EditTableForm())
             {
                 var payload = GetEditorObjectMenuPayload(menuIndex);

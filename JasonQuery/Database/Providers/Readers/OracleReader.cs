@@ -29,6 +29,29 @@ namespace JasonQuery.Database.Providers.Readers
         public DataTable dtQuerySchema { get; set; }
         public int QueryTimeout { get; set; }
 
+        //Bound to this OracleReader instance and its current physical connection.
+        //Never infer this value from the login field or CURRENT_SCHEMA.
+        private const string SessionUserSql = "SELECT SYS_CONTEXT('USERENV','SESSION_USER') FROM DUAL";
+        private string _verifiedSessionUser = string.Empty;
+        private Guid _verifiedConnectionId = Guid.Empty;
+
+        public string VerifiedSessionUser
+        {
+            get
+            {
+                return GetState() == ConnectionState.Open ? _verifiedSessionUser : string.Empty;
+            }
+        }
+
+        //A unique identity for each successfully verified physical connection, including reconnects as the same user.
+        public Guid VerifiedConnectionId
+        {
+            get
+            {
+                return GetState() == ConnectionState.Open && !string.IsNullOrEmpty(_verifiedSessionUser) ? _verifiedConnectionId : Guid.Empty;
+            }
+        }
+
         private OracleConnection _conn;
         private OracleTransaction _transaction;
         private OracleCommand _command;
@@ -39,6 +62,9 @@ namespace JasonQuery.Database.Providers.Readers
         public string ConnectTo()
         {
             var errorMessage = string.Empty;
+
+            _verifiedSessionUser = string.Empty;
+            _verifiedConnectionId = Guid.Empty;
 
             _conn = new OracleConnection
             {
@@ -79,7 +105,25 @@ namespace JasonQuery.Database.Providers.Readers
             try
             {
                 _conn.Open();
+
+                //Read the actual authenticated session identity on THIS connection, before the user's transaction begins; do not ALTER SESSION/COMMIT.
+                using (var identityCommand = new OracleCommand())
+                {
+                    identityCommand.Connection = _conn;
+                    identityCommand.CommandText = SessionUserSql;
+
+                    var verifiedUser = Convert.ToString(identityCommand.ExecuteScalar());
+
+                    if (string.IsNullOrWhiteSpace(verifiedUser))
+                    {
+                        throw new InvalidOperationException("Oracle SESSION_USER could not be verified.");
+                    }
+
+                    _verifiedSessionUser = verifiedUser;
+                }
+
                 _transaction = _conn.BeginTransaction(IsolationLevel.ReadCommitted);
+                _verifiedConnectionId = Guid.NewGuid();
             }
             catch (OracleException ex)
             {
@@ -97,7 +141,17 @@ namespace JasonQuery.Database.Providers.Readers
                 }
             }
 
-            return GetState() == ConnectionState.Open ? string.Empty : errorMessage;
+            if (!string.IsNullOrEmpty(errorMessage) || GetState() != ConnectionState.Open || string.IsNullOrEmpty(_verifiedSessionUser) || _transaction == null)
+            {
+                var failure = string.IsNullOrWhiteSpace(errorMessage) ? "Oracle connection or SESSION_USER verification failed." : errorMessage;
+
+                //Fail closed even when Open() succeeded but identity query/transaction failed.
+                Disconnect();
+
+                return failure;
+            }
+
+            return string.Empty;
         }
 
         public string Commit()
@@ -206,6 +260,10 @@ namespace JasonQuery.Database.Providers.Readers
 
         public bool Disconnect()
         {
+            //Clear identity before cleanup; even a dispose error cannot leave it trusted.
+            _verifiedSessionUser = string.Empty;
+            _verifiedConnectionId = Guid.Empty;
+
             var success = true;
 
             success &= TryDisposeAndClearDataReader();

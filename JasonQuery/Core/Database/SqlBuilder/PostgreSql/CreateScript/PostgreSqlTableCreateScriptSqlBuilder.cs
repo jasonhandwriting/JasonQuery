@@ -107,8 +107,12 @@ namespace JasonQuery.Core.Database.SqlBuilder.PostgreSql.CreateScript
 
             SqlTraceHelper.AppendHeader(sbSql, "---Get Table Comment Information");
 
+            //20261024 針對大小寫敏感修正寫法
+            var escapedSchemaNode = schemaNode.Replace("'", "''");
+            var escapedSchemaName = schemaName.Replace("'", "''");
+
             //20220726 取得 Table Comment Info
-            sbSql.Append($"SELECT OBJ_DESCRIPTION('{schemaNode}.{schemaName}'::regclass);");
+            sbSql.Append($"SELECT OBJ_DESCRIPTION(FORMAT('%I.%I', '{escapedSchemaNode}', '{escapedSchemaName}')::regclass, 'pg_class');");
 
             return sbSql.ToString();
         }

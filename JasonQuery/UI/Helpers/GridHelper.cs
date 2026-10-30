@@ -399,6 +399,11 @@ namespace JasonQuery.UI.Helpers
             {
                 case DataSourceType.Oracle:
                     {
+                        if (DatabaseSqlExecutor.dtSchema.Columns.Contains("OracleMetadataOwner"))
+                        {
+                            c1Grid.Splits[0].DisplayColumns["OracleMetadataOwner"].Visible = false;
+                        }
+
                         c1Grid.GroupedColumns.Add(c1Grid.Columns["SchemaObject"]);
                         c1Grid.GroupedColumns[0].GroupInfo.HeaderText = "{0}";
                         c1Grid.GroupedColumns.Add(c1Grid.Columns["SchemaType"]);

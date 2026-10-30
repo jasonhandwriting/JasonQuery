@@ -18,7 +18,7 @@ namespace JasonQuery.Core.SchemaExplorer.Selection
 
             if (request.IsExternalSelection)
             {
-                return ResolveExternalSelection(request);
+                return QualifyOracleOwnerIfRequested(request, ResolveExternalSelection(request), null);
             }
 
             if (rowReader == null)
@@ -33,10 +33,91 @@ namespace JasonQuery.Core.SchemaExplorer.Selection
 
             if (rowReader.IsGroupRow(request.DisplayRowIndex))
             {
-                return ResolveGroupRow(request, rowReader);
+                return QualifyOracleOwnerIfRequested(request, ResolveGroupRow(request, rowReader), rowReader);
             }
 
-            return ResolveDataRow(request, rowReader);
+            return QualifyOracleOwnerIfRequested(request, ResolveDataRow(request, rowReader), rowReader);
+        }
+
+        private static SchemaExplorerSelectionInfo QualifyOracleOwnerIfRequested(SchemaExplorerSelectionResolveRequest request, SchemaExplorerSelectionInfo selection, ISchemaExplorerRowReader rowReader)
+        {
+            if (request.SourceType != DataSourceType.Oracle || !request.RequireOracleOwnerIdentity || selection == null || !selection.CanDisplayObject)
+            {
+                return selection;
+            }
+
+            //G1 currently supplies authoritative row OWNER only for Tables and Views.
+            //Keep legacy behavior for other object types; B3 will not accept unqualified DDL targets.
+            if (!SchemaObjectTypeHelper.Is(selection.SchemaType, SchemaObjectNames.Tables) && !SchemaObjectTypeHelper.Is(selection.SchemaType, SchemaObjectNames.Views))
+            {
+                return selection;
+            }
+
+            var verifiedUser = request.OracleVerifiedSessionUser;
+            var metadataOwner = request.IsExternalSelection ? request.OracleMetadataOwner : ResolveOracleMetadataOwnerFromRow(request, selection, rowReader);
+
+            //Never infer OWNER from the connection form, CURRENT_SCHEMA, row caption or an uppercase transformation. Reject unknown or different identities.
+            if (string.IsNullOrWhiteSpace(verifiedUser) || string.IsNullOrWhiteSpace(metadataOwner) || !string.Equals(verifiedUser, metadataOwner, StringComparison.Ordinal))
+            {
+                selection.Kind = SchemaExplorerSelectionKind.Invalid;
+                selection.SchemaNode = string.Empty;
+                selection.OracleSelectedOwner = string.Empty;
+                selection.HasQualifiedOracleSelectedOwner = false;
+
+                return selection;
+            }
+
+            selection.OracleSelectedOwner = metadataOwner;
+            selection.HasQualifiedOracleSelectedOwner = true;
+            selection.SchemaNode = metadataOwner;
+
+            return selection;
+        }
+
+        private static string ResolveOracleMetadataOwnerFromRow(SchemaExplorerSelectionResolveRequest request, SchemaExplorerSelectionInfo selection, ISchemaExplorerRowReader rowReader)
+        {
+            if (rowReader == null || selection == null)
+            {
+                return string.Empty;
+            }
+
+            if (!selection.IsGroupRow)
+            {
+                //Read from the selected DataRow, not a caller-supplied or displayed name.
+                return GetSafeString(rowReader.GetDataRow(request.DisplayRowIndex), "OracleMetadataOwner");
+            }
+
+            //A C1 group is not a DataRow. Scan all matching metadata rows and reject zero, missing, or conflicting OWNER values (never pick the first match).
+            var table = rowReader.GetSchemaDataTable();
+
+            if (table == null || !table.Columns.Contains("OracleMetadataOwner") || !table.Columns.Contains("SchemaName") || !table.Columns.Contains("SchemaType"))
+            {
+                return string.Empty;
+            }
+
+            string exactOwner = null;
+            var matches = 0;
+
+            foreach (DataRow row in table.Rows)
+            {
+                if (!string.Equals(NormalizeBeforeSeparator(GetSafeString(row, "SchemaType")), selection.SchemaType, StringComparison.Ordinal)
+                    || !string.Equals(NormalizeBeforeSeparator(GetSafeString(row, "SchemaName")), selection.SchemaName, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var candidate = GetSafeString(row, "OracleMetadataOwner");
+
+                if (string.IsNullOrWhiteSpace(candidate) || (exactOwner != null && !string.Equals(exactOwner, candidate, StringComparison.Ordinal)))
+                {
+                    return string.Empty;
+                }
+
+                exactOwner = candidate;
+                matches++;
+            }
+
+            return matches > 0 ? exactOwner : string.Empty;
         }
 
         private static SchemaExplorerSelectionInfo ResolveExternalSelection(SchemaExplorerSelectionResolveRequest request)

@@ -10,6 +10,9 @@ namespace JasonQuery.Core.Database.DdlPreview.ColumnDefinitions
 
         public string SchemaName { get; set; }
 
+        public bool RequireOracleDdlTargetIdentity { get; set; }
+        public OracleDdlTargetIdentity OracleTargetIdentity { get; set; }
+
         public string TableName { get; set; }
 
         public ColumnDefinition Column { get; set; }

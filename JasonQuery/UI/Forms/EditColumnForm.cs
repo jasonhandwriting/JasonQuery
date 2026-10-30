@@ -3,10 +3,10 @@ using JasonLibrary.Core;
 using JasonLibrary.UI.Controls.Stylers;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Data;
-using JasonQuery.Core.Data.DataRows;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Database.DdlPreview;
 using JasonQuery.Core.Database.Execution;
+using JasonQuery.Core.Database.Metadata;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
 using JasonQuery.Core.Text;
@@ -30,6 +30,9 @@ namespace JasonQuery.UI.Forms
 
     public partial class EditColumnForm : Form
     {
+        //B3-B1 opt-in only. A qualified F7 bridge must supply authoritative metadata-owner and selection-connection identity. Legacy callers remain unchanged until B3-B2; do not treat their DbUser/SchemaName as proof.
+        internal OracleDdlTargetIdentity OracleTargetIdentity { get; set; }
+
         public string Result { get; set; } //20250204 回傳值給呼叫方，判斷是否需要更新 Schema Info
         public string SchemaDatabase { get; set; }
         public string SchemaName { get; set; }
@@ -46,6 +49,7 @@ namespace JasonQuery.UI.Forms
         private string _operationObject = string.Empty;
         private ContextMenuStrip _editorContextMenu = new ContextMenuStrip();
         private bool _isFormClosing = true;
+        private bool _commentMetadataReady = true;
 
         //20250602 簡化資料庫判斷方式
         private DataSourceType _currentSourceType;
@@ -142,7 +146,11 @@ namespace JasonQuery.UI.Forms
                     btnShowAllCharacters2.Visible = false;
                 }
 
-                tsTool.BackColor = ColorTranslator.FromHtml(MyLibrary.ColorToolstripBackground);
+                if (!MyLibrary.IsDarkMode)
+                {
+                    tsTool.BackColor = ColorTranslator.FromHtml(MyLibrary.ColorToolstripBackground);
+                }
+
                 txtNewColumnName.Tag = string.Empty;
 
                 switch (EditMode)
@@ -156,93 +164,13 @@ namespace JasonQuery.UI.Forms
 
                             var sbSql = new StringBuilder();
 
-                            SqlTraceHelper.AppendHeader(sbSql, "---Get Column Comment");
+                            _commentMetadataReady = false;
 
-                            switch (_currentSourceType)
-                            {
-                                case DataSourceType.Oracle:
-                                    {
-                                        sbSql.AppendLine("SELECT cc.Comments");
-                                        sbSql.AppendLine("  FROM User_Tab_columns ss");
-                                        sbSql.AppendLine("       LEFT JOIN User_Col_Comments cc on (ss.Column_Name = cc.Column_Name AND ss.Table_Name = cc.Table_Name)");
-                                        sbSql.AppendLine(" WHERE ss.Table_Name IN (SELECT Object_Name FROM All_Objects WHERE Object_Type IN ('TABLE')");
-                                        sbSql.AppendLine($"   AND UPPER(Owner) = '{(SchemaName ?? string.Empty).ToUpperInvariant()}')");
-                                        sbSql.AppendLine($"   AND ss.Table_Name = '{TableName}'");
-                                        sbSql.Append($"   AND ss.Column_Name = '{ColumnName}'");
-
-                                        var sql = sbSql.ToString();
-                                        var dtData = MyGlobal.OracleReader.ExecuteQueryToDataTable(sql, false);
-
-                                        if (dtData?.Rows.Count > 0)
-                                        {
-                                            _columnComment = dtData.Rows[0].GetSafeString("Comments");
-                                        }
-
-                                        break;
-                                    }
-                                case DataSourceType.PostgreSql:
-                                    {
-                                        sbSql.AppendLine("SELECT (pg_catalog.COL_DESCRIPTION((Table_Schema || '.' || Table_Name)::regclass::oid, Ordinal_Position::int)) AS Comments");
-                                        sbSql.AppendLine("  FROM Information_Schema.Columns cols");
-                                        sbSql.AppendLine($" WHERE cols.Table_Schema = '{SchemaName}'");
-                                        sbSql.AppendLine($"   AND cols.Table_Name = '{TableName}'");
-                                        sbSql.Append($"   AND cols.Column_Name = '{ColumnName}'");
-
-                                        var sql = sbSql.ToString();
-                                        var dtData = MyGlobal.PostgreSqlReader.ExecuteQueryToDataTable(sql, false);
-
-                                        if (dtData?.Rows.Count > 0)
-                                        {
-                                            _columnComment = dtData.Rows[0].GetSafeString("Comments");
-                                        }
-
-                                        break;
-                                    }
-                                case DataSourceType.SqlServer:
-                                    {
-                                        sbSql.AppendLine("SELECT c.Name AS Column_Name, prop.Value AS Comments");
-                                        sbSql.AppendLine($"  FROM {SchemaDatabase}.sys.Extended_Properties AS prop");
-                                        sbSql.AppendLine($"       INNER JOIN {SchemaDatabase}.sys.All_Objects o ON prop.Major_ID = o.Object_ID");
-                                        sbSql.AppendLine($"       INNER JOIN {SchemaDatabase}.sys.Schemas s ON o.Schema_ID = s.Schema_ID");
-                                        sbSql.AppendLine($"       INNER JOIN {SchemaDatabase}.sys.Columns AS c ON prop.Major_ID = c.Object_ID AND prop.Minor_ID = c.Column_ID");
-                                        sbSql.AppendLine(" WHERE prop.Name = 'MS_Description'");
-                                        sbSql.AppendLine($"   AND s.Name = '{SchemaName}'");
-                                        sbSql.AppendLine($"   AND o.Name = '{TableName.Replace("{sSchemaName}.", string.Empty)}'");
-                                        sbSql.Append($"   AND c.Name = '{ColumnName}'");
-
-                                        var sql = sbSql.ToString();
-                                        var dtData = MyGlobal.SqlServerReader.ExecuteQueryToDataTable(sql, false);
-
-                                        if (dtData?.Rows.Count > 0)
-                                        {
-                                            _columnComment = dtData.Rows[0].GetSafeString("Comments");
-                                            txtNewColumnName.Tag = "NOTNULL"; //判斷註解狀態：空值代表 add；其餘代表 update (只有 SQL Server 變更註解時要判斷它是 add/update)
-                                        }
-
-                                        break;
-                                    }
-                                case DataSourceType.MySql:
-                                    {
-                                        sbSql.AppendLine("SELECT Column_Comment AS Comments");
-                                        sbSql.AppendLine("  FROM Information_Schema.Columns");
-                                        sbSql.AppendLine($" WHERE Table_Schema = '{SchemaDatabase}'");
-                                        sbSql.AppendLine($"   AND Table_Name = '{TableName}'");
-                                        sbSql.Append($"   AND Column_Name = '{ColumnName}';");
-
-                                        var sql = sbSql.ToString();
-                                        var dtData = MyGlobal.MySqlReader.ExecuteQueryToDataTable(sql, false);
-
-                                        if (dtData?.Rows.Count > 0)
-                                        {
-                                            _columnComment = dtData.Rows[0].GetSafeString("Comments");
-                                        }
-
-                                        break;
-                                    }
-                            }
-
+                            LoadCommentMetadata();
                             txtComment.Tag = _columnComment; //必須先指定 Tag (事件觸發時，Tag 才不會為 null)
                             txtComment.Text = _columnComment;
+                            _commentMetadataReady = true;
+
                             break;
                         }
                     case EditColumnMode.Drop:
@@ -263,6 +191,7 @@ namespace JasonQuery.UI.Forms
                             txtColumnName_Rename.Text = ColumnName;
                             txtNewColumnName.Text = ColumnName;
                             _operationObject = lblRenameInfo.Text;
+
                             break;
                         }
                     case EditColumnMode.Add:
@@ -270,6 +199,7 @@ namespace JasonQuery.UI.Forms
                             tabColumn.SelectedTab = tabAdd;
                             Text += $" - {lblAddInfo.Text.Replace("...", string.Empty)}";
                             _operationObject = lblAddInfo.Text;
+
                             PrepareAddColumnEditor();
 
                             break;
@@ -280,6 +210,14 @@ namespace JasonQuery.UI.Forms
             }
             catch (Exception ex)
             {
+                if (EditMode == EditColumnMode.Comment)
+                {
+                    _commentMetadataReady = false;
+                    txtComment.Enabled = false;
+                    UpdateSqlPreviewText(string.Empty);
+                    btnExecute.Enabled = false;
+                }
+
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -301,10 +239,106 @@ namespace JasonQuery.UI.Forms
             JasonQueryRepository.UpdateSetting("GlobalConfig", "EditColumnFormHeight", Size.Height.ToString());
         }
 
+        private bool TryRefreshOracleTarget(out OracleDdlTargetIdentity verified)
+        {
+            verified = null;
+
+            var reader = MyGlobal.OracleReader;
+
+            return DatabaseSqlExecutor.CurrentDataSource == DataSourceType.Oracle && reader != null && OracleDdlGuiGate.TryRefresh(OracleTargetIdentity, reader.VerifiedSessionUser, reader.VerifiedConnectionId, out verified);
+        }
+
+        private string GetCommentMetadataOwner()
+        {
+            if (!IsOracle || OracleTargetIdentity == null)
+            {
+                return SchemaName;
+            }
+
+            if (!TryRefreshOracleTarget(out var verified))
+            {
+                throw new InvalidOperationException("Oracle DDL target identity is not current. Comment metadata is blocked.");
+            }
+
+            return "\"" + verified.MetadataOwner.Replace("\"", "\"\"") + "\"";
+        }
+
+        private void LoadCommentMetadata()
+        {
+            var request = new MetadataCommentQueryRequest
+            {
+                DataSourceType = _currentSourceType,
+                ObjectKind = MetadataCommentObjectKind.Column,
+                SchemaDatabase = SchemaDatabase,
+                SchemaName = GetCommentMetadataOwner(),
+                TableName = TableName,
+                ColumnName = ColumnName
+            };
+
+            var metadataSql = MetadataCommentQueryBuilder.Build(request);
+
+            if (string.IsNullOrWhiteSpace(metadataSql))
+            {
+                throw new InvalidOperationException("Column comment metadata identity is invalid. DDL execution is blocked.");
+            }
+
+            var sbSql = new StringBuilder();
+
+            SqlTraceHelper.AppendHeader(sbSql, "---Get Column Comment");
+            sbSql.Append(metadataSql);
+
+            var sql = sbSql.ToString();
+
+            System.Data.DataTable dtData;
+
+            switch (_currentSourceType)
+            {
+                case DataSourceType.Oracle:
+                    {
+                        dtData = MyGlobal.OracleReader.ExecuteQueryToDataTable(sql, false);
+                        break;
+                    }
+                case DataSourceType.PostgreSql:
+                    {
+                        //D1-A: preserve the dedicated metadata savepoint path.
+                        dtData = MyGlobal.PostgreSqlReader.ExecuteMetadataQueryToDataTable(sql);
+                        break;
+                    }
+                case DataSourceType.SqlServer:
+                    {
+                        dtData = MyGlobal.SqlServerReader.ExecuteQueryToDataTable(sql, false);
+                        break;
+                    }
+                case DataSourceType.MySql:
+                    {
+                        dtData = MyGlobal.MySqlReader.ExecuteQueryToDataTable(sql, false);
+                        break;
+                    }
+                default:
+                    {
+                        throw new InvalidOperationException("Unsupported metadata provider. DDL execution is blocked.");
+                    }
+            }
+
+            if (!MetadataCommentQualificationPolicy.TryQualify(dtData, out var metadata))
+            {
+                throw new InvalidOperationException("Column comment metadata did not identify exactly one valid object. DDL execution is blocked.");
+            }
+
+            _columnComment = metadata.Comment;
+            txtNewColumnName.Tag = metadata.HasExistingComment ? "NOTNULL" : string.Empty;
+        }
+
         private void txtComment_TextChanged(object sender, EventArgs e)
         {
             try
             {
+                if (!_commentMetadataReady)
+                {
+                    UpdateSqlPreviewText(string.Empty);
+                    return;
+                }
+
                 if (txtComment.Text == TextHelper.GetSafeString(txtComment.Tag))
                 {
                     UpdateSqlPreviewText("");
@@ -316,6 +350,13 @@ namespace JasonQuery.UI.Forms
             }
             catch (Exception ex)
             {
+                _commentMetadataReady = false;
+                txtComment.Enabled = false;
+
+                UpdateSqlPreviewText(string.Empty);
+
+                btnExecute.Enabled = false;
+
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -347,6 +388,11 @@ namespace JasonQuery.UI.Forms
 
         private string BuildColumnDdlSql(ColumnDdlOperation operation)
         {
+            if (operation == ColumnDdlOperation.Comment && !_commentMetadataReady)
+            {
+                return string.Empty;
+            }
+
             var columnName = ColumnName;
 
             switch (operation)
@@ -373,12 +419,21 @@ namespace JasonQuery.UI.Forms
                     }
             }
 
+            OracleDdlTargetIdentity validatedTarget = null;
+
+            if (IsOracle && OracleTargetIdentity != null && !TryRefreshOracleTarget(out validatedTarget))
+            {
+                return string.Empty;
+            }
+
             var request = new ColumnDdlRequest
             {
                 DataSourceType = _currentSourceType,
                 Operation = operation,
                 SchemaDatabase = SchemaDatabase,
                 SchemaName = SchemaName,
+                RequireOracleDdlTargetIdentity = IsOracle && OracleTargetIdentity != null,
+                OracleTargetIdentity = validatedTarget,
                 TableName = TableName,
                 ColumnName = columnName,
                 NewColumnName = txtNewColumnName.Text,
@@ -400,15 +455,19 @@ namespace JasonQuery.UI.Forms
 
         private void editorSqlPreview_TextChanged(object sender, EventArgs e)
         {
-            btnExecute.Enabled = !string.IsNullOrEmpty(editorSqlPreview.Text);
+            btnExecute.Enabled = _commentMetadataReady && !string.IsNullOrEmpty(editorSqlPreview.Text);
         }
 
         private void ApplyLocalizedFormSettings()
         {
-            LocalizationHelper.ApplyLanguageInfo(this);
+            LocalizationHelper.ApplyLanguageInfo(this, false);
 
-            //ApplyLanguageInfo 會將一般 Label 的 ForeColor 統一套用為標準前景色，
-            //因此這些具有特殊提示語意的 Label 必須在語系套用後恢復指定顏色。
+            //根據目前資料庫類型，載入對應的交易安全提示
+            var prompt2Id = $"lblPrompt2_{_currentSourceType}";
+
+            lblPrompt2.Text = LocalizationHelper.GetLanguageString(lblPrompt2.Text, "form", GetType().Name, "object", prompt2Id, "Text");
+
+            //ApplyLanguageInfo 會將一般 Label 的 ForeColor 統一套用為標準前景色，因此這些具有特殊提示語意的 Label 必須在語系套用後恢復指定顏色。
             ApplySpecialLabelColors();
             ApplyLocalizedControlLayout();
         }
@@ -538,24 +597,66 @@ namespace JasonQuery.UI.Forms
 
             editorSqlPreview.ContextMenuStrip = _editorContextMenu;
 
-            if (MyLibrary.IsDarkMode)
-            {
-                _editorContextMenu.BackColor = ColorTranslator.FromHtml("#2D2D30");
-                _editorContextMenu.ForeColor = Color.White;
-                _editorContextMenu.RenderMode = ToolStripRenderMode.System;
-            }
-
             _editorContextMenu.Show(editorSqlPreview, new Point(e.X, e.Y));
         }
 
         private void btnExecute_Click(object sender, EventArgs e)
         {
+            if (!_commentMetadataReady)
+            {
+                return; //Fail-closed: unqualified Comment metadata cannot execute DDL.
+            }
+
             var errorMessage = string.Empty;
             var hasPendingTransactionAfterExecute = false;
             var isTransactionClosedBySqlCommand = false;
 
             try
             {
+                if (IsOracle && OracleTargetIdentity != null)
+                {
+                    ColumnDdlOperation operation = ColumnDdlOperation.None;
+
+                    switch (EditMode)
+                    {
+                        case EditColumnMode.Comment:
+                            {
+                                operation = ColumnDdlOperation.Comment;
+                                break;
+                            }
+                        case EditColumnMode.Drop:
+                            {
+                                operation = ColumnDdlOperation.Drop;
+                                break;
+                            }
+                        case EditColumnMode.Rename:
+                            {
+                                operation = ColumnDdlOperation.Rename;
+                                break;
+                            }
+                        case EditColumnMode.Add:
+                            {
+                                operation = ColumnDdlOperation.Add;
+                                break;
+                            }
+                    }
+
+                    var rebuiltSql = BuildColumnDdlSql(operation);
+                    var reader = MyGlobal.OracleReader;
+                    var sessionUser = reader?.VerifiedSessionUser;
+                    var connectionId = reader?.VerifiedConnectionId ?? Guid.Empty;
+
+                    if (!OracleDdlGuiGate.CanExecute(OracleTargetIdentity, sessionUser, connectionId, editorSqlPreview.Text, rebuiltSql))
+                    {
+                        //Fail closed if the connection changed after Preview, or the displayed SQL no longer matches the rebuilt SQL.
+                        UpdateSqlPreviewText(string.Empty);
+
+                        btnExecute.Enabled = false;
+
+                        return;
+                    }
+                }
+
                 switch (_currentSourceType)
                 {
                     case DataSourceType.Oracle:
@@ -609,11 +710,11 @@ namespace JasonQuery.UI.Forms
                 }
 
                 var completionDecision = DdlExecutionCompletionPolicy.Evaluate
-                                         (
-                                             errorMessage,
-                                             hasPendingTransactionAfterExecute,
-                                             isTransactionClosedBySqlCommand
-                                         );
+                (
+                    errorMessage,
+                    hasPendingTransactionAfterExecute,
+                    isTransactionClosedBySqlCommand
+                );
 
                 var note = string.Empty;
 
@@ -655,9 +756,7 @@ namespace JasonQuery.UI.Forms
                         SetAddColumnEditorEnabled(false);
                     }
 
-                    var message = EditMode == EditColumnMode.Add
-                                  ? GetAddColumnExecutionMessage(true)
-                                  : LocalizationHelper.GetLanguageString("", "form", GetType().Name, "msg", $"{EditMode}OK", "Text").Replace("{0}", ColumnName).Replace("{1}", txtNewColumnName.Text);
+                    var message = EditMode == EditColumnMode.Add ? GetAddColumnExecutionMessage(true) : LocalizationHelper.GetLanguageString("", "form", GetType().Name, "msg", $"{EditMode}OK", "Text").Replace("{0}", ColumnName).Replace("{1}", txtNewColumnName.Text);
 
                     MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -665,9 +764,7 @@ namespace JasonQuery.UI.Forms
                 {
                     resultExecuted = "Error";
 
-                    var message = EditMode == EditColumnMode.Add
-                                  ? GetAddColumnExecutionMessage(false)
-                                  : LocalizationHelper.GetLanguageString("", "form", GetType().Name, "msg", $"{EditMode}NG", "Text").Replace("{0}", ColumnName).Replace("{1}", txtNewColumnName.Text);
+                    var message = EditMode == EditColumnMode.Add ? GetAddColumnExecutionMessage(false) : LocalizationHelper.GetLanguageString("", "form", GetType().Name, "msg", $"{EditMode}NG", "Text").Replace("{0}", ColumnName).Replace("{1}", txtNewColumnName.Text);
 
                     MessageBox.Show($"{message}\r\n\r\n{errorMessage}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }

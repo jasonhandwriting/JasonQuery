@@ -1,5 +1,4 @@
 ﻿using C1.Win.C1TrueDBGrid;
-using JasonLibrary.Core.Text;
 using JasonQuery.Core.Text;
 using JasonQuery.UI.Helpers;
 using System;
@@ -56,6 +55,15 @@ namespace JasonQuery.UI.Forms
             }
 
             //20241208 透過主表單切換到指定的頁籤
+            //Prefer typed MainForm navigation; retain the legacy event for non-MDI hosts.
+            var navigator = MdiParent as LeftPanel.IWorkspaceTabNavigator;
+
+            if (navigator != null)
+            {
+                navigator.TryActivateTab(accessibleDescription);
+                return;
+            }
+
             TransferValueToMainForm($"DoubleClickToSwitchTab`{accessibleDescription}");
         }
 

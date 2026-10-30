@@ -81,6 +81,7 @@ namespace JasonQuery.UI.Forms
         public MainForm()
         {
             InitializeComponent();
+            InitializeSharedLeftPanelHost();
         }
 
         private void InitializePendingTransactionStatus()
@@ -1410,16 +1411,20 @@ namespace JasonQuery.UI.Forms
                 picArrow.Visible = true;
                 lblPrompt4NewConnection.Visible = true;
 
-                //20250413
                 tabControl1.Visible = false;
+                splitContainerMainWorkspace.Visible = false;
             }
             else
             {
                 //20250413 提示訊息
                 pnlArrow.Visible = false;
 
-                //20250413
                 tabControl1.Visible = true;
+                splitContainerMainWorkspace.Visible = true;
+
+                //The shared left workspace belongs to MainForm, not to the selected right-hand Tab.
+                RefreshSharedLeftPanelHostState();
+                RestoreSharedWorkspaceSplitterDistance();
 
                 using (TraceLogger.Time("Load Default Setting"))
                 {
@@ -2520,6 +2525,7 @@ namespace JasonQuery.UI.Forms
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            DisposeSharedLeftPanelHost();
             SystemEvents.SessionEnding -= SystemEvents_SessionEnding;
             MessageBoxManager.Unregister();
         }
@@ -4266,7 +4272,11 @@ namespace JasonQuery.UI.Forms
                     }
                     catch (Exception ex)
                     {
-                        var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
+                        var root = ex.GetBaseException();
+
+                        var message = $"Root Exception: {root.GetType().FullName}\r\n"
+                                      + $"Root Message: {root.Message}\r\n\r\n"
+                                      + ex.ToString();
 
                         MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     }

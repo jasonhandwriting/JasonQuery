@@ -12,6 +12,10 @@ namespace JasonQuery.Core.Database.DdlPreview
 
         public string SchemaName { get; set; }
 
+        // Opt-in only: legacy GUI callers remain unchanged until the B3 Execute gate.
+        public bool RequireOracleDdlTargetIdentity { get; set; }
+        public OracleDdlTargetIdentity OracleTargetIdentity { get; set; }
+
         public string TableName { get; set; }
 
         public string NewTableName { get; set; }

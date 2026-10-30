@@ -1,12 +1,14 @@
-﻿using C1.Win.C1TrueDBGrid;
-using IconLibrary;
-using C1.Win.C1Command;
+﻿using C1.Win.C1Command;
 using C1.Win.C1Input;
-using JasonLibrary.Core;
+using C1.Win.C1TrueDBGrid;
+using IconLibrary;
 using JasonLibrary.UI.Controls;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Data.DataRows;
+using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Database.CreateScript.PostgreSql;
 using JasonQuery.Core.Database.Execution;
+using JasonQuery.Core.Database.Metadata;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
 using JasonQuery.Database.Internal.Repositories;
@@ -18,9 +20,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using JasonQuery.Core.Database.Connection;
-using JasonQuery.Core.Database.Metadata;
-using JasonQuery.Core.Database.CreateScript.PostgreSql;
 
 namespace JasonQuery.UI.Helpers
 {
@@ -51,14 +50,14 @@ namespace JasonQuery.UI.Helpers
             }
         }
 
-        public static void SetC1TextBoxText(C1TextBox c1Text, string sText)
+        public static void SetC1TextBoxText(C1TextBox c1Text, string text)
         {
             var bVisible = c1Text.Visible;
 
             try
             {
                 c1Text.Visible = true;
-                c1Text.Text = sText;
+                c1Text.Text = text;
                 c1Text.Visible = bVisible;
             }
             catch (Exception ex)
@@ -67,7 +66,7 @@ namespace JasonQuery.UI.Helpers
             }
         }
 
-        public static void SetC1ComboboxTextIgnoreVisible(C1ComboBox c1Text, string sText)
+        public static void SetC1ComboboxTextIgnoreVisible(C1ComboBox c1Text, string text)
         {
             var bEnable = c1Text.Enabled;
             var bVisible = c1Text.Visible;
@@ -81,12 +80,12 @@ namespace JasonQuery.UI.Helpers
                 try
                 {
                     c1Text.DropDownStyle = DropDownStyle.Default;
-                    c1Text.Text = sText;
+                    c1Text.Text = text;
                 }
                 catch (Exception)
                 {
                     c1Text.DropDownStyle = DropDownStyle.DropDownList;
-                    c1Text.Text = sText;
+                    c1Text.Text = text;
                 }
 
                 c1Text.DropDownStyle = dStyle;
@@ -184,13 +183,11 @@ namespace JasonQuery.UI.Helpers
 
         public static void GenerateRightMenuForCopyOnly(bool isFromSchemaBrowser, ContextMenuStrip schemaBrowserContextMenu, C1TrueDBGrid c1Grid, ScintillaEditor editor, string title1, string title2, string schemaName, int x, int y, bool isExtraPaste = true, string schemaNode = "", string tableName = "", string columnType = "", string databaseName = "", string schemaType = "", string packageSpecBody = "", string schemaDbo = "")
         {
-            var i = 0;
+            var legacyDdlMenuSource = DatabaseSqlExecutor.CurrentDataSource;
             var languageText = string.Empty;
+            var headerItem = schemaBrowserContextMenu.Items.Add(schemaName);
 
-            schemaBrowserContextMenu.Items.Add(schemaName);
-            schemaBrowserContextMenu.Items[i].Enabled = false;
-
-            i++;
+            headerItem.Enabled = false;
             schemaBrowserContextMenu.Items.Add("-");
 
             if (!isExtraPaste)
@@ -199,40 +196,40 @@ namespace JasonQuery.UI.Helpers
                 {
                     //20250917 加上 Show Create Script 功能表
                     languageText = LocalizationHelper.GetLanguageString("Show DDL Statement", "Global", "Global", "msg", "ShowDDL", "Text");
-                    schemaBrowserContextMenu.Items.Add(languageText);
 
-                    i++;
+                    var ddlItem = new ToolStripMenuItem(languageText);
 
-                    var currentItem = schemaBrowserContextMenu.Items[i];
-
-                    currentItem.AccessibleDescription = $"{schemaType};{schemaName};{schemaNode};{schemaDbo};{packageSpecBody}";
-
-                    currentItem.Click += delegate (object sender, EventArgs e)
+                    ddlItem.Click += delegate
                     {
-                        var item = (ToolStripItem)sender;
-                        var parts = item.AccessibleDescription.Split(new[] { ";" }, StringSplitOptions.None);
-
-                        ShowDDL(parts[0], parts[1], parts[2], parts[3], parts[4]);
+                        ShowDDL(schemaType, schemaName, schemaNode, schemaDbo, packageSpecBody);
                     };
 
-                    schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Show SQL Statement 16x16.ico");
+                    ddlItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Show SQL Statement 16x16.ico");
 
-                    i++;
+                    schemaBrowserContextMenu.Items.Add(ddlItem);
                     schemaBrowserContextMenu.Items.Add("-");
                 }
             }
-            else
+            else if (SchemaObjectTypeHelper.Is(schemaType, SchemaObjectNames.Tables)) //20261024 加判是否為 Table
             {
                 var temp01 = LocalizationHelper.GetLanguageString("Add Column...", "form", "EditColumnForm", "object", "AddColumn", "Text");
 
                 //20241116 針對欄位，新增 Comment/Drop/Rename 功能表
                 languageText = $"{temp01}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                i++;
+                var addColumnItem = new ToolStripMenuItem(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                //Legacy Oracle ColumnInfo captions do not establish a trusted DDL identity.
+                addColumnItem.Enabled = LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource);
+
+                addColumnItem.Click += delegate
                 {
+                    //Recheck at click time, including same-user reconnect/provider switch.
+                    if (!LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource))
+                    {
+                        return;
+                    }
+
                     using (var form = new EditColumnForm())
                     {
                         form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Column Add.ico");
@@ -250,16 +247,26 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Column Add.ico");
+                addColumnItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Column Add.ico");
+
+                schemaBrowserContextMenu.Items.Add(addColumnItem);
 
                 temp01 = LocalizationHelper.GetLanguageString("Comment Column...", "form", "EditColumnForm", "object", "CommentColumn", "Text");
                 languageText = $"{temp01}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                i++;
+                var commentColumnItem = new ToolStripMenuItem(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                //Legacy Oracle ColumnInfo captions do not establish a trusted DDL identity.
+                commentColumnItem.Enabled = LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource);
+
+                commentColumnItem.Click += delegate
                 {
+                    //Recheck at click time, including same-user reconnect/provider switch.
+                    if (!LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource))
+                    {
+                        return;
+                    }
+
                     using (var form = new EditColumnForm())
                     {
                         form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Column Comment.ico");
@@ -277,16 +284,26 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Column Comment.ico");
+                commentColumnItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Column Comment.ico");
+
+                schemaBrowserContextMenu.Items.Add(commentColumnItem);
 
                 temp01 = LocalizationHelper.GetLanguageString("Drop Column...", "form", "EditColumnForm", "object", "DropColumn", "Text");
                 languageText = $"{temp01}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                i++;
+                var dropColumnItem = new ToolStripMenuItem(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                //Legacy Oracle ColumnInfo captions do not establish a trusted DDL identity.
+                dropColumnItem.Enabled = LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource);
+
+                dropColumnItem.Click += delegate
                 {
+                    //Recheck at click time, including same-user reconnect/provider switch.
+                    if (!LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource))
+                    {
+                        return;
+                    }
+
                     using (var form = new EditColumnForm())
                     {
                         form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Column Drop.ico");
@@ -311,16 +328,26 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Column Drop.ico");
+                dropColumnItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Column Drop.ico");
+
+                schemaBrowserContextMenu.Items.Add(dropColumnItem);
 
                 temp01 = LocalizationHelper.GetLanguageString("Rename Column...", "form", "EditColumnForm", "object", "RenameColumn", "Text");
                 languageText = $"{temp01}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                i++;
+                var renameColumnItem = new ToolStripMenuItem(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                //Legacy Oracle ColumnInfo captions do not establish a trusted DDL identity.
+                renameColumnItem.Enabled = LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource);
+
+                renameColumnItem.Click += delegate
                 {
+                    //Recheck at click time, including same-user reconnect/provider switch.
+                    if (!LegacyOracleDdlEntryPolicy.CanOpenStructuralDdl(legacyDdlMenuSource, DatabaseSqlExecutor.CurrentDataSource))
+                    {
+                        return;
+                    }
+
                     using (var form = new EditColumnForm())
                     {
                         form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Column Rename.ico");
@@ -345,29 +372,27 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Column Rename.ico");
+                renameColumnItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Column Rename.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(renameColumnItem);
                 schemaBrowserContextMenu.Items.Add("-");
             }
 
-            schemaBrowserContextMenu.Items.Add(title1); //Copy to Clipboard
+            var copyItem = new ToolStripMenuItem(title1); //Copy to Clipboard
 
-            i++;
-
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            copyItem.Click += delegate
             {
                 Clipboard.SetDataObject(schemaName, false);
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.C;
+            copyItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
+            copyItem.ShortcutKeys = Keys.Control | Keys.C;
 
-            schemaBrowserContextMenu.Items.Add(title2); //Paste to Query Editor
+            schemaBrowserContextMenu.Items.Add(copyItem);
 
-            i++;
+            var pasteItem = new ToolStripMenuItem(title2); //Paste to Query Editor
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            pasteItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -385,19 +410,21 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Alt | Keys.V;
+            pasteItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
+            pasteItem.ShortcutKeys = Keys.Control | Keys.Alt | Keys.V;
+
+            schemaBrowserContextMenu.Items.Add(pasteItem);
 
             if (isExtraPaste)
             {
-                var sText = LocalizationHelper.GetLanguageString("(Double-Click to quickly paste)", "form", "QueryForm", "msg", "DoubleClickPaste", "Text");
+                var text = LocalizationHelper.GetLanguageString("(Double-Click to quickly paste)", "form", "QueryForm", "msg", "DoubleClickPaste", "Text");
 
-                sText = isFromSchemaBrowser ? string.Empty : $"  {sText}";
-                schemaBrowserContextMenu.Items.Add($"{title2} + \", \"{sText}"); //Paste to Query Editor + ", "
+                text = isFromSchemaBrowser ? string.Empty : $"  {text}";
 
-                i++;
+                //Paste to Query Editor + ", "
+                var pasteCommaItem = new ToolStripMenuItem($"{title2} + \", \"{text}");
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                pasteCommaItem.Click += delegate
                 {
                     if (isFromSchemaBrowser)
                     {
@@ -415,13 +442,13 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Shift | Keys.V;
+                pasteCommaItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.V;
+                schemaBrowserContextMenu.Items.Add(pasteCommaItem);
 
-                schemaBrowserContextMenu.Items.Add($"{title2} + \", \\r\\n\""); //Paste to Query Editor + ", \r\n"
+                //Paste to Query Editor + ", \r\n"
+                var pasteCommaNewLineItem = new ToolStripMenuItem($"{title2} + \", \\r\\n\"");
 
-                i++;
-
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                pasteCommaNewLineItem.Click += delegate
                 {
                     if (isFromSchemaBrowser)
                     {
@@ -439,13 +466,13 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Alt | Keys.Shift | Keys.V;
+                pasteCommaNewLineItem.ShortcutKeys = Keys.Alt | Keys.Shift | Keys.V;
+                schemaBrowserContextMenu.Items.Add(pasteCommaNewLineItem);
 
-                schemaBrowserContextMenu.Items.Add($"{title2} + \"\\r\\n\""); //Paste to Query Editor + "\r\n"
+                //Paste to Query Editor + "\r\n"
+                var pasteNewLineItem = new ToolStripMenuItem($"{title2} + \"\\r\\n\"");
 
-                i++;
-
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                pasteNewLineItem.Click += delegate
                 {
                     if (isFromSchemaBrowser)
                     {
@@ -463,18 +490,11 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Alt | Keys.Shift | Keys.V;
+                pasteNewLineItem.ShortcutKeys = Keys.Control | Keys.Alt | Keys.Shift | Keys.V;
+                schemaBrowserContextMenu.Items.Add(pasteNewLineItem);
             }
 
             c1Grid.ContextMenuStrip = schemaBrowserContextMenu;
-
-            if (MyLibrary.IsDarkMode)
-            {
-                schemaBrowserContextMenu.BackColor = ColorTranslator.FromHtml("#2D2D30");
-                schemaBrowserContextMenu.ForeColor = Color.White;
-                schemaBrowserContextMenu.RenderMode = ToolStripRenderMode.System;
-                //cMenuSchemaBrowser.ShowImageMargin = false;
-            }
 
             schemaBrowserContextMenu.Show(c1Grid, new Point(x, y));
         }
@@ -541,111 +561,76 @@ namespace JasonQuery.UI.Helpers
             }
         }
 
-        public static void GenerateRightMenuForCopyOnly_SchemaBrowser(ContextMenuStrip cMenuSchemaBrowser, C1TrueDBGrid c1Grid, string sTitle1, string sTitle2, string sName, int iX, int iY)
+        public static void GenerateRightMenuForCopyOnly_SchemaBrowser(ContextMenuStrip schemaBrowserMenu, C1TrueDBGrid c1Grid, string title1, string title2, string name, int x, int y)
         {
-            var i = 0;
+            var headerItem = schemaBrowserMenu.Items.Add(name);
 
-            cMenuSchemaBrowser.Items.Add(sName);
-            cMenuSchemaBrowser.Items[i].Enabled = false;
+            headerItem.Enabled = false;
+            schemaBrowserMenu.Items.Add("-");
 
-            i++;
-            cMenuSchemaBrowser.Items.Add("-");
+            var copyItem = new ToolStripMenuItem(title1); //Copy to Clipboard
 
-            cMenuSchemaBrowser.Items.Add(sTitle1); //Copy to Clipboard
-
-            i++;
-
-            cMenuSchemaBrowser.Items[i].Click += delegate
+            copyItem.Click += delegate
             {
-                Clipboard.SetDataObject(sName, false);
+                Clipboard.SetDataObject(name, false);
             };
 
-            cMenuSchemaBrowser.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
+            copyItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
+            schemaBrowserMenu.Items.Add(copyItem);
 
-            cMenuSchemaBrowser.Items.Add($"{sTitle2} + \"\\r\\n\""); //Paste to Query Editor + "\r\n"
+            var pasteNewLineItem = new ToolStripMenuItem($"{title2} + \"\\r\\n\""); //Paste to Query Editor + "\r\n"
 
-            i++;
-
-            cMenuSchemaBrowser.Items[i].Click += delegate
+            pasteNewLineItem.Click += delegate
             {
-                Clipboard.SetDataObject($"{sName}\r\n", false);
-                MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`{sName}";
+                Clipboard.SetDataObject($"{name}\r\n", false);
+                MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`{name}";
             };
 
-            cMenuSchemaBrowser.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
-            ((ToolStripMenuItem)cMenuSchemaBrowser.Items[i]).ShortcutKeys = Keys.Control | Keys.Alt | Keys.Shift | Keys.V;
+            pasteNewLineItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
+            pasteNewLineItem.ShortcutKeys = Keys.Control | Keys.Alt | Keys.Shift | Keys.V;
 
-            c1Grid.ContextMenuStrip = cMenuSchemaBrowser;
+            schemaBrowserMenu.Items.Add(pasteNewLineItem);
 
-            if (MyLibrary.IsDarkMode)
-            {
-                cMenuSchemaBrowser.BackColor = ColorTranslator.FromHtml("#2D2D30");
-                cMenuSchemaBrowser.ForeColor = Color.White;
-                cMenuSchemaBrowser.RenderMode = ToolStripRenderMode.System;
-            }
+            c1Grid.ContextMenuStrip = schemaBrowserMenu;
 
-            cMenuSchemaBrowser.Show(c1Grid, new Point(iX, iY));
+            schemaBrowserMenu.Show(c1Grid, new Point(x, y));
         }
 
         public static void GenerateRightMenuForCopy_Oracle(bool isFromSchemaBrowser, C1TrueDBGrid c1GridSchemaBrowser, ContextMenuStrip schemaBrowserContextMenu, ScintillaEditor editor, string accessibleDescription, string schemaType, string title1, string title2, string schemaName, int x, int y, string packageSpecBody = "")
         {
-            var i = 0;
             var languageText = string.Empty;
+            var headerItem = schemaBrowserContextMenu.Items.Add(schemaName);
 
-            schemaBrowserContextMenu.Items.Add(schemaName);
-            schemaBrowserContextMenu.Items[i].Enabled = false;
-
-            i++;
+            headerItem.Enabled = false;
             schemaBrowserContextMenu.Items.Add("-");
 
             if (!isFromSchemaBrowser)
             {
                 //20250917 加上 Show Create Script 功能表
                 languageText = LocalizationHelper.GetLanguageString("Show DDL Statement", "Global", "Global", "msg", "ShowDDL", "Text");
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                i++;
+                var ddlItem = new ToolStripMenuItem(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                ddlItem.Click += delegate
                 {
-                    try
-                    {
-                        using (var form = new SqlStatementViewerForm())
-                        {
-                            form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Show SQL Statement 16x16.ico");
-                            form.Title = LocalizationHelper.GetLanguageString("DDL Statement Viewer", "Global", "Global", "msg", "DDLViewer", "Text");
-                            form.SchemaType = schemaType;
-                            form.SchemaName = schemaName;
-                            form.CellText = DatabaseSqlExecutor.GetCreateScript_Oracle(schemaType, schemaName.ToUpper(), "sPackageSpecBody");
-
-                            var (formWidth, formHeight) = UIHelper.GetFormWidthHeightSettings(MyGlobal.DomainUser, "SQLStatementViewerFormWidth", "SQLStatementViewerFormHeight", defaultWidth: form.ClientSize.Width, defaultHeight: form.ClientSize.Height);
-
-                            form.ClientSize = new Size(formWidth - 16, formHeight - 38);
-                            form.ShowDialog();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
-
-                        MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                    }
+                    ShowDDL(schemaType, schemaName, string.Empty, string.Empty, packageSpecBody);
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Show SQL Statement 16x16.ico");
+                ddlItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Show SQL Statement 16x16.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(ddlItem);
                 schemaBrowserContextMenu.Items.Add("-");
             }
 
             languageText = LocalizationHelper.GetLanguageString("Schema Browser", "form", "SchemaBrowserForm", "object", "this", "Text");
             languageText = $"{languageText}...";
 
-            i++;
-            schemaBrowserContextMenu.Items.Add(languageText);
-            schemaBrowserContextMenu.Items[i].Enabled = !isFromSchemaBrowser;
+            var schemaBrowserItem = new ToolStripMenuItem(languageText);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            schemaBrowserContextMenu.Items.Add(schemaBrowserItem);
+            schemaBrowserItem.Enabled = !isFromSchemaBrowser;
+
+            schemaBrowserItem.Click += delegate
             {
                 //從 Query Editor 過來的！
                 if (SchemaObjectTypeHelper.Is(schemaType, SchemaObjectNames.Tables) || SchemaObjectTypeHelper.Is(schemaType, SchemaObjectNames.Views))
@@ -654,14 +639,16 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Schema Browser 16x16.ico");
+            schemaBrowserItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Schema Browser 16x16.ico");
 
-            i++;
             languageText = LocalizationHelper.GetLanguageString("Generate SQL Statement", "form", "GenerateSqlForm", "object", "this", "Text");
             languageText = $"{languageText}...";
-            schemaBrowserContextMenu.Items.Add(languageText);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var generateSqlItem = new ToolStripMenuItem(languageText);
+
+            schemaBrowserContextMenu.Items.Add(generateSqlItem);
+
+            generateSqlItem.Click += delegate
             {
                 using (var form = new GenerateSqlForm())
                 {
@@ -677,143 +664,82 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Generate SQL Statement 16x16.ico");
+            generateSqlItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Generate SQL Statement 16x16.ico");
 
             //20241103 針對 Table，新增 Comment/Drop/Rename/Truncate 右鍵選單
             #region
             if (SchemaObjectTypeHelper.Is(schemaType, SchemaObjectNames.Tables))
             {
-                i++;
                 schemaBrowserContextMenu.Items.Add("-");
 
-                i++;
                 languageText = LocalizationHelper.GetLanguageString("Comment Table", "form", "EditTableForm", "object", "CommentTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
-                {
-                    using (var form = new EditTableForm())
-                    {
-                        form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Table Comment.ico");
-                        form.ShowInTaskbar = false;
-                        form.StartPosition = FormStartPosition.CenterScreen;
-                        form.SchemaName = DatabaseSqlExecutor.DbUser;
-                        form.TableName = schemaName;
-                        form.EditMode = EditTableMode.Comment;
+                var commentTableItem = new ToolStripMenuItem(languageText);
 
-                        ApplyEditTableFormSize(form);
-                        form.ShowDialog();
-                    }
-                };
+                //No authoritative owner/snapshot in the legacy Oracle menu: keep visible but blocked.
+                commentTableItem.Enabled = false;
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Comment.ico");
+                commentTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Comment.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(commentTableItem);
+
                 languageText = LocalizationHelper.GetLanguageString("Drop Table", "form", "EditTableForm", "object", "DropTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
-                {
-                    using (var form = new EditTableForm())
-                    {
-                        form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Table Drop.ico");
-                        form.ShowInTaskbar = false;
-                        form.StartPosition = FormStartPosition.CenterScreen;
-                        form.SchemaName = DatabaseSqlExecutor.DbUser;
-                        form.TableName = schemaName;
-                        form.EditMode = EditTableMode.Drop;
+                var dropTableItem = new ToolStripMenuItem(languageText);
 
-                        ApplyEditTableFormSize(form);
-                        form.ShowDialog();
+                //No authoritative owner/snapshot in the legacy Oracle menu: keep visible but blocked.
+                dropTableItem.Enabled = false;
 
-                        //20250204 更新 Schema 訊息
-                        if (form.Result != null && form.Result == "REFRESH")
-                        {
-                            MyGlobal.GlobalTemp4 = "REFRESH";
-                            MyGlobal.GlobalTemp5 = "UpdateSchemaInformation`";
-                        }
-                    }
-                };
+                dropTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Drop.ico");
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Drop.ico");
+                schemaBrowserContextMenu.Items.Add(dropTableItem);
 
-                i++;
                 languageText = LocalizationHelper.GetLanguageString("Rename Table", "form", "EditTableForm", "object", "RenameTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
-                {
-                    using (var form = new EditTableForm())
-                    {
-                        form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Table Rename.ico");
-                        form.ShowInTaskbar = false;
-                        form.StartPosition = FormStartPosition.CenterScreen;
-                        form.SchemaName = DatabaseSqlExecutor.DbUser;
-                        form.TableName = schemaName;
-                        form.EditMode = EditTableMode.Rename;
+                var renameTableItem = new ToolStripMenuItem(languageText);
 
-                        ApplyEditTableFormSize(form);
-                        form.ShowDialog();
+                //No authoritative owner/snapshot in the legacy Oracle menu: keep visible but blocked.
+                renameTableItem.Enabled = false;
 
-                        //20250204 更新 Schema 訊息
-                        if (form.Result != null && form.Result == "REFRESH")
-                        {
-                            MyGlobal.GlobalTemp4 = "REFRESH";
-                            MyGlobal.GlobalTemp5 = "UpdateSchemaInformation`";
-                        }
-                    }
-                };
+                renameTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Rename.ico");
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Rename.ico");
+                schemaBrowserContextMenu.Items.Add(renameTableItem);
 
-                i++;
                 languageText = LocalizationHelper.GetLanguageString("Truncate Table", "form", "EditTableForm", "object", "TruncateTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
-                {
-                    using (var form = new EditTableForm())
-                    {
-                        form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Table Truncate.ico");
-                        form.ShowInTaskbar = false;
-                        form.StartPosition = FormStartPosition.CenterScreen;
-                        form.SchemaName = DatabaseSqlExecutor.DbUser;
-                        form.TableName = schemaName;
-                        form.EditMode = EditTableMode.Truncate;
+                var truncateTableItem = new ToolStripMenuItem(languageText);
 
-                        ApplyEditTableFormSize(form);
-                        form.ShowDialog();
-                    }
-                };
+                //No authoritative owner/snapshot in the legacy Oracle menu: keep visible but blocked.
+                truncateTableItem.Enabled = false;
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Truncate.ico");
+                truncateTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Truncate.ico");
+
+                schemaBrowserContextMenu.Items.Add(truncateTableItem);
             }
             #endregion
 
-            i++;
             schemaBrowserContextMenu.Items.Add("-");
 
-            i++;
-            schemaBrowserContextMenu.Items.Add(title1);
+            var copyItem = new ToolStripMenuItem(title1);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            copyItem.Click += delegate
             {
                 Clipboard.SetDataObject(schemaName, false);
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.C;
+            copyItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
+            copyItem.ShortcutKeys = Keys.Control | Keys.C;
 
-            i++;
+            schemaBrowserContextMenu.Items.Add(copyItem);
 
             //20230909 新增 select * from XXX
-            schemaBrowserContextMenu.Items.Add($"{title2} SELECT * FROM {schemaName}");
+            var pasteSelectItem = new ToolStripMenuItem($"{title2} SELECT * FROM {schemaName}");
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            pasteSelectItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -831,13 +757,14 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.V;
+            pasteSelectItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
+            pasteSelectItem.ShortcutKeys = Keys.Control | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add(title2);
+            schemaBrowserContextMenu.Items.Add(pasteSelectItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteItem = new ToolStripMenuItem(title2);
+
+            pasteItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -855,114 +782,104 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Alt | Keys.V;
+            pasteItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
+            pasteItem.ShortcutKeys = Keys.Control | Keys.Alt | Keys.V;
 
-            if (1 == 1)
+            schemaBrowserContextMenu.Items.Add(pasteItem);
+
+            var pasteCommaItem = new ToolStripMenuItem($"{title2} + \", \""); //Paste to Query Editor + ", "
+
+            pasteCommaItem.Click += delegate
             {
-                i++;
-                schemaBrowserContextMenu.Items.Add($"{title2} + \", \""); //Paste to Query Editor + ", "
-
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                if (isFromSchemaBrowser)
                 {
-                    if (isFromSchemaBrowser)
-                    {
-                        MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`{schemaName}, ";
-                    }
-                    else
-                    {
-                        Clipboard.SetDataObject($"{schemaName}, ", false);
-                        editor.Paste();
-
-                        if (AppConfigHelper.IsAfterPasteFocusOnQueryEditor)
-                        {
-                            editor.Focus();
-                        }
-                    }
-                };
-
-                ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Shift | Keys.V;
-
-                i++;
-                schemaBrowserContextMenu.Items.Add($"{title2} + \", \\r\\n\""); //Paste to Query Editor + ", \r\n"
-
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                    MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`{schemaName}, ";
+                }
+                else
                 {
-                    if (isFromSchemaBrowser)
+                    Clipboard.SetDataObject($"{schemaName}, ", false);
+                    editor.Paste();
+
+                    if (AppConfigHelper.IsAfterPasteFocusOnQueryEditor)
                     {
-                        MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`{schemaName}, \r\n";
+                        editor.Focus();
                     }
-                    else
-                    {
-                        Clipboard.SetDataObject($"{schemaName}, \r\n", false);
-                        editor.Paste();
+                }
+            };
 
-                        if (AppConfigHelper.IsAfterPasteFocusOnQueryEditor)
-                        {
-                            editor.Focus();
-                        }
-                    }
-                };
+            pasteCommaItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.V;
 
-                ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Alt | Keys.Shift | Keys.V;
+            schemaBrowserContextMenu.Items.Add(pasteCommaItem);
 
-                i++;
-                schemaBrowserContextMenu.Items.Add($"{title2} + \"\\r\\n\""); //Paste to Query Editor + "\r\n"
+            var pasteCommaNewLineItem = new ToolStripMenuItem($"{title2} + \", \\r\\n\""); //Paste to Query Editor + ", \r\n"
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+            pasteCommaNewLineItem.Click += delegate
+            {
+                if (isFromSchemaBrowser)
                 {
-                    if (isFromSchemaBrowser)
-                    {
-                        MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`{schemaName}\r\n";
-                    }
-                    else
-                    {
-                        Clipboard.SetDataObject($"{schemaName}\r\n", false);
-                        editor.Paste();
+                    MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`{schemaName}, \r\n";
+                }
+                else
+                {
+                    Clipboard.SetDataObject($"{schemaName}, \r\n", false);
+                    editor.Paste();
 
-                        if (AppConfigHelper.IsAfterPasteFocusOnQueryEditor)
-                        {
-                            editor.Focus();
-                        }
+                    if (AppConfigHelper.IsAfterPasteFocusOnQueryEditor)
+                    {
+                        editor.Focus();
                     }
-                };
+                }
+            };
 
-                ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Alt | Keys.Shift | Keys.V;
-            }
+            pasteCommaNewLineItem.ShortcutKeys = Keys.Alt | Keys.Shift | Keys.V;
+
+            schemaBrowserContextMenu.Items.Add(pasteCommaNewLineItem);
+
+            var pasteNewLineItem = new ToolStripMenuItem($"{title2} + \"\\r\\n\""); //Paste to Query Editor + "\r\n"
+
+            pasteNewLineItem.Click += delegate
+            {
+                if (isFromSchemaBrowser)
+                {
+                    MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`{schemaName}\r\n";
+                }
+                else
+                {
+                    Clipboard.SetDataObject($"{schemaName}\r\n", false);
+                    editor.Paste();
+
+                    if (AppConfigHelper.IsAfterPasteFocusOnQueryEditor)
+                    {
+                        editor.Focus();
+                    }
+                }
+            };
+
+            pasteNewLineItem.ShortcutKeys = Keys.Control | Keys.Alt | Keys.Shift | Keys.V;
+
+            schemaBrowserContextMenu.Items.Add(pasteNewLineItem);
 
             c1GridSchemaBrowser.ContextMenuStrip = schemaBrowserContextMenu;
-
-            if (MyLibrary.IsDarkMode)
-            {
-                schemaBrowserContextMenu.BackColor = ColorTranslator.FromHtml("#2D2D30");
-                schemaBrowserContextMenu.ForeColor = Color.White;
-                schemaBrowserContextMenu.RenderMode = ToolStripRenderMode.System;
-                //cMenuSchemaBrowser.ShowImageMargin = false;
-            }
 
             schemaBrowserContextMenu.Show(c1GridSchemaBrowser, new Point(x, y));
         }
 
         public static void GenerateRightMenuForCopy_PostgreSql(bool isFromSchemaBrowser, C1TrueDBGrid c1GridSchemaBrowser, ContextMenuStrip schemaBrowserContextMenu, ScintillaEditor editor, string accessibleDescription, string schemaNode, string schemaType, string title1, string title2, string schemaName, int x, int y)
         {
-            var i = 0;
             var languageText = string.Empty;
+            var headerItem = schemaBrowserContextMenu.Items.Add($"{schemaNode}.{schemaName}");
 
-            schemaBrowserContextMenu.Items.Add($"{schemaNode}.{schemaName}");
-            schemaBrowserContextMenu.Items[i].Enabled = false;
-
-            i++;
+            headerItem.Enabled = false;
             schemaBrowserContextMenu.Items.Add("-");
 
             if (!isFromSchemaBrowser)
             {
                 //20250917 加上 Show Create Script 功能表
                 languageText = LocalizationHelper.GetLanguageString("Show DDL Statement", "Global", "Global", "msg", "ShowDDL", "Text");
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                i++;
+                var showDdlItem = new ToolStripMenuItem(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                showDdlItem.Click += delegate
                 {
                     try
                     {
@@ -998,20 +915,20 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Show SQL Statement 16x16.ico");
+                showDdlItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Show SQL Statement 16x16.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(showDdlItem);
                 schemaBrowserContextMenu.Items.Add("-");
             }
 
             languageText = LocalizationHelper.GetLanguageString("Schema Browser", "form", "SchemaBrowserForm", "object", "this", "Text");
             languageText = $"{languageText}...";
 
-            i++;
-            schemaBrowserContextMenu.Items.Add(languageText);
-            schemaBrowserContextMenu.Items[i].Enabled = !isFromSchemaBrowser;
+            var schemaBrowserItem = new ToolStripMenuItem(languageText);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            schemaBrowserItem.Enabled = !isFromSchemaBrowser;
+
+            schemaBrowserItem.Click += delegate
             {
                 if (SchemaObjectTypeHelper.Is(schemaType, SchemaObjectNames.Tables))
                 {
@@ -1023,14 +940,15 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Schema Browser 16x16.ico");
+            schemaBrowserItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Schema Browser 16x16.ico");
+            schemaBrowserContextMenu.Items.Add(schemaBrowserItem);
 
-            i++;
             languageText = LocalizationHelper.GetLanguageString("Generate SQL Statement", "form", "GenerateSqlForm", "object", "this", "Text");
             languageText = $"{languageText}...";
-            schemaBrowserContextMenu.Items.Add(languageText);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var generateSqlItem = new ToolStripMenuItem(languageText);
+
+            generateSqlItem.Click += delegate
             {
                 using (var form = new GenerateSqlForm())
                 {
@@ -1047,21 +965,22 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Generate SQL Statement 16x16.ico");
+            generateSqlItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Generate SQL Statement 16x16.ico");
+
+            schemaBrowserContextMenu.Items.Add(generateSqlItem);
 
             //20241109 針對 Table，新增 Comment/Drop/Rename/Truncate 右鍵選單
             #region
             if (SchemaObjectTypeHelper.Is(schemaType, SchemaObjectNames.Tables))
             {
-                i++;
                 schemaBrowserContextMenu.Items.Add("-");
 
-                i++;
                 languageText = LocalizationHelper.GetLanguageString("Comment Table", "form", "EditTableForm", "object", "CommentTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                var commentTableItem = new ToolStripMenuItem(languageText);
+
+                commentTableItem.Click += delegate
                 {
                     using (var form = new EditTableForm())
                     {
@@ -1077,14 +996,16 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Comment.ico");
+                commentTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Comment.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(commentTableItem);
+
                 languageText = LocalizationHelper.GetLanguageString("Drop Table", "form", "EditTableForm", "object", "DropTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                var dropTableItem = new ToolStripMenuItem(languageText);
+
+                dropTableItem.Click += delegate
                 {
                     using (var form = new EditTableForm())
                     {
@@ -1107,14 +1028,16 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Drop.ico");
+                dropTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Drop.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(dropTableItem);
+
                 languageText = LocalizationHelper.GetLanguageString("Rename Table", "form", "EditTableForm", "object", "RenameTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                var renameTableItem = new ToolStripMenuItem(languageText);
+
+                renameTableItem.Click += delegate
                 {
                     using (var form = new EditTableForm())
                     {
@@ -1137,14 +1060,16 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Rename.ico");
+                renameTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Rename.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(renameTableItem);
+
                 languageText = LocalizationHelper.GetLanguageString("Truncate Table", "form", "EditTableForm", "object", "TruncateTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                var truncateTableItem = new ToolStripMenuItem(languageText);
+
+                truncateTableItem.Click += delegate
                 {
                     using (var form = new EditTableForm())
                     {
@@ -1160,30 +1085,30 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Truncate.ico");
+                truncateTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Truncate.ico");
+
+                schemaBrowserContextMenu.Items.Add(truncateTableItem);
             }
             #endregion
 
-            i++;
             schemaBrowserContextMenu.Items.Add("-");
 
-            i++;
-            schemaBrowserContextMenu.Items.Add(title1);
+            var copyItem = new ToolStripMenuItem(title1);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            copyItem.Click += delegate
             {
                 Clipboard.SetDataObject(schemaName, false);
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.C;
+            copyItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
+            copyItem.ShortcutKeys = Keys.Control | Keys.C;
 
-            i++;
+            schemaBrowserContextMenu.Items.Add(copyItem);
 
             //20230909 新增 select * from XXX
-            schemaBrowserContextMenu.Items.Add($"{title2} select * from {schemaNode}.{schemaName}");
+            var pasteSelectItem = new ToolStripMenuItem($"{title2} select * from {schemaNode}.{schemaName}");
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            pasteSelectItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1201,13 +1126,14 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.V;
+            pasteSelectItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
+            pasteSelectItem.ShortcutKeys = Keys.Control | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add(title2);
+            schemaBrowserContextMenu.Items.Add(pasteSelectItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteItem = new ToolStripMenuItem(title2);
+
+            pasteItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1225,13 +1151,14 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Alt | Keys.V;
+            pasteItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
+            pasteItem.ShortcutKeys = Keys.Control | Keys.Alt | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add($"{title2} + \", \""); //Paste to Query Editor + ", "
+            schemaBrowserContextMenu.Items.Add(pasteItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteCommaItem = new ToolStripMenuItem($"{title2} + \", \""); //Paste to Query Editor + ", "
+
+            pasteCommaItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1249,12 +1176,13 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Shift | Keys.V;
+            pasteCommaItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add($"{title2} + \", \\r\\n\""); //Paste to Query Editor + ", \r\n"
+            schemaBrowserContextMenu.Items.Add(pasteCommaItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteCommaNewLineItem = new ToolStripMenuItem($"{title2} + \", \\r\\n\""); //Paste to Query Editor + ", \r\n"
+
+            pasteCommaNewLineItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1272,12 +1200,13 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Alt | Keys.Shift | Keys.V;
+            pasteCommaNewLineItem.ShortcutKeys = Keys.Alt | Keys.Shift | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add($"{title2} + \"\\r\\n\""); //Paste to Query Editor + "\r\n"
+            schemaBrowserContextMenu.Items.Add(pasteCommaNewLineItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteNewLineItem = new ToolStripMenuItem($"{title2} + \"\\r\\n\""); //Paste to Query Editor + "\r\n"
+
+            pasteNewLineItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1295,41 +1224,31 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Alt | Keys.Shift | Keys.V;
+            pasteNewLineItem.ShortcutKeys = Keys.Control | Keys.Alt | Keys.Shift | Keys.V;
+
+            schemaBrowserContextMenu.Items.Add(pasteNewLineItem);
 
             c1GridSchemaBrowser.ContextMenuStrip = schemaBrowserContextMenu;
-
-            if (MyLibrary.IsDarkMode)
-            {
-                schemaBrowserContextMenu.BackColor = ColorTranslator.FromHtml("#2D2D30");
-                schemaBrowserContextMenu.ForeColor = Color.White;
-                schemaBrowserContextMenu.RenderMode = ToolStripRenderMode.System;
-                //cMenuSchemaBrowser.ShowImageMargin = false;
-            }
 
             schemaBrowserContextMenu.Show(c1GridSchemaBrowser, new Point(x, y));
         }
 
         public static void GenerateRightMenuForCopy_SqlServer(bool isFromSchemaBrowser, C1TrueDBGrid c1GridSchemaBrowser, ContextMenuStrip schemaBrowserContextMenu, ScintillaEditor editor, string accessibleDescription, string schemaNode, string schemaDbo, string schemaType, string title1, string title2, string schemaName, int x, int y, string objectId)
         {
-            var i = 0;
             var languageText = string.Empty;
+            var headerItem = schemaBrowserContextMenu.Items.Add(schemaName);
 
-            schemaBrowserContextMenu.Items.Add(schemaName);
-            schemaBrowserContextMenu.Items[i].Enabled = false;
-
-            i++;
+            headerItem.Enabled = false;
             schemaBrowserContextMenu.Items.Add("-");
 
             if (!isFromSchemaBrowser)
             {
                 //20250917 加上 Show Create Script 功能表
                 languageText = LocalizationHelper.GetLanguageString("Show DDL Statement", "Global", "Global", "msg", "ShowDDL", "Text");
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                i++;
+                var showDdlItem = new ToolStripMenuItem(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                showDdlItem.Click += delegate
                 {
                     try
                     {
@@ -1356,20 +1275,20 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Show SQL Statement 16x16.ico");
+                showDdlItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Show SQL Statement 16x16.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(showDdlItem);
                 schemaBrowserContextMenu.Items.Add("-");
             }
 
             languageText = LocalizationHelper.GetLanguageString("Schema Browser", "form", "SchemaBrowserForm", "object", "this", "Text");
             languageText = $"{languageText}...";
 
-            i++;
-            schemaBrowserContextMenu.Items.Add(languageText);
-            schemaBrowserContextMenu.Items[i].Enabled = !isFromSchemaBrowser;
+            var schemaBrowserItem = new ToolStripMenuItem(languageText);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            schemaBrowserItem.Enabled = !isFromSchemaBrowser;
+
+            schemaBrowserItem.Click += delegate
             {
                 if (SchemaObjectTypeHelper.Is(schemaType, SchemaObjectNames.Tables))
                 {
@@ -1381,16 +1300,18 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Schema Browser 16x16.ico");
+            schemaBrowserItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Schema Browser 16x16.ico");
 
-            i++;
+            schemaBrowserContextMenu.Items.Add(schemaBrowserItem);
+
             languageText = LocalizationHelper.GetLanguageString("Generate SQL Statement", "form", "GenerateSqlForm", "object", "this", "Text");
             languageText = $"{languageText}...";
-            schemaBrowserContextMenu.Items.Add(languageText);
+
+            var generateSqlItem = new ToolStripMenuItem(languageText);
 
             schemaName = schemaName.Replace($"{schemaDbo}.", string.Empty);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            generateSqlItem.Click += delegate
             {
                 using (var form = new GenerateSqlForm())
                 {
@@ -1409,21 +1330,22 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Generate SQL Statement 16x16.ico");
+            generateSqlItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Generate SQL Statement 16x16.ico");
+
+            schemaBrowserContextMenu.Items.Add(generateSqlItem);
 
             //20241109 針對 Table，新增 Comment/Drop/Rename/Truncate 右鍵選單
             #region
             if (SchemaObjectTypeHelper.Is(schemaType, SchemaObjectNames.Tables))
             {
-                i++;
                 schemaBrowserContextMenu.Items.Add("-");
 
-                i++;
                 languageText = LocalizationHelper.GetLanguageString("Comment Table", "form", "EditTableForm", "object", "CommentTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                var commentTableItem = new ToolStripMenuItem(languageText);
+
+                commentTableItem.Click += delegate
                 {
                     using (var form = new EditTableForm())
                     {
@@ -1440,14 +1362,16 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Comment.ico");
+                commentTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Comment.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(commentTableItem);
+
                 languageText = LocalizationHelper.GetLanguageString("Drop Table", "form", "EditTableForm", "object", "DropTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                var dropTableItem = new ToolStripMenuItem(languageText);
+
+                dropTableItem.Click += delegate
                 {
                     using (var form = new EditTableForm())
                     {
@@ -1471,14 +1395,16 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Drop.ico");
+                dropTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Drop.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(dropTableItem);
+
                 languageText = LocalizationHelper.GetLanguageString("Rename Table", "form", "EditTableForm", "object", "RenameTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                var renameTableItem = new ToolStripMenuItem(languageText);
+
+                renameTableItem.Click += delegate
                 {
                     using (var form = new EditTableForm())
                     {
@@ -1502,14 +1428,16 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Rename.ico");
+                renameTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Rename.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(renameTableItem);
+
                 languageText = LocalizationHelper.GetLanguageString("Truncate Table", "form", "EditTableForm", "object", "TruncateTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                var truncateTableItem = new ToolStripMenuItem(languageText);
+
+                truncateTableItem.Click += delegate
                 {
                     using (var form = new EditTableForm())
                     {
@@ -1526,30 +1454,30 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Truncate.ico");
+                truncateTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Truncate.ico");
+
+                schemaBrowserContextMenu.Items.Add(truncateTableItem);
             }
             #endregion
 
-            i++;
             schemaBrowserContextMenu.Items.Add("-");
 
-            i++;
-            schemaBrowserContextMenu.Items.Add(title1);
+            var copyItem = new ToolStripMenuItem(title1);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            copyItem.Click += delegate
             {
                 Clipboard.SetDataObject(schemaName, false);
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.C;
+            copyItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
+            copyItem.ShortcutKeys = Keys.Control | Keys.C;
 
-            i++;
+            schemaBrowserContextMenu.Items.Add(copyItem);
 
             //20230909 新增 select * from XXX
-            schemaBrowserContextMenu.Items.Add($"{title2} select * from {schemaDbo}.{schemaName}");
+            var pasteSelectItem = new ToolStripMenuItem($"{title2} select * from {schemaDbo}.{schemaName}");
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            pasteSelectItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1567,13 +1495,14 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.V;
+            pasteSelectItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
+            pasteSelectItem.ShortcutKeys = Keys.Control | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add(title2);
+            schemaBrowserContextMenu.Items.Add(pasteSelectItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteItem = new ToolStripMenuItem(title2);
+
+            pasteItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1591,13 +1520,14 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Alt | Keys.V;
+            pasteItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
+            pasteItem.ShortcutKeys = Keys.Control | Keys.Alt | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add($"{title2} + \", \""); //Paste to Query Editor + ", "
+            schemaBrowserContextMenu.Items.Add(pasteItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteCommaItem = new ToolStripMenuItem($"{title2} + \", \""); //Paste to Query Editor + ", "
+
+            pasteCommaItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1615,12 +1545,13 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Shift | Keys.V;
+            pasteCommaItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add($"{title2} + \", \\r\\n\""); //Paste to Query Editor + ", \r\n"
+            schemaBrowserContextMenu.Items.Add(pasteCommaItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteCommaNewLineItem = new ToolStripMenuItem($"{title2} + \", \\r\\n\""); //Paste to Query Editor + ", \r\n"
+
+            pasteCommaNewLineItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1638,12 +1569,13 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Alt | Keys.Shift | Keys.V;
+            pasteCommaNewLineItem.ShortcutKeys = Keys.Alt | Keys.Shift | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add($"{title2} + \"\\r\\n\""); //Paste to Query Editor + "\r\n"
+            schemaBrowserContextMenu.Items.Add(pasteCommaNewLineItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteNewLineItem = new ToolStripMenuItem($"{title2} + \"\\r\\n\""); //Paste to Query Editor + "\r\n"
+
+            pasteNewLineItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1661,41 +1593,31 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Alt | Keys.Shift | Keys.V;
+            pasteNewLineItem.ShortcutKeys = Keys.Control | Keys.Alt | Keys.Shift | Keys.V;
+
+            schemaBrowserContextMenu.Items.Add(pasteNewLineItem);
 
             c1GridSchemaBrowser.ContextMenuStrip = schemaBrowserContextMenu;
-
-            if (MyLibrary.IsDarkMode)
-            {
-                schemaBrowserContextMenu.BackColor = ColorTranslator.FromHtml("#2D2D30");
-                schemaBrowserContextMenu.ForeColor = Color.White;
-                schemaBrowserContextMenu.RenderMode = ToolStripRenderMode.System;
-                //cMenuSchemaBrowser.ShowImageMargin = false;
-            }
 
             schemaBrowserContextMenu.Show(c1GridSchemaBrowser, new Point(x, y));
         }
 
         public static void GenerateRightMenuForCopy_MySql(bool isFromSchemaBrowser, C1TrueDBGrid c1GridSchemaBrowser, ContextMenuStrip schemaBrowserContextMenu, ScintillaEditor editor, string accessibleDescription, string schemaNode, string schemaType, string title1, string title2, string schemaName, int x, int y)
         {
-            var i = 0;
             var languageText = string.Empty;
+            var headerItem = schemaBrowserContextMenu.Items.Add(schemaName);
 
-            schemaBrowserContextMenu.Items.Add(schemaName);
-            schemaBrowserContextMenu.Items[i].Enabled = false;
-
-            i++;
+            headerItem.Enabled = false;
             schemaBrowserContextMenu.Items.Add("-");
 
             if (!isFromSchemaBrowser)
             {
                 //20250917 加上 Show Create Script 功能表
                 languageText = LocalizationHelper.GetLanguageString("Show DDL Statement", "Global", "Global", "msg", "ShowDDL", "Text");
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                i++;
+                var showDdlItem = new ToolStripMenuItem(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                showDdlItem.Click += delegate
                 {
                     try
                     {
@@ -1722,20 +1644,20 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Show SQL Statement 16x16.ico");
+                showDdlItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Show SQL Statement 16x16.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(showDdlItem);
                 schemaBrowserContextMenu.Items.Add("-");
             }
 
             languageText = LocalizationHelper.GetLanguageString("Schema Browser", "form", "SchemaBrowserForm", "object", "this", "Text");
             languageText = $"{languageText}...";
 
-            i++;
-            schemaBrowserContextMenu.Items.Add(languageText);
-            schemaBrowserContextMenu.Items[i].Enabled = !isFromSchemaBrowser;
+            var schemaBrowserItem = new ToolStripMenuItem(languageText);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            schemaBrowserItem.Enabled = !isFromSchemaBrowser;
+
+            schemaBrowserItem.Click += delegate
             {
                 if (SchemaObjectTypeHelper.Is(schemaType, SchemaObjectNames.Tables))
                 {
@@ -1747,14 +1669,16 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Schema Browser 16x16.ico");
+            schemaBrowserItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Schema Browser 16x16.ico");
 
-            i++;
+            schemaBrowserContextMenu.Items.Add(schemaBrowserItem);
+
             languageText = LocalizationHelper.GetLanguageString("Generate SQL Statement", "form", "GenerateSqlForm", "object", "this", "Text");
             languageText = $"{languageText}...";
-            schemaBrowserContextMenu.Items.Add(languageText);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var generateSqlItem = new ToolStripMenuItem(languageText);
+
+            generateSqlItem.Click += delegate
             {
                 using (var form = new GenerateSqlForm())
                 {
@@ -1771,21 +1695,22 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Generate SQL Statement 16x16.ico");
+            generateSqlItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Generate SQL Statement 16x16.ico");
+
+            schemaBrowserContextMenu.Items.Add(generateSqlItem);
 
             //20241109 針對 Table，新增 Comment/Drop/Rename/Truncate 右鍵選單
             #region
             if (SchemaObjectTypeHelper.Is(schemaType, SchemaObjectNames.Tables))
             {
-                i++;
                 schemaBrowserContextMenu.Items.Add("-");
 
-                i++;
                 languageText = LocalizationHelper.GetLanguageString("Comment Table", "form", "EditTableForm", "object", "CommentTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                var commentTableItem = new ToolStripMenuItem(languageText);
+
+                commentTableItem.Click += delegate
                 {
                     using (var form = new EditTableForm())
                     {
@@ -1801,14 +1726,16 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Comment.ico");
+                commentTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Comment.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(commentTableItem);
+
                 languageText = LocalizationHelper.GetLanguageString("Drop Table", "form", "EditTableForm", "object", "DropTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                var dropTableItem = new ToolStripMenuItem(languageText);
+
+                dropTableItem.Click += delegate
                 {
                     using (var form = new EditTableForm())
                     {
@@ -1831,14 +1758,16 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Drop.ico");
+                dropTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Drop.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(dropTableItem);
+
                 languageText = LocalizationHelper.GetLanguageString("Rename Table", "form", "EditTableForm", "object", "RenameTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                var renameTableItem = new ToolStripMenuItem(languageText);
+
+                renameTableItem.Click += delegate
                 {
                     using (var form = new EditTableForm())
                     {
@@ -1861,14 +1790,16 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Rename.ico");
+                renameTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Rename.ico");
 
-                i++;
+                schemaBrowserContextMenu.Items.Add(renameTableItem);
+
                 languageText = LocalizationHelper.GetLanguageString("Truncate Table", "form", "EditTableForm", "object", "TruncateTable", "Text");
                 languageText = $"{languageText}...";
-                schemaBrowserContextMenu.Items.Add(languageText);
 
-                schemaBrowserContextMenu.Items[i].Click += delegate
+                var truncateTableItem = new ToolStripMenuItem(languageText);
+
+                truncateTableItem.Click += delegate
                 {
                     using (var form = new EditTableForm())
                     {
@@ -1884,30 +1815,30 @@ namespace JasonQuery.UI.Helpers
                     }
                 };
 
-                schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Truncate.ico");
+                truncateTableItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Table Truncate.ico");
+
+                schemaBrowserContextMenu.Items.Add(truncateTableItem);
             }
             #endregion
 
-            i++;
             schemaBrowserContextMenu.Items.Add("-");
 
-            i++;
-            schemaBrowserContextMenu.Items.Add(title1);
+            var copyItem = new ToolStripMenuItem(title1);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            copyItem.Click += delegate
             {
                 Clipboard.SetDataObject(schemaName, false);
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.C;
+            copyItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
+            copyItem.ShortcutKeys = Keys.Control | Keys.C;
 
-            i++;
+            schemaBrowserContextMenu.Items.Add(copyItem);
 
             //20230909 新增 select * from XXX
-            schemaBrowserContextMenu.Items.Add($"{title2} select * from {schemaName}");
+            var pasteSelectItem = new ToolStripMenuItem($"{title2} select * from {schemaName}");
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            pasteSelectItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1925,13 +1856,14 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.V;
+            pasteSelectItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
+            pasteSelectItem.ShortcutKeys = Keys.Control | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add(title2);
+            schemaBrowserContextMenu.Items.Add(pasteSelectItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteItem = new ToolStripMenuItem(title2);
+
+            pasteItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1949,13 +1881,14 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            schemaBrowserContextMenu.Items[i].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Alt | Keys.V;
+            pasteItem.Image = IconManager.GetImage(MyGlobal.IconLibrary, "Paste2Editor 16x16.ico");
+            pasteItem.ShortcutKeys = Keys.Control | Keys.Alt | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add($"{title2} + \", \""); //Paste to Query Editor + ", "
+            schemaBrowserContextMenu.Items.Add(pasteItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteCommaItem = new ToolStripMenuItem($"{title2} + \", \""); //Paste to Query Editor + ", "
+
+            pasteCommaItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1973,12 +1906,13 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Shift | Keys.V;
+            pasteCommaItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add($"{title2} + \", \\r\\n\""); //Paste to Query Editor + ", \r\n"
+            schemaBrowserContextMenu.Items.Add(pasteCommaItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteCommaNewLineItem = new ToolStripMenuItem($"{title2} + \", \\r\\n\""); //Paste to Query Editor + ", \r\n"
+
+            pasteCommaNewLineItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -1996,12 +1930,13 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Alt | Keys.Shift | Keys.V;
+            pasteCommaNewLineItem.ShortcutKeys = Keys.Alt | Keys.Shift | Keys.V;
 
-            i++;
-            schemaBrowserContextMenu.Items.Add($"{title2} + \"\\r\\n\""); //Paste to Query Editor + "\r\n"
+            schemaBrowserContextMenu.Items.Add(pasteCommaNewLineItem);
 
-            schemaBrowserContextMenu.Items[i].Click += delegate
+            var pasteNewLineItem = new ToolStripMenuItem($"{title2} + \"\\r\\n\""); //Paste to Query Editor + "\r\n"
+
+            pasteNewLineItem.Click += delegate
             {
                 if (isFromSchemaBrowser)
                 {
@@ -2019,16 +1954,11 @@ namespace JasonQuery.UI.Helpers
                 }
             };
 
-            ((ToolStripMenuItem)schemaBrowserContextMenu.Items[i]).ShortcutKeys = Keys.Control | Keys.Alt | Keys.Shift | Keys.V;
+            pasteNewLineItem.ShortcutKeys = Keys.Control | Keys.Alt | Keys.Shift | Keys.V;
+
+            schemaBrowserContextMenu.Items.Add(pasteNewLineItem);
 
             c1GridSchemaBrowser.ContextMenuStrip = schemaBrowserContextMenu;
-
-            if (MyLibrary.IsDarkMode)
-            {
-                schemaBrowserContextMenu.BackColor = ColorTranslator.FromHtml("#2D2D30");
-                schemaBrowserContextMenu.ForeColor = Color.White;
-                schemaBrowserContextMenu.RenderMode = ToolStripRenderMode.System;
-            }
 
             schemaBrowserContextMenu.Show(c1GridSchemaBrowser, new Point(x, y));
         }

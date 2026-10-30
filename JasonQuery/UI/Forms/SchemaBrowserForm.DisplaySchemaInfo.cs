@@ -3,6 +3,7 @@ using JasonLibrary.Core;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
+using JasonQuery.Core.SchemaExplorer.Selection;
 using JasonQuery.UI.Helpers;
 using System;
 using System.Drawing;
@@ -36,6 +37,11 @@ namespace JasonQuery.UI.Forms
 
         private void DisplaySchemaInfo(int displayRowIndex)
         {
+            DisplaySchemaInfo(displayRowIndex, null);
+        }
+
+        private void DisplaySchemaInfo(int displayRowIndex, SchemaExplorerSelectionInfo externalSelection)
+        {
             var message = string.Empty;
 
             try
@@ -47,7 +53,7 @@ namespace JasonQuery.UI.Forms
 
                 ClearTableEditTrackingState();
 
-                var selection = ResolveSchemaExplorerSelection(displayRowIndex);
+                var selection = externalSelection ?? ResolveSchemaExplorerSelection(displayRowIndex);
                 var canDisplayObject = DisplaySchemaExplorerSelection(selection);
 
                 if (!canDisplayObject)

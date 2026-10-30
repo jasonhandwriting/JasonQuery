@@ -136,7 +136,7 @@ namespace JasonQuery.UI.Forms
                 context.SchemaType = schemaType;
             }
 
-            if (IsTableColumnInfoRow(context, row))
+            if (IsTableOrViewColumnInfoRow(context, row))
             {
                 context.IsColumnInfoRow = true;
                 FillTableNameForColumnInfoRightClick(context, row);
@@ -174,7 +174,7 @@ namespace JasonQuery.UI.Forms
             }
         }
 
-        private bool IsTableColumnInfoRow(SchemaExplorerRightClickContext context, DataRow row)
+        private bool IsTableOrViewColumnInfoRow(SchemaExplorerRightClickContext context, DataRow row)
         {
             if (context == null || row == null)
             {
@@ -186,7 +186,7 @@ namespace JasonQuery.UI.Forms
                 return false;
             }
 
-            if (!SchemaObjectTypeHelper.Is(context.SchemaType, SchemaObjectNames.Tables))
+            if (!SchemaObjectTypeHelper.IsAny(context.SchemaType, SchemaObjectNames.Tables, SchemaObjectNames.Views))
             {
                 return false;
             }
@@ -199,8 +199,8 @@ namespace JasonQuery.UI.Forms
                 return false;
             }
 
-            //顯示欄位資訊時，Table 底下的欄位列通常會有：
-            //schemaName = TableName
+            //顯示欄位資訊時，Table / View 底下的欄位列通常會有：
+            //schemaName = TableName 或 ViewName
             //schemaBrowser = ColumnName, DataType
             //所以用 ", " 判斷目前列是否為欄位資訊列
             return schemaBrowser.IndexOf(", ", StringComparison.Ordinal) >= 0;
@@ -271,7 +271,7 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
-            if (context.IsColumnInfoRow) //表示「目前右鍵點到的這一列是 Table 的欄位資訊列」
+            if (context.IsColumnInfoRow) //表示目前右鍵點到 Table / View 的欄位資訊列
             {
                 ShowCopyOnlyContextMenu(context, true);
                 return;

@@ -1,6 +1,5 @@
 ﻿using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Database.DdlPreview.ColumnDefinitions;
-using System;
 
 namespace JasonQuery.Core.Database.DdlPreview
 {
@@ -9,6 +8,12 @@ namespace JasonQuery.Core.Database.DdlPreview
         public static string Build(ColumnDdlRequest request)
         {
             if (request == null)
+            {
+                return string.Empty;
+            }
+
+            if (request.DataSourceType == DataSourceType.Oracle && request.RequireOracleDdlTargetIdentity
+                && !OracleDdlTargetIdentityPolicy.TryQuoteOwner(request.OracleTargetIdentity, out _))
             {
                 return string.Empty;
             }
@@ -46,6 +51,15 @@ namespace JasonQuery.Core.Database.DdlPreview
             switch (request.DataSourceType)
             {
                 case DataSourceType.Oracle:
+                    {
+                        //D1-B3-F01: the DDL Owner must be the Owner matched by Metadata.
+                        var owner = request.RequireOracleDdlTargetIdentity ? QuoteTrustedOracleOwner(request) : OracleCommentOwnerIdentityPolicy.QuoteDdlOwner(request.SchemaName);
+                        var table = DdlIdentifierQuotingPolicy.QuoteExistingIdentifier(DataSourceType.Oracle, request.TableName);
+                        var column = DdlIdentifierQuotingPolicy.QuoteExistingIdentifier(DataSourceType.Oracle, request.ColumnName);
+                        var columnName = string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(table) || string.IsNullOrEmpty(column) ? string.Empty : owner + "." + table + "." + column;
+
+                        return string.IsNullOrEmpty(columnName) ? string.Empty : $"COMMENT ON COLUMN {columnName} IS '{comment}';";
+                    }
                 case DataSourceType.PostgreSql:
                     {
                         var columnName = DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(request.DataSourceType, request.SchemaName, request.TableName, request.ColumnName);
@@ -185,7 +199,9 @@ namespace JasonQuery.Core.Database.DdlPreview
                     SchemaDatabase = request.SchemaDatabase,
                     SchemaName = request.SchemaName,
                     TableName = request.TableName,
-                    Column = request.ColumnDefinition
+                    Column = request.ColumnDefinition,
+                    RequireOracleDdlTargetIdentity = request.RequireOracleDdlTargetIdentity,
+                    OracleTargetIdentity = request.OracleTargetIdentity
                 }
             );
 
@@ -198,14 +214,24 @@ namespace JasonQuery.Core.Database.DdlPreview
             switch (request.DataSourceType)
             {
                 case DataSourceType.Oracle:
+                    {
+                        if (request.RequireOracleDdlTargetIdentity)
+                        {
+                            var owner = QuoteTrustedOracleOwner(request);
+                            var table = DdlIdentifierQuotingPolicy.QuoteExistingIdentifier(DataSourceType.Oracle, request.TableName);
+
+                            return string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(table) ? string.Empty : owner + "." + table;
+                        }
+
+                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(DataSourceType.Oracle, request.SchemaName, request.TableName);
+                    }
                 case DataSourceType.PostgreSql:
                     {
-                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(request.DataSourceType, request.SchemaName, request.TableName);
+                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(DataSourceType.PostgreSql, request.SchemaName, request.TableName);
                     }
                 case DataSourceType.SqlServer:
                     {
-                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(DataSourceType.SqlServer, request.SchemaDatabase,
-                                                                                     request.SchemaName, request.TableName);
+                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(DataSourceType.SqlServer, request.SchemaDatabase, request.SchemaName, request.TableName);
                     }
                 case DataSourceType.MySql:
                     {
@@ -217,6 +243,11 @@ namespace JasonQuery.Core.Database.DdlPreview
                         return string.Empty;
                     }
             }
+        }
+
+        private static string QuoteTrustedOracleOwner(ColumnDdlRequest request)
+        {
+            return OracleDdlTargetIdentityPolicy.TryQuoteOwner(request.OracleTargetIdentity, out string owner) ? owner : string.Empty;
         }
 
         private static string BuildSqlServerProcedureName(string databaseName, string procedureName)

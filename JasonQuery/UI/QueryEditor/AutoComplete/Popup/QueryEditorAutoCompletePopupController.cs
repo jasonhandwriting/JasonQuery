@@ -9,7 +9,9 @@ namespace JasonQuery.UI.QueryEditor.AutoComplete.Popup
 {
     internal static class QueryEditorAutoCompletePopupController
     {
-        private const int DefaultXOffset = -6;
+        private const int DefaultXOffset = -1;
+        //Scintilla SCI_TEXTHEIGHT returns the current styled (Zoom-aware) line height.
+        private const int ScintillaTextHeightMessage = 2279;
 
         public static bool Show(C1TrueDBGrid grid, DataTable dtAutoComplete, QueryEditorAutoCompletePopupContext context)
         {
@@ -32,7 +34,7 @@ namespace JasonQuery.UI.QueryEditor.AutoComplete.Popup
             }
 
             var anchorPosition = ResolveAnchorPosition(context);
-            var location = CalculateLocation(context, anchorPosition);
+            var location = CalculateLocation(grid.Parent ?? context.OwnerForm, context, anchorPosition);
 
             BindDataSource(grid, dtAutoComplete);
             ApplyPresentation(grid, context);
@@ -74,23 +76,26 @@ namespace JasonQuery.UI.QueryEditor.AutoComplete.Popup
 
             var anchorPosition = ResolveAnchorPosition(context);
 
-            return CalculateLocation(context, anchorPosition);
+            return CalculateLocation(context.OwnerForm, context, anchorPosition);
         }
 
-        private static Point CalculateLocation(QueryEditorAutoCompletePopupContext context, int anchorPosition)
+        private static Point CalculateLocation(System.Windows.Forms.Control parent, QueryEditorAutoCompletePopupContext context, int anchorPosition)
         {
             var screenPoint = CalculateScreenPointFromEditorPosition(context, anchorPosition);
 
-            var iYShift = QueryEditorAutoCompletePopupOffsetResolver.Resolve
-            (
-                context.QueryEditorFontSize,
-                context.Editor.Zoom
-            );
+            //With Editor.PointToScreen the anchor is already in the editor's actual screen coordinates.
+            //The legacy font/zoom Y-shift belonged to the old MainForm-relative formula and moved the popup above the caret.
+            var line = context.Editor.LineFromPosition(anchorPosition);
+            var lineHeight = context.Editor.DirectMessage(ScintillaTextHeightMessage, new IntPtr(line), IntPtr.Zero).ToInt32();
 
-            var iLeft = screenPoint.X - context.MainFormLeft + context.SplitterDistance + DefaultXOffset;
-            var iTop = screenPoint.Y - context.MainFormTop - iYShift;
+            return CalculateClientPosition(screenPoint, parent.PointToScreen(Point.Empty), lineHeight);
+        }
 
-            return new Point(iLeft, iTop);
+        //The popup is positioned in its own Parent's client coordinates, not in MainForm coordinates.
+        internal static Point CalculateClientPosition(Point caretScreenPoint, Point parentScreenOrigin, int lineHeight)
+        {
+            //The popup begins below the active Scintilla display line, not above its top edge.
+            return new Point(caretScreenPoint.X - parentScreenOrigin.X + DefaultXOffset, caretScreenPoint.Y - parentScreenOrigin.Y + Math.Max(1, lineHeight));
         }
 
         private static int ResolveAnchorPosition(QueryEditorAutoCompletePopupContext context)
@@ -114,7 +119,7 @@ namespace JasonQuery.UI.QueryEditor.AutoComplete.Popup
 
         private static Point CalculateScreenPointFromEditorPosition(QueryEditorAutoCompletePopupContext context, int position)
         {
-            return context.OwnerForm.PointToScreen
+            return context.Editor.PointToScreen
             (
                 new Point
                 (

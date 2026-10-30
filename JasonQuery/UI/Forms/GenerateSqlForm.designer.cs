@@ -803,7 +803,6 @@ namespace JasonQuery.UI.Forms
             // 
             // btnSelectObject
             // 
-            this.btnSelectObject.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnSelectObject.Location = new System.Drawing.Point(619, 13);
             this.btnSelectObject.Name = "btnSelectObject";
             this.btnSelectObject.Size = new System.Drawing.Size(81, 50);

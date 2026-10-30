@@ -12,6 +12,13 @@ namespace JasonQuery.Core.SchemaExplorer.Selection
 
         public bool IsShowColumnInfo { get; set; }
 
+        //Explicit opt-in. Existing legacy selection remains unchanged until the metadata loader can supply an authoritative per-object OWNER.
+        public bool RequireOracleOwnerIdentity { get; set; }
+
+        public string OracleVerifiedSessionUser { get; set; } = string.Empty;
+
+        public string OracleMetadataOwner { get; set; } = string.Empty;
+
         public string CurrentSchemaNode { get; set; } = string.Empty;
 
         public string CurrentSchemaType { get; set; } = string.Empty;

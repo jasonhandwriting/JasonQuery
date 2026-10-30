@@ -47,6 +47,13 @@ namespace JasonQuery.UI.Forms
         private bool _isKeyPressDelete = false; //記住是否按下 Delete 鍵
         private ColumnInfoCollector columnInfoCollector;
 
+        //SQL Server: the currently selected UI object must match successfully loaded metadata.
+        private bool _sqlServerMetadataReady;
+        private string _loadedSqlServerDatabase = string.Empty;
+        private string _loadedSqlServerSchema = string.Empty;
+        private string _loadedSqlServerObjectType = string.Empty;
+        private string _loadedSqlServerObjectName = string.Empty;
+
         //20250602 簡化資料庫判斷方式
         private readonly DataSourceType _currentSourceType;
         private bool IsOracle => _currentSourceType == DataSourceType.Oracle;
@@ -158,16 +165,38 @@ namespace JasonQuery.UI.Forms
                             lblSchema.Visible = true;
                             cboSchema.Visible = true;
 
-                            if (cboSchema.Items.Contains("dbo"))
+                            if (dtSchema == null || dtSchema.Rows.Count == 0)
                             {
-                                cboSchema.Text = "dbo";
+                                throw new InvalidOperationException("No SQL Server schema is available for Generate SQL.");
+                            }
+
+                            var availableSchemas = dtSchema.AsEnumerable().Select(row => row.GetSafeString(0)).Where(name => !string.IsNullOrWhiteSpace(name)).ToArray();
+                            var requestedSchema = SchemaDbo?.Trim();
+                            string selectedSchema;
+
+                            if (!string.IsNullOrWhiteSpace(requestedSchema))
+                            {
+                                //The caller's explicit schema is authoritative; never silently switch to dbo.
+                                selectedSchema = availableSchemas.FirstOrDefault(name => string.Equals(name, requestedSchema, StringComparison.Ordinal));
+
+                                if (string.IsNullOrWhiteSpace(selectedSchema))
+                                {
+                                    throw new InvalidOperationException($"SQL Server schema '{requestedSchema}' was not found in database '{SchemaNode}'.");
+                                }
                             }
                             else
                             {
-                                cboSchema.Text = dtSchema.Rows[0].GetSafeString(0);
+                                selectedSchema = availableSchemas.FirstOrDefault(name => string.Equals(name, "dbo", StringComparison.Ordinal)) ?? availableSchemas.FirstOrDefault();
                             }
 
-                            if (!string.IsNullOrEmpty(SchemaNode))
+                            if (string.IsNullOrWhiteSpace(selectedSchema))
+                            {
+                                throw new InvalidOperationException("No nonempty SQL Server schema is available for Generate SQL.");
+                            }
+
+                            cboSchema.Text = selectedSchema;
+
+                            if (!string.IsNullOrEmpty(SchemaNode) && !string.IsNullOrWhiteSpace(cboSchema.Text))
                             {
                                 DatabaseSqlExecutor.GetTableInfo_SqlServer(SchemaNode, cboSchema.Text, out _dtTable);
                                 DatabaseSqlExecutor.GetViewInfo_SqlServer(SchemaNode, cboSchema.Text, out _dtView);
@@ -431,9 +460,70 @@ namespace JasonQuery.UI.Forms
             editor.Styler = new SqlStyler();
         }
 
+        private void InvalidateSqlServerGeneratedSql()
+        {
+            if (!IsSqlServer)
+            {
+                return;
+            }
+
+            _sqlServerMetadataReady = false;
+            _loadedSqlServerDatabase = string.Empty;
+            _loadedSqlServerSchema = string.Empty;
+            _loadedSqlServerObjectType = string.Empty;
+            _loadedSqlServerObjectName = string.Empty;
+            columnInfoCollector = null;
+            dtColumnName = null;
+            PrimaryKey = string.Empty;
+            ObjectId = string.Empty;
+            btnPreview.Enabled = false;
+            c1Grid.DataSource = CreateColumnTable(null, "1");
+            UpdateEditorText(string.Empty);
+        }
+
+        private bool CanPreviewCurrentSqlServerObject()
+        {
+            if (!IsSqlServer)
+            {
+                return true;
+            }
+
+            var selectedType = rdoTable.Checked ? SchemaObjectNames.Tables : (rdoView.Checked ? SchemaObjectNames.Views : string.Empty);
+            var selectedName = rdoTable.Checked ? cboTable.Text : (rdoView.Checked ? cboView.Text : string.Empty);
+
+            return _sqlServerMetadataReady
+                   && !string.IsNullOrWhiteSpace(selectedType)
+                   && !string.IsNullOrWhiteSpace(selectedName)
+                   && !string.IsNullOrWhiteSpace(cboSchema.Text)
+                   && dtColumnName != null
+                   && columnInfoCollector != null
+                   && string.Equals(_loadedSqlServerDatabase, txtDatabase.Text, StringComparison.Ordinal)
+                   && string.Equals(_loadedSqlServerSchema, cboSchema.Text, StringComparison.Ordinal)
+                   && string.Equals(_loadedSqlServerObjectType, selectedType, StringComparison.Ordinal)
+                   && string.Equals(_loadedSqlServerObjectName, selectedName, StringComparison.Ordinal)
+                   && string.Equals(SchemaDbo, cboSchema.Text, StringComparison.Ordinal)
+                   && string.Equals(SchemaType, selectedType, StringComparison.Ordinal)
+                   && string.Equals(SchemaName, selectedName, StringComparison.Ordinal);
+        }
+
         private void btnPreview_Click(object sender, EventArgs e)
         {
-            editor.Text = string.Empty;
+            UpdateEditorText(string.Empty);
+
+            if (rdoTable.Checked && string.IsNullOrWhiteSpace(cboTable.Text))
+            {
+                return;
+            }
+
+            if (rdoView.Checked && string.IsNullOrWhiteSpace(cboView.Text))
+            {
+                return;
+            }
+
+            if (!CanPreviewCurrentSqlServerObject())
+            {
+                return;
+            }
 
             try
             {
@@ -1106,13 +1196,15 @@ namespace JasonQuery.UI.Forms
                 var alterColumn = TextHelper.TransferWordCase("ALTER COLUMN ", isKeywordsToLower);
                 var dropColumn = TextHelper.TransferWordCase("DROP COLUMN ", isKeywordsToLower);
                 var nullString = TextHelper.TransferWordCase("NOT NULL;", isKeywordsToLower);
+                var quotedSchemaDbo = "[" + SchemaDbo.Replace("]", "]]") + "]";
+                var quotedSchemaName = "[" + SchemaName.Replace("]", "]]") + "]";
 
                 switch (grpFunction.AccessibleDescription?.ToString())
                 {
                     case "rdoAlter":
                         {
-                            var temp01 = $"--add a column\r\n{alterTable}{SchemaName}\r\n {add}New_Column_Name {varchar2}(50);\r\n\r\n";
-                            var temp02 = $"--modify a column\r\n{alterTable}{SchemaName}\r\n  {alterColumn}Old_Column_Name {varchar2}(100) {nullString}";
+                            var temp01 = $"--add a column\r\n{alterTable}{quotedSchemaDbo}.{quotedSchemaName}\r\n {add}New_Column_Name {varchar2}(50);\r\n\r\n";
+                            var temp02 = $"--modify a column\r\n{alterTable}{quotedSchemaDbo}.{quotedSchemaName}\r\n  {alterColumn}Old_Column_Name {varchar2}(100) {nullString}";
 
                             text = $"{temp01}{temp02}";
                             break;
@@ -1124,23 +1216,26 @@ namespace JasonQuery.UI.Forms
                         }
                     case "rdoDrop":
                         {
-                            var temp01 = $"--drop a column\r\n{alterTable}{SchemaName}\r\n  {dropColumn}Old_Column_Name;\r\n\r\n";
-                            var temp02 = $"--drop a table\r\n{dropTable}{SchemaName};";
+                            var temp01 = $"--drop a column\r\n{alterTable}{quotedSchemaDbo}.{quotedSchemaName}\r\n  {dropColumn}Old_Column_Name;\r\n\r\n";
+                            var temp02 = $"--drop a table\r\n{dropTable}{quotedSchemaDbo}.{quotedSchemaName};";
 
                             text = $"{temp01}{temp02}";
                             break;
                         }
                     case "rdoRename":
                         {
-                            var temp01 = $"--rename a column\r\n{exec}sp_rename '{SchemaName}.Old_Column_Name', 'New_Column_Name', 'COLUMN';\r\n\r\n";
-                            var temp02 = $"--rename a table\r\n{exec}sp_rename '{SchemaName}', 'New_Table_Name';";
+                            //sp_rename receives a SQL string literal containing a qualified identifier.
+                            var renameObjectPath = $"{quotedSchemaDbo}.{quotedSchemaName}".Replace("'", "''");
+                            var renameColumnPath = $"{renameObjectPath}.[Old_Column_Name]";
+                            var temp01 = $"--rename a column\r\n{exec}sp_rename N'{renameColumnPath}', N'New_Column_Name', 'COLUMN';\r\n\r\n";
+                            var temp02 = $"--rename a table\r\n{exec}sp_rename N'{renameObjectPath}', N'New_Table_Name';";
 
                             text = $"{temp01}{temp02}";
                             break;
                         }
                     case "rdoTruncate":
                         {
-                            text = $"{truncateTable}{SchemaName};";
+                            text = $"{truncateTable}{quotedSchemaDbo}.{quotedSchemaName};";
                             break;
                         }
                     case "rdoSelectStar":
@@ -1323,7 +1418,7 @@ namespace JasonQuery.UI.Forms
                                 var temp03 = columnInformation.Replace(MyGlobal.Separator3, temp02).Replace(MyGlobal.Separator, string.Empty);
                                 var temp04 = $"{temp03}{pkContent}";
 
-                                text = $"{temp01}{SchemaName}\r\n {sWhereContent}{temp04}";
+                                text = $"{temp01}{quotedSchemaDbo}.{quotedSchemaName}\r\n {sWhereContent}{temp04}";
                             }
                             else if (rdoSelect.Checked)
                             {
@@ -1334,7 +1429,7 @@ namespace JasonQuery.UI.Forms
                                 var temp05 = TextHelper.TransferWordCase("FROM ", isKeywordsToLower);
                                 var temp06 = string.IsNullOrEmpty(aliasName) ? string.Empty : $" {aliasName}";
 
-                                text = $"{temp01}{temp03}{temp04}\r\n  {temp05}{SchemaName}{temp06}\r\n {sWhereContent}1 = 1;{pkContent}";
+                                text = $"{temp01}{temp03}{temp04}\r\n  {temp05}{quotedSchemaDbo}.{quotedSchemaName}{temp06}\r\n {sWhereContent}1 = 1;{pkContent}";
                             }
                             else if (rdoInsert.Checked)
                             {
@@ -1343,7 +1438,7 @@ namespace JasonQuery.UI.Forms
                                 var temp03 = TextHelper.TransferWordCase("VALUES (", isKeywordsToLower);
 
                                 columnValue = columnValue.TrimEnd('\r', '\n', ',', ' ');
-                                text = $"{temp01}{SchemaName}\r\n       ({temp02})\r\n{temp03}{columnValue});{pkContent}";
+                                text = $"{temp01}{quotedSchemaDbo}.{quotedSchemaName}\r\n       ({temp02})\r\n{temp03}{columnValue});{pkContent}";
 
                                 if (!string.IsNullOrEmpty(aliasName))
                                 {
@@ -1356,7 +1451,7 @@ namespace JasonQuery.UI.Forms
                                 var temp02 = TextHelper.TransferWordCase("SET ", isKeywordsToLower);
                                 var temp03 = columnInformation.Replace(MyGlobal.Separator3, "   ").Replace(MyGlobal.Separator, ",");
 
-                                text = $"{temp01}{SchemaName}\r\n   {temp02}{temp03}\r\n {sWhereContent}conditions;{pkContent}";
+                                text = $"{temp01}{quotedSchemaDbo}.{quotedSchemaName}\r\n   {temp02}{temp03}\r\n {sWhereContent}conditions;{pkContent}";
                             }
                             else if (rdoSelectStar.Checked)
                             {
@@ -1366,7 +1461,7 @@ namespace JasonQuery.UI.Forms
                                 var temp04 = TextHelper.TransferWordCase($"{temp03}* FROM ", isKeywordsToLower);
                                 var temp05 = string.IsNullOrEmpty(aliasName) ? string.Empty : $" {aliasName}";
 
-                                text = $"{temp01}{temp02}{temp04}{SchemaName}{temp05}\r\n {sWhereContent}1 = 1;{pkContent}";
+                                text = $"{temp01}{temp02}{temp04}{quotedSchemaDbo}.{quotedSchemaName}{temp05}\r\n {sWhereContent}1 = 1;{pkContent}";
                             }
 
                             break;
@@ -1666,11 +1761,13 @@ namespace JasonQuery.UI.Forms
             }
         }
 
-        private void UpdateEditorText(string sText)
+        private void UpdateEditorText(string text)
         {
             editor.ReadOnly = false;
-            editor.Text = sText;
+            editor.Text = text;
             editor.ReadOnly = true;
+            btnCopyToClipboard.Enabled = editor.Text.Length > 0;
+            btnPasteToQueryEditor.Enabled = editor.Text.Length > 0;
         }
 
         private void btnSelect_Click(object sender, EventArgs e)
@@ -1837,14 +1934,24 @@ namespace JasonQuery.UI.Forms
         private void btnCopyToClipboard_Click(object sender, EventArgs e)
         {
             btnPreview.PerformClick();
-            Clipboard.SetDataObject(editor.Text, false);
 
+            if (!CanPreviewCurrentSqlServerObject() || string.IsNullOrWhiteSpace(editor.Text))
+            {
+                return;
+            }
+
+            Clipboard.SetDataObject(editor.Text, false);
             Close();
         }
 
         private void btnPasteToQueryEditor_Click(object sender, EventArgs e)
         {
             btnPreview.PerformClick();
+
+            if (!CanPreviewCurrentSqlServerObject() || string.IsNullOrWhiteSpace(editor.Text))
+            {
+                return;
+            }
 
             //20230923 改用 "PasteFromSchemaBrowser"，直接複製到新的 SQL Editor，避免干擾到原有 SQL Editor 的 SQL (可能插入到原本 SQL 的中間，視使用者游標所在位置而定)
             MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`{editor.Text}\r\n";
@@ -1955,6 +2062,9 @@ namespace JasonQuery.UI.Forms
 
         private void cboSchema_SelectedIndexChanged(object sender, EventArgs e)
         {
+            //Also runs during Form_Load; do not erase externally supplied SchemaName/SchemaDbo.
+            InvalidateSqlServerGeneratedSql();
+
             if (string.IsNullOrEmpty(cboSchema.Text))
             {
                 return;
@@ -2019,6 +2129,8 @@ namespace JasonQuery.UI.Forms
 
         private void RefreshSchemaInfo()
         {
+            InvalidateSqlServerGeneratedSql();
+
             var dtColumnInfo = new DataTable();
             var dtSchema = new DataTable();
             var pkInfo = string.Empty;
@@ -2055,7 +2167,10 @@ namespace JasonQuery.UI.Forms
                             SchemaNode = cboSchema.Text;
                             DatabaseSqlExecutor.GetColumnInfoAndPKInfo_PostgreSql(SchemaNode, SchemaType, SchemaName, ref dtColumnInfo, ref pkInfo, ref columnInfoSql);
 
-                            var sql = $"SELECT * FROM {SchemaNode}.{SchemaName} WHERE 1 = 2";
+                            //20261024 PostgreSQL 識別字保留大小寫，並跳脫名稱中的雙引號
+                            var quotedSchemaNode = "\"" + SchemaNode.Replace("\"", "\"\"") + "\"";
+                            var quotedSchemaName = "\"" + SchemaName.Replace("\"", "\"\"") + "\"";
+                            var sql = $"SELECT * FROM {quotedSchemaNode}.{quotedSchemaName} WHERE 1 = 2";
 
                             MyGlobal.PostgreSqlReader.ExecuteQueryPaged100Rows(sql, 0, 0, out _, out _, out _, out _, out dtSchema);
 
@@ -2071,7 +2186,9 @@ namespace JasonQuery.UI.Forms
 
                             DatabaseSqlExecutor.GetColumnInfoAndPKInfo_SqlServer(SchemaNode, SchemaType, SchemaName, SchemaDbo, ObjectId, ref dtColumnInfo, ref pkInfo, ref columnInfoSql);
 
-                            var sql = $"SELECT * FROM {SchemaName} WHERE 1 = 2";
+                            var quotedSchemaDbo = "[" + SchemaDbo.Replace("]", "]]") + "]";
+                            var quotedSchemaName = "[" + SchemaName.Replace("]", "]]") + "]";
+                            var sql = $"SELECT * FROM {quotedSchemaDbo}.{quotedSchemaName} WHERE 1 = 2";
 
                             MyGlobal.SqlServerReader.ExecuteQueryPaged100Rows(sql, 0, 0, out _, out dtSchema);
 
@@ -2095,17 +2212,41 @@ namespace JasonQuery.UI.Forms
                         }
                 }
 
+                if (IsSqlServer)
+                {
+                    //A completed column query is not enough; the probe must also expose usable metadata.
+                    if (dtColumnName == null || dtColumnName.Rows.Count == 0 || dtSchema == null || dtSchema.Rows.Count == 0)
+                    {
+                        throw new InvalidOperationException("SQL Server object metadata was not loaded; SQL preview is disabled.");
+                    }
+
+                    columnInfoCollector = SchemaColumnInfoBuilder.Build(DatabaseSqlExecutor.CurrentDataSource, dtSchema);
+
+                    if (columnInfoCollector == null)
+                    {
+                        throw new InvalidOperationException("SQL Server column metadata is unavailable; SQL preview is disabled.");
+                    }
+
+                    _loadedSqlServerDatabase = txtDatabase.Text;
+                    _loadedSqlServerSchema = cboSchema.Text;
+                    _loadedSqlServerObjectType = SchemaType;
+                    _loadedSqlServerObjectName = SchemaName;
+                    _sqlServerMetadataReady = true;
+                }
+
                 btnPreview.Enabled = true;
             }
             catch (Exception ex)
             {
+                InvalidateSqlServerGeneratedSql();
+
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             finally
             {
-                if (dtSchema != null && dtSchema.Rows.Count > 0)
+                if (!IsSqlServer && columnInfoCollector == null && dtSchema != null && dtSchema.Rows.Count > 0)
                 {
                     columnInfoCollector = SchemaColumnInfoBuilder.Build(DatabaseSqlExecutor.CurrentDataSource, dtSchema);
                 }
@@ -2723,7 +2864,7 @@ namespace JasonQuery.UI.Forms
             _isKeyPressTab = true;
             rdoView.Checked = true;
 
-            if (!string.IsNullOrEmpty(cboTable.Text))
+            if (!string.IsNullOrWhiteSpace(cboView.Text))
             {
                 SchemaType = SchemaObjectNames.Views;
                 RefreshSchemaInfo();

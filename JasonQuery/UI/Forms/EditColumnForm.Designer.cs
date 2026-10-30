@@ -362,13 +362,13 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtComment.BackColor = System.Drawing.Color.White;
             this.txtComment.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtComment.ImeMode = System.Windows.Forms.ImeMode.Disable;
+            this.txtComment.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.txtComment.Location = new System.Drawing.Point(100, 95);
-            this.txtComment.MaxLength = 25;
+            this.txtComment.MaxLength = 32767;
             this.txtComment.Multiline = true;
             this.txtComment.Name = "txtComment";
-            this.txtComment.ShortcutsEnabled = false;
-            this.txtComment.ShowContextMenu = false;
+            this.txtComment.ShortcutsEnabled = true;
+            this.txtComment.ShowContextMenu = true;
             this.txtComment.Size = new System.Drawing.Size(587, 50);
             this.txtComment.TabIndex = 121;
             this.txtComment.Tag = null;
@@ -736,9 +736,9 @@
             this.panel1.BackColor = System.Drawing.Color.Transparent;
             this.panel1.Controls.Add(this.lblPrompt2);
             this.panel1.Controls.Add(this.lblPrompt1);
-            this.panel1.Location = new System.Drawing.Point(24, 250);
+            this.panel1.Location = new System.Drawing.Point(24, 237);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(682, 60);
+            this.panel1.Size = new System.Drawing.Size(682, 72);
             this.panel1.TabIndex = 62;
             // 
             // lblPrompt2

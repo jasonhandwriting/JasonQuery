@@ -13,6 +13,12 @@ namespace JasonQuery.Core.Database.DdlPreview.ColumnDefinitions
                                "An Add Column request is required.");
             }
 
+            if (request.DataSourceType == DataSourceType.Oracle && request.RequireOracleDdlTargetIdentity
+                && !OracleDdlTargetIdentityPolicy.TryQuoteOwner(request.OracleTargetIdentity, out _))
+            {
+                return Failure(ColumnAddBuildFailureKind.MissingRequest, "The Oracle DDL target identity is missing, stale or inconsistent.");
+            }
+
             if (request.DataSourceType == DataSourceType.None)
             {
                 return Failure(ColumnAddBuildFailureKind.UnsupportedDataSource,
@@ -159,14 +165,24 @@ namespace JasonQuery.Core.Database.DdlPreview.ColumnDefinitions
             switch (request.DataSourceType)
             {
                 case DataSourceType.Oracle:
+                    {
+                        if (request.RequireOracleDdlTargetIdentity)
+                        {
+                            if (!OracleDdlTargetIdentityPolicy.TryQuoteOwner(request.OracleTargetIdentity, out string owner))
+                            {
+                                return string.Empty;
+                            }
+
+                            var table = DdlIdentifierQuotingPolicy.QuoteExistingIdentifier(DataSourceType.Oracle, request.TableName);
+
+                            return string.IsNullOrEmpty(table) ? string.Empty : owner + "." + table;
+                        }
+
+                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(DataSourceType.Oracle, request.SchemaName, request.TableName);
+                    }
                 case DataSourceType.PostgreSql:
                     {
-                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName
-                        (
-                            request.DataSourceType,
-                            request.SchemaName,
-                            request.TableName
-                        );
+                        return DdlIdentifierQuotingPolicy.QuoteExistingQualifiedName(DataSourceType.PostgreSql, request.SchemaName, request.TableName);
                     }
                 case DataSourceType.SqlServer:
                     {
