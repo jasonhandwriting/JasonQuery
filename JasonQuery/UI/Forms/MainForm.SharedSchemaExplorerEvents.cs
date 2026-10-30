@@ -102,7 +102,17 @@ namespace JasonQuery.UI.Forms
             };
 
             //Resolve from the MainForm grid. Never reuse a QueryForm or SchemaBrowserForm row index.
-            return SchemaExplorerSelectionResolver.Resolve(request, new C1SchemaExplorerRowReader(grid));
+            var rowReader = new C1SchemaExplorerRowReader(grid);
+            var selection = SchemaExplorerSelectionResolver.Resolve(request, rowReader);
+
+            //C2: only the selected Oracle ColumnInfo DataRow can provide the raw dictionary identifiers.
+            //Do not change the separately protected legacy SchemaExplorerSelectionResolver.
+            if (_currentSourceType == DataSourceType.Oracle && selection != null && selection.IsColumnInfoRow)
+            {
+                OracleSharedColumnDdlBridgePolicy.TryQualifySelection(selection, rowReader.GetDataRow(displayRowIndex), _sharedSchemaMetadataSnapshot.OracleVerifiedSessionUser);
+            }
+
+            return selection;
         }
 
         private bool TryActivateSharedSchemaExplorerInput(C1TrueDBGrid grid, int displayRowIndex, SharedSchemaExplorerInputKind input)

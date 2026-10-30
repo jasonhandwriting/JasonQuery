@@ -78,6 +78,14 @@ namespace JasonQuery.UI.Forms
                             TryOpenSharedOracleTableDdl(selection, command);
                             break;
                         }
+                    case SharedSchemaExplorerMenuCommand.AddColumn:
+                    case SharedSchemaExplorerMenuCommand.CommentColumn:
+                    case SharedSchemaExplorerMenuCommand.DropColumn:
+                    case SharedSchemaExplorerMenuCommand.RenameColumn:
+                        {
+                            TryOpenSharedOracleColumnDdl(selection, command);
+                            break;
+                        }
                     default:
                         {
                             break;
@@ -123,24 +131,28 @@ namespace JasonQuery.UI.Forms
                     {
                         mode = EditTableMode.Comment;
                         icon = "Table Comment.ico";
+
                         break;
                     }
                 case SharedSchemaExplorerMenuCommand.DropTable:
                     {
                         mode = EditTableMode.Drop;
                         icon = "Table Drop.ico";
+
                         break;
                     }
                 case SharedSchemaExplorerMenuCommand.RenameTable:
                     {
                         mode = EditTableMode.Rename;
                         icon = "Table Rename.ico";
+
                         break;
                     }
                 case SharedSchemaExplorerMenuCommand.TruncateTable:
                     {
                         mode = EditTableMode.Truncate;
                         icon = "Table Truncate.ico";
+
                         break;
                     }
                 default:
@@ -160,6 +172,94 @@ namespace JasonQuery.UI.Forms
                 form.OracleTargetIdentity = qualified;
 
                 UIHelper.ApplyEditTableFormSize(form);
+                form.ShowDialog(this);
+
+                if (string.Equals(form.Result, "REFRESH", StringComparison.Ordinal) && !IsDisposed && !Disposing && CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))
+                {
+                    RefreshSharedSchemaExplorerPreviewMetadata();
+                }
+            }
+
+            return true;
+        }
+
+        //B3-B2-C2: the click-time raw column row must match the menu-time row exactly.
+        //The form rechecks the live OracleReader and byte-exact rebuilt SQL before Execute.
+        private bool TryOpenSharedOracleColumnDdl(SchemaExplorerSelectionInfo captured, SharedSchemaExplorerMenuCommand command)
+        {
+            if (_currentSourceType != DataSourceType.Oracle || _sharedSchemaMetadataSnapshot == null || !CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))
+            {
+                return false;
+            }
+
+            var current = ResolveSharedSchemaExplorerInput(_sharedSchemaExplorerGrid, captured.DisplayRowIndex);
+
+            if (!OracleSharedColumnDdlBridgePolicy.IsSameColumnDataRow(captured, current))
+            {
+                return false;
+            }
+
+            var reader = MyGlobal.OracleReader;
+            var snapshot = _sharedSchemaMetadataSnapshot;
+            OracleDdlTargetIdentity qualified;
+
+            if (reader == null || !OracleSharedColumnDdlBridgePolicy.TryCreate(current, snapshot.OracleVerifiedSessionUser, snapshot.OracleConnectionId, reader.VerifiedSessionUser, reader.VerifiedConnectionId, out qualified))
+            {
+                return false;
+            }
+
+            EditColumnMode mode;
+            string icon;
+
+            switch (command)
+            {
+                case SharedSchemaExplorerMenuCommand.AddColumn:
+                    {
+                        mode = EditColumnMode.Add;
+                        icon = "Column Add.ico";
+
+                        break;
+                    }
+                case SharedSchemaExplorerMenuCommand.CommentColumn:
+                    {
+                        mode = EditColumnMode.Comment;
+                        icon = "Column Comment.ico";
+
+                        break;
+                    }
+                case SharedSchemaExplorerMenuCommand.DropColumn:
+                    {
+                        mode = EditColumnMode.Drop;
+                        icon = "Column Drop.ico";
+
+                        break;
+                    }
+                case SharedSchemaExplorerMenuCommand.RenameColumn:
+                    {
+                        mode = EditColumnMode.Rename;
+                        icon = "Column Rename.ico";
+
+                        break;
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+
+            using (var form = new EditColumnForm())
+            {
+                form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, icon);
+                form.ShowInTaskbar = false;
+                form.StartPosition = FormStartPosition.CenterParent;
+                form.SourceType = DataSourceType.Oracle;
+                form.SchemaName = qualified.MetadataOwner;
+                form.TableName = current.OracleMetadataTableName;
+                form.ColumnName = current.OracleMetadataColumnName;
+                form.EditMode = mode;
+                form.OracleTargetIdentity = qualified;
+
+                UIHelper.ApplyEditColumnFormSize(form);
                 form.ShowDialog(this);
 
                 if (string.Equals(form.Result, "REFRESH", StringComparison.Ordinal) && !IsDisposed && !Disposing && CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))

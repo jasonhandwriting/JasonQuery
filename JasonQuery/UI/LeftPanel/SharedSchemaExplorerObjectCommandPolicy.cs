@@ -11,9 +11,7 @@ namespace JasonQuery.UI.LeftPanel
         public static bool CanExecute(LeftPanelTargetKind target, SchemaExplorerSelectionInfo selection, SharedSchemaExplorerMenuCommand command)
         {
             //Only structural Table commands may consider a C1 object group. All other group actions keep their previous safety boundary; Table classification is checked by the bridge policy.
-            if (selection == null || (selection.IsGroupRow && !IsOracleTableDdlCommand(command)) || selection.IsColumnInfoRow
-                || (selection.Kind != SchemaExplorerSelectionKind.SchemaObject && selection.Kind != SchemaExplorerSelectionKind.ExternalObject)
-                || string.IsNullOrWhiteSpace(selection.SchemaType) || string.IsNullOrWhiteSpace(selection.SchemaName))
+            if (selection == null || (selection.IsGroupRow && !IsOracleTableDdlCommand(command)) || (selection.IsColumnInfoRow && !IsOracleColumnDdlCommand(command)) || (selection.Kind != SchemaExplorerSelectionKind.SchemaObject && selection.Kind != SchemaExplorerSelectionKind.ExternalObject && !(selection.Kind == SchemaExplorerSelectionKind.ColumnInfo && IsOracleColumnDdlCommand(command))) || string.IsNullOrWhiteSpace(selection.SchemaType) || string.IsNullOrWhiteSpace(selection.SchemaName))
             {
                 return false;
             }
@@ -60,6 +58,31 @@ namespace JasonQuery.UI.LeftPanel
                     {
                         //B3-B2-T GUI correction: only a G2-qualified Oracle TABLE data row or object-level group row may expose commands. MainForm and EditTableForm independently check live OracleReader identity before Preview/Execute.
                         return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm) && OracleSharedTableDdlBridgePolicy.IsTableObjectRow(selection);
+                    }
+                case SharedSchemaExplorerMenuCommand.AddColumn:
+                case SharedSchemaExplorerMenuCommand.CommentColumn:
+                case SharedSchemaExplorerMenuCommand.DropColumn:
+                case SharedSchemaExplorerMenuCommand.RenameColumn:
+                    {
+                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm) && OracleSharedColumnDdlBridgePolicy.IsQualifiedColumnDataRow(selection);
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+        }
+
+        private static bool IsOracleColumnDdlCommand(SharedSchemaExplorerMenuCommand command)
+        {
+            switch (command)
+            {
+                case SharedSchemaExplorerMenuCommand.AddColumn:
+                case SharedSchemaExplorerMenuCommand.CommentColumn:
+                case SharedSchemaExplorerMenuCommand.DropColumn:
+                case SharedSchemaExplorerMenuCommand.RenameColumn:
+                    {
+                        return true;
                     }
                 default:
                     {
