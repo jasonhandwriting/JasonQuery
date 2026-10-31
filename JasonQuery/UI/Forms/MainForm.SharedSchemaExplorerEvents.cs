@@ -61,8 +61,7 @@ namespace JasonQuery.UI.Forms
                    && !grid.IsDisposed
                    && grid.Visible
                    && ReferenceEquals(grid, _sharedSchemaExplorerGrid)
-                   && SharedSchemaMetadataSnapshotPolicy.CanBind(CaptureSharedLeftPanelHostState(), _sharedSchemaMetadataSnapshot, _currentSourceType)
-                   && IsSharedOracleSessionIdentityCurrent();
+                   && SharedSchemaLifecyclePolicy.CanReadCachedMetadata(SharedSchemaMetadataSnapshotPolicy.CanBind(CaptureSharedLeftPanelHostState(), _sharedSchemaMetadataSnapshot, _currentSourceType));
         }
 
         //Never reuse a snapshot after reconnect, including reconnecting as the SAME Oracle user.
@@ -81,6 +80,14 @@ namespace JasonQuery.UI.Forms
                    && snapshot.OracleConnectionId != Guid.Empty
                    && string.Equals(snapshot.OracleVerifiedSessionUser, reader.VerifiedSessionUser, StringComparison.Ordinal)
                    && snapshot.OracleConnectionId == reader.VerifiedConnectionId;
+        }
+
+        //Cached F7 input is read-only until a live, verified Oracle session authorizes DB actions.
+        private bool CanHandleSharedSchemaExplorerSessionAction()
+        {
+            var liveIdentityCurrent = _currentSourceType != DataSourceType.Oracle || IsSharedOracleSessionIdentityCurrent();
+
+            return SharedSchemaLifecyclePolicy.CanRunSessionBoundAction(CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid), liveIdentityCurrent);
         }
 
         private SchemaExplorerSelectionInfo ResolveSharedSchemaExplorerInput(C1TrueDBGrid grid, int displayRowIndex)
@@ -122,6 +129,12 @@ namespace JasonQuery.UI.Forms
             SchemaExplorerActionKind action;
 
             if (!SharedSchemaExplorerInteractionPolicy.TryGetAction(state.ActiveTarget, selection, input, out action))
+            {
+                return false;
+            }
+
+            //Double-click/Enter may execute a DB operation; stale sessions must fail closed.
+            if (!CanHandleSharedSchemaExplorerSessionAction())
             {
                 return false;
             }
@@ -232,7 +245,7 @@ namespace JasonQuery.UI.Forms
                 var isCopy = command == SharedSchemaExplorerMenuCommand.CopyToClipboard;
                 var isPaste = SharedSchemaExplorerPastePolicy.IsPasteCommand(command) && SharedSchemaExplorerPastePolicy.TryBuildText(context.ActiveTarget, selection, command, out _);
                 var pasteReceiverReady = context.ActiveTarget == LeftPanelTargetKind.SchemaBrowserForm || (activeForm is QueryForm query && query.CanAcceptSharedSchemaExplorerPaste);
-                var isObjectAction = SharedSchemaExplorerObjectCommandPolicy.CanExecute(context.ActiveTarget, selection, command);
+                var isObjectAction = CanHandleSharedSchemaExplorerSessionAction() && SharedSchemaExplorerObjectCommandPolicy.CanExecute(context.ActiveTarget, selection, command);
 
                 item.Enabled = isCopy || (isPaste && pasteReceiverReady) || isObjectAction;
 

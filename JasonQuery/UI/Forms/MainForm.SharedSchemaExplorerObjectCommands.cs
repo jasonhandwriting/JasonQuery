@@ -34,7 +34,7 @@ namespace JasonQuery.UI.Forms
                 || context.ActiveTarget != _sharedSchemaMenuTarget
                 || selection.SourceType != _currentSourceType
                 || DatabaseSqlExecutor.CurrentDataSource != _currentSourceType
-                || !CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid)
+                || !CanHandleSharedSchemaExplorerSessionAction()
                 || !SharedSchemaExplorerObjectCommandPolicy.CanExecute(context.ActiveTarget, selection, command))
             {
                 return;
@@ -101,7 +101,7 @@ namespace JasonQuery.UI.Forms
         //Click-time identity and row re-resolution: a menu captured before a rebind or a reconnect cannot authorize a DDL form, including reconnect as the same user.
         private bool TryOpenSharedOracleTableDdl(SchemaExplorerSelectionInfo captured, SharedSchemaExplorerMenuCommand command)
         {
-            if (_currentSourceType != DataSourceType.Oracle || _sharedSchemaMetadataSnapshot == null || !CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))
+            if (_currentSourceType != DataSourceType.Oracle || _sharedSchemaMetadataSnapshot == null || !CanHandleSharedSchemaExplorerSessionAction())
             {
                 return false;
             }
@@ -187,7 +187,7 @@ namespace JasonQuery.UI.Forms
         //The form rechecks the live OracleReader and byte-exact rebuilt SQL before Execute.
         private bool TryOpenSharedOracleColumnDdl(SchemaExplorerSelectionInfo captured, SharedSchemaExplorerMenuCommand command)
         {
-            if (_currentSourceType != DataSourceType.Oracle || _sharedSchemaMetadataSnapshot == null || !CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))
+            if (_currentSourceType != DataSourceType.Oracle || _sharedSchemaMetadataSnapshot == null || !CanHandleSharedSchemaExplorerSessionAction())
             {
                 return false;
             }
