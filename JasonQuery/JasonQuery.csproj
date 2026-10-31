@@ -1244,6 +1244,7 @@
     <Compile Include="UI\LeftPanel\SchemaExplorerReceiverActionPolicy.cs" />
     <Compile Include="UI\LeftPanel\SharedLeftPanelHostState.cs" />
     <Compile Include="UI\LeftPanel\SharedSchemaMetadataSnapshot.cs" />
+    <Compile Include="UI\LeftPanel\SharedSchemaLifecyclePolicy.cs" />
     <Compile Include="UI\Forms\MainForm.SharedLeftPanelHost.cs">
       <SubType>Form</SubType>
     </Compile>
