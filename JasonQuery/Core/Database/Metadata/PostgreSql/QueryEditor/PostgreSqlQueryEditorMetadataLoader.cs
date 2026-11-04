@@ -20,6 +20,16 @@ namespace JasonQuery.Core.Database.Metadata.PostgreSql.QueryEditor
     {
         public delegate DataTable LoadDataTableDelegate(string sql);
 
+        private static DataTable RequireMetadataTable(DataTable table)
+        {
+            if (table == null)
+            {
+                throw new InvalidOperationException("Metadata query returned null");
+            }
+
+            return table;
+        }
+
         public static void LoadTableAndViewNames(ref DataTable dtTableAndViewName, LoadDataTableDelegate loadDataTable)
         {
             if (loadDataTable == null)
@@ -35,7 +45,7 @@ namespace JasonQuery.Core.Database.Metadata.PostgreSql.QueryEditor
                 {
                     var sqlAllTableAndView = PostgreSqlQueryEditorSqlBuilder.BuildTableAndViewNameSql();
 
-                    dtNewTableAndViewName = loadDataTable(sqlAllTableAndView);
+                    dtNewTableAndViewName = RequireMetadataTable(loadDataTable(sqlAllTableAndView));
                 }
 
                 DataTableLifecycleHelper.ReplaceDataTable(ref dtTableAndViewName, ref dtNewTableAndViewName);
@@ -47,6 +57,11 @@ namespace JasonQuery.Core.Database.Metadata.PostgreSql.QueryEditor
         }
 
         public static void LoadSchemaMetadata(PostgreSqlQueryEditorMetadataLoadOptions options, LoadDataTableDelegate loadDataTable)
+        {
+            LoadSchemaMetadata(options, loadDataTable, null);
+        }
+
+        internal static void LoadSchemaMetadata(PostgreSqlQueryEditorMetadataLoadOptions options, LoadDataTableDelegate loadDataTable, Action<HashSet<string>, HashSet<string>, HashSet<string>, HashSet<string>> onCollected)
         {
             if (options == null)
             {
@@ -69,32 +84,30 @@ namespace JasonQuery.Core.Database.Metadata.PostgreSql.QueryEditor
             {
                 using (TraceLogger.Time("SQL: Get Function Information"))
                 {
-                    var sqlFunctionInfo = options.IsVersion11OrGreater
-                                          ? PostgreSqlFunctionMetadataSqlBuilder.Build_Post11()
-                                          : PostgreSqlFunctionMetadataSqlBuilder.Build_Pre11();
+                    var sqlFunctionInfo = options.IsVersion11OrGreater ? PostgreSqlFunctionMetadataSqlBuilder.Build_Post11() : PostgreSqlFunctionMetadataSqlBuilder.Build_Pre11();
 
-                    dtFunctionInfo = loadDataTable(sqlFunctionInfo);
+                    dtFunctionInfo = RequireMetadataTable(loadDataTable(sqlFunctionInfo));
                 }
 
                 using (TraceLogger.Time("SQL: Get Table Schema Information"))
                 {
                     var sqlTableSchemaInfo = PostgreSqlTableSchemaMetadataSqlBuilder.Build(options.SortByColumnName);
 
-                    dtTableSchemaInfo = loadDataTable(sqlTableSchemaInfo);
+                    dtTableSchemaInfo = RequireMetadataTable(loadDataTable(sqlTableSchemaInfo));
                 }
 
                 using (TraceLogger.Time("SQL: Get Trigger Information"))
                 {
                     var sqlTriggerInfo = PostgreSqlTriggerMetadataSqlBuilder.Build(options.IsVersion11OrGreater);
 
-                    dtTriggerInfo = loadDataTable(sqlTriggerInfo);
+                    dtTriggerInfo = RequireMetadataTable(loadDataTable(sqlTriggerInfo));
                 }
 
                 using (TraceLogger.Time("SQL: Get View Schema Information"))
                 {
                     var sqlViewSchemaInfo = PostgreSqlViewSchemaMetadataSqlBuilder.Build();
 
-                    dtViewSchemaInfo = loadDataTable(sqlViewSchemaInfo);
+                    dtViewSchemaInfo = RequireMetadataTable(loadDataTable(sqlViewSchemaInfo));
                 }
 
                 var functionCountMap = PostgreSqlFunctionCountMapBuilder.Build(dtFunctionInfo);
@@ -159,6 +172,13 @@ namespace JasonQuery.Core.Database.Metadata.PostgreSql.QueryEditor
                 using (TraceLogger.Time("Organize View Info"))
                 {
                     distinctViewNames = PostgreSqlViewSchemaOrganizer.Organize(viewContext);
+                }
+
+                //Atomic callers receive candidates without changing shared keyword state.
+                if (onCollected != null)
+                {
+                    onCollected(distinctFunctionNames, distinctTableNames, distinctTriggerNames, distinctViewNames);
+                    return;
                 }
 
                 SchemaObjectKeywordApplyHelper.Apply

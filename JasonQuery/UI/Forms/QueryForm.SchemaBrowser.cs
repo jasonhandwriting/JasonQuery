@@ -173,6 +173,26 @@ namespace JasonQuery.UI.Forms
             }
         }
 
+        //MainForm F7 already completed a single DB reload. Update only this QueryForm's existing Grid and Editor Styler, without a second metadata SQL query.
+        internal void ApplyPublishedSharedSchemaMetadata()
+        {
+            if (IsDisposed || Disposing)
+            {
+                return;
+            }
+
+            try
+            {
+                GridHelper.UpdateSchemaData(c1GridSchemaBrowser);
+                ResetSchemaFilterUi();
+                ReloadQueryEditorSetting();
+            }
+            catch (Exception ex)
+            {
+                ShowExceptionMessage(ex);
+            }
+        }
+
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             var isLocation = true;

@@ -53,11 +53,17 @@ namespace JasonQuery.Tests.Database.Providers.Readers
         [TestCategory("D1B3F02B1")]
         public void F02B1_G04_IdentityProbeIsSessionUserNotCurrentSchema()
         {
-            var field = typeof(OracleReader).GetField("SessionUserSql", PrivateStatic);
+            var field = typeof(OracleReader).GetField("SessionScopeSql", PrivateStatic);
 
             Assert.IsNotNull(field);
             Assert.IsTrue(field.IsLiteral);
-            Assert.AreEqual("SELECT SYS_CONTEXT('USERENV','SESSION_USER') FROM DUAL", field.GetRawConstantValue());
+
+            var sql = Convert.ToString(field.GetRawConstantValue());
+
+            Assert.IsTrue(sql.Contains("SYS_CONTEXT('USERENV','SESSION_USER')"));
+            Assert.IsTrue(sql.Contains("SYS_CONTEXT('USERENV','DB_NAME')"));
+            Assert.IsTrue(sql.Contains("SYS_CONTEXT('USERENV','CON_NAME')"));
+            Assert.IsFalse(sql.Contains("CURRENT_SCHEMA"));
         }
 
         [TestMethod]

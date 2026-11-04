@@ -23,10 +23,17 @@ namespace JasonQuery.Core.Database.Metadata.MySql.QueryEditor
     {
         public static void LoadSchemaMetadata(MySqlMetadataContext context, MySqlQueryEditorMetadataLoadOptions options)
         {
+            LoadSchemaMetadata(context, options, null);
+        }
+
+        //Atomic callers receive candidate keyword sets instead of mutating MyLibrary/MyGlobal.
+        internal static void LoadSchemaMetadata(MySqlMetadataContext context, MySqlQueryEditorMetadataLoadOptions options,
+                                                Action<HashSet<string>, HashSet<string>, HashSet<string>, HashSet<string>> onCollected)
+        {
             Validate(context, options);
 
             var snapshot = LoadMetadataSnapshot(context);
-            var dtNewSchema = BuildSchemaTable(context, options, snapshot);
+            var dtNewSchema = BuildSchemaTable(context, options, snapshot, onCollected);
 
             context.ResultSchemaTable = dtNewSchema ?? context.SchemaTable;
         }
@@ -84,7 +91,7 @@ namespace JasonQuery.Core.Database.Metadata.MySql.QueryEditor
         }
 
         private static DataTable BuildSchemaTable(MySqlMetadataContext context, MySqlQueryEditorMetadataLoadOptions options,
-                                                  MySqlQueryEditorMetadataSnapshot snapshot)
+                                                  MySqlQueryEditorMetadataSnapshot snapshot, Action<HashSet<string>, HashSet<string>, HashSet<string>, HashSet<string>> onCollected)
         {
             snapshot ??= new MySqlQueryEditorMetadataSnapshot();
 
@@ -128,12 +135,19 @@ namespace JasonQuery.Core.Database.Metadata.MySql.QueryEditor
                     DatabaseName = dbName,
                     FunctionRows = listForFunctionSchema,
                     AddSchemaRow = options.AddSchemaRow,
-                    AutoCompleteFunction = options.AutoCompleteFunction
+                    AutoCompleteFunction = onCollected == null && options.AutoCompleteFunction
                 };
 
                 var distinctNamesFunction = MySqlFunctionSchemaOrganizer.Organize(functionBuildContext);
 
-                MyLibrary.KeywordsUserDefinedFunctions = $"{string.Join(" ", distinctNamesFunction)} ";
+                if (onCollected != null)
+                {
+                    distinctNamesFunction = CollectCandidateNames(listForFunctionSchema, "FunctionName", options.AutoCompleteFunction);
+                }
+                else
+                {
+                    MyLibrary.KeywordsUserDefinedFunctions = $"{string.Join(" ", distinctNamesFunction)} ";
+                }
                 #endregion
 
                 //Tables
@@ -151,12 +165,19 @@ namespace JasonQuery.Core.Database.Metadata.MySql.QueryEditor
                     TableColumnInfoMap = tableColumnInfoMap,
                     RowCountMap = rowCountMap,
                     AddSchemaRow = options.AddSchemaRow,
-                    AutoCompleteTable = options.AutoCompleteTable
+                    AutoCompleteTable = onCollected == null && options.AutoCompleteTable
                 };
 
                 var distinctNamesTable = MySqlTableSchemaOrganizer.Organize(tableBuildContext);
 
-                MyLibrary.KeywordsUserDefinedTables = $"{string.Join(" ", distinctNamesTable)} ";
+                if (onCollected != null)
+                {
+                    distinctNamesTable = CollectCandidateNames(listForTableSchema, "TableName", options.AutoCompleteTable);
+                }
+                else
+                {
+                    MyLibrary.KeywordsUserDefinedTables = $"{string.Join(" ", distinctNamesTable)} ";
+                }
                 #endregion
 
                 //Triggers
@@ -172,12 +193,19 @@ namespace JasonQuery.Core.Database.Metadata.MySql.QueryEditor
                     DatabaseName = dbName,
                     TriggerRows = listForTriggerSchema,
                     AddSchemaRow = options.AddSchemaRow,
-                    AutoCompleteTrigger = options.AutoCompleteTrigger
+                    AutoCompleteTrigger = onCollected == null && options.AutoCompleteTrigger
                 };
 
                 var distinctNamesTrigger = MySqlTriggerSchemaOrganizer.Organize(triggerBuildContext);
 
-                MyLibrary.KeywordsUserDefinedTriggers = $"{string.Join(" ", distinctNamesTrigger)} ";
+                if (onCollected != null)
+                {
+                    distinctNamesTrigger = CollectCandidateNames(listForTriggerSchema, "TriggerName", options.AutoCompleteTrigger);
+                }
+                else
+                {
+                    MyLibrary.KeywordsUserDefinedTriggers = $"{string.Join(" ", distinctNamesTrigger)} ";
+                }
                 #endregion
 
                 //Views
@@ -194,12 +222,19 @@ namespace JasonQuery.Core.Database.Metadata.MySql.QueryEditor
                     ViewRows = listForViewSchema,
                     ViewColumnInfoMap = viewColumnInfoMap,
                     AddSchemaRow = options.AddSchemaRow,
-                    AutoCompleteView = options.AutoCompleteView
+                    AutoCompleteView = onCollected == null && options.AutoCompleteView
                 };
 
                 var distinctNamesView = MySqlViewSchemaOrganizer.Organize(viewBuildContext);
 
-                MyLibrary.KeywordsUserDefinedViews = $"{string.Join(" ", distinctNamesView)} ";
+                if (onCollected != null)
+                {
+                    distinctNamesView = CollectCandidateNames(listForViewSchema, "ViewName", options.AutoCompleteView);
+                }
+                else
+                {
+                    MyLibrary.KeywordsUserDefinedViews = $"{string.Join(" ", distinctNamesView)} ";
+                }
                 #endregion
 
                 //Procedures
@@ -219,6 +254,11 @@ namespace JasonQuery.Core.Database.Metadata.MySql.QueryEditor
 
                 MySqlProcedureSchemaOrganizer.Organize(procedureBuildContext);
                 #endregion
+
+                if (onCollected != null)
+                {
+                    onCollected(distinctNamesFunction, distinctNamesTable, distinctNamesTrigger, distinctNamesView);
+                }
             }
             finally
             {
@@ -226,6 +266,23 @@ namespace JasonQuery.Core.Database.Metadata.MySql.QueryEditor
             }
 
             return dtNewSchema;
+        }
+
+        private static HashSet<string> CollectCandidateNames(IEnumerable<DataRow> rows, string nameColumn, bool enabled)
+        {
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (!enabled || rows == null)
+            {
+                return names;
+            }
+
+            foreach (var row in rows)
+            {
+                names.Add(row.GetSafeString(nameColumn));
+            }
+
+            return names;
         }
 
         private static MySqlTableMetadataLoadResult LoadMySqlTableMetadata(MySqlMetadataContext context, string sDatabaseName)
@@ -333,10 +390,17 @@ namespace JasonQuery.Core.Database.Metadata.MySql.QueryEditor
         {
             if (context?.ExecuteQuery == null)
             {
-                return new DataTable();
+                throw new InvalidOperationException("Metadata query returned null: query delegate unavailable");
             }
 
-            return context.ExecuteQuery(sql) ?? new DataTable();
+            var result = context.ExecuteQuery(sql);
+
+            if (result == null)
+            {
+                throw new InvalidOperationException("Metadata query returned null");
+            }
+
+            return result;
         }
 
         private static string EscapeMySql(string value)

@@ -1,6 +1,7 @@
 ﻿using C1.Win.C1TrueDBGrid;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.SchemaExplorer.Selection;
 using JasonQuery.Core.Localization;
 using JasonQuery.UI.LeftPanel;
@@ -20,6 +21,8 @@ namespace JasonQuery.UI.Forms
         private Control _sharedSchemaMenuActiveForm;
         private LeftPanelTargetKind _sharedSchemaMenuTarget;
         private int _sharedSchemaMenuConnectionRevision;
+        private ToolStripMenuItem _sharedSchemaRecoveryEntryItem;
+        private SharedOracleRecoveryEntryKind _sharedSchemaRecoveryEntryKind;
 
         private void AttachSharedSchemaExplorerInputHandlers(C1TrueDBGrid grid)
         {
@@ -61,7 +64,7 @@ namespace JasonQuery.UI.Forms
                    && !grid.IsDisposed
                    && grid.Visible
                    && ReferenceEquals(grid, _sharedSchemaExplorerGrid)
-                   && SharedSchemaLifecyclePolicy.CanReadCachedMetadata(SharedSchemaMetadataSnapshotPolicy.CanBind(CaptureSharedLeftPanelHostState(), _sharedSchemaMetadataSnapshot, _currentSourceType));
+                   && SharedSchemaLifecyclePolicy.CanReadCachedMetadata(SharedSchemaMetadataSnapshotPolicy.CanBindForScope(CaptureSharedLeftPanelHostState(), _sharedSchemaMetadataSnapshot, _currentSourceType, GetSharedSchemaDatabaseScope()));
         }
 
         //Never reuse a snapshot after reconnect, including reconnecting as the SAME Oracle user.
@@ -245,7 +248,14 @@ namespace JasonQuery.UI.Forms
                 var isCopy = command == SharedSchemaExplorerMenuCommand.CopyToClipboard;
                 var isPaste = SharedSchemaExplorerPastePolicy.IsPasteCommand(command) && SharedSchemaExplorerPastePolicy.TryBuildText(context.ActiveTarget, selection, command, out _);
                 var pasteReceiverReady = context.ActiveTarget == LeftPanelTargetKind.SchemaBrowserForm || (activeForm is QueryForm query && query.CanAcceptSharedSchemaExplorerPaste);
-                var isObjectAction = CanHandleSharedSchemaExplorerSessionAction() && SharedSchemaExplorerObjectCommandPolicy.CanExecute(context.ActiveTarget, selection, command);
+
+                //SQL generation is a cached-data action; live Oracle authorization belongs to the form's Execute gate.
+                var isDdlGenerator = SharedSchemaDdlInteractionPolicy.CanOpenGenerator
+                (
+                    context.ActiveTarget, selection, command, CanHandleSharedSchemaExplorerInput(grid)
+                );
+
+                var isObjectAction = (isDdlGenerator || CanHandleSharedSchemaExplorerSessionAction()) && SharedSchemaExplorerObjectCommandPolicy.CanExecute(context.ActiveTarget, selection, command);
 
                 item.Enabled = isCopy || (isPaste && pasteReceiverReady) || isObjectAction;
 
@@ -279,6 +289,25 @@ namespace JasonQuery.UI.Forms
                 menu.Items.Add(item);
             }
 
+            //L2B-1: information-only recovery entry. NEVER reconnect or refresh during menu construction.
+            var recoveryKind = ResolveSharedOracleRecoveryEntryKind(context.ActiveTarget, selection);
+            var recoveryContext = CreateSharedOracleRecoveryEntryContext(context, state, activeForm, false, true);
+
+            if (SharedOracleRecoveryEntryPolicy.CanOfferEntry(recoveryContext, recoveryKind))
+            {
+                menu.Items.Add("-");
+
+                var recoveryItem = new ToolStripMenuItem("Oracle connection and fresh schema required...");
+
+                recoveryItem.ToolTipText = "L2B-1 guidance only. No reconnect, metadata query or DDL is performed.";
+                recoveryItem.Click += SharedOracleRecoveryEntryClick;
+
+                menu.Items.Add(recoveryItem);
+
+                _sharedSchemaRecoveryEntryItem = recoveryItem;
+                _sharedSchemaRecoveryEntryKind = recoveryKind;
+            }
+
             _sharedSchemaCopyContextMenu = menu;
             _sharedSchemaCopySelection = selection;
             _sharedSchemaMenuActiveForm = activeForm;
@@ -286,6 +315,102 @@ namespace JasonQuery.UI.Forms
             _sharedSchemaMenuConnectionRevision = state.ConnectionRevision;
 
             menu.Show(grid, new Point(e.X, e.Y));
+        }
+
+        //L2B-1: resolve from the already-qualified row and existing target/menu policy.
+        //This is an entry classification, NOT permission to access Oracle.
+        private static SharedOracleRecoveryEntryKind ResolveSharedOracleRecoveryEntryKind(LeftPanelTargetKind target, SchemaExplorerSelectionInfo selection)
+        {
+            if (SharedSchemaExplorerObjectCommandPolicy.CanExecute(target, selection, SharedSchemaExplorerMenuCommand.CommentTable))
+            {
+                return SharedOracleRecoveryEntryKind.Table;
+            }
+
+            if (SharedSchemaExplorerObjectCommandPolicy.CanExecute(target, selection, SharedSchemaExplorerMenuCommand.CommentColumn))
+            {
+                return SharedOracleRecoveryEntryKind.Column;
+            }
+
+            return SharedOracleRecoveryEntryKind.None;
+        }
+
+        private SharedOracleSessionRecoveryContext CreateSharedOracleRecoveryEntryContext(LeftPanelContext context, SharedLeftPanelHostState state, Control activeForm, bool explicitInvocation, bool menuCurrent)
+        {
+            var sourceCurrent = _currentSourceType == DataSourceType.Oracle && DatabaseSqlExecutor.CurrentDataSource == _currentSourceType;
+            var activeTarget = context != null && (context.ActiveTarget == LeftPanelTargetKind.QueryForm || context.ActiveTarget == LeftPanelTargetKind.SchemaBrowserForm);
+
+            return new SharedOracleSessionRecoveryContext
+            {
+                IsOracleWorkspace = sourceCurrent,
+                HasCurrentLogicalSnapshot = CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid),
+                IsDatabaseBackedAction = true,
+                IsActiveTabAndMenuCurrent = menuCurrent && state != null && context != null && context.IsConnected && context.SchemaReady && activeTarget && activeForm != null && ReferenceEquals(tabControl1.SelectedTab?.Control, activeForm),
+                IsExplicitUserInvocation = explicitInvocation,
+                HasUnsafeTransactionState = AppConfigHelper.IsNotCommitYet,
+                IsLiveSessionVerified = CanHandleSharedSchemaExplorerSessionAction(),
+                //Fresh evidence is deliberately unavailable until L2B-2; never infer it from old dtSchema.
+                IsFreshMetadataFromLiveSession = false,
+                HasSameDatabaseAndOwnerScope = false,
+                IsExactTargetReResolved = false,
+                IsFreshSnapshotSessionIdentityCurrent = false
+            };
+        }
+
+        private void SharedOracleRecoveryEntryClick(object sender, EventArgs e)
+        {
+            var item = sender as ToolStripMenuItem;
+            var selection = _sharedSchemaCopySelection;
+            var state = CaptureSharedLeftPanelHostState();
+            var context = CaptureLeftPanelContext();
+            var activeForm = tabControl1.SelectedTab?.Control;
+
+            if (item == null || !item.Enabled || !ReferenceEquals(item, _sharedSchemaRecoveryEntryItem)
+                || !ReferenceEquals(item.Owner, _sharedSchemaCopyContextMenu) || selection == null || state == null || context == null
+                || state.ConnectionRevision != _sharedSchemaMenuConnectionRevision || !ReferenceEquals(activeForm, _sharedSchemaMenuActiveForm)
+                || context.ActiveTarget != _sharedSchemaMenuTarget || selection.SourceType != _currentSourceType
+                || !CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))
+            {
+                return;
+            }
+
+            var kind = ResolveSharedOracleRecoveryEntryKind(context.ActiveTarget, selection);
+
+            if (kind == SharedOracleRecoveryEntryKind.None || kind != _sharedSchemaRecoveryEntryKind)
+            {
+                return;
+            }
+
+            //A menu captured before a grid rebind or tab change cannot even request recovery guidance.
+            SchemaExplorerSelectionInfo current;
+
+            try
+            {
+                current = ResolveSharedSchemaExplorerInput(_sharedSchemaExplorerGrid, selection.DisplayRowIndex);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            var sameRow = kind == SharedOracleRecoveryEntryKind.Table ? OracleSharedTableDdlBridgePolicy.IsSameTableDataRow(selection, current) : OracleSharedColumnDdlBridgePolicy.IsSameColumnDataRow(selection, current);
+
+            if (!sameRow)
+            {
+                return;
+            }
+
+            var recoveryContext = CreateSharedOracleRecoveryEntryContext(context, state, activeForm, true, true);
+
+            if (!SharedOracleRecoveryEntryPolicy.CanAcceptExplicitClick(recoveryContext, kind))
+            {
+                return;
+            }
+
+            //L2B-1 does not open Oracle, republish metadata, or invoke any DDL form.
+            MessageBox.Show("This Oracle object action requires a newly verified connection and fresh schema metadata. "
+                            + "Automatic recovery is not enabled yet. Use the SQL Editor's Refresh Schema, then reselect the object. "
+                            + "No database action has been executed.",
+                            AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private static string GetSharedSchemaMenuCaption(LeftPanelTargetKind target, SchemaExplorerSelectionInfo selection, SharedSchemaExplorerMenuCommand command)
@@ -427,8 +552,7 @@ namespace JasonQuery.UI.Forms
 
         private void SharedSchemaPasteClick(object sender, EventArgs e)
         {
-            if (!(sender is ToolStripMenuItem item) || !(item.Tag is SharedSchemaExplorerMenuCommand command)
-                || !item.Enabled || !ReferenceEquals(item.Owner, _sharedSchemaCopyContextMenu))
+            if (!(sender is ToolStripMenuItem item) || !(item.Tag is SharedSchemaExplorerMenuCommand command) || !item.Enabled || !ReferenceEquals(item.Owner, _sharedSchemaCopyContextMenu))
             {
                 return;
             }
@@ -457,8 +581,7 @@ namespace JasonQuery.UI.Forms
 
             if (context.ActiveTarget == LeftPanelTargetKind.SchemaBrowserForm && activeForm is SchemaBrowserForm)
             {
-                //Preserve the legacy SchemaBrowserForm behavior: transfer to an SQL Editor,
-                //creating one when necessary. Never insert into the SchemaBrowser editor pane.
+                //Preserve the legacy SchemaBrowserForm behavior: transfer to an SQL Editor, creating one when necessary. Never insert into the SchemaBrowser editor pane.
                 PasteFromSchemaBrowser(pasteText);
             }
         }
@@ -502,6 +625,14 @@ namespace JasonQuery.UI.Forms
                 _sharedSchemaCopyNameItem.Click -= SharedSchemaCopyNameClick;
                 _sharedSchemaCopyNameItem = null;
             }
+
+            if (_sharedSchemaRecoveryEntryItem != null)
+            {
+                _sharedSchemaRecoveryEntryItem.Click -= SharedOracleRecoveryEntryClick;
+                _sharedSchemaRecoveryEntryItem = null;
+            }
+
+            _sharedSchemaRecoveryEntryKind = SharedOracleRecoveryEntryKind.None;
 
             if (_sharedSchemaCopyContextMenu != null)
             {

@@ -22,6 +22,13 @@ namespace JasonQuery.UI.LeftPanel
 
     public static class SharedSchemaExplorerPreviewPolicy
     {
+        //A failed refresh never discards a usable snapshot from the same logical host.
+        //The MainForm caller must additionally verify the database scope.
+        public static bool ShouldRetainPublishedSnapshotAfterFailedRefresh(SharedLeftPanelHostState state, SharedSchemaMetadataSnapshot snapshot, DataSourceType sourceType)
+        {
+            return SharedSchemaMetadataSnapshotPolicy.CanBind(state, snapshot, sourceType);
+        }
+
         public const int PreviewWidth = 220;
         public const int MinimumWorkspaceWidth = 890;
 
@@ -41,6 +48,13 @@ namespace JasonQuery.UI.LeftPanel
         public static bool ShouldShowWorkspace(SharedLeftPanelHostState state, bool workspaceVisible)
         {
             return state != null && !state.IsDisposed && state.IsConnected && workspaceVisible;
+        }
+
+        //Pinned F6/F7/F8/F9 workspace ignores legacy user hide requests.
+        //A disconnected or non-visible main workspace must never create an orphaned panel.
+        public static bool ShouldKeepPermanentWorkspaceVisible(SharedLeftPanelHostState state, bool mainWorkspaceVisible, bool userRequestedHide)
+        {
+            return ShouldShowWorkspace(state, mainWorkspaceVisible);
         }
 
         //The preview Grid must never overlap the fixed-height preview header.

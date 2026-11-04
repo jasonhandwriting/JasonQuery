@@ -40,6 +40,11 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Index
             {
                 dtIndexInfo = GetIndexInfo(context);
 
+                if (dtIndexInfo == null)
+                {
+                    throw new InvalidOperationException("Oracle index information metadata query returned null; the schema refresh is rejected.");
+                }
+
                 var indexCount = CountDistinctIndexes(dtIndexInfo);
                 var indexSchemaType = SchemaTypeTextBuilder.Build(SchemaObjectNames.Indexes, indexCount);
 
@@ -133,9 +138,7 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Index
                 return string.Empty;
             }
 
-            return string.Equals(descend, "DESC", StringComparison.OrdinalIgnoreCase)
-                   ? string.Format("{0}, DESC", indexedTarget)
-                   : string.Format("{0}, ASC", indexedTarget);
+            return string.Equals(descend, "DESC", StringComparison.OrdinalIgnoreCase) ? string.Format("{0}, DESC", indexedTarget) : string.Format("{0}, ASC", indexedTarget);
         }
         #endregion
     }

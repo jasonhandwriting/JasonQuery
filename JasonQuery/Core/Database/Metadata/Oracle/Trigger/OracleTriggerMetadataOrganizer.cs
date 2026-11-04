@@ -35,6 +35,11 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Trigger
             {
                 dtTriggerInfo = GetTriggerInfo(context);
 
+                if (dtTriggerInfo == null)
+                {
+                    throw new InvalidOperationException("Oracle trigger information metadata query returned null; the schema refresh is rejected.");
+                }
+
                 var triggerSchemaType = SchemaTypeTextBuilder.Build(SchemaObjectNames.Triggers, dtTriggerInfo?.Rows.Count ?? 0);
                 var distinctTriggerNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 

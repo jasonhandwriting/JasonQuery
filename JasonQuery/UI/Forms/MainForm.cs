@@ -3951,6 +3951,101 @@ namespace JasonQuery.UI.Forms
             ValueUpdated(this, new ValueUpdatedEventArgs(value));
         }
 
+        //C1: keep a pre-switch reference so a stale dtSchema cannot be relabelled with a different database scope just because DatabaseName changed.
+        private DataTable _sharedSchemaBeforeDatabaseSwitch;
+        private DataSourceType _sharedSchemaPendingSwitchProvider = DataSourceType.None;
+        private string _sharedSchemaPendingSwitchScope = string.Empty;
+
+        private static bool CanPublishCompletedDatabaseSwitch(DataSourceType expectedProvider, DataSourceType currentProvider, string expectedScope, string currentScope, DataTable previousSchema, DataTable reloadedSchema)
+        {
+            if (expectedProvider == DataSourceType.None || expectedProvider == DataSourceType.Oracle || expectedProvider != currentProvider)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(expectedScope) || !string.Equals(expectedScope, currentScope, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return reloadedSchema != null
+                   && !ReferenceEquals(previousSchema, reloadedSchema)
+                   && reloadedSchema.Columns.Contains("SchemaObject")
+                   && reloadedSchema.Columns.Contains("SchemaType")
+                   && reloadedSchema.Columns.Contains("SchemaName");
+        }
+
+        private void BeginSharedSchemaDatabaseSwitch(DataSourceType provider)
+        {
+            if (provider != _currentSourceType || provider == DataSourceType.None || provider == DataSourceType.Oracle)
+            {
+                return;
+            }
+
+            var targetScope = GetSharedSchemaDatabaseScope();
+
+            if (string.IsNullOrWhiteSpace(targetScope))
+            {
+                return;
+            }
+
+            if (_sharedSchemaPendingSwitchProvider != provider || !string.Equals(_sharedSchemaPendingSwitchScope, targetScope, StringComparison.Ordinal))
+            {
+                _sharedSchemaBeforeDatabaseSwitch = DatabaseSqlExecutor.dtSchema;
+                _sharedSchemaPendingSwitchProvider = provider;
+                _sharedSchemaPendingSwitchScope = targetScope;
+            }
+
+            InvalidateSharedSchemaExplorerMetadataIfStale();
+            SyncSharedSchemaExplorerPreviewUI();
+
+            if (_sharedSchemaPreviewStatus != null && !IsSharedSchemaSnapshotInCurrentScope())
+            {
+                _sharedSchemaPreviewStatus.Text = "F7: database changed; waiting for refreshed metadata.";
+            }
+        }
+
+        //Only called after an existing provider loader has completed successfully.
+        //Never issue another metadata query from this notification.
+        private void CompleteSharedSchemaDatabaseSwitch(DataSourceType provider)
+        {
+            var currentScope = GetSharedSchemaDatabaseScope();
+
+            var ready = CanPublishCompletedDatabaseSwitch
+            (
+                _sharedSchemaPendingSwitchProvider,
+                provider,
+                _sharedSchemaPendingSwitchScope,
+                currentScope,
+                _sharedSchemaBeforeDatabaseSwitch,
+                DatabaseSqlExecutor.dtSchema
+            );
+
+            if (!ready)
+            {
+                InvalidateSharedSchemaExplorerMetadataIfStale();
+                SyncSharedSchemaExplorerPreviewUI();
+
+                if (_sharedSchemaPreviewStatus != null)
+                {
+                    _sharedSchemaPreviewStatus.Text = "F7: switched database metadata unavailable. Use Refresh.";
+                }
+
+                return;
+            }
+
+            _sharedSchemaBeforeDatabaseSwitch = null;
+            _sharedSchemaPendingSwitchProvider = DataSourceType.None;
+            _sharedSchemaPendingSwitchScope = string.Empty;
+
+            TryBindSharedSchemaExplorerAfterLegacyReload();
+
+            if (_sharedSchemaPreviewStatus != null)
+            {
+                _sharedSchemaPreviewStatus.Text = IsSharedSchemaSnapshotInCurrentScope() ? "F7: metadata synchronized after database switch." : "F7: switched database metadata unavailable. Use Refresh.";
+            }
+        }
+
         private void ValueUpdated(object sender, ValueUpdatedEventArgs e)
         {
             var newValue = e.NewValue;
@@ -3958,6 +4053,8 @@ namespace JasonQuery.UI.Forms
             if (newValue.StartsWith("SQLServerSwitchOKDatabaseByUseCommand`", StringComparison.Ordinal)) //20220818 使用者透過 USE 指令 切換資料庫，清空其他頁籤的訊息、並更新 Editor's SchemaBrowser 資訊
             {
                 var info = newValue.Replace("SQLServerSwitchOKDatabaseByUseCommand`", string.Empty);
+
+                CompleteSharedSchemaDatabaseSwitch(DataSourceType.SqlServer);
 
                 var temp = tabControl1.TabPages.Cast<TabPage>()
                                                .Where
@@ -3980,6 +4077,8 @@ namespace JasonQuery.UI.Forms
             else if (newValue.StartsWith("MySQLSwitchOKDatabaseByUseCommand`", StringComparison.Ordinal)) //20220818 使用者透過 USE 指令 切換資料庫，清空其他頁籤的訊息、並更新 Editor's SchemaBrowser 資訊
             {
                 var info = newValue.Replace("MySQLSwitchOKDatabaseByUseCommand`", string.Empty);
+
+                CompleteSharedSchemaDatabaseSwitch(DataSourceType.MySql);
 
                 var temp = tabControl1.TabPages.Cast<TabPage>()
                                                .Where
@@ -4151,6 +4250,9 @@ namespace JasonQuery.UI.Forms
                 btnDatabase.Text = info;
                 spDatabase.Visible = true;
                 DatabaseSqlExecutor.DatabaseName = info;
+
+                //A direct USE reports the target before its metadata load completes.
+                BeginSharedSchemaDatabaseSwitch(_currentSourceType);
             }
             else if (newValue.StartsWith("UpdateCanUndo`", StringComparison.Ordinal))
             {
@@ -4427,6 +4529,8 @@ namespace JasonQuery.UI.Forms
                 {
                     MyGlobal.InfoFromMDIForm = string.Empty;
                 }
+
+                TryBindSharedSchemaExplorerAfterLegacyReload();
             }
             else if (newValue.StartsWith("UpdateSchemaInformationRefreshClick`", StringComparison.Ordinal)) //20241011 在 QueryForm 按下 Refresh 更新 Schema 資訊
             {
@@ -4457,6 +4561,8 @@ namespace JasonQuery.UI.Forms
                 {
                     MyGlobal.InfoFromMDIForm = string.Empty;
                 }
+
+                TryBindSharedSchemaExplorerAfterLegacyReload();
             }
             else if (newValue.StartsWith("UpdateSchemaBrowserInformation`", StringComparison.Ordinal)) //20241013
             {
@@ -5845,17 +5951,26 @@ namespace JasonQuery.UI.Forms
                 MyGlobal.CommitRollbackCheck = -1; //恢復成初始值，因為後續使用者可能「取消存檔」而「不關閉程式」
                 DatabaseSqlExecutor.DatabaseName = tag;
 
+                BeginSharedSchemaDatabaseSwitch(DataSourceType.PostgreSql);
+
                 var database = TextHelper.GetStringBetween2(DatabaseSqlExecutor.DbConnectionString, ";Database=", ";", true);
 
                 DatabaseSqlExecutor.DbConnectionString = DatabaseSqlExecutor.DbConnectionString.Replace($";Database={database};", $";Database={tag};");
                 btnDatabase.Text = tag;
 
-                ConnectToDatabase(); //切換資料庫後，重新連線
+                var connectError = ConnectToDatabase(); //切換資料庫後，重新連線
+
+                if (!string.IsNullOrEmpty(connectError))
+                {
+                    throw new InvalidOperationException("PostgreSQL database switch connection failed: " + connectError);
+                }
+
                 LoadPostgreSqlDatabase(); //切換資料庫後，重新產生功能表資訊
 
                 var c1Grid = new C1.Win.C1TrueDBGrid.C1TrueDBGrid();
 
                 DatabaseSqlExecutor.UpdateSchemaData_PostgreSql(c1Grid, false); //切換資料庫後，重新撈取 Schema Info
+                CompleteSharedSchemaDatabaseSwitch(DataSourceType.PostgreSql);
                 MyGlobal.GlobalTemp = sbTabsInfo.ToString();
                 Application.UseWaitCursor = false;
 
@@ -5964,6 +6079,7 @@ namespace JasonQuery.UI.Forms
                 MyGlobal.GlobalTemp = $"SQLServerSwitchDatabaseFromMainForm{MyGlobal.Separator}{accessibleDescription};{tag};{temp}";
 
                 DatabaseSqlExecutor.DatabaseName = tag;
+                BeginSharedSchemaDatabaseSwitch(DataSourceType.SqlServer);
                 btnDatabase.Text = tag;
 
                 LoadSqlServerDatabase(); //切換資料庫後，重新產生功能表資訊
@@ -6072,6 +6188,7 @@ namespace JasonQuery.UI.Forms
                 MyGlobal.GlobalTemp = $"MySQLSwitchDatabaseFromMainForm{MyGlobal.Separator}{accessibleDescription};{tag};{temp}";
 
                 DatabaseSqlExecutor.DatabaseName = tag;
+                BeginSharedSchemaDatabaseSwitch(DataSourceType.MySql);
                 btnDatabase.Text = tag;
 
                 LoadMySqlDatabase(); //切換資料庫後，重新產生功能表資訊

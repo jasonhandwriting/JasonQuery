@@ -1742,6 +1742,22 @@ namespace JasonQuery.UI.Forms
         }
 
         //從母表單傳遞資訊至指定的子表單
+        //Keep USE as the first SQL token for SqlServerReader switch classification.
+        private static string BuildSqlServerMenuUseSql(string databaseName)
+        {
+            return $"USE {databaseName}";
+        }
+
+        //Consume the one-shot menu request before starting asynchronous SQL execution.
+        private void DispatchSqlServerMenuUseOnce(string databaseName)
+        {
+            var command = BuildSqlServerMenuUseSql(databaseName);
+
+            MyGlobal.GlobalTemp = string.Empty;
+
+            ExecuteQuery(command, false, false);
+        }
+
         private void tmrMother2Child_Tick(object sender, EventArgs e)
         {
             var fileName = string.Empty;
@@ -2036,7 +2052,7 @@ namespace JasonQuery.UI.Forms
                 if (temp2 == AccessibleDescription) //確認是否為指定的 Tab
                 {
                     //20220808 此處只要直接執行 use 指令即可，接著會再呼叫 SQLServerSwitchDatabase 執行後續動作
-                    ExecuteQuery($"--Switch database\r\nUSE {temp3}", false, false);
+                    DispatchSqlServerMenuUseOnce(temp3);
                 }
             }
 

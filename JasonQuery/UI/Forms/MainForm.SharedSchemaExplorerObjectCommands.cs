@@ -1,7 +1,6 @@
 ﻿using IconLibrary;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
-using JasonQuery.Core.Database.DdlPreview;
 using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.SchemaExplorer.Selection;
@@ -34,7 +33,7 @@ namespace JasonQuery.UI.Forms
                 || context.ActiveTarget != _sharedSchemaMenuTarget
                 || selection.SourceType != _currentSourceType
                 || DatabaseSqlExecutor.CurrentDataSource != _currentSourceType
-                || !CanHandleSharedSchemaExplorerSessionAction()
+                || (!SharedSchemaDdlInteractionPolicy.CanOpenGenerator(context.ActiveTarget, selection, command, CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid)) && !CanHandleSharedSchemaExplorerSessionAction())
                 || !SharedSchemaExplorerObjectCommandPolicy.CanExecute(context.ActiveTarget, selection, command))
             {
                 return;
@@ -101,7 +100,7 @@ namespace JasonQuery.UI.Forms
         //Click-time identity and row re-resolution: a menu captured before a rebind or a reconnect cannot authorize a DDL form, including reconnect as the same user.
         private bool TryOpenSharedOracleTableDdl(SchemaExplorerSelectionInfo captured, SharedSchemaExplorerMenuCommand command)
         {
-            if (_currentSourceType != DataSourceType.Oracle || _sharedSchemaMetadataSnapshot == null || !CanHandleSharedSchemaExplorerSessionAction())
+            if (_currentSourceType != DataSourceType.Oracle || _sharedSchemaMetadataSnapshot == null || !CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid) || !SharedSchemaDdlInteractionPolicy.CanOpenGenerator(CaptureLeftPanelContext().ActiveTarget, captured, command, true))
             {
                 return false;
             }
@@ -113,11 +112,8 @@ namespace JasonQuery.UI.Forms
                 return false;
             }
 
-            var reader = MyGlobal.OracleReader;
-            var snapshot = _sharedSchemaMetadataSnapshot;
-            OracleDdlTargetIdentity qualified;
-
-            if (reader == null || !OracleSharedTableDdlBridgePolicy.TryCreate(current, snapshot.OracleVerifiedSessionUser, snapshot.OracleConnectionId, reader.VerifiedSessionUser, reader.VerifiedConnectionId, out qualified))
+            //This is an offline, copy-only SQL generator. Never synthesize a current Oracle DDL identity from cached F7 data.
+            if (string.IsNullOrWhiteSpace(current.OracleSelectedOwner))
             {
                 return false;
             }
@@ -166,10 +162,12 @@ namespace JasonQuery.UI.Forms
                 form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, icon);
                 form.ShowInTaskbar = false;
                 form.StartPosition = FormStartPosition.CenterParent;
-                form.SchemaName = qualified.MetadataOwner;
+                //Keep the raw metadata owner case, including quoted mixed-case Oracle identifiers.
+                form.SchemaName = "\"" + current.OracleSelectedOwner.Replace("\"", "\"\"") + "\"";
                 form.TableName = current.SchemaName;
                 form.EditMode = mode;
-                form.OracleTargetIdentity = qualified;
+                form.OfflineSqlPreviewOnly = true;
+                form.OracleTargetIdentity = null;
 
                 UIHelper.ApplyEditTableFormSize(form);
                 form.ShowDialog(this);
@@ -187,7 +185,7 @@ namespace JasonQuery.UI.Forms
         //The form rechecks the live OracleReader and byte-exact rebuilt SQL before Execute.
         private bool TryOpenSharedOracleColumnDdl(SchemaExplorerSelectionInfo captured, SharedSchemaExplorerMenuCommand command)
         {
-            if (_currentSourceType != DataSourceType.Oracle || _sharedSchemaMetadataSnapshot == null || !CanHandleSharedSchemaExplorerSessionAction())
+            if (_currentSourceType != DataSourceType.Oracle || _sharedSchemaMetadataSnapshot == null || !CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid) || !SharedSchemaDdlInteractionPolicy.CanOpenGenerator(CaptureLeftPanelContext().ActiveTarget, captured, command, true))
             {
                 return false;
             }
@@ -199,11 +197,8 @@ namespace JasonQuery.UI.Forms
                 return false;
             }
 
-            var reader = MyGlobal.OracleReader;
-            var snapshot = _sharedSchemaMetadataSnapshot;
-            OracleDdlTargetIdentity qualified;
-
-            if (reader == null || !OracleSharedColumnDdlBridgePolicy.TryCreate(current, snapshot.OracleVerifiedSessionUser, snapshot.OracleConnectionId, reader.VerifiedSessionUser, reader.VerifiedConnectionId, out qualified))
+            //Require exact raw cached owner/table/column; this grants only preview, never execution.
+            if (!OracleSharedColumnDdlBridgePolicy.IsQualifiedColumnDataRow(current))
             {
                 return false;
             }
@@ -253,11 +248,12 @@ namespace JasonQuery.UI.Forms
                 form.ShowInTaskbar = false;
                 form.StartPosition = FormStartPosition.CenterParent;
                 form.SourceType = DataSourceType.Oracle;
-                form.SchemaName = qualified.MetadataOwner;
+                form.SchemaName = "\"" + current.OracleSelectedOwner.Replace("\"", "\"\"") + "\"";
                 form.TableName = current.OracleMetadataTableName;
                 form.ColumnName = current.OracleMetadataColumnName;
                 form.EditMode = mode;
-                form.OracleTargetIdentity = qualified;
+                form.OfflineSqlPreviewOnly = true;
+                form.OracleTargetIdentity = null;
 
                 UIHelper.ApplyEditColumnFormSize(form);
                 form.ShowDialog(this);
