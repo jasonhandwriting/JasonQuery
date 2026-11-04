@@ -5903,10 +5903,10 @@ namespace JasonQuery.UI.Forms
             Application.UseWaitCursor = true;
             MyGlobal.CommitRollbackCheck = -1;
 
-            var sisCloseQueryFormAndCheckCommit = new StringBuilder();
+            var sbCloseQueryFormAndCheckCommit = new StringBuilder();
             var sbTabsInfo = new StringBuilder();
 
-            sisCloseQueryFormAndCheckCommit.Append("CloseQueryFormAndCheckCommit`");
+            sbCloseQueryFormAndCheckCommit.Append("CloseQueryFormAndCheckCommit`");
             sbTabsInfo.Append("ReloadSchemaInfo`"); //重新載入 Schema Info
 
             try
@@ -5922,11 +5922,11 @@ namespace JasonQuery.UI.Forms
                         continue;
                     }
 
-                    sisCloseQueryFormAndCheckCommit.Append(tabAccessibleDescription).Append(";");
+                    sbCloseQueryFormAndCheckCommit.Append(tabAccessibleDescription).Append(";");
                     sbTabsInfo.Append(tabAccessibleDescription).Append(";");
                 }
 
-                MyGlobal.GlobalTemp = sisCloseQueryFormAndCheckCommit.ToString();
+                MyGlobal.GlobalTemp = sbCloseQueryFormAndCheckCommit.ToString();
 
                 if (string.IsNullOrEmpty(MyGlobal.GlobalTemp) || MyGlobal.GlobalTemp == "CloseQueryFormAndCheckCommit`") //沒有開啟 Editor，所以不需要 Commit
                 {
@@ -5949,29 +5949,52 @@ namespace JasonQuery.UI.Forms
                 var tag = TextHelper.GetSafeString(mnuItem.Tag);
 
                 MyGlobal.CommitRollbackCheck = -1; //恢復成初始值，因為後續使用者可能「取消存檔」而「不關閉程式」
-                DatabaseSqlExecutor.DatabaseName = tag;
 
-                BeginSharedSchemaDatabaseSwitch(DataSourceType.PostgreSql);
-
-                var database = TextHelper.GetStringBetween2(DatabaseSqlExecutor.DbConnectionString, ";Database=", ";", true);
-
-                DatabaseSqlExecutor.DbConnectionString = DatabaseSqlExecutor.DbConnectionString.Replace($";Database={database};", $";Database={tag};");
-                btnDatabase.Text = tag;
-
-                var connectError = ConnectToDatabase(); //切換資料庫後，重新連線
-
-                if (!string.IsNullOrEmpty(connectError))
+                //Only show progress after the transaction Commit/Rollback decision is finished.
+                using (var form = new MessageForm())
                 {
-                    throw new InvalidOperationException("PostgreSQL database switch connection failed: " + connectError);
+                    form.Caption = LocalizationHelper.GetLanguageString("Please wait...", "Global", "Global", "msg", "PleaseWait", "Text");
+
+                    if (MyGlobal.IsShowColumnInfo && MyGlobal.ShowColumnInfo != -1)
+                    {
+                        form.Info = LocalizationHelper.GetLanguageString("Getting schema information (include all column information of Tables) ...", "Global", "Global", "msg", "GetSchemaInfoIncludeColumn", "Text");
+                    }
+                    else
+                    {
+                        form.Info = LocalizationHelper.GetLanguageString("Getting schema information...", "Global", "Global", "msg", "GetSchemaInfo", "Text");
+                    }
+
+                    form.IsNeedToMovePosition = true;
+                    form.StartPosition = FormStartPosition.CenterScreen;
+                    form.TopLevel = true;
+                    form.Show(this);
+                    form.Refresh();
+
+                    DatabaseSqlExecutor.DatabaseName = tag;
+
+                    BeginSharedSchemaDatabaseSwitch(DataSourceType.PostgreSql);
+
+                    var database = TextHelper.GetStringBetween2(DatabaseSqlExecutor.DbConnectionString, ";Database=", ";", true);
+
+                    DatabaseSqlExecutor.DbConnectionString = DatabaseSqlExecutor.DbConnectionString.Replace($";Database={database};", $";Database={tag};");
+                    btnDatabase.Text = tag;
+
+                    var connectError = ConnectToDatabase(); //切換資料庫後，重新連線
+
+                    if (!string.IsNullOrEmpty(connectError))
+                    {
+                        throw new InvalidOperationException("PostgreSQL database switch connection failed: " + connectError);
+                    }
+
+                    LoadPostgreSqlDatabase(); //切換資料庫後，重新產生功能表資訊
+
+                    var c1Grid = new C1.Win.C1TrueDBGrid.C1TrueDBGrid();
+
+                    DatabaseSqlExecutor.UpdateSchemaData_PostgreSql(c1Grid, false); //切換資料庫後，重新撈取 Schema Info
+                    CompleteSharedSchemaDatabaseSwitch(DataSourceType.PostgreSql);
+                    MyGlobal.GlobalTemp = sbTabsInfo.ToString();
                 }
 
-                LoadPostgreSqlDatabase(); //切換資料庫後，重新產生功能表資訊
-
-                var c1Grid = new C1.Win.C1TrueDBGrid.C1TrueDBGrid();
-
-                DatabaseSqlExecutor.UpdateSchemaData_PostgreSql(c1Grid, false); //切換資料庫後，重新撈取 Schema Info
-                CompleteSharedSchemaDatabaseSwitch(DataSourceType.PostgreSql);
-                MyGlobal.GlobalTemp = sbTabsInfo.ToString();
                 Application.UseWaitCursor = false;
 
                 _languageText = LocalizationHelper.GetLanguageString("The database has been switched to {db} successfully!", "form", GetType().Name, "msg", "SwitchedDatabase", "Text").Replace("{db}", tag);
@@ -5979,9 +6002,17 @@ namespace JasonQuery.UI.Forms
             }
             catch (Exception ex)
             {
+                //The using block already disposed of MessageForm before this error dialog.
+                Application.UseWaitCursor = false;
+
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+            finally
+            {
+                //Also covers the user's Cancel/return path.
+                Application.UseWaitCursor = false;
             }
         }
 
