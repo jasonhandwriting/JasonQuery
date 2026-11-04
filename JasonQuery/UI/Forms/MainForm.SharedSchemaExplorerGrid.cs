@@ -1,6 +1,7 @@
 ﻿using C1.Win.C1TrueDBGrid;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Database.Execution;
 using JasonQuery.UI.LeftPanel;
 using System;
 using System.Data;
@@ -12,6 +13,10 @@ namespace JasonQuery.UI.Forms
     {
         private C1TrueDBGrid _sharedSchemaExplorerGrid;
         private SharedSchemaMetadataSnapshot _sharedSchemaMetadataSnapshot;
+
+        //Select F7 only once for a successfully loaded logical database scope.
+        private int _sharedF7StartupSelectedRevision = -1;
+        private string _sharedF7StartupSelectedScope = string.Empty;
 
         private void InitializeSharedSchemaExplorerGrid()
         {
@@ -78,10 +83,48 @@ namespace JasonQuery.UI.Forms
             }
         }
 
-        //Explicit staging entry for the future shared F7 UI. No automatic DB query or UI switch.
+        //A physical Reader reconnect does not change the current logical database scope.
+        //No passwords, connection strings or live Session IDs are stored in the scope.
+        private string GetSharedSchemaDatabaseScope()
+        {
+            if (_currentSourceType == DataSourceType.None || DatabaseSqlExecutor.CurrentDataSource != _currentSourceType)
+            {
+                return string.Empty;
+            }
+
+            return string.Join("|", new[]
+            {
+                _currentSourceType.ToString(),
+                DatabaseSqlExecutor.DbConnectionServer ?? string.Empty,
+                DatabaseSqlExecutor.DbConnectionPort.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                DatabaseSqlExecutor.DbUser ?? string.Empty,
+                DatabaseSqlExecutor.DatabaseName ?? string.Empty,
+                _currentSourceType == DataSourceType.Oracle ? DatabaseSqlExecutor.OracleSid ?? string.Empty : string.Empty,
+                _currentSourceType == DataSourceType.Oracle ? DatabaseSqlExecutor.OracleConnectAs ?? string.Empty : string.Empty
+            });
+        }
+
+        private bool IsSharedSchemaSnapshotInCurrentScope()
+        {
+            return SharedSchemaMetadataSnapshotPolicy.CanBindForScope
+            (
+                _sharedLeftPanelHostState,
+                _sharedSchemaMetadataSnapshot,
+                _currentSourceType,
+                GetSharedSchemaDatabaseScope()
+            );
+        }
+
+        //The three-argument API remains for existing callers, but an unverified cache cannot be stamped with new source provenance by a mere rebind.
         internal bool TryBindSharedSchemaExplorerMetadata(DataTable source, DataSourceType sourceType, bool includeColumnGroup)
         {
-            if (IsDisposed || Disposing || InvokeRequired || _sharedLeftPanelHostPanel == null || _sharedLeftPanelHostPanel.IsDisposed
+            return TryBindSharedSchemaExplorerMetadata(source, sourceType, includeColumnGroup, false);
+        }
+
+        private bool TryBindSharedSchemaExplorerMetadata(DataTable source, DataSourceType sourceType, bool includeColumnGroup, bool justReloaded)
+        {
+            if (!justReloaded || IsDisposed || Disposing || InvokeRequired
+                || _sharedLeftPanelHostPanel == null || _sharedLeftPanelHostPanel.IsDisposed
                 || _sharedSchemaExplorerGrid == null || _sharedSchemaExplorerGrid.IsDisposed
                 || !ReferenceEquals(_sharedSchemaExplorerGrid, c1GridSharedSchemaExplorer) || sourceType != _currentSourceType)
             {
@@ -89,55 +132,144 @@ namespace JasonQuery.UI.Forms
             }
 
             var state = CaptureSharedLeftPanelHostState();
+            var scope = GetSharedSchemaDatabaseScope();
+            SharedSchemaMetadataSnapshot next = null;
+            bool captured;
 
-            SharedSchemaMetadataSnapshot snapshot;
-            var oracleReader = sourceType == DataSourceType.Oracle ? MyGlobal.OracleReader : null;
-            var verifiedSessionUser = oracleReader?.VerifiedSessionUser ?? string.Empty;
-            var verifiedConnectionId = oracleReader?.VerifiedConnectionId ?? Guid.Empty;
+            if (sourceType == DataSourceType.Oracle)
+            {
+                var reader = MyGlobal.OracleReader;
 
-            if (!SharedSchemaMetadataSnapshotPolicy.TryCapture(source, sourceType, includeColumnGroup, state.ConnectionRevision, out snapshot, verifiedSessionUser, verifiedConnectionId)
-                || !SharedSchemaMetadataSnapshotPolicy.CanBind(state, snapshot, _currentSourceType))
+                captured = reader != null && SharedSchemaMetadataSnapshotPolicy.TryCaptureVerifiedOracleForScope
+                (
+                    source,
+                    includeColumnGroup,
+                    state.ConnectionRevision,
+                    scope,
+                    reader.VerifiedSessionUser,
+                    reader.VerifiedConnectionId,
+                    out next
+                );
+
+                if (reader == null)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                captured = SharedSchemaMetadataSnapshotPolicy.TryCaptureForScope
+                (
+                    source,
+                    sourceType,
+                    includeColumnGroup,
+                    state.ConnectionRevision,
+                    scope,
+                    out next
+                );
+            }
+
+            if (!captured || !SharedSchemaMetadataSnapshotPolicy.CanBindForScope(state, next, sourceType, scope))
             {
                 return false;
             }
 
             var grid = _sharedSchemaExplorerGrid;
-
-            //Fail closed when C1 rejects a rebind: never retain a snapshot that describes different columns from the live control. The original QueryForm F7 is unaffected.
-            _sharedSchemaMetadataSnapshot = null;
+            var previous = _sharedSchemaMetadataSnapshot;
 
             try
             {
-                BindSharedSchemaExplorerSnapshot(grid, snapshot);
-                _sharedSchemaMetadataSnapshot = snapshot;
+                BindSharedSchemaExplorerSnapshot(grid, next);
+                _sharedSchemaMetadataSnapshot = next;
 
                 return true;
             }
             catch (Exception)
             {
-                try
+                //Binding failure must not replace an already published, same-scope view.
+                if (SharedSchemaMetadataSnapshotPolicy.CanBindForScope(state, previous, sourceType, scope))
                 {
-                    ClearSharedSchemaExplorerGridBinding(grid);
+                    try
+                    {
+                        BindSharedSchemaExplorerSnapshot(grid, previous);
+                        _sharedSchemaMetadataSnapshot = previous;
+
+                        return false;
+                    }
+                    catch (Exception)
+                    {
+                        //If both binds fail, reject the unsafe C1 layout.
+                    }
                 }
-                catch (Exception)
-                {
-                    //An invalid C1 layout must not crash or replace a Designer control.
-                }
+
+                _sharedSchemaMetadataSnapshot = null;
+                ClearSharedSchemaExplorerGridBinding(grid);
 
                 grid.Visible = false;
                 return false;
             }
         }
 
-        //The grid remains hidden until a later F7 UI activation batch.
-        private void InvalidateSharedSchemaExplorerMetadataIfStale()
+        //A successful legacy QueryForm Refresh has already queried the provider.
+        //Bind its published batch without issuing a second metadata SQL request.
+        private void TryBindSharedSchemaExplorerAfterLegacyReload()
         {
-            if (_sharedSchemaMetadataSnapshot == null)
+            if (!_sharedSchemaPreviewRequested || _sharedSchemaPreviewBinding || _sharedSchemaExplorerGrid == null
+                || _sharedSchemaExplorerGrid.IsDisposed || _sharedLeftPanelHostPanel == null || _sharedLeftPanelHostPanel.IsDisposed)
             {
                 return;
             }
 
-            if (SharedSchemaMetadataSnapshotPolicy.CanBind(_sharedLeftPanelHostState, _sharedSchemaMetadataSnapshot, _currentSourceType))
+            //The existing snapshot distinguishes an initial load from an ordinary refresh.
+            //A physical Reader reconnect is not a new logical database scope.
+            CaptureSharedLeftPanelHostState();
+
+            var hadCurrentScopeSnapshot = IsSharedSchemaSnapshotInCurrentScope();
+            var includeColumns = MyGlobal.IsShowColumnInfo && MyGlobal.ShowColumnInfo != -1;
+
+            if (!TryBindSharedSchemaExplorerMetadata(DatabaseSqlExecutor.dtSchema, _currentSourceType, includeColumns, true))
+            {
+                return;
+            }
+
+            _sharedSchemaExplorerGrid.Visible = true;
+
+            LayoutSharedSchemaExplorerPreviewGrid();
+            ExpandSharedSchemaExplorerPreviewDefaultGroups();
+            SyncSharedSchemaExplorerPreviewUI();
+
+            var state = CaptureSharedLeftPanelHostState();
+            var scope = GetSharedSchemaDatabaseScope();
+
+            var startup = new SharedSchemaExplorerStartupDecisionContext
+            {
+                HostState = state,
+                SourceType = _currentSourceType,
+                WorkspaceVisible = splitContainerMainWorkspace.Visible && !splitContainerMainWorkspace.Panel1Collapsed,
+                WorkspaceWidth = GetSharedSchemaPreviewAvailableWidth(),
+                CurrentDatabaseScope = scope,
+                PublishedDatabaseScope = _sharedSchemaMetadataSnapshot?.DatabaseScope,
+                PublishedConnectionRevision = _sharedSchemaMetadataSnapshot?.ConnectionRevision ?? 0,
+                HasTrustedPublishedMetadata = IsSharedSchemaSnapshotInCurrentScope(),
+                HasPendingOrUnknownTransaction = AppConfigHelper.IsNotCommitYet,
+                IsInitialLoad = !hadCurrentScopeSnapshot,
+                UserSelectedDifferentLeftTab = c1DockingTabLeftPanel.SelectedIndex != 1,
+                AlreadyAutoSelectedForConnection = _sharedF7StartupSelectedRevision == state.ConnectionRevision && string.Equals(_sharedF7StartupSelectedScope, scope, StringComparison.Ordinal)
+            };
+
+            //Startup is a UI selection only; it never grants Oracle Qualified DDL rights.
+            //The policy reads the already-published snapshot and executes no metadata SQL.
+            if (SharedSchemaExplorerStartupDecisionPolicy.MayAutoSelectF7(startup))
+            {
+                c1DockingTabLeftPanel.SelectedIndex = 1;
+                _sharedF7StartupSelectedRevision = state.ConnectionRevision;
+                _sharedF7StartupSelectedScope = scope;
+            }
+        }
+
+        private void InvalidateSharedSchemaExplorerMetadataIfStale()
+        {
+            if (_sharedSchemaMetadataSnapshot == null || IsSharedSchemaSnapshotInCurrentScope())
             {
                 return;
             }
@@ -154,7 +286,7 @@ namespace JasonQuery.UI.Forms
                 }
                 catch (Exception)
                 {
-                    //Reject the stale snapshot even if the C1 Grid cannot reset cleanly.
+                    //A stale database-scope Grid can never authorize an object action.
                 }
             }
         }

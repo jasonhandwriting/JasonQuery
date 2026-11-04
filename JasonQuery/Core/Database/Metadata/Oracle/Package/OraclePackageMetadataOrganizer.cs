@@ -40,6 +40,11 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Package
             {
                 dtPackageInfo = GetPackageInfo(context);
 
+                if (dtPackageInfo == null)
+                {
+                    throw new InvalidOperationException("Oracle package information metadata query returned null; the schema refresh is rejected.");
+                }
+
                 var packageSchemaType = SchemaTypeTextBuilder.Build(SchemaObjectNames.Packages, dtPackageInfo?.Rows.Count ?? 0);
 
                 OrganizeSchemaRows(context, dtPackageInfo, packageSchemaType);

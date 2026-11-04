@@ -132,14 +132,17 @@ namespace JasonQuery.Core.Database.DdlPreview
 
         private static string BuildRename(ColumnDdlRequest request)
         {
-            if (DdlIdentifierQuotingPolicy.AreExistingAndNewEquivalent(request.DataSourceType, request.ColumnName, request.NewColumnName))
+            //Oracle Column Rename treats a case-only change as a real rename.
+            var caseMode = request.DataSourceType == DataSourceType.Oracle ? DdlNewIdentifierCaseMode.PreserveInput : DdlNewIdentifierCaseMode.NormalizeDatabaseDefault;
+
+            if (DdlIdentifierQuotingPolicy.AreExistingAndNewEquivalent(request.DataSourceType, request.ColumnName, request.NewColumnName, caseMode))
             {
                 return string.Empty;
             }
 
             var tableName = BuildQualifiedTableName(request);
             var columnName = DdlIdentifierQuotingPolicy.QuoteExistingIdentifier(request.DataSourceType, request.ColumnName);
-            var newColumnName = DdlIdentifierQuotingPolicy.QuoteNewIdentifier(request.DataSourceType, request.NewColumnName);
+            var newColumnName = DdlIdentifierQuotingPolicy.QuoteNewIdentifier(request.DataSourceType, request.NewColumnName, caseMode);
 
             if (string.IsNullOrEmpty(tableName) || string.IsNullOrEmpty(columnName) || string.IsNullOrEmpty(newColumnName))
             {

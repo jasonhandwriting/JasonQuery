@@ -108,6 +108,11 @@ namespace JasonQuery.Core.Database.Metadata.SqlServer.QueryEditor
 
         public void Load(SqlServerMetadataContext metadataContext, SqlServerQueryEditorMetadataLoadOptions options, Func<string, DataTable> executeQuery)
         {
+            Load(metadataContext, options, executeQuery, null);
+        }
+
+        internal void Load(SqlServerMetadataContext metadataContext, SqlServerQueryEditorMetadataLoadOptions options, Func<string, DataTable> executeQuery, Action<HashSet<string>, HashSet<string>, HashSet<string>, HashSet<string>> onCollected)
+        {
             if (metadataContext == null)
             {
                 throw new ArgumentNullException(nameof(metadataContext));
@@ -245,6 +250,13 @@ namespace JasonQuery.Core.Database.Metadata.SqlServer.QueryEditor
                 distinctIndexNames = _indexOrganizer.Organize(metadataContext, dtIndexInfo);
             }
 
+            //Atomic callers receive name sets before any shared AutoComplete or keyword mutation.
+            if (onCollected != null)
+            {
+                onCollected(distinctFunctionNames, distinctTableNames, distinctTriggerNames, distinctViewNames);
+                return;
+            }
+
             //套用 AutoComplete 關鍵字：Function
             SchemaObjectKeywordApplyHelper.Apply
             (
@@ -290,7 +302,14 @@ namespace JasonQuery.Core.Database.Metadata.SqlServer.QueryEditor
         {
             using (TraceLogger.Time(traceName))
             {
-                return executeQuery(sql);
+                var result = executeQuery(sql);
+
+                if (result == null)
+                {
+                    throw new InvalidOperationException("Metadata query returned null");
+                }
+
+                return result;
             }
         }
     }

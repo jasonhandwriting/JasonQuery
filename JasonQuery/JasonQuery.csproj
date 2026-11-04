@@ -1243,8 +1243,14 @@
     <Compile Include="UI\LeftPanel\SchemaExplorerActionDispatchBridge.cs" />
     <Compile Include="UI\LeftPanel\SchemaExplorerReceiverActionPolicy.cs" />
     <Compile Include="UI\LeftPanel\SharedLeftPanelHostState.cs" />
+    <Compile Include="UI\LeftPanel\SharedOracleMetadataCompletedLoadReceipt.cs" />
     <Compile Include="UI\LeftPanel\SharedSchemaMetadataSnapshot.cs" />
+    <Compile Include="UI\LeftPanel\SharedSchemaExplorerStartupDecisionPolicy.cs" />
     <Compile Include="UI\LeftPanel\SharedSchemaLifecyclePolicy.cs" />
+    <Compile Include="UI\LeftPanel\SharedOracleSessionRecoveryPolicy.cs" />
+    <Compile Include="UI\LeftPanel\SharedOracleRecoveryEntryPolicy.cs" />
+    <Compile Include="UI\LeftPanel\SharedOracleMetadataProvenancePolicy.cs" />
+    <Compile Include="UI\LeftPanel\OracleVerifiedSessionScopePolicy.cs" />
     <Compile Include="UI\Forms\MainForm.SharedLeftPanelHost.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -1267,6 +1273,7 @@
     <Compile Include="UI\LeftPanel\OracleSharedTableDdlBridgePolicy.cs" />
     <Compile Include="UI\LeftPanel\OracleSharedColumnDdlBridgePolicy.cs" />
     <Compile Include="UI\LeftPanel\SharedSchemaExplorerPreviewPolicy.cs" />
+    <Compile Include="UI\LeftPanel\SharedSchemaDdlInteractionPolicy.cs" />
     <Compile Include="UI\Forms\QueryForm.SchemaExplorerReceiver.cs">
       <SubType>Form</SubType>
     </Compile>

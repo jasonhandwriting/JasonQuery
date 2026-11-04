@@ -35,6 +35,11 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Function
             {
                 dtFunctionInfo = GetFunctionInfo(context);
 
+                if (dtFunctionInfo == null)
+                {
+                    throw new InvalidOperationException("Oracle function information metadata query returned null; the schema refresh is rejected.");
+                }
+
                 var functionSchemaType = SchemaTypeTextBuilder.Build(SchemaObjectNames.Functions, dtFunctionInfo?.Rows.Count ?? 0);
                 var distinctFunctionNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 

@@ -38,12 +38,23 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Table
             {
                 dtTableInfo = GetTableInfo(context);
 
+                if (dtTableInfo == null)
+                {
+                    throw new InvalidOperationException("Oracle table information metadata query returned null; the schema refresh is rejected.");
+                }
+
                 Dictionary<string, long> tableRowCountMap = null;
                 var tableCount = 0;
 
                 if (context.NeedSchemaRows)
                 {
                     dtTableQty = GetTableQuantity(context);
+
+                    if (dtTableQty == null)
+                    {
+                        throw new InvalidOperationException("Oracle table quantity metadata query returned null; the schema refresh is rejected.");
+                    }
+
                     tableRowCountMap = BuildTableRowCountMap(dtTableQty);
                     tableCount = dtTableQty?.Rows.Count ?? 0;
                 }
@@ -53,7 +64,7 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Table
 
                 if (context.NeedSchemaRows)
                 {
-                    // Oracle-only internal provenance fields. F7 never uses the formatted ColumnInfo caption as the authoritative DDL column identifier.
+                    //Oracle-only internal provenance fields. F7 never uses the formatted ColumnInfo caption as the authoritative DDL column identifier.
                     if (!context.TargetSchemaTable.Columns.Contains("OracleMetadataTableName"))
                     {
                         context.TargetSchemaTable.Columns.Add("OracleMetadataTableName", typeof(string));

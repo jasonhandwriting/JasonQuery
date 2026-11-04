@@ -33,6 +33,9 @@ namespace JasonQuery.UI.Forms
         //B3-B1 opt-in only. A qualified F7 bridge must supply authoritative metadata-owner and selection-connection identity. Legacy callers remain unchanged until B3-B2; do not treat their DbUser/SchemaName as proof.
         internal OracleDdlTargetIdentity OracleTargetIdentity { get; set; }
 
+        //New shared F7 only: cached SQL generation is not permission to execute.
+        internal bool OfflineSqlPreviewOnly { get; set; }
+
         public string Result { get; set; } //20250204 回傳值給呼叫方，判斷是否需要更新 Schema Info
         public string SchemaDatabase { get; set; }
         public string SchemaName { get; set; }
@@ -123,10 +126,7 @@ namespace JasonQuery.UI.Forms
                 _editorMenu.Items.Add(languageText);
                 ((ToolStripMenuItem)_editorMenu.Items[1]).ShortcutKeys = Keys.Control | Keys.C;
 
-                _editorMenu.Items[1].Click += delegate
-                {
-                    editorSqlPreview.Copy();
-                };
+                _editorMenu.Items[1].Click += btnCopy_Click;
 
                 _editorMenu.Items[1].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Copy 16x16.ico");
 
@@ -192,7 +192,12 @@ namespace JasonQuery.UI.Forms
 
                             _commentMetadataReady = false;
 
-                            LoadCommentMetadata();
+                            if (!OfflineSqlPreviewOnly)
+                            {
+                                LoadCommentMetadata();
+                            }
+
+                            //Offline preview has no authoritative original Comment; do not claim it is empty in the database.
                             txtComment.Text = _tableComment;
                             _commentMetadataReady = true;
 
@@ -239,6 +244,15 @@ namespace JasonQuery.UI.Forms
                 }
 
                 Text += $" - {TableName}";
+
+                if (OfflineSqlPreviewOnly && IsOracle)
+                {
+                    Text += " [SQL Preview Only]";
+                    lblPrompt1.Text = "Cached metadata may be stale. Review or copy the generated SQL; Execute is disabled.";
+                    btnExecute.Enabled = false;
+                }
+
+                UpdateSqlPreviewCopyState();
             }
             catch (Exception ex)
             {
@@ -485,7 +499,16 @@ namespace JasonQuery.UI.Forms
 
         private void editorSqlPreview_TextChanged(object sender, EventArgs e)
         {
-            btnExecute.Enabled = _commentMetadataReady && !string.IsNullOrEmpty(editorSqlPreview.Text);
+            UpdateSqlPreviewCopyState();
+            btnExecute.Enabled = !OfflineSqlPreviewOnly && _commentMetadataReady && !string.IsNullOrEmpty(editorSqlPreview.Text);
+        }
+
+        private void UpdateSqlPreviewCopyState()
+        {
+            var hasText = !string.IsNullOrEmpty(editorSqlPreview.Text);
+
+            btnSelectAll.Enabled = hasText;
+            btnCopy.Enabled = hasText;
         }
 
         private void ApplyEditorSetting()
@@ -586,6 +609,17 @@ namespace JasonQuery.UI.Forms
 
         private void btnCopy_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrEmpty(editorSqlPreview.Text))
+            {
+                return;
+            }
+
+            if (editorSqlPreview.SelectedText.Length == 0)
+            {
+                editorSqlPreview.SelectionStart = 0;
+                editorSqlPreview.SelectionEnd = editorSqlPreview.Text.Length;
+            }
+
             editorSqlPreview.Copy();
         }
 
@@ -638,7 +672,7 @@ namespace JasonQuery.UI.Forms
             _editorMenu.Items[0].Enabled = !string.IsNullOrEmpty(editorSqlPreview.Text);
 
             //Copy
-            _editorMenu.Items[1].Enabled = !string.IsNullOrEmpty(editorSqlPreview.SelectedText); //判斷是否有選取文字，決定功能表項目可不可用
+            _editorMenu.Items[1].Enabled = !string.IsNullOrEmpty(editorSqlPreview.Text); //未選取時也可透過 btnCopy_Click 全選並複製 SQL
 
             editorSqlPreview.ContextMenuStrip = _editorMenu;
 
@@ -647,6 +681,13 @@ namespace JasonQuery.UI.Forms
 
         private void btnExecute_Click(object sender, EventArgs e)
         {
+            //Defense in depth: programmatic PerformClick must not bypass preview-only restrictions.
+            if (OfflineSqlPreviewOnly)
+            {
+                btnExecute.Enabled = false;
+                return;
+            }
+
             if (!_commentMetadataReady)
             {
                 return; //Fail-closed: unqualified Comment metadata cannot execute DDL.
@@ -972,7 +1013,7 @@ namespace JasonQuery.UI.Forms
                 //PostgreSQL, Oracle: "{TableName}"
                 //MySQL: `{TableName}`
 
-                btnExecute.Enabled = !string.IsNullOrEmpty(sql);
+                btnExecute.Enabled = !OfflineSqlPreviewOnly && !string.IsNullOrEmpty(sql);
                 UpdateSqlPreviewText(sql);
             }
             catch (Exception ex)

@@ -1,4 +1,5 @@
 ﻿using C1.Win.C1TrueDBGrid;
+using JasonLibrary.Core;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Database.Execution;
@@ -52,6 +53,11 @@ namespace JasonQuery.UI.Forms
             menu.Click += SharedSchemaPreviewMenuClick;
 
             mnuMainForm.Items.Add(menu);
+
+            //Permanent left workspace: no user-visible hide/show switch.
+            menu.Visible = false;
+            menu.Enabled = false;
+
             _sharedSchemaPreviewMenu = menu;
 
             var header = new Panel
@@ -122,7 +128,7 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
-            _sharedSchemaPreviewRequested = !_sharedSchemaPreviewRequested;
+            _sharedSchemaPreviewRequested = true;
 
             if (_sharedSchemaPreviewRequested)
             {
@@ -135,7 +141,7 @@ namespace JasonQuery.UI.Forms
             if (_sharedSchemaPreviewRequested)
             {
                 //Hide/show does not change the connection. Reuse the live Grid so GroupBy expansion, selection and scroll position survive reopening the preview.
-                var hasBoundGrid = _sharedSchemaExplorerGrid != null && !_sharedSchemaExplorerGrid.IsDisposed && _sharedSchemaExplorerGrid.DataSource != null;
+                var hasBoundGrid = _sharedSchemaExplorerGrid != null && !_sharedSchemaExplorerGrid.IsDisposed && _sharedSchemaExplorerGrid.DataSource != null && IsSharedSchemaSnapshotInCurrentScope();
 
                 if (SharedSchemaExplorerPreviewPolicy.ShouldRefreshOnShow(_sharedLeftPanelHostState, _sharedSchemaMetadataSnapshot, _currentSourceType, hasBoundGrid))
                 {
@@ -250,21 +256,20 @@ namespace JasonQuery.UI.Forms
 
             var state = _sharedLeftPanelHostState;
 
-            var canOffer = SharedSchemaExplorerPreviewPolicy.CanOffer
+            //F6/F7/F8/F9 is a permanent connected-workspace feature, not a Preview toggle.
+            //This only changes visibility. It never authorizes Oracle DDL or relabels cached metadata.
+            var keepPinned = SharedSchemaExplorerPreviewPolicy.ShouldKeepPermanentWorkspaceVisible
             (
-                state, _currentSourceType, tabControl1.Visible, GetSharedSchemaPreviewAvailableWidth()
+                state, splitContainerMainWorkspace.Visible, false
             );
 
-            if (state == null || !state.IsConnected)
-            {
-                _sharedSchemaPreviewRequested = false;
-            }
+            _sharedSchemaPreviewRequested = keepPinned;
+            _sharedSchemaPreviewMenu.Enabled = false;
+            _sharedSchemaPreviewMenu.Visible = false;
 
-            _sharedSchemaPreviewMenu.Enabled = canOffer;
-
-            var showPreview = _sharedSchemaPreviewRequested && canOffer;
+            var showPreview = keepPinned;
             var grid = _sharedSchemaExplorerGrid;
-            var showGrid = showPreview && grid != null && !grid.IsDisposed && grid.DataSource != null && SharedSchemaMetadataSnapshotPolicy.CanBind(state, _sharedSchemaMetadataSnapshot, _currentSourceType);
+            var showGrid = showPreview && grid != null && !grid.IsDisposed && grid.DataSource != null && IsSharedSchemaSnapshotInCurrentScope();
 
             if (grid != null && !grid.IsDisposed)
             {
@@ -398,67 +403,149 @@ namespace JasonQuery.UI.Forms
             RedrawWindow(rightPanel.Handle, IntPtr.Zero, IntPtr.Zero, RedrawInvalidate | RedrawErase | RedrawAllChildren | RedrawFrame | RedrawUpdateNow);
         }
 
+        //Only user-requested Refresh or an initial unbound F7 activation queries the DB.
+        //SELECT/physical Disconnect and ordinary tab selection preserve the snapshot.
         private void RefreshSharedSchemaExplorerPreviewMetadata()
         {
-            if (_sharedSchemaPreviewBinding || !_sharedSchemaPreviewRequested || _sharedLeftPanelHostPanel == null || !_sharedLeftPanelHostPanel.Visible || _sharedSchemaPreviewStatus == null || IsDisposed || Disposing)
+            if (_sharedSchemaPreviewBinding || !_sharedSchemaPreviewRequested || _sharedLeftPanelHostPanel == null
+                || !_sharedLeftPanelHostPanel.Visible || _sharedSchemaPreviewStatus == null || IsDisposed || Disposing)
             {
                 return;
             }
 
+            if (AppConfigHelper.IsNotCommitYet)
+            {
+                _sharedSchemaPreviewStatus.Text = "F7: finish the pending transaction before refreshing metadata.";
+                return;
+            }
+
+            var scopeBefore = GetSharedSchemaDatabaseScope();
+            var stateBefore = CaptureSharedLeftPanelHostState();
+            var retained = _sharedSchemaMetadataSnapshot;
+
+            var retainSameScope = SharedSchemaMetadataSnapshotPolicy.CanBindForScope
+            (
+                stateBefore, retained, _currentSourceType, scopeBefore
+            );
+
             _sharedSchemaPreviewBinding = true;
+
+            //The non-Oracle legacy loaders currently publish some globals during load.
+            //A failed manual reload restores the previously committed display inputs.
+            //This does not claim that the three legacy providers have full Atomic Publication.
+            var oldSchema = retainSameScope ? DatabaseSqlExecutor.dtSchema?.Copy() : null;
+            var oldTableAndViews = retainSameScope ? DatabaseSqlExecutor.dtTableAndViews?.Copy() : null;
+            var oldDatabaseNames = retainSameScope ? DatabaseSqlExecutor.dtDatabaseName?.Copy() : null;
+            var oldAutoComplete = retainSameScope ? MyGlobal.dtAutoCompleteForAll?.Copy() : null;
+            var oldFunctionKeywords = MyLibrary.KeywordsUserDefinedFunctions;
+            var oldTableKeywords = MyLibrary.KeywordsUserDefinedTables;
+            var oldTriggerKeywords = MyLibrary.KeywordsUserDefinedTriggers;
+            var oldViewKeywords = MyLibrary.KeywordsUserDefinedViews;
 
             try
             {
-                //Only copy already-loaded metadata; no additional database query.
-                var source = DatabaseSqlExecutor.dtSchema;
-                var includeColumns = MyGlobal.IsShowColumnInfo && MyGlobal.ShowColumnInfo != -1;
-                var bound = TryBindSharedSchemaExplorerMetadata(source, _currentSourceType, includeColumns);
-
-                if (!bound)
+                //Use the exact four providers' established metadata loaders, but do not pass the MainForm Designer Grid to legacy QueryForm layout routines.
+                switch (_currentSourceType)
                 {
-                    _sharedSchemaMetadataSnapshot = null;
-
-                    if (_sharedSchemaExplorerGrid != null && !_sharedSchemaExplorerGrid.IsDisposed)
+                    case DataSourceType.Oracle:
                     {
-                        _sharedSchemaExplorerGrid.DataSource = null;
-                        _sharedSchemaExplorerGrid.Visible = false;
+                        DatabaseSqlExecutor.UpdateSchemaData_Oracle(null);
+                        break;
+                    }
+                    case DataSourceType.PostgreSql:
+                    {
+                        DatabaseSqlExecutor.UpdateSchemaData_PostgreSql(null, false);
+                        break;
+                    }
+                    case DataSourceType.SqlServer:
+                    {
+                        DatabaseSqlExecutor.UpdateSchemaData_SqlServer(null, false);
+                        break;
+                    }
+                    case DataSourceType.MySql:
+                    {
+                        DatabaseSqlExecutor.UpdateSchemaData_MySql(null);
+                        break;
+                    }
+                    default:
+                    {
+                        throw new InvalidOperationException("No metadata loader for the current provider.");
                     }
                 }
 
-                if (bound && _sharedSchemaExplorerGrid != null && !_sharedSchemaExplorerGrid.IsDisposed)
+                //A DB switch or unexpected connection change during load must not publish new metadata under an unrelated logical scope.
+                if (!string.Equals(scopeBefore, GetSharedSchemaDatabaseScope(), StringComparison.Ordinal))
                 {
-                    _sharedSchemaExplorerGrid.Visible = true;
-                    _sharedSchemaExplorerGrid.BringToFront();
-                    _sharedLeftPanelHostPanel.BringToFront();
-                    LayoutSharedSchemaExplorerPreviewGrid();
-                    ExpandSharedSchemaExplorerPreviewDefaultGroups();
-
-                    var visibleRows = _sharedSchemaExplorerGrid.Splits.Count > 0 ? _sharedSchemaExplorerGrid.Splits[0].Rows.Count : 0;
-
-                    _sharedSchemaPreviewStatus.Text = visibleRows > 1 ? "F7 Preview: double-click / Enter; full context actions remain in original F7." : "F7 Preview: metadata bound, but grouped rows have not expanded.";
+                    throw new InvalidOperationException("Database scope changed during metadata refresh.");
                 }
 
-                if (!bound)
+                var includeColumns = MyGlobal.IsShowColumnInfo && MyGlobal.ShowColumnInfo != -1;
+
+                if (!TryBindSharedSchemaExplorerMetadata(DatabaseSqlExecutor.dtSchema, _currentSourceType, includeColumns, true))
                 {
-                    _sharedSchemaPreviewStatus.Text = "F7 Preview: metadata unavailable. Refresh after loading the schema.";
+                    throw new InvalidOperationException("Metadata was loaded but could not be verified and bound.");
                 }
+
+                var grid = _sharedSchemaExplorerGrid;
+
+                grid.Visible = true;
+                grid.BringToFront();
+
+                _sharedLeftPanelHostPanel.BringToFront();
+
+                LayoutSharedSchemaExplorerPreviewGrid();
+                ExpandSharedSchemaExplorerPreviewDefaultGroups();
+
+                //Each QueryForm rebinds from the one published batch. No extra DB query.
+                for (var i = 0; i < tabControl1.TabPages.Count; i++)
+                {
+                    if (tabControl1.TabPages[i].Control is QueryForm query)
+                    {
+                        query.ApplyPublishedSharedSchemaMetadata();
+                    }
+                }
+
+                _sharedSchemaPreviewStatus.Text = "F7: metadata refreshed successfully.";
             }
             catch (Exception)
             {
-                //The preview must not turn an incomplete metadata refresh into a UI error.
-                _sharedSchemaMetadataSnapshot = null;
-
-                if (_sharedSchemaExplorerGrid != null && !_sharedSchemaExplorerGrid.IsDisposed)
+                if (retainSameScope && string.Equals(scopeBefore, GetSharedSchemaDatabaseScope(), StringComparison.Ordinal))
                 {
-                    _sharedSchemaExplorerGrid.DataSource = null;
-                    _sharedSchemaExplorerGrid.Visible = false;
+                    DatabaseSqlExecutor.dtSchema = oldSchema;
+                    DatabaseSqlExecutor.dtTableAndViews = oldTableAndViews;
+                    DatabaseSqlExecutor.dtDatabaseName = oldDatabaseNames;
+                    MyGlobal.dtAutoCompleteForAll = oldAutoComplete;
+                    MyLibrary.KeywordsUserDefinedFunctions = oldFunctionKeywords;
+                    MyLibrary.KeywordsUserDefinedTables = oldTableKeywords;
+                    MyLibrary.KeywordsUserDefinedTriggers = oldTriggerKeywords;
+                    MyLibrary.KeywordsUserDefinedViews = oldViewKeywords;
+
+                    //Restore the independent Grid snapshot if an attempted C1 rebind failed.
+                    if (!ReferenceEquals(_sharedSchemaMetadataSnapshot, retained))
+                    {
+                        try
+                        {
+                            BindSharedSchemaExplorerSnapshot(_sharedSchemaExplorerGrid, retained);
+                            _sharedSchemaMetadataSnapshot = retained;
+                        }
+                        catch (Exception)
+                        {
+                            _sharedSchemaMetadataSnapshot = null;
+                            ClearSharedSchemaExplorerGridBinding(_sharedSchemaExplorerGrid);
+                        }
+                    }
+                }
+                else
+                {
+                    InvalidateSharedSchemaExplorerMetadataIfStale();
                 }
 
-                _sharedSchemaPreviewStatus.Text = "F7 Preview: metadata not ready. Use the original F7.";
+                _sharedSchemaPreviewStatus.Text = "F7: metadata refresh failed; previously valid data retained when possible.";
             }
             finally
             {
                 _sharedSchemaPreviewBinding = false;
+                SyncSharedSchemaExplorerPreviewUI();
             }
         }
 

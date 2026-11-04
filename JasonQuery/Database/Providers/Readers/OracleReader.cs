@@ -15,6 +15,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
@@ -31,8 +32,11 @@ namespace JasonQuery.Database.Providers.Readers
 
         //Bound to this OracleReader instance and its current physical connection.
         //Never infer this value from the login field or CURRENT_SCHEMA.
-        private const string SessionUserSql = "SELECT SYS_CONTEXT('USERENV','SESSION_USER') FROM DUAL";
+        //Read all scope attributes from the same opened OracleConnection before BeginTransaction().
+        private const string SessionScopeSql = "SELECT SYS_CONTEXT('USERENV','SESSION_USER'), SYS_CONTEXT('USERENV','DB_NAME'), SYS_CONTEXT('USERENV','CON_NAME') FROM DUAL";
         private string _verifiedSessionUser = string.Empty;
+        private string _verifiedDatabaseName = string.Empty;
+        private string _verifiedContainerName = string.Empty;
         private Guid _verifiedConnectionId = Guid.Empty;
 
         public string VerifiedSessionUser
@@ -43,12 +47,29 @@ namespace JasonQuery.Database.Providers.Readers
             }
         }
 
+        //Only expose a fully verified scope while the physical session remains open.
+        public string VerifiedDatabaseName
+        {
+            get
+            {
+                return GetState() == ConnectionState.Open && _verifiedConnectionId != Guid.Empty ? _verifiedDatabaseName : string.Empty;
+            }
+        }
+
+        public string VerifiedContainerName
+        {
+            get
+            {
+                return GetState() == ConnectionState.Open && _verifiedConnectionId != Guid.Empty ? _verifiedContainerName : string.Empty;
+            }
+        }
+
         //A unique identity for each successfully verified physical connection, including reconnects as the same user.
         public Guid VerifiedConnectionId
         {
             get
             {
-                return GetState() == ConnectionState.Open && !string.IsNullOrEmpty(_verifiedSessionUser) ? _verifiedConnectionId : Guid.Empty;
+                return GetState() == ConnectionState.Open && !string.IsNullOrWhiteSpace(_verifiedSessionUser) && !string.IsNullOrWhiteSpace(_verifiedDatabaseName) && !string.IsNullOrWhiteSpace(_verifiedContainerName) ? _verifiedConnectionId : Guid.Empty;
             }
         }
 
@@ -64,6 +85,8 @@ namespace JasonQuery.Database.Providers.Readers
             var errorMessage = string.Empty;
 
             _verifiedSessionUser = string.Empty;
+            _verifiedDatabaseName = string.Empty;
+            _verifiedContainerName = string.Empty;
             _verifiedConnectionId = Guid.Empty;
 
             _conn = new OracleConnection
@@ -106,23 +129,72 @@ namespace JasonQuery.Database.Providers.Readers
             {
                 _conn.Open();
 
-                //Read the actual authenticated session identity on THIS connection, before the user's transaction begins; do not ALTER SESSION/COMMIT.
+                //All three values must come from THIS physical session; no login-field/SID/PDB inference.
+                //Execute before the user's transaction begins and never ALTER SESSION / COMMIT here.
+                string verifiedUser;
+                string verifiedDatabase;
+                string verifiedContainer;
+
                 using (var identityCommand = new OracleCommand())
                 {
                     identityCommand.Connection = _conn;
-                    identityCommand.CommandText = SessionUserSql;
+                    identityCommand.CommandText = SessionScopeSql;
 
-                    var verifiedUser = Convert.ToString(identityCommand.ExecuteScalar());
-
-                    if (string.IsNullOrWhiteSpace(verifiedUser))
+                    using (var scopeReader = identityCommand.ExecuteReader())
                     {
-                        throw new InvalidOperationException("Oracle SESSION_USER could not be verified.");
-                    }
+                        if (!scopeReader.Read())
+                        {
+                            throw new InvalidOperationException
+                            (
+                                BuildSessionScopeDiagnosticErrorMessage
+                                (
+                                    "JQ-ORA-SCOPE-001",
+                                    "The identity query returned no rows."
+                                )
+                            );
+                        }
 
-                    _verifiedSessionUser = verifiedUser;
+                        verifiedUser = Convert.ToString(scopeReader.GetValue(0));
+                        verifiedDatabase = Convert.ToString(scopeReader.GetValue(1));
+                        verifiedContainer = Convert.ToString(scopeReader.GetValue(2));
+                    }
+                }
+
+                var missingFields = string.Empty;
+
+                if (string.IsNullOrWhiteSpace(verifiedUser))
+                {
+                    missingFields = "SESSION_USER";
+                }
+
+                if (string.IsNullOrWhiteSpace(verifiedDatabase))
+                {
+                    missingFields += (missingFields.Length == 0 ? "" : ", ") + "DB_NAME";
+                }
+
+                if (string.IsNullOrWhiteSpace(verifiedContainer))
+                {
+                    missingFields += (missingFields.Length == 0 ? "" : ", ") + "CON_NAME";
+                }
+
+                if (missingFields.Length > 0)
+                {
+                    throw new InvalidOperationException
+                    (
+                        BuildSessionScopeDiagnosticErrorMessage
+                        (
+                            "JQ-ORA-SCOPE-002",
+                            string.Format("Missing value(s): {0}.", missingFields)
+                        )
+                    );
                 }
 
                 _transaction = _conn.BeginTransaction(IsolationLevel.ReadCommitted);
+
+                //Publish only after all identity checks AND transaction initialization succeeded.
+                _verifiedSessionUser = verifiedUser;
+                _verifiedDatabaseName = verifiedDatabase;
+                _verifiedContainerName = verifiedContainer;
                 _verifiedConnectionId = Guid.NewGuid();
             }
             catch (OracleException ex)
@@ -141,9 +213,10 @@ namespace JasonQuery.Database.Providers.Readers
                 }
             }
 
-            if (!string.IsNullOrEmpty(errorMessage) || GetState() != ConnectionState.Open || string.IsNullOrEmpty(_verifiedSessionUser) || _transaction == null)
+            if (!string.IsNullOrEmpty(errorMessage) || GetState() != ConnectionState.Open || string.IsNullOrWhiteSpace(_verifiedSessionUser)
+                || string.IsNullOrWhiteSpace(_verifiedDatabaseName) || string.IsNullOrWhiteSpace(_verifiedContainerName) || _verifiedConnectionId == Guid.Empty || _transaction == null)
             {
-                var failure = string.IsNullOrWhiteSpace(errorMessage) ? "Oracle connection or SESSION_USER verification failed." : errorMessage;
+                var failure = string.IsNullOrWhiteSpace(errorMessage) ? "Oracle connection or verified session scope initialization failed. The connection was rejected for safety." : errorMessage;
 
                 //Fail closed even when Open() succeeded but identity query/transaction failed.
                 Disconnect();
@@ -152,6 +225,25 @@ namespace JasonQuery.Database.Providers.Readers
             }
 
             return string.Empty;
+        }
+
+        //Provide the same read-only SQL used by ConnectTo(); never execute a second diagnostic query after session validation has failed. An external tool creates a DIFFERENT Oracle session.
+        private static string BuildSessionScopeDiagnosticErrorMessage(string errorCode, string detail)
+        {
+            var message = new StringBuilder();
+
+            message.AppendLine(string.Format("{0}: Oracle session identity verification failed.", errorCode));
+            message.AppendLine(detail);
+            message.AppendLine();
+            message.AppendLine("JasonQuery rejected this connection for safety.");
+            message.AppendLine("To investigate, use SQL Developer or SQL*Plus with the same Oracle account and connection settings.");
+            message.AppendLine("Run the following read-only SQL in that separate session:");
+            message.AppendLine(SessionScopeSql + ";");
+            message.AppendLine();
+            message.AppendLine("If the problem persists, share this error code, the SQL result and any Oracle error with your DBA.");
+            message.AppendLine("Note: An external session cannot verify the identity of the rejected JasonQuery session.");
+
+            return message.ToString().TrimEnd('\r', '\n');
         }
 
         public string Commit()
@@ -262,6 +354,8 @@ namespace JasonQuery.Database.Providers.Readers
         {
             //Clear identity before cleanup; even a dispose error cannot leave it trusted.
             _verifiedSessionUser = string.Empty;
+            _verifiedDatabaseName = string.Empty;
+            _verifiedContainerName = string.Empty;
             _verifiedConnectionId = Guid.Empty;
 
             var success = true;

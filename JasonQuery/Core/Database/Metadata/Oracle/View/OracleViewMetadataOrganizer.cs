@@ -36,12 +36,23 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.View
             {
                 dtViewInfo = GetViewInfo(context);
 
+                if (dtViewInfo == null)
+                {
+                    throw new InvalidOperationException("Oracle view information metadata query returned null; the schema refresh is rejected.");
+                }
+
                 Dictionary<string, List<DataRow>> viewColumnInfoMap = null;
                 var viewSchemaType = string.Empty;
 
                 if (context.NeedSchemaRows)
                 {
                     dtViewColumnInfo = GetViewColumnInfo(context);
+
+                    if (dtViewColumnInfo == null)
+                    {
+                        throw new InvalidOperationException("Oracle view column information metadata query returned null; the schema refresh is rejected.");
+                    }
+
                     viewColumnInfoMap = BuildViewColumnInfoMap(dtViewColumnInfo);
                     viewSchemaType = SchemaTypeTextBuilder.Build(SchemaObjectNames.Views, dtViewInfo?.Rows.Count ?? 0);
                 }

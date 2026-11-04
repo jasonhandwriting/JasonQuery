@@ -1,4 +1,5 @@
 ﻿using JasonQuery.Core.Database.Connection;
+using JasonQuery.Core.Database.Execution;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,12 +12,13 @@ namespace JasonQuery.UI.LeftPanel
         private readonly string[] _groupColumns;
         private readonly string[] _hiddenColumns;
 
-        internal SharedSchemaMetadataSnapshot(DataSourceType sourceType, int connectionRevision, DataTable table, string[] groupColumns, string[] hiddenColumns, string oracleVerifiedSessionUser, Guid oracleConnectionId)
+        internal SharedSchemaMetadataSnapshot(DataSourceType sourceType, int connectionRevision, DataTable table, string[] groupColumns, string[] hiddenColumns, string oracleVerifiedSessionUser, Guid oracleConnectionId, string databaseScope = "")
         {
             SourceType = sourceType;
             ConnectionRevision = connectionRevision;
             OracleVerifiedSessionUser = oracleVerifiedSessionUser ?? string.Empty;
             OracleConnectionId = oracleConnectionId;
+            DatabaseScope = databaseScope ?? string.Empty;
             Table = table;
             _groupColumns = (string[])groupColumns.Clone();
             _hiddenColumns = (string[])hiddenColumns.Clone();
@@ -26,6 +28,7 @@ namespace JasonQuery.UI.LeftPanel
         public int ConnectionRevision { get; }
         public string OracleVerifiedSessionUser { get; }
         public Guid OracleConnectionId { get; }
+        public string DatabaseScope { get; }
 
         //Owned copy. A grid may modify this copy but never the caller's DataTable.
         public DataTable Table { get; }
@@ -46,7 +49,7 @@ namespace JasonQuery.UI.LeftPanel
             return TryCaptureCore(source, sourceType, includeColumnGroup, connectionRevision, out snapshot, oracleVerifiedSessionUser, oracleConnectionId, true);
         }
 
-        private static bool TryCaptureCore(DataTable source, DataSourceType sourceType, bool includeColumnGroup, int connectionRevision, out SharedSchemaMetadataSnapshot snapshot, string oracleVerifiedSessionUser, Guid oracleConnectionId, bool requireVerifiedOracleSession)
+        private static bool TryCaptureCore(DataTable source, DataSourceType sourceType, bool includeColumnGroup, int connectionRevision, out SharedSchemaMetadataSnapshot snapshot, string oracleVerifiedSessionUser, Guid oracleConnectionId, bool requireVerifiedOracleSession, string databaseScope = "")
         {
             snapshot = null;
 
@@ -99,7 +102,7 @@ namespace JasonQuery.UI.LeftPanel
 
             if (sourceType == DataSourceType.Oracle)
             {
-                // Keep raw table/column identifiers in the owned DataTable for the next qualified Column bridge, but never display them as normal grid columns.
+                //Keep raw table/column identifiers in the owned DataTable for the next qualified Column bridge, but never display them as normal grid columns.
                 var oracleHidden = new List<string>();
 
                 foreach (var name in new[] { "OracleMetadataOwner", "OracleMetadataTableName", "OracleMetadataColumnName" })
@@ -123,8 +126,66 @@ namespace JasonQuery.UI.LeftPanel
                 hidden = new[] { "CreateDate", "ModifyDate" };
             }
 
-            snapshot = new SharedSchemaMetadataSnapshot(sourceType, connectionRevision, owned, groups.ToArray(), hidden, oracleVerifiedSessionUser, oracleConnectionId);
+            snapshot = new SharedSchemaMetadataSnapshot(sourceType, connectionRevision, owned, groups.ToArray(), hidden, oracleVerifiedSessionUser, oracleConnectionId, databaseScope);
             return true;
+        }
+
+        //Only source-neutral providers may use this API. Oracle needs a verified load record, never merely a caller-provided scope string.
+        public static bool TryCaptureForScope(DataTable source, DataSourceType sourceType, bool includeColumnGroup, int connectionRevision, string databaseScope, out SharedSchemaMetadataSnapshot snapshot)
+        {
+            snapshot = null;
+
+            if (sourceType == DataSourceType.Oracle || string.IsNullOrWhiteSpace(databaseScope))
+            {
+                return false;
+            }
+
+            return TryCaptureCore(source, sourceType, includeColumnGroup, connectionRevision, out snapshot, string.Empty, Guid.Empty, false, databaseScope);
+        }
+
+        //Separate, verified Oracle path. A scope string alone never qualifies Oracle data.
+        internal static bool TryCaptureVerifiedOracleForScope(DataTable source, bool includeColumnGroup, int connectionRevision, string databaseScope, string verifiedSessionUser, Guid verifiedConnectionId, out SharedSchemaMetadataSnapshot snapshot)
+        {
+            snapshot = null;
+
+            if (string.IsNullOrWhiteSpace(databaseScope))
+            {
+                return false;
+            }
+
+            return TryCaptureCore(source, DataSourceType.Oracle, includeColumnGroup, connectionRevision, out snapshot, verifiedSessionUser, verifiedConnectionId, true, databaseScope);
+        }
+
+        //B2c-3B2: no public caller-authored provenance can qualify Oracle.
+        //The receipt proves a completed physical session batch, not a MainForm logical revision.
+        //Fail closed until the trusted logical-revision correlation is connected in B2c-3C.
+        internal static bool TryCaptureQualifiedOracle(DataTable source, bool includeColumnGroup, int connectionRevision, string databaseScope, OracleVerifiedSessionScope observedScope, SharedOracleMetadataCompletedLoadReceipt receipt, out SharedSchemaMetadataSnapshot snapshot)
+        {
+            snapshot = null;
+
+            if (receipt == null || source == null || observedScope == null
+                || !ReferenceEquals(receipt.SourceTable, source)
+                || !ReferenceEquals(DatabaseSqlExecutor.dtSchema, source)
+                || receipt.CompletedLoadId == Guid.Empty
+                || !SharedOracleMetadataCompletedLoadReceipt.HasRawOracleIdentifiers(source)
+                || string.IsNullOrWhiteSpace(databaseScope)
+                || connectionRevision <= 0
+                || receipt.TrustedLogicalConnectionRevision != connectionRevision
+                || !OracleVerifiedSessionScopePolicy.CanBindMetadataToSession(observedScope, receipt.ConnectionId, receipt.SessionUser, receipt.DatabaseName, receipt.ContainerName))
+            {
+                return false;
+            }
+
+            return TryCaptureCore(source, DataSourceType.Oracle, includeColumnGroup, connectionRevision, out snapshot, receipt.SessionUser, receipt.ConnectionId, true, databaseScope);
+        }
+
+        public static bool CanBindForScope(SharedLeftPanelHostState state, SharedSchemaMetadataSnapshot snapshot, DataSourceType currentSourceType, string databaseScope)
+        {
+            return !string.IsNullOrWhiteSpace(databaseScope)
+                   && snapshot != null
+                   && !string.IsNullOrWhiteSpace(snapshot.DatabaseScope)
+                   && string.Equals(snapshot.DatabaseScope, databaseScope, StringComparison.Ordinal)
+                   && CanBind(state, snapshot, currentSourceType);
         }
 
         public static bool CanBind(SharedLeftPanelHostState state, SharedSchemaMetadataSnapshot snapshot, DataSourceType currentSourceType)

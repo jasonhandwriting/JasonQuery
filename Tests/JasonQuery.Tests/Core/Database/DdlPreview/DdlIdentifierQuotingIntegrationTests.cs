@@ -88,7 +88,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
         [TestCategory("Regression")]
         [TestCategory("DdlPreview")]
         [DataRow(DataSourceType.Oracle,
-                 "ALTER TABLE \"SYS\".\"AABBCC\" ADD \"NEW_COLUMN\" VARCHAR2(50) NULL;")]
+                 "ALTER TABLE \"SYS\".\"AABBCC\" ADD \"new_column\" VARCHAR2(50) NULL;")]
         [DataRow(DataSourceType.PostgreSql,
                  "ALTER TABLE \"public\".\"AABBCC\" ADD COLUMN \"new_column\" varchar(50) NULL;")]
         [DataRow(DataSourceType.SqlServer,
@@ -179,7 +179,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
         [TestMethod]
         [TestCategory("Safety")]
         [TestCategory("DdlPreview")]
-        [DataRow(DataSourceType.Oracle, "C1", "c1")]
+        [DataRow(DataSourceType.Oracle, "C1", "C1")]
         [DataRow(DataSourceType.PostgreSql, "c1", "C1")]
         [DataRow(DataSourceType.SqlServer, "C1", "[C1]")]
         [DataRow(DataSourceType.MySql, "C1", "`C1`")]
@@ -277,7 +277,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
         [TestCategory("Regression")]
         [TestCategory("DdlPreview")]
         [DataRow(DataSourceType.Oracle, "MixedColumn", "new_column",
-                 "ALTER TABLE \"HR\".\"A_TEST\" RENAME COLUMN \"MixedColumn\" TO \"NEW_COLUMN\";")]
+                 "ALTER TABLE \"HR\".\"A_TEST\" RENAME COLUMN \"MixedColumn\" TO \"new_column\";")]
         [DataRow(DataSourceType.PostgreSql, "MixedColumn", "NEW_COLUMN",
                  "ALTER TABLE \"public\".\"A_TEST\" RENAME COLUMN \"MixedColumn\" TO \"new_column\";")]
         [DataRow(DataSourceType.SqlServer, "MixedColumn", "New_Column",

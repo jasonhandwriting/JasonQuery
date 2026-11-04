@@ -28,6 +28,7 @@ using JasonQuery.Core.Database.SqlBuilder.SqlServer.Metadata.QueryEditor;
 using JasonQuery.Core.Database.SqlBuilder.SqlServer.Metadata.Table;
 using JasonQuery.Core.Database.SqlBuilder.SqlServer.Metadata.View;
 using JasonQuery.Core.Logging;
+using JasonQuery.UI.LeftPanel;
 using JasonQuery.UI.Helpers;
 using System;
 using System.Collections.Generic;
@@ -1529,7 +1530,7 @@ namespace JasonQuery.Core.Database.Execution
             }
         }
 
-        private static OracleMetadataContext CreateOracleMetadataContext(DataTable dtTargetSchemaTable, bool bFromSchemaBrowser)
+        private static OracleMetadataContext CreateOracleMetadataContext(DataTable dtTargetSchemaTable, bool isFromSchemaBrowser)
         {
             return new OracleMetadataContext
             {
@@ -1537,7 +1538,7 @@ namespace JasonQuery.Core.Database.Execution
                 DbConnectionName = DbConnectionName,
                 DbUserNameUppercase = DbUserUppercase,
 
-                NeedSchemaRows = MyGlobal.IsShowColumnInfo && (MyGlobal.ShowColumnInfo != -1 || bFromSchemaBrowser),
+                NeedSchemaRows = MyGlobal.IsShowColumnInfo && (MyGlobal.ShowColumnInfo != -1 || isFromSchemaBrowser),
 
                 SortByColumnName = MyGlobal.IsSortByColumnName,
 
@@ -1744,7 +1745,8 @@ namespace JasonQuery.Core.Database.Execution
 
         private static void UpdateSchemaGrid(C1TrueDBGrid c1Grid, bool shouldUpdate, bool isFromSchemaBrowser)
         {
-            if (!shouldUpdate)
+            //The shared MainForm F7 reloads metadata without handing its Designer Grid to a legacy QueryForm layout routine. QueryForm views are updated afterwards.
+            if (!shouldUpdate || c1Grid == null)
             {
                 return;
             }
@@ -1755,39 +1757,301 @@ namespace JasonQuery.Core.Database.Execution
             }
         }
 
-        public static void UpdateSchemaData_Oracle(C1TrueDBGrid c1Grid, bool bFromSchemaBrowser = false)
+        private static void AddOracleCandidateAutoCompleteRow(DataTable target, string name, string source)
         {
-            //20260328 重構：Get Table and View Information
-            OracleQueryEditorMetadataLoader.LoadTableAndViewNames(ref dtTableAndViews, ExecuteMetadataQuery, DbUserUppercase);
+            var row = target.NewRow();
 
-            //20250511 將自動完成的判斷抽出來
-            var isAutoCompleteFunction = MyLibrary.EnableAutoComplete && MyLibrary.AutoCompleteUserDefinedFunctions;
-            var isAutoCompleteTable = MyLibrary.EnableAutoComplete && MyLibrary.AutoCompleteUserDefinedTables;
-            var isAutoCompleteTrigger = MyLibrary.EnableAutoComplete && MyLibrary.AutoCompleteUserDefinedTriggers;
-            var isAutoCompleteView = MyLibrary.EnableAutoComplete && MyLibrary.AutoCompleteUserDefinedViews;
+            row["ObjectName"] = name;
+            row["ObjectSource"] = string.Format("[{0}]", source);
 
-            var dtNewSchema = CreateSchemaTable(bFromSchemaBrowser);
+            target.Rows.Add(row);
+        }
+
+        private static void AppendOracleCandidateNames(DataTable target, IEnumerable<string> names, bool enabled, string source)
+        {
+            if (!enabled || names == null)
+            {
+                return;
+            }
+
+            foreach (var name in names.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                AddOracleCandidateAutoCompleteRow(target, name, source);
+            }
+        }
+
+        private static void AppendOracleCandidateKeywordText(DataTable target, string keywordText, bool enabled, string source)
+        {
+            if (!enabled || string.IsNullOrWhiteSpace(keywordText))
+            {
+                return;
+            }
+
+            foreach (var name in keywordText.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                AddOracleCandidateAutoCompleteRow(target, name, source);
+            }
+        }
+
+        private static void AppendOracleCandidateCommonKeywords(DataTable target)
+        {
+            if (!MyLibrary.EnableAutoComplete)
+            {
+                return;
+            }
+
+            AppendOracleCandidateKeywordText(target, MyLibrary.KeywordsBuiltInKeywords, MyLibrary.AutoCompleteBuiltInKeywords, AutoCompleteSourceNames.BuiltInKeywords);
+            AppendOracleCandidateKeywordText(target, MyLibrary.KeywordsBuiltInFunctions, MyLibrary.AutoCompleteBuiltInFunctions, AutoCompleteSourceNames.Functions);
+            AppendOracleCandidateKeywordText(target, MyLibrary.KeywordsUserDefinedKeywords, MyLibrary.AutoCompleteUserDefinedKeywords, AutoCompleteSourceNames.UserDefinedKeywords);
+        }
+
+        //Only the real Oracle entry issues a completed-load receipt. Never infer authority from a UI rebind.
+        //The injectable candidate core remains private and is shared with the atomic failure Golden tests.
+        private static SharedOracleMetadataCompletedLoadReceipt RunOracleMetadataAtomicLoad(Func<string, DataTable> executeQuery, bool isFromSchemaBrowser)
+        {
+            if (executeQuery == null)
+            {
+                throw new ArgumentNullException(nameof(executeQuery));
+            }
+
+            var reader = MyGlobal.OracleReader ?? throw new InvalidOperationException("OracleReader has not been initialized.");
+
+            //A deliberate refresh may start after a normal SELECT closed the physical session.
+            //Open once BEFORE the first observation; never reconnect silently inside an issued receipt.
+            reader.EnsureConnectionOpen();
+
+            return RunOracleMetadataAtomicLoadWithVerifiedScope
+            (
+                executeQuery,
+                isFromSchemaBrowser,
+                () => ReferenceEquals(MyGlobal.OracleReader, reader) ? ReadVerifiedOracleScope(reader) : null
+            );
+        }
+
+        private static OracleVerifiedSessionScope ReadVerifiedOracleScope(JasonQuery.Database.Providers.Readers.OracleReader reader)
+        {
+            if (reader == null)
+            {
+                return null;
+            }
+
+            if (!OracleVerifiedSessionScopePolicy.TryCreate
+                (
+                    reader.VerifiedSessionUser,
+                    reader.VerifiedDatabaseName,
+                    reader.VerifiedContainerName,
+                    reader.VerifiedConnectionId,
+                    out var verifiedScope
+                ))
+            {
+                return null;
+            }
+
+            return verifiedScope;
+        }
+
+        private static OracleVerifiedSessionScope RequireOracleScope(OracleVerifiedSessionScope observed)
+        {
+            if (observed == null || !OracleVerifiedSessionScopePolicy.TryCreate
+                (
+                    observed.SessionUser,
+                    observed.DatabaseName,
+                    observed.ContainerName,
+                    observed.ConnectionId,
+                    out var immutableObservation
+                ))
+            {
+                throw new InvalidOperationException("Oracle metadata load requires a verified physical session scope.");
+            }
+
+            //Copy primitive values: the caller's mutable observation object is not retained as evidence.
+            return immutableObservation;
+        }
+
+        private static void EnsureSameOracleScope(OracleVerifiedSessionScope initial, OracleVerifiedSessionScope current)
+        {
+            var observed = RequireOracleScope(current);
+
+            if (!OracleVerifiedSessionScopePolicy.CanBindMetadataToSession
+                (
+                    observed,
+                    initial.ConnectionId,
+                    initial.SessionUser,
+                    initial.DatabaseName,
+                    initial.ContainerName
+                ))
+            {
+                throw new InvalidOperationException("Oracle metadata load crossed a verified Session/DB/PDB boundary; publication rejected.");
+            }
+        }
+
+        //Private injection seam. Production supplies observations from OracleReader only.
+        //Every query is surrounded by the verified scope checks, including a final pre-publication check.
+        private static SharedOracleMetadataCompletedLoadReceipt RunOracleMetadataAtomicLoadWithVerifiedScope(Func<string, DataTable> executeQuery, bool isFromSchemaBrowser, Func<OracleVerifiedSessionScope> observeScope)
+        {
+            if (executeQuery == null)
+            {
+                throw new ArgumentNullException(nameof(executeQuery));
+            }
+
+            if (observeScope == null)
+            {
+                throw new ArgumentNullException(nameof(observeScope));
+            }
+
+            var initialScope = RequireOracleScope(observeScope());
+            var initialLogicalScope = GetOracleLoadLogicalScopeKey();
+
+            Func<string, DataTable> checkedQuery = sql =>
+            {
+                if (!string.Equals(initialLogicalScope, GetOracleLoadLogicalScopeKey(), StringComparison.Ordinal))
+                {
+                    throw new InvalidOperationException("Oracle logical connection changed during metadata loading.");
+                }
+
+                EnsureSameOracleScope(initialScope, observeScope());
+
+                var result = executeQuery(sql);
+
+                EnsureSameOracleScope(initialScope, observeScope());
+
+                if (result == null)
+                {
+                    throw new InvalidOperationException("Oracle metadata query returned null; publication rejected.");
+                }
+
+                return result;
+            };
+
+            Action finalCheck = () =>
+            {
+                if (!string.Equals(initialLogicalScope, GetOracleLoadLogicalScopeKey(), StringComparison.Ordinal))
+                {
+                    throw new InvalidOperationException("Oracle logical connection changed before metadata publication.");
+                }
+
+                EnsureSameOracleScope(initialScope, observeScope());
+            };
+
+            return PrepareAndPublishOracleMetadata(checkedQuery, isFromSchemaBrowser, initialScope, initialLogicalScope, finalCheck);
+        }
+
+        //The preexisting AP tests exercise the SAME candidate builder with synthetic DataTables, but a test delegate has no physical-session authority and therefore cannot issue a receipt.
+        private static void RunOracleMetadataAtomicLoadUnverifiedForTest(Func<string, DataTable> executeQuery, bool isFromSchemaBrowser)
+        {
+            PrepareAndPublishOracleMetadata(executeQuery, isFromSchemaBrowser, null, string.Empty, null);
+        }
+
+        private static string GetOracleLoadLogicalScopeKey()
+        {
+            //No password or SQL text is included. This is a change detector, NOT a logical revision proof.
+            return string.Join("\u001F", new[]
+            {
+                DbConnectionName ?? string.Empty,
+                DbConnectionServer ?? string.Empty,
+                DbUser ?? string.Empty,
+                OracleSid ?? string.Empty,
+                OracleConnectAs ?? string.Empty,
+                DbConnectionPort.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                DatabaseName ?? string.Empty
+            });
+        }
+
+        private static SharedOracleMetadataCompletedLoadReceipt PrepareAndPublishOracleMetadata(Func<string, DataTable> executeQuery, bool isFromSchemaBrowser, OracleVerifiedSessionScope verifiedScope, string logicalScopeKey, Action beforePublication)
+        {
+            if (executeQuery == null)
+            {
+                throw new ArgumentNullException(nameof(executeQuery));
+            }
+
+            DataTable candidateTableAndViews = null;
+            DataTable candidateSchema = null;
+            DataTable candidateAutoComplete = null;
 
             try
             {
-                MyGlobal.dtAutoCompleteForAll = CreateAutoCompleteForAllTable();
+                OracleQueryEditorMetadataLoader.LoadTableAndViewNames
+                (
+                    ref candidateTableAndViews,
+                    sql => executeQuery(sql),
+                    DbUserUppercase
+                );
 
-                var context = CreateOracleMetadataContext(dtNewSchema, bFromSchemaBrowser);
+                candidateSchema = CreateSchemaTable(isFromSchemaBrowser);
+                candidateAutoComplete = CreateAutoCompleteForAllTable();
+
+                var context = CreateOracleMetadataContext(candidateSchema, isFromSchemaBrowser);
+
+                context.ExecuteQuery = executeQuery;
+
                 var options = CreateOracleMetadataLoadOptions();
+                var names = OracleQueryEditorMetadataLoader.CollectSchemaMetadata(context);
 
-                //20260407 重構：改成 Loader 寫法
-                OracleQueryEditorMetadataLoader.LoadSchemaMetadata(context, options);
+                AppendOracleCandidateNames(candidateAutoComplete, names.Functions, options.EnableFunctionAutoComplete, AutoCompleteSourceNames.Functions);
+                AppendOracleCandidateNames(candidateAutoComplete, names.Tables, options.EnableTableAutoComplete, AutoCompleteSourceNames.Tables);
+                AppendOracleCandidateNames(candidateAutoComplete, names.Triggers, options.EnableTriggerAutoComplete, AutoCompleteSourceNames.Triggers);
+                AppendOracleCandidateNames(candidateAutoComplete, names.Views, options.EnableViewAutoComplete, AutoCompleteSourceNames.Views);
+                AppendOracleCandidateCommonKeywords(candidateAutoComplete);
 
-                DataTableLifecycleHelper.ReplaceDataTable(ref dtSchema, ref dtNewSchema);
+                var functionKeywords = ScintillaKeywordTextBuilder.Build(names.Functions);
+                var tableKeywords = ScintillaKeywordTextBuilder.Build(names.Tables);
+                var triggerKeywords = ScintillaKeywordTextBuilder.Build(names.Triggers);
+                var viewKeywords = ScintillaKeywordTextBuilder.Build(names.Views);
+
+                //No query, user-interface call or connection recovery is permitted after this gate.
+                beforePublication?.Invoke();
+
+                SharedOracleMetadataCompletedLoadReceipt receipt = null;
+
+                if (verifiedScope != null && SharedOracleMetadataCompletedLoadReceipt.HasRawOracleIdentifiers(candidateSchema))
+                {
+                    receipt = new SharedOracleMetadataCompletedLoadReceipt
+                    (
+                        candidateSchema,
+                        verifiedScope.ConnectionId,
+                        verifiedScope.SessionUser,
+                        verifiedScope.DatabaseName,
+                        verifiedScope.ContainerName,
+                        Guid.NewGuid(),
+                        logicalScopeKey
+                    );
+                }
+
+                //Logical publish of one complete candidate batch; old bound DataTables remain alive.
+                dtSchema = candidateSchema;
+                dtTableAndViews = candidateTableAndViews;
+
+                MyGlobal.dtAutoCompleteForAll = candidateAutoComplete;
+                MyLibrary.KeywordsUserDefinedFunctions = functionKeywords;
+                MyLibrary.KeywordsUserDefinedTables = tableKeywords;
+                MyLibrary.KeywordsUserDefinedTriggers = triggerKeywords;
+                MyLibrary.KeywordsUserDefinedViews = viewKeywords;
+                _lastOracleCompletedLoadReceipt = receipt;
+
+                candidateSchema = null;
+                candidateTableAndViews = null;
+                candidateAutoComplete = null;
+
+                return receipt;
             }
-            catch
+            finally
             {
-                dtNewSchema?.Dispose();
-                throw;
+                candidateSchema?.Dispose();
+                candidateTableAndViews?.Dispose();
+                candidateAutoComplete?.Dispose();
             }
+        }
 
-            AppendCommonAutoCompleteKeywords(false);
-            UpdateSchemaGrid(c1Grid, true, bFromSchemaBrowser);
+        //The previous receipt can be inspected, but is not by itself DDL or logical-revision authority.
+        private static SharedOracleMetadataCompletedLoadReceipt _lastOracleCompletedLoadReceipt;
+        internal static SharedOracleMetadataCompletedLoadReceipt LastOracleCompletedLoadReceipt => _lastOracleCompletedLoadReceipt;
+
+        public static void UpdateSchemaData_Oracle(C1TrueDBGrid c1Grid, bool isFromSchemaBrowser = false)
+        {
+            RunOracleMetadataAtomicLoad(ExecuteMetadataQuery, isFromSchemaBrowser);
+
+            //UI bindings are updated only after the entire candidate batch was published.
+            UpdateSchemaGrid(c1Grid, true, isFromSchemaBrowser);
 
             MyGlobal.ClearMemory();
         }
@@ -1808,68 +2072,129 @@ namespace JasonQuery.Core.Database.Execution
             ExecuteQueryToOutDataTable(sql, out dtTable);
         }
 
-        public static void UpdateSchemaData_PostgreSql(C1TrueDBGrid c1Grid, bool bUpdate = true, bool bFromSchemaBrowser = false)
+        //The production entry and S1B2 Golden use the same injected-query core.
+        //Each provider prepares candidates independently; failed queries never publish partial metadata.
+        private static void RunThreeProviderMetadataAtomicLoad(DataSourceType sourceType, Func<string, DataTable> executeQuery, bool fromSchemaBrowser)
         {
-            PostgreSqlQueryEditorMetadataLoader.LoadTableAndViewNames
-            (
-                ref dtTableAndViews,
-                sql =>
-                {
-                    var dt = new DataTable();
+            if (executeQuery == null)
+            {
+                throw new ArgumentNullException(nameof(executeQuery));
+            }
 
-                    ExecuteQueryToDataTable(sql, ref dt);
-                    return dt;
-                }
-            );
+            if (sourceType != GetEffectiveDataSourceType())
+            {
+                throw new InvalidOperationException("Metadata source type does not match the current connection.");
+            }
 
-            var canUseDatabaseScopedAutoComplete = CanUseDatabaseScopedAutoComplete();
-            var isAutoCompleteFunction = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedFunctions;
-            var isAutoCompleteTable = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedTables;
-            var isAutoCompleteTrigger = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedTriggers;
-            var isAutoCompleteView = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedViews;
+            switch (sourceType)
+            {
+                case DataSourceType.PostgreSql:
+                    {
+                        RunPostgreSqlMetadataAtomicLoad(executeQuery, fromSchemaBrowser);
+                        return;
+                    }
+                case DataSourceType.SqlServer:
+                    {
+                        RunSqlServerMetadataAtomicLoad(executeQuery, fromSchemaBrowser);
+                        return;
+                    }
+                case DataSourceType.MySql:
+                    {
+                        RunMySqlMetadataAtomicLoad(executeQuery, fromSchemaBrowser);
+                        return;
+                    }
+                default:
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(sourceType));
+                    }
+            }
+        }
 
-            var dtNewSchema = CreateSchemaTable(bFromSchemaBrowser);
+        private static void RunPostgreSqlMetadataAtomicLoad(Func<string, DataTable> executeQuery, bool fromSchemaBrowser)
+        {
+            DataTable candidateNames = null;
+            DataTable candidateSchema = null;
+            DataTable candidateAutoComplete = null;
 
             try
             {
-                MyGlobal.dtAutoCompleteForAll = CreateAutoCompleteForAllTable();
+                PostgreSqlQueryEditorMetadataLoader.LoadTableAndViewNames(ref candidateNames, sql => executeQuery(sql));
+
+                candidateSchema = CreateSchemaTable(fromSchemaBrowser);
+                candidateAutoComplete = CreateAutoCompleteForAllTable();
+
+                var canUseDatabaseScopedAutoComplete = CanUseDatabaseScopedAutoComplete();
 
                 var options = new PostgreSqlQueryEditorMetadataLoadOptions
                 {
-                    TargetSchemaTable = dtNewSchema,
+                    TargetSchemaTable = candidateSchema,
                     DbConnectionName = DbConnectionName,
                     IsVersion11OrGreater = DbServerVersion == ">=11",
                     SortByColumnName = MyGlobal.IsSortByColumnName,
-                    EnableFunctionAutoComplete = isAutoCompleteFunction,
-                    EnableTableAutoComplete = isAutoCompleteTable,
-                    EnableTriggerAutoComplete = isAutoCompleteTrigger,
-                    EnableViewAutoComplete = isAutoCompleteView
+                    EnableFunctionAutoComplete = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedFunctions,
+                    EnableTableAutoComplete = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedTables,
+                    EnableTriggerAutoComplete = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedTriggers,
+                    EnableViewAutoComplete = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedViews
                 };
 
-                //20260408 重構：改成 Loader 寫法
+                string functionKeywords = null;
+                string tableKeywords = null;
+                string triggerKeywords = null;
+                string viewKeywords = null;
+
                 PostgreSqlQueryEditorMetadataLoader.LoadSchemaMetadata
                 (
                     options,
-                    sql =>
+                    sql => executeQuery(sql),
+                    (functions, tables, triggers, views) =>
                     {
-                        var dtResult = new DataTable();
+                        functionKeywords = ScintillaKeywordTextBuilder.Build(functions);
+                        tableKeywords = ScintillaKeywordTextBuilder.Build(tables);
+                        triggerKeywords = ScintillaKeywordTextBuilder.Build(triggers);
+                        viewKeywords = ScintillaKeywordTextBuilder.Build(views);
 
-                        ExecuteQueryToDataTable(sql, ref dtResult);
-                        return dtResult;
+                        AppendOracleCandidateNames(candidateAutoComplete, functions, options.EnableFunctionAutoComplete, AutoCompleteSourceNames.Functions);
+                        AppendOracleCandidateNames(candidateAutoComplete, tables, options.EnableTableAutoComplete, AutoCompleteSourceNames.Tables);
+                        AppendOracleCandidateNames(candidateAutoComplete, triggers, options.EnableTriggerAutoComplete, AutoCompleteSourceNames.Triggers);
+                        AppendOracleCandidateNames(candidateAutoComplete, views, options.EnableViewAutoComplete, AutoCompleteSourceNames.Views);
                     }
                 );
 
-                DataTableLifecycleHelper.ReplaceDataTable(ref dtSchema, ref dtNewSchema);
+                if (canUseDatabaseScopedAutoComplete)
+                {
+                    AppendOracleCandidateKeywordText(candidateAutoComplete, MyLibrary.KeywordsBuiltInKeywords, MyLibrary.AutoCompleteBuiltInKeywords, AutoCompleteSourceNames.BuiltInKeywords);
+                    AppendOracleCandidateKeywordText(candidateAutoComplete, MyLibrary.KeywordsBuiltInFunctions, MyLibrary.AutoCompleteBuiltInFunctions, AutoCompleteSourceNames.Functions);
+                    AppendOracleCandidateKeywordText(candidateAutoComplete, MyLibrary.KeywordsUserDefinedKeywords, MyLibrary.AutoCompleteUserDefinedKeywords, AutoCompleteSourceNames.UserDefinedKeywords);
+                }
+
+                //Publish only after every metadata query and organizer has succeeded.
+                //Previously bound tables must remain alive for any legacy view holding a reference.
+                dtSchema = candidateSchema;
+                dtTableAndViews = candidateNames;
+
+                MyGlobal.dtAutoCompleteForAll = candidateAutoComplete;
+                MyLibrary.KeywordsUserDefinedFunctions = functionKeywords;
+                MyLibrary.KeywordsUserDefinedTables = tableKeywords;
+                MyLibrary.KeywordsUserDefinedTriggers = triggerKeywords;
+                MyLibrary.KeywordsUserDefinedViews = viewKeywords;
+
+                candidateSchema = null;
+                candidateNames = null;
+                candidateAutoComplete = null;
             }
-            catch
+            finally
             {
-                dtNewSchema?.Dispose();
-                throw;
+                candidateSchema?.Dispose();
+                candidateNames?.Dispose();
+                candidateAutoComplete?.Dispose();
             }
+        }
 
-            AppendCommonAutoCompleteKeywords(true);
-            UpdateSchemaGrid(c1Grid, bUpdate, bFromSchemaBrowser);
+        public static void UpdateSchemaData_PostgreSql(C1TrueDBGrid c1Grid, bool bUpdate = true, bool isFromSchemaBrowser = false)
+        {
+            RunThreeProviderMetadataAtomicLoad(DataSourceType.PostgreSql, ExecuteMetadataQuery, isFromSchemaBrowser);
 
+            UpdateSchemaGrid(c1Grid, bUpdate, isFromSchemaBrowser);
             MyGlobal.ClearMemory();
         }
 
@@ -1901,81 +2226,268 @@ namespace JasonQuery.Core.Database.Execution
             ExecuteQueryToOutDataTable(sql, out dtTable, false);
         }
 
-        public static void UpdateSchemaData_SqlServer(C1TrueDBGrid c1Grid, bool isSchemaBrowserForm = true, bool isFromSchemaBrowser = false)
+        //SQL Server metadata, both lookup tables, keywords, and editor candidates share one publication gate.
+        private static void RunSqlServerMetadataAtomicLoad(Func<string, DataTable> executeQuery, bool isFromSchemaBrowser)
         {
-            var dbExclude_Is_Ms_Shipped = ExcludeNativeDatabase ? "\r\n   AND Is_Ms_Shipped <> 1" : string.Empty;
-            var sortByColumnName = MyGlobal.IsSortByColumnName ? "Column_Name;" : "Ordinal_Position;";
-            var canUseDatabaseScopedAutoComplete = CanUseDatabaseScopedAutoComplete();
-
-            //20250511 將自動完成的判斷抽出來
-            var isAutoCompleteFunction = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedFunctions;
-            var isAutoCompleteTable = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedTables;
-            var isAutoCompleteTrigger = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedTriggers;
-            var isAutoCompleteView = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedViews;
-
-            var dtNewSchema = CreateSchemaTable(isFromSchemaBrowser);
+            DataTable candidateSchema = null;
+            DataTable candidateNames = null;
+            DataTable candidateDatabaseNames = null;
+            DataTable candidateAutoComplete = null;
 
             try
             {
-                MyGlobal.dtAutoCompleteForAll = CreateAutoCompleteForAllTable();
+                candidateSchema = CreateSchemaTable(isFromSchemaBrowser);
+                candidateNames = CreateAutoCompleteLookupTable();
+                candidateDatabaseNames = CreateAutoCompleteLookupTable();
+                candidateAutoComplete = CreateAutoCompleteForAllTable();
 
-                var metadataContext = CreateSqlServerMetadataContext(dtNewSchema);
+                var canUseDatabaseScopedAutoComplete = CanUseDatabaseScopedAutoComplete();
 
                 var options = new SqlServerQueryEditorMetadataLoadOptions
                 {
-                    excludeIsMsShippedClause = dbExclude_Is_Ms_Shipped,
-                    sortByColumnName = sortByColumnName,
-                    enableFunctionAutoComplete = isAutoCompleteFunction,
-                    enableTableAutoComplete = isAutoCompleteTable,
-                    enableTriggerAutoComplete = isAutoCompleteTrigger,
-                    enableViewAutoComplete = isAutoCompleteView
+                    excludeIsMsShippedClause = ExcludeNativeDatabase ? "\r\n   AND Is_Ms_Shipped <> 1" : string.Empty,
+                    sortByColumnName = MyGlobal.IsSortByColumnName ? "Column_Name;" : "Ordinal_Position;",
+                    enableFunctionAutoComplete = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedFunctions,
+                    enableTableAutoComplete = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedTables,
+                    enableTriggerAutoComplete = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedTriggers,
+                    enableViewAutoComplete = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedViews
                 };
 
-                //20260406 重構：改成 Loader 寫法
-                var loader = new SqlServerQueryEditorMetadataLoader();
+                string functionKeywords = null;
+                string tableKeywords = null;
+                string triggerKeywords = null;
+                string viewKeywords = null;
 
+                var metadataContext = CreateSqlServerMetadataContext(candidateSchema);
+                var loader = new SqlServerQueryEditorMetadataLoader();
                 loader.Load
                 (
                     metadataContext,
                     options,
-                    sql =>
+                    executeQuery,
+                    (functions, tables, triggers, views) =>
                     {
-                        var dtResult = new DataTable();
+                        functionKeywords = ScintillaKeywordTextBuilder.Build(functions);
+                        tableKeywords = ScintillaKeywordTextBuilder.Build(tables);
+                        triggerKeywords = ScintillaKeywordTextBuilder.Build(triggers);
+                        viewKeywords = ScintillaKeywordTextBuilder.Build(views);
 
-                        ExecuteQueryToDataTable(sql, ref dtResult);
-                        return dtResult;
+                        AppendOracleCandidateNames(candidateAutoComplete, functions, options.enableFunctionAutoComplete, AutoCompleteSourceNames.Functions);
+                        AppendOracleCandidateNames(candidateAutoComplete, tables, options.enableTableAutoComplete, AutoCompleteSourceNames.Tables);
+                        AppendOracleCandidateNames(candidateAutoComplete, triggers, options.enableTriggerAutoComplete, AutoCompleteSourceNames.Triggers);
+                        AppendOracleCandidateNames(candidateAutoComplete, views, options.enableViewAutoComplete, AutoCompleteSourceNames.Views);
                     }
                 );
 
-                DataTableLifecycleHelper.ReplaceDataTable(ref dtSchema, ref dtNewSchema);
-            }
-            catch
-            {
-                dtNewSchema?.Dispose();
-                throw;
-            }
+                //Lookup query 10: database names. Do not publish or mutate shared state yet.
+                var dbSql = SqlServerQueryEditorSqlBuilder.BuildDatabaseInfoForAutoComplete(ExcludeNativeDatabase);
 
-            AppendCommonAutoCompleteKeywords(true);
-            UpdateSchemaGrid(c1Grid, true, isFromSchemaBrowser);
+                using (var dtDatabaseInfo = RequireThreeProviderMetadataTable(executeQuery(dbSql)))
+                {
+                    AddAutoCompleteLookupRows
+                    (
+                        candidateDatabaseNames,
+                        dtDatabaseInfo.AsEnumerable(),
+                        (target, row) => AddDatabaseAutoCompleteRow(target, row.GetSafeString("Name"))
+                    );
+                }
 
-            using (TraceLogger.Time("Update Database Info for Auto Complete"))
-            {
-                UpdateDatabaseInfoForAutoComplete_SqlServer();
-                UpdateTableAndViewInfoForAutoComplete_SqlServer(DatabaseName);
-                dtTableAndViews.Merge(dtDatabaseName);
+                //Lookup query 11: selected database tables and views.
+                var tableViewSql = SqlServerQueryEditorSqlBuilder.BuildTableAndViewInfoForAutoComplete(DatabaseName, ExcludeNativeDatabase);
 
-                //將 Database Name 納入 AutoComplete
+                using (var dtTableViewInfo = RequireThreeProviderMetadataTable(executeQuery(tableViewSql)))
+                {
+                    AddAutoCompleteLookupRows(candidateNames, dtTableViewInfo.AsEnumerable(), AddSqlServerTableOrViewAutoCompleteRow);
+                }
+
+                candidateNames.Merge(candidateDatabaseNames);
+
                 if (canUseDatabaseScopedAutoComplete)
                 {
-                    foreach (DataRow dr in dtDatabaseName?.AsEnumerable() ?? Enumerable.Empty<DataRow>())
-                    {
-                        var db = dr.GetSafeString("DB");
+                    AppendOracleCandidateKeywordText(candidateAutoComplete, MyLibrary.KeywordsBuiltInKeywords, MyLibrary.AutoCompleteBuiltInKeywords, AutoCompleteSourceNames.BuiltInKeywords);
+                    AppendOracleCandidateKeywordText(candidateAutoComplete, MyLibrary.KeywordsBuiltInFunctions, MyLibrary.AutoCompleteBuiltInFunctions, AutoCompleteSourceNames.Functions);
+                    AppendOracleCandidateKeywordText(candidateAutoComplete, MyLibrary.KeywordsUserDefinedKeywords, MyLibrary.AutoCompleteUserDefinedKeywords, AutoCompleteSourceNames.UserDefinedKeywords);
 
-                        MyGlobal.AddAutoCompleteData(db, AutoCompleteSourceNames.Databases);
+                    foreach (DataRow row in candidateDatabaseNames.Rows)
+                    {
+                        var db = row.GetSafeString("DB");
+
+                        if (!string.IsNullOrWhiteSpace(db))
+                        {
+                            AddOracleCandidateAutoCompleteRow(candidateAutoComplete, db, AutoCompleteSourceNames.Databases);
+                        }
                     }
                 }
+
+                //Logical publication: no database query, organizer or UI notification inside this section.
+                //Old tables remain alive because existing F7 / editor bindings may still reference them.
+                dtSchema = candidateSchema;
+                dtTableAndViews = candidateNames;
+                dtDatabaseName = candidateDatabaseNames;
+
+                MyGlobal.dtAutoCompleteForAll = candidateAutoComplete;
+                MyLibrary.KeywordsUserDefinedFunctions = functionKeywords;
+                MyLibrary.KeywordsUserDefinedTables = tableKeywords;
+                MyLibrary.KeywordsUserDefinedTriggers = triggerKeywords;
+                MyLibrary.KeywordsUserDefinedViews = viewKeywords;
+
+                candidateSchema = null;
+                candidateNames = null;
+                candidateDatabaseNames = null;
+                candidateAutoComplete = null;
+            }
+            finally
+            {
+                candidateSchema?.Dispose();
+                candidateNames?.Dispose();
+                candidateDatabaseNames?.Dispose();
+                candidateAutoComplete?.Dispose();
+            }
+        }
+
+        //MySQL: prepare all seven schema metadata queries plus both AutoComplete lookups before publishing any shared DataTable or keyword state.
+        private static void RunMySqlMetadataAtomicLoad(Func<string, DataTable> executeQuery, bool isFromSchemaBrowser)
+        {
+            DataTable candidateSchema = null;
+            DataTable candidateNames = null;
+            DataTable candidateDatabaseNames = null;
+            DataTable candidateAutoComplete = null;
+
+            try
+            {
+                candidateSchema = CreateSchemaTable(isFromSchemaBrowser);
+                candidateNames = CreateAutoCompleteLookupTable();
+                candidateDatabaseNames = CreateAutoCompleteLookupTable();
+                candidateAutoComplete = CreateAutoCompleteForAllTable();
+
+                var canUseDatabaseScopedAutoComplete = CanUseDatabaseScopedAutoComplete();
+
+                var options = new MySqlQueryEditorMetadataLoadOptions
+                {
+                    AddSchemaRow = MyGlobal.IsShowColumnInfo && (MyGlobal.ShowColumnInfo != -1 || isFromSchemaBrowser),
+                    AutoCompleteFunction = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedFunctions,
+                    AutoCompleteTable = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedTables,
+                    AutoCompleteTrigger = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedTriggers,
+                    AutoCompleteView = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedViews,
+                    FromSchemaBrowser = isFromSchemaBrowser
+                };
+
+                var context = new MySqlMetadataContext
+                {
+                    ConnectionName = DbConnectionName,
+                    DatabaseName = DatabaseName,
+                    SchemaTable = candidateSchema,
+                    ExecuteQuery = executeQuery
+                };
+
+                string functionKeywords = null;
+                string tableKeywords = null;
+                string triggerKeywords = null;
+                string viewKeywords = null;
+
+                MySqlQueryEditorMetadataLoader.LoadSchemaMetadata
+                (
+                    context,
+                    options,
+                    (functions, tables, triggers, views) =>
+                    {
+                        //Preserve the original MySQL keyword formatting, including trailing space.
+                        functionKeywords = string.Join(" ", functions) + " ";
+                        tableKeywords = string.Join(" ", tables) + " ";
+                        triggerKeywords = string.Join(" ", triggers) + " ";
+                        viewKeywords = string.Join(" ", views) + " ";
+
+                        AppendOracleCandidateNames(candidateAutoComplete, functions, options.AutoCompleteFunction, AutoCompleteSourceNames.Functions);
+                        AppendOracleCandidateNames(candidateAutoComplete, tables, options.AutoCompleteTable, AutoCompleteSourceNames.Tables);
+                        AppendOracleCandidateNames(candidateAutoComplete, triggers, options.AutoCompleteTrigger, AutoCompleteSourceNames.Triggers);
+                        AppendOracleCandidateNames(candidateAutoComplete, views, options.AutoCompleteView, AutoCompleteSourceNames.Views);
+                    }
+                );
+
+                candidateSchema = context.ResultSchemaTable ?? candidateSchema;
+
+                //Query 8: database names. The candidate tables are not globally visible yet.
+                var databaseSql = MySqlQueryEditorSqlBuilder.BuildDatabaseInfoForAutoComplete();
+
+                using (var databaseInfo = RequireThreeProviderMetadataTable(executeQuery(databaseSql)))
+                {
+                    AddAutoCompleteLookupRows
+                    (
+                        candidateDatabaseNames,
+                        databaseInfo.AsEnumerable(),
+                        (target, row) => AddDatabaseAutoCompleteRow(target, row.GetSafeString("Name"))
+                    );
+                }
+
+                //Query 9: current database table and view names.
+                var tableViewSql = MySqlQueryEditorSqlBuilder.BuildTableAndViewInfoForAutoComplete(DatabaseName);
+
+                using (var tableViewInfo = RequireThreeProviderMetadataTable(executeQuery(tableViewSql)))
+                {
+                    AddAutoCompleteLookupRows(candidateNames, tableViewInfo.AsEnumerable(), AddMySqlTableOrViewAutoCompleteRow);
+                }
+
+                candidateNames.Merge(candidateDatabaseNames);
+
+                if (canUseDatabaseScopedAutoComplete)
+                {
+                    AppendOracleCandidateKeywordText(candidateAutoComplete, MyLibrary.KeywordsBuiltInKeywords, MyLibrary.AutoCompleteBuiltInKeywords, AutoCompleteSourceNames.BuiltInKeywords);
+                    AppendOracleCandidateKeywordText(candidateAutoComplete, MyLibrary.KeywordsBuiltInFunctions, MyLibrary.AutoCompleteBuiltInFunctions, AutoCompleteSourceNames.Functions);
+                    AppendOracleCandidateKeywordText(candidateAutoComplete, MyLibrary.KeywordsUserDefinedKeywords, MyLibrary.AutoCompleteUserDefinedKeywords, AutoCompleteSourceNames.UserDefinedKeywords);
+
+                    foreach (DataRow row in candidateDatabaseNames.Rows)
+                    {
+                        var db = row.GetSafeString("DB");
+
+                        if (!string.IsNullOrWhiteSpace(db))
+                        {
+                            AddOracleCandidateAutoCompleteRow(candidateAutoComplete, db, AutoCompleteSourceNames.Databases);
+                        }
+                    }
+                }
+
+                //The only publication section: no SQL, organizer, or UI call here.
+                //Keep old tables alive for F7/Editor instances that may still reference them.
+                dtSchema = candidateSchema;
+                dtTableAndViews = candidateNames;
+                dtDatabaseName = candidateDatabaseNames;
+
+                MyGlobal.dtAutoCompleteForAll = candidateAutoComplete;
+                MyLibrary.KeywordsUserDefinedFunctions = functionKeywords;
+                MyLibrary.KeywordsUserDefinedTables = tableKeywords;
+                MyLibrary.KeywordsUserDefinedTriggers = triggerKeywords;
+                MyLibrary.KeywordsUserDefinedViews = viewKeywords;
+
+                candidateSchema = null;
+                candidateNames = null;
+                candidateDatabaseNames = null;
+                candidateAutoComplete = null;
+            }
+            finally
+            {
+                candidateSchema?.Dispose();
+                candidateNames?.Dispose();
+                candidateDatabaseNames?.Dispose();
+                candidateAutoComplete?.Dispose();
+            }
+        }
+
+        private static DataTable RequireThreeProviderMetadataTable(DataTable table)
+        {
+            if (table == null)
+            {
+                throw new InvalidOperationException("Metadata query returned null");
             }
 
+            return table;
+        }
+
+        public static void UpdateSchemaData_SqlServer(C1TrueDBGrid c1Grid, bool isSchemaBrowserForm = true, bool isFromSchemaBrowser = false)
+        {
+            RunThreeProviderMetadataAtomicLoad(DataSourceType.SqlServer, ExecuteMetadataQuery, isFromSchemaBrowser);
+
+            //UI binding is updated only after the entire candidate batch has been published.
+            UpdateSchemaGrid(c1Grid, true, isFromSchemaBrowser);
             MyGlobal.ClearMemory();
         }
 
@@ -2037,84 +2549,10 @@ namespace JasonQuery.Core.Database.Execution
 
         public static void UpdateSchemaData_MySql(C1TrueDBGrid c1Grid, bool isFromSchemaBrowser = false)
         {
-            var canUseDatabaseScopedAutoComplete = CanUseDatabaseScopedAutoComplete();
-            var isAutoCompleteFunction = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedFunctions;
-            var isAutoCompleteTable = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedTables;
-            var isAutoCompleteTrigger = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedTriggers;
-            var isAutoCompleteView = canUseDatabaseScopedAutoComplete && MyLibrary.AutoCompleteUserDefinedViews;
-            var isAddSchemaRow = MyGlobal.IsShowColumnInfo && (MyGlobal.ShowColumnInfo != -1 || isFromSchemaBrowser);
+            RunThreeProviderMetadataAtomicLoad(DataSourceType.MySql, ExecuteMetadataQuery, isFromSchemaBrowser);
 
-            var dtNewSchema = CreateSchemaTable(isFromSchemaBrowser);
-
-            try
-            {
-                MyGlobal.dtAutoCompleteForAll = CreateAutoCompleteForAllTable();
-
-                var context = new MySqlMetadataContext
-                {
-                    ConnectionName = DbConnectionName,
-                    DatabaseName = DatabaseName,
-                    SchemaTable = dtNewSchema,
-
-                    ExecuteQuery = sql =>
-                    {
-                        var dt = new DataTable();
-
-                        ExecuteQueryToDataTable(sql, ref dt);
-                        return dt;
-                    }
-                };
-
-                var options = new MySqlQueryEditorMetadataLoadOptions
-                {
-                    AddSchemaRow = isAddSchemaRow,
-                    AutoCompleteFunction = isAutoCompleteFunction,
-                    AutoCompleteTable = isAutoCompleteTable,
-                    AutoCompleteTrigger = isAutoCompleteTrigger,
-                    AutoCompleteView = isAutoCompleteView,
-                    FromSchemaBrowser = isFromSchemaBrowser
-                };
-
-                MySqlQueryEditorMetadataLoader.LoadSchemaMetadata(context, options);
-
-                dtNewSchema = context.ResultSchemaTable ?? dtNewSchema;
-
-                DataTableLifecycleHelper.ReplaceDataTable(ref dtSchema, ref dtNewSchema);
-            }
-            catch
-            {
-                dtNewSchema?.Dispose();
-                throw;
-            }
-
-            AppendCommonAutoCompleteKeywords(true);
+            //Do not touch the grid or shared AutoComplete until publication succeeded.
             UpdateSchemaGrid(c1Grid, true, isFromSchemaBrowser);
-
-            using (TraceLogger.Time("Update Database Info for Auto Complete"))
-            {
-                UpdateDatabaseInfoForAutoComplete_MySql();
-
-                if (!string.IsNullOrWhiteSpace(DatabaseName))
-                {
-                    UpdateTableAndViewInfoForAutoComplete_MySql(DatabaseName);
-                    dtTableAndViews.Merge(dtDatabaseName);
-                }
-                else
-                {
-                    dtTableAndViews = dtDatabaseName.Copy();
-                }
-
-                //將 Database Name 納入 AutoComplete
-                if (canUseDatabaseScopedAutoComplete)
-                {
-                    foreach (DataRow dr in dtDatabaseName?.AsEnumerable() ?? Enumerable.Empty<DataRow>())
-                    {
-                        var db = dr.GetSafeString("DB");
-
-                        MyGlobal.AddAutoCompleteData(db, AutoCompleteSourceNames.Databases);
-                    }
-                }
-            }
 
             MyGlobal.ClearMemory();
         }

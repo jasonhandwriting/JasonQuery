@@ -39,6 +39,11 @@ namespace JasonQuery.Core.Database.Metadata.Oracle.Procedure
             {
                 dtProcedureInfo = GetProcedureInfo(context);
 
+                if (dtProcedureInfo == null)
+                {
+                    throw new InvalidOperationException("Oracle procedure information metadata query returned null; the schema refresh is rejected.");
+                }
+
                 var procedureSchemaType = SchemaTypeTextBuilder.Build(SchemaObjectNames.Procedures, dtProcedureInfo?.Rows.Count ?? 0);
 
                 OrganizeSchemaRows(context, dtProcedureInfo, procedureSchemaType);

@@ -45,7 +45,10 @@ namespace JasonQuery.Core.Database.DdlPreview.ColumnDefinitions
                                "The column name is invalid or contains unsupported characters.");
             }
 
-            var columnName = DdlIdentifierQuotingPolicy.QuoteNewIdentifier(request.DataSourceType, rawColumnName);
+            //Oracle Column Add follows the exact new name entered by the user.
+            var caseMode = request.DataSourceType == DataSourceType.Oracle ? DdlNewIdentifierCaseMode.PreserveInput : DdlNewIdentifierCaseMode.NormalizeDatabaseDefault;
+
+            var columnName = DdlIdentifierQuotingPolicy.QuoteNewIdentifier(request.DataSourceType, rawColumnName, caseMode);
 
             if (string.IsNullOrEmpty(columnName))
             {
