@@ -9,6 +9,55 @@ namespace JasonQuery.Core.Database.DdlPreview
     /// </summary>
     internal static class OracleDdlGuiGate
     {
+        //Q2-98B1: UI availability depends on SQL content, not on an already-open Oracle session.
+        //This grants no database authorization; the live checks run only on an explicit Execute click.
+        public static bool CanOfferExecuteSql(string sql)
+        {
+            return !string.IsNullOrWhiteSpace(sql);
+        }
+
+        //Q2-98B1: small orchestration contract. Callbacks supplied by the production form must do actual live scope/target verification and execute only on the verified connection.
+        //Empty result means success; nonempty result is an explicit, user-visible failure reason.
+        public static string TryExecuteF7(bool hasPendingOrUnknownTransaction, Func<string> ensureConnection, Func<string> verifyLiveScopeTargetAndSql, Func<string> executeOnVerifiedConnection)
+        {
+            if (hasPendingOrUnknownTransaction)
+            {
+                return "Q298_TRANSACTION_PENDING";
+            }
+
+            if (ensureConnection == null || verifyLiveScopeTargetAndSql == null || executeOnVerifiedConnection == null)
+            {
+                return "Q298_INVALID_GATE";
+            }
+
+            var result = ensureConnection();
+
+            if (result == null)
+            {
+                return "Q298_CONNECTION_FAILED";
+            }
+
+            if (result.Length != 0)
+            {
+                return result;
+            }
+
+            result = verifyLiveScopeTargetAndSql();
+
+            if (result == null)
+            {
+                return "Q298_VERIFICATION_FAILED";
+            }
+
+            if (result.Length != 0)
+            {
+                return result;
+            }
+
+            result = executeOnVerifiedConnection();
+            return result ?? "Q298_EXECUTION_FAILED";
+        }
+
         public static bool TryRefresh(OracleDdlTargetIdentity selection, string currentVerifiedUser, Guid currentVerifiedConnectionId, out OracleDdlTargetIdentity refreshed)
         {
             refreshed = null;

@@ -1170,13 +1170,131 @@ namespace JasonQuery.Database.Providers.Readers
 
         public int ExecuteSingleNonQuery(string sql, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
         {
+            //Existing query/legacy DDL behavior: normal automatic reconnection is unchanged.
+            errorMessage = string.Empty;
+            hasPendingTransactionAfterExecute = false;
+            isTransactionClosedBySqlCommand = false;
+
+            EnsureConnectionOpen();
+
+            return ExecuteSingleNonQueryCore(sql, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
+        }
+
+        //Q2-98B1: used ONLY after the F7 execute-time authorization has checked this physical session.
+        //No EnsureConnectionOpen here: an unexpected disconnection must never silently switch sessions.
+        // Q2-98B2: live, read-only last-mile verification on the very connection used for DDL.
+        // Never call EnsureConnectionOpen or retry here. Reconnection happens BEFORE this gate.
+        public string VerifyF7DdlTargetOnCurrentConnection(Guid expectedConnectionId,
+                                                            string expectedUser, string expectedDatabase, string expectedContainer,
+                                                            string selectedOwner, string selectedTable, string selectedColumn,
+                                                            bool requireExistingColumn)
+        {
+            if (expectedConnectionId == Guid.Empty || GetState() != ConnectionState.Open
+                || VerifiedConnectionId != expectedConnectionId || _conn == null || _transaction == null)
+            {
+                return "Q298_SESSION_CHANGED";
+            }
+
+            if (string.IsNullOrWhiteSpace(expectedUser) || string.IsNullOrWhiteSpace(expectedDatabase)
+                || string.IsNullOrWhiteSpace(expectedContainer) || string.IsNullOrWhiteSpace(selectedOwner)
+                || string.IsNullOrWhiteSpace(selectedTable)
+                || (requireExistingColumn && string.IsNullOrWhiteSpace(selectedColumn)))
+            {
+                return "Q298_TARGET_NOT_FOUND";
+            }
+
+            if (!string.Equals(selectedOwner, expectedUser, StringComparison.Ordinal))
+            {
+                return "Q298_OWNER_MISMATCH";
+            }
+
+            try
+            {
+                // Query physical scope again on this SAME OracleConnection, not from cached properties.
+                using (var identityCommand = new OracleCommand())
+                {
+                    identityCommand.Connection = _conn;
+                    identityCommand.CommandType = CommandType.Text;
+                    identityCommand.CommandText = SessionScopeSql;
+                    identityCommand.CommandTimeout = QueryTimeout;
+
+                    using (var observed = identityCommand.ExecuteReader())
+                    {
+                        if (!observed.Read())
+                        {
+                            return "Q298_SCOPE_MISMATCH";
+                        }
+
+                        if (!string.Equals(Convert.ToString(observed.GetValue(0)), expectedUser, StringComparison.Ordinal)
+                            || !string.Equals(Convert.ToString(observed.GetValue(1)), expectedDatabase, StringComparison.Ordinal)
+                            || !string.Equals(Convert.ToString(observed.GetValue(2)), expectedContainer, StringComparison.Ordinal))
+                        {
+                            return "Q298_SCOPE_MISMATCH";
+                        }
+                    }
+                }
+
+                using (var targetCommand = new OracleCommand())
+                {
+                    targetCommand.Connection = _conn;
+                    targetCommand.CommandType = CommandType.Text;
+                    targetCommand.CommandTimeout = QueryTimeout;
+                    targetCommand.CommandText = requireExistingColumn
+                        ? "SELECT 1 FROM ALL_TAB_COLUMNS WHERE OWNER = :f7Owner AND TABLE_NAME = :f7Table AND COLUMN_NAME = :f7Column AND ROWNUM = 1"
+                        : "SELECT 1 FROM ALL_TABLES WHERE OWNER = :f7Owner AND TABLE_NAME = :f7Table AND ROWNUM = 1";
+
+                    targetCommand.Parameters.Add("f7Owner", OracleDbType.VarChar).Value = selectedOwner;
+                    targetCommand.Parameters.Add("f7Table", OracleDbType.VarChar).Value = selectedTable;
+
+                    if (requireExistingColumn)
+                    {
+                        targetCommand.Parameters.Add("f7Column", OracleDbType.VarChar).Value = selectedColumn;
+                    }
+
+                    var found = targetCommand.ExecuteScalar();
+
+                    if (found == null || found == DBNull.Value)
+                    {
+                        return "Q298_TARGET_NOT_FOUND";
+                    }
+                }
+
+                if (GetState() != ConnectionState.Open || VerifiedConnectionId != expectedConnectionId)
+                {
+                    return "Q298_SESSION_CHANGED";
+                }
+
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                return "Q298_VERIFICATION_FAILED: " + ex.Message;
+            }
+        }
+
+        public int ExecuteSingleNonQueryOnVerifiedConnection(string sql, Guid expectedConnectionId, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
+        {
+            errorMessage = string.Empty;
+            hasPendingTransactionAfterExecute = false;
+            isTransactionClosedBySqlCommand = false;
+
+            if (expectedConnectionId == Guid.Empty || GetState() != ConnectionState.Open || VerifiedConnectionId != expectedConnectionId || _command == null || _transaction == null)
+            {
+                errorMessage = "Q298_SESSION_CHANGED";
+                return 0;
+            }
+
+            return ExecuteSingleNonQueryCore(sql, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
+        }
+
+        //Shared execution logic. Does not open connections or retry; QueryCompleted is raised once.
+        private int ExecuteSingleNonQueryCore(string sql, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
+        {
             errorMessage = string.Empty;
             hasPendingTransactionAfterExecute = false;
             isTransactionClosedBySqlCommand = false;
 
             var affectedRows = 0;
-
-            EnsureConnectionOpen();
 
             try
             {

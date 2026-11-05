@@ -2154,4 +2154,15 @@
   <language category="Global" class="Global" type="msg" id="PostgreSql22001CandidateConfidenceLine" attribute="Text" name="Diagnostic level: Candidate" />
   <language category="Global" class="Global" type="msg" id="PostgreSql22001ValuesRowFormat" attribute="Text" name="Row {0}" />
   <language category="Global" class="Global" type="msg" id="PostgreSql22001CandidateValuesRowPrefixFormat" attribute="Text" name="VALUES row {0}, " />
+  <language category="Global" class="Global" type="msg" id="Q298_TRANSACTION_PENDING" attribute="Text" name="DDL was not executed. A transaction is still pending. Please Commit or Rollback first." />
+  <language category="Global" class="Global" type="msg" id="Q298_INVALID_GATE" attribute="Text" name="DDL was not executed because its validation prerequisites are incomplete. Reopen the operation." />
+  <language category="Global" class="Global" type="msg" id="Q298_CONNECTION_FAILED" attribute="Text" name="DDL was not executed because the Oracle connection could not be established. Check the connection settings and retry." />
+  <language category="Global" class="Global" type="msg" id="Q298_METADATA_STALE" attribute="Text" name="DDL was not executed: the current schema information is stale or the connection settings have changed. Close this window, click Refresh in the left Schema Information panel, then select the object again." />
+  <language category="Global" class="Global" type="msg" id="Q298_OWNER_MISMATCH" attribute="Text" name="DDL was not executed: the selected object owner differs from the current Oracle login. Check the account, then click Refresh in the left Schema Information panel." />
+  <language category="Global" class="Global" type="msg" id="Q298_SQL_CHANGED" attribute="Text" name="DDL was not executed because the SQL preview does not match the selected operation. Review and regenerate the SQL." />
+  <language category="Global" class="Global" type="msg" id="Q298_SCOPE_MISMATCH" attribute="Text" name="DDL was not executed: the current Oracle database or PDB differs from the one used when selecting the object. Check the connection target, click Refresh in the left Schema Information panel, then select the object again." />
+  <language category="Global" class="Global" type="msg" id="Q298_TARGET_NOT_FOUND" attribute="Text" name="DDL was not executed: the selected table or column could not be found. Close this window, click Refresh in the left Schema Information panel, then select the object again." />
+  <language category="Global" class="Global" type="msg" id="Q298_SESSION_CHANGED" attribute="Text" name="DDL was not executed because the verified Oracle session changed. Reopen the operation and retry." />
+  <language category="Global" class="Global" type="msg" id="Q298_VERIFICATION_FAILED" attribute="Text" name="DDL was not executed because the Oracle target could not be verified. Review the error details and retry." />
+  <language category="Global" class="Global" type="msg" id="Q298_EXECUTION_FAILED" attribute="Text" name="DDL execution was attempted, but the database returned an error. Inspect the target state before retrying." />
 </JasonQuery>

@@ -1243,6 +1243,7 @@
     <Compile Include="UI\LeftPanel\SchemaExplorerActionDispatchBridge.cs" />
     <Compile Include="UI\LeftPanel\SchemaExplorerReceiverActionPolicy.cs" />
     <Compile Include="UI\LeftPanel\SharedLeftPanelHostState.cs" />
+    <Compile Include="UI\LeftPanel\OracleF7ExecuteTimeHelper.cs" />
     <Compile Include="UI\LeftPanel\SharedOracleMetadataCompletedLoadReceipt.cs" />
     <Compile Include="UI\LeftPanel\SharedSchemaMetadataSnapshot.cs" />
     <Compile Include="UI\LeftPanel\SharedSchemaExplorerStartupDecisionPolicy.cs" />

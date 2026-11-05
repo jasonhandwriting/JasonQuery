@@ -166,7 +166,10 @@ namespace JasonQuery.UI.Forms
                 form.SchemaName = "\"" + current.OracleSelectedOwner.Replace("\"", "\"\"") + "\"";
                 form.TableName = current.SchemaName;
                 form.EditMode = mode;
-                form.OfflineSqlPreviewOnly = true;
+                form.OfflineSqlPreviewOnly = false;
+                form.RequireOracleF7ExecuteGate = true;
+                form.OracleF7Receipt = DatabaseSqlExecutor.LastOracleCompletedLoadReceipt;
+                form.OracleF7SelectedOwner = current.OracleSelectedOwner;
                 form.OracleTargetIdentity = null;
 
                 UIHelper.ApplyEditTableFormSize(form);
@@ -252,7 +255,10 @@ namespace JasonQuery.UI.Forms
                 form.TableName = current.OracleMetadataTableName;
                 form.ColumnName = current.OracleMetadataColumnName;
                 form.EditMode = mode;
-                form.OfflineSqlPreviewOnly = true;
+                form.OfflineSqlPreviewOnly = false;
+                form.RequireOracleF7ExecuteGate = true;
+                form.OracleF7Receipt = DatabaseSqlExecutor.LastOracleCompletedLoadReceipt;
+                form.OracleF7SelectedOwner = current.OracleSelectedOwner;
                 form.OracleTargetIdentity = null;
 
                 UIHelper.ApplyEditColumnFormSize(form);

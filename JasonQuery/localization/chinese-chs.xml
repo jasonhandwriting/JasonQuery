@@ -2154,4 +2154,15 @@
   <language category="Global" class="Global" type="msg" id="PostgreSql22001CandidateConfidenceLine" attribute="Text" name="诊断等级: 候选" />
   <language category="Global" class="Global" type="msg" id="PostgreSql22001ValuesRowFormat" attribute="Text" name="第 {0} 组" />
   <language category="Global" class="Global" type="msg" id="PostgreSql22001CandidateValuesRowPrefixFormat" attribute="Text" name="第 {0} 组 VALUES，" />
+  <language category="Global" class="Global" type="msg" id="Q298_TRANSACTION_PENDING" attribute="Text" name="本次 DDL 未执行：当前仍有未完成事务。请先手动 Commit 或 Rollback。" />
+  <language category="Global" class="Global" type="msg" id="Q298_INVALID_GATE" attribute="Text" name="本次 DDL 未执行：必要的验证信息不完整。请重新打开操作。" />
+  <language category="Global" class="Global" type="msg" id="Q298_CONNECTION_FAILED" attribute="Text" name="本次 DDL 未执行：无法建立 Oracle 连接。请检查连接设置后重试。" />
+  <language category="Global" class="Global" type="msg" id="Q298_METADATA_STALE" attribute="Text" name="本次 DDL 未执行：当前 Schema 信息已失效，或连接设置已变更。请关闭此窗口，点击左侧“Schema 信息”的“Refresh”按钮重新加载，再选择对象重试。" />
+  <language category="Global" class="Global" type="msg" id="Q298_OWNER_MISMATCH" attribute="Text" name="本次 DDL 未执行：所选对象的拥有者（Owner）与当前 Oracle 登录账号不同。请确认连接账号，并点击左侧“Schema 信息”的“Refresh”按钮重新加载。" />
+  <language category="Global" class="Global" type="msg" id="Q298_SQL_CHANGED" attribute="Text" name="本次 DDL 未执行：SQL 预览与选择的操作设置不一致。请检查并重新生成 SQL。" />
+  <language category="Global" class="Global" type="msg" id="Q298_SCOPE_MISMATCH" attribute="Text" name="本次 DDL 未执行：当前 Oracle 数据库或 PDB 与选择对象时不同。请确认连接目标，点击左侧“Schema 信息”的“Refresh”按钮重新加载，再选择对象。" />
+  <language category="Global" class="Global" type="msg" id="Q298_TARGET_NOT_FOUND" attribute="Text" name="本次 DDL 未执行：找不到所选的表或列。请关闭此窗口，点击左侧“Schema 信息”的“Refresh”按钮，再重新选择对象。" />
+  <language category="Global" class="Global" type="msg" id="Q298_SESSION_CHANGED" attribute="Text" name="本次 DDL 未执行：已验证的 Oracle Session 发生变化。请重新打开操作后重试。" />
+  <language category="Global" class="Global" type="msg" id="Q298_VERIFICATION_FAILED" attribute="Text" name="本次 DDL 未执行：无法验证 Oracle 目标对象。请查看详细错误后重试。" />
+  <language category="Global" class="Global" type="msg" id="Q298_EXECUTION_FAILED" attribute="Text" name="DDL 已尝试发送到数据库，但数据库返回错误。请先确认目标对象的实际状态，再决定是否重试。" />
 </JasonQuery>
