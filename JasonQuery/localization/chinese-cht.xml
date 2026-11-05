@@ -2154,4 +2154,15 @@
   <language category="Global" class="Global" type="msg" id="PostgreSql22001CandidateConfidenceLine" attribute="Text" name="診斷等級: 候選" />
   <language category="Global" class="Global" type="msg" id="PostgreSql22001ValuesRowFormat" attribute="Text" name="第 {0} 組" />
   <language category="Global" class="Global" type="msg" id="PostgreSql22001CandidateValuesRowPrefixFormat" attribute="Text" name="第 {0} 組 VALUES，" />
+  <language category="Global" class="Global" type="msg" id="Q298_TRANSACTION_PENDING" attribute="Text" name="本次 DDL 未執行：目前仍有未完成交易。請先手動 Commit 或 Rollback。" />
+  <language category="Global" class="Global" type="msg" id="Q298_INVALID_GATE" attribute="Text" name="本次 DDL 未執行：必要的驗證資訊不完整。請重新開啟操作。" />
+  <language category="Global" class="Global" type="msg" id="Q298_CONNECTION_FAILED" attribute="Text" name="本次 DDL 未執行：無法建立 Oracle 連線。請檢查連線設定後重試。" />
+  <language category="Global" class="Global" type="msg" id="Q298_METADATA_STALE" attribute="Text" name="本次 DDL 未執行：目前的 Schema 資訊已失效，或連線設定已變更。請關閉此視窗，按下左側「Schema 資訊」的「Refresh」按鈕重新載入，再選取物件重試。" />
+  <language category="Global" class="Global" type="msg" id="Q298_OWNER_MISMATCH" attribute="Text" name="本次 DDL 未執行：所選物件的擁有者（Owner）與目前 Oracle 登入帳號不同。請確認連線帳號，並按下左側「Schema 資訊」的「Refresh」按鈕重新載入。" />
+  <language category="Global" class="Global" type="msg" id="Q298_SQL_CHANGED" attribute="Text" name="本次 DDL 未執行：SQL 預覽與選取的操作設定不一致。請檢查並重新產生 SQL。" />
+  <language category="Global" class="Global" type="msg" id="Q298_SCOPE_MISMATCH" attribute="Text" name="本次 DDL 未執行：目前的 Oracle 資料庫或 PDB 與選取物件時不同。請確認連線目標，按下左側「Schema 資訊」的「Refresh」按鈕重新載入，再選取物件。" />
+  <language category="Global" class="Global" type="msg" id="Q298_TARGET_NOT_FOUND" attribute="Text" name="本次 DDL 未執行：找不到所選取的資料表或欄位。請關閉此視窗，按下左側「Schema 資訊」的「Refresh」按鈕，再重新選取物件。" />
+  <language category="Global" class="Global" type="msg" id="Q298_SESSION_CHANGED" attribute="Text" name="本次 DDL 未執行：已驗證的 Oracle Session 發生變更。請重新開啟操作後重試。" />
+  <language category="Global" class="Global" type="msg" id="Q298_VERIFICATION_FAILED" attribute="Text" name="本次 DDL 未執行：無法驗證 Oracle 目標物件。請查看詳細錯誤後重試。" />
+  <language category="Global" class="Global" type="msg" id="Q298_EXECUTION_FAILED" attribute="Text" name="DDL 已嘗試送往資料庫，但資料庫回傳錯誤。請先確認目標物件的實際狀態，再決定是否重試。" />
 </JasonQuery>

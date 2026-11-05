@@ -11,6 +11,7 @@ using JasonQuery.Core.Localization;
 using JasonQuery.Core.Logging;
 using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.UI.Helpers;
+using JasonQuery.UI.LeftPanel;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -35,6 +36,13 @@ namespace JasonQuery.UI.Forms
 
         //New shared F7 only: cached SQL generation is not permission to execute.
         internal bool OfflineSqlPreviewOnly { get; set; }
+
+        // Shared F7: the cached SQL preview is not authorization. An explicit Execute click
+        // may reconnect normally, then checks the current Oracle/PDB/target before dispatch.
+        internal bool RequireOracleF7ExecuteGate { get; set; }
+        internal SharedOracleMetadataCompletedLoadReceipt OracleF7Receipt { get; set; }
+        internal string OracleF7SelectedOwner { get; set; }
+
 
         public string Result { get; set; } //20250204 回傳值給呼叫方，判斷是否需要更新 Schema Info
         public string SchemaDatabase { get; set; }
@@ -743,17 +751,63 @@ namespace JasonQuery.UI.Forms
                     }
                 }
 
+                var newF7OracleDispatched = false;
+
+                if (IsOracle && RequireOracleF7ExecuteGate)
+                {
+                    TableDdlOperation operation = TableDdlOperation.None;
+
+                    switch (EditMode)
+                    {
+                        case EditTableMode.Comment: { operation = TableDdlOperation.Comment; break; }
+                        case EditTableMode.Drop: { operation = TableDdlOperation.Drop; break; }
+                        case EditTableMode.Rename: { operation = TableDdlOperation.Rename; break; }
+                        case EditTableMode.Truncate: { operation = TableDdlOperation.Truncate; break; }
+                    }
+
+                    var guardedStatus = OracleF7ExecuteTimeHelper.Execute
+                    (
+                        OracleF7Receipt,
+                        OracleF7SelectedOwner,
+                        TableName,
+                        string.Empty,
+                        false,
+                        sqlText,
+                        BuildTableDdlSql(operation),
+                        out errorMessage,
+                        out hasPendingTransactionAfterExecute,
+                        out isTransactionClosedBySqlCommand,
+                        out newF7OracleDispatched
+                    );
+
+                    if (!string.IsNullOrEmpty(guardedStatus))
+                    {
+                        var message = OracleF7ExecuteTimeHelper.GetFailureMessage(guardedStatus, errorMessage, newF7OracleDispatched);
+                        MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
+                        if (newF7OracleDispatched)
+                        {
+                            UpdateSqlHistory(0, "Error", message, sqlText);
+                        }
+
+                        return;
+                    }
+                }
+
                 switch (_currentSourceType)
                 {
                     case DataSourceType.Oracle:
                         {
-                            MyGlobal.OracleReader.ExecuteSingleNonQuery
-                            (
-                                sqlText,
-                                out errorMessage,
-                                out hasPendingTransactionAfterExecute,
-                                out isTransactionClosedBySqlCommand
-                            );
+                            if (!newF7OracleDispatched)
+                            {
+                                MyGlobal.OracleReader.ExecuteSingleNonQuery
+                                (
+                                    sqlText,
+                                    out errorMessage,
+                                    out hasPendingTransactionAfterExecute,
+                                    out isTransactionClosedBySqlCommand
+                                );
+                            }
 
                             break;
                         }

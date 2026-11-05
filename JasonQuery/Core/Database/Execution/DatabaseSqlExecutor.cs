@@ -1942,7 +1942,7 @@ namespace JasonQuery.Core.Database.Execution
             PrepareAndPublishOracleMetadata(executeQuery, isFromSchemaBrowser, null, string.Empty, null);
         }
 
-        private static string GetOracleLoadLogicalScopeKey()
+        internal static string GetOracleLoadLogicalScopeKey()
         {
             //No password or SQL text is included. This is a change detector, NOT a logical revision proof.
             return string.Join("\u001F", new[]
