@@ -60,6 +60,12 @@ namespace JasonQuery.UI.LeftPanel
                         return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm) && OracleSharedTableDdlBridgePolicy.IsTableObjectRow(selection);
                     }
                 case SharedSchemaExplorerMenuCommand.AddColumn:
+                    {
+                        //F7-U1: either the qualified Table object or the existing raw Column row.
+                        //Neither selection is authorization; the form still verifies the live target.
+                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm)
+                               && (OracleSharedTableDdlBridgePolicy.IsTableObjectRow(selection) || OracleSharedColumnDdlBridgePolicy.IsQualifiedColumnDataRow(selection));
+                    }
                 case SharedSchemaExplorerMenuCommand.CommentColumn:
                 case SharedSchemaExplorerMenuCommand.DropColumn:
                 case SharedSchemaExplorerMenuCommand.RenameColumn:
@@ -99,6 +105,7 @@ namespace JasonQuery.UI.LeftPanel
                 case SharedSchemaExplorerMenuCommand.DropTable:
                 case SharedSchemaExplorerMenuCommand.RenameTable:
                 case SharedSchemaExplorerMenuCommand.TruncateTable:
+                case SharedSchemaExplorerMenuCommand.AddColumn:
                     {
                         return true;
                     }

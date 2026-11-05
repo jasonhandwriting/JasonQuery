@@ -193,15 +193,18 @@ namespace JasonQuery.UI.Forms
                 return false;
             }
 
+            //F7-U1: Table Add Column has no pre-existing column identity. Re-resolve the
+            //same qualified Table object; all other column actions retain raw Column checks.
+            var fromTable = command == SharedSchemaExplorerMenuCommand.AddColumn && OracleSharedTableDdlBridgePolicy.IsTableObjectRow(captured);
+
             var current = ResolveSharedSchemaExplorerInput(_sharedSchemaExplorerGrid, captured.DisplayRowIndex);
 
-            if (!OracleSharedColumnDdlBridgePolicy.IsSameColumnDataRow(captured, current))
+            if (fromTable && !OracleSharedTableDdlBridgePolicy.IsSameTableDataRow(captured, current))
             {
                 return false;
             }
 
-            //Require exact raw cached owner/table/column; this grants only preview, never execution.
-            if (!OracleSharedColumnDdlBridgePolicy.IsQualifiedColumnDataRow(current))
+            if (!fromTable && (!OracleSharedColumnDdlBridgePolicy.IsSameColumnDataRow(captured, current) || !OracleSharedColumnDdlBridgePolicy.IsQualifiedColumnDataRow(current)))
             {
                 return false;
             }
@@ -252,8 +255,11 @@ namespace JasonQuery.UI.Forms
                 form.StartPosition = FormStartPosition.CenterParent;
                 form.SourceType = DataSourceType.Oracle;
                 form.SchemaName = "\"" + current.OracleSelectedOwner.Replace("\"", "\"\"") + "\"";
-                form.TableName = current.OracleMetadataTableName;
-                form.ColumnName = current.OracleMetadataColumnName;
+
+                //Table entry supplies owner/table only. Never invent an existing Column.
+                form.TableName = fromTable ? current.SchemaName : current.OracleMetadataTableName;
+
+                form.ColumnName = fromTable ? string.Empty : current.OracleMetadataColumnName;
                 form.EditMode = mode;
                 form.OfflineSqlPreviewOnly = false;
                 form.RequireOracleF7ExecuteGate = true;
