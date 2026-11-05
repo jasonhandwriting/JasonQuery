@@ -83,9 +83,12 @@ namespace JasonQuery.Tests.UI.LeftPanel
         }
 
         [TestMethod, TestCategory("F02B3B2T")]
-        public void G03_ColumnCommandsRemainDisabled()
+        public void G03_AddColumnAllowedButExistingColumnOperationsRemainDisabled()
         {
-            Assert.IsFalse(Offered(Selection(), SharedSchemaExplorerMenuCommand.AddColumn));
+            Assert.IsTrue(Offered(Selection(), SharedSchemaExplorerMenuCommand.AddColumn));
+            Assert.IsFalse(Offered(Selection(), SharedSchemaExplorerMenuCommand.CommentColumn));
+            Assert.IsFalse(Offered(Selection(), SharedSchemaExplorerMenuCommand.DropColumn));
+            Assert.IsFalse(Offered(Selection(), SharedSchemaExplorerMenuCommand.RenameColumn));
         }
 
         [TestMethod, TestCategory("F02B3B2T")]
@@ -189,6 +192,67 @@ namespace JasonQuery.Tests.UI.LeftPanel
 
             Assert.IsNotNull(method);
             Assert.AreEqual(typeof(bool), method.ReturnType);
+        }
+
+        [TestMethod, TestCategory("F7U1")]
+        public void U05_QualifiedTableRowOffersAddColumn()
+        {
+            Assert.IsTrue(Offered(Selection(), SharedSchemaExplorerMenuCommand.AddColumn));
+            Assert.IsTrue(SharedSchemaExplorerObjectCommandPolicy.CanExecute(LeftPanelTargetKind.SchemaBrowserForm, Selection(), SharedSchemaExplorerMenuCommand.AddColumn));
+        }
+
+        [TestMethod, TestCategory("F7U1")]
+        public void U06_QualifiedTableObjectGroupOffersAddColumn()
+        {
+            Assert.IsTrue(Offered(TableObjectGroup(), SharedSchemaExplorerMenuCommand.AddColumn));
+        }
+
+        [TestMethod, TestCategory("F7U1")]
+        public void U07_UnqualifiedTableAndWrongGroupLevelDenyAddColumn()
+        {
+            var unqualified = Selection();
+
+            unqualified.HasQualifiedOracleSelectedOwner = false;
+
+            Assert.IsFalse(Offered(unqualified, SharedSchemaExplorerMenuCommand.AddColumn));
+
+            var group = TableObjectGroup();
+
+            group.GroupLevel = -1;
+
+            Assert.IsFalse(Offered(group, SharedSchemaExplorerMenuCommand.AddColumn));
+        }
+
+        [TestMethod, TestCategory("F7U1")]
+        public void U08_NonOracleAndViewTargetsDenyAddColumn()
+        {
+            var nonOracle = Selection();
+
+            nonOracle.SourceType = DataSourceType.PostgreSql;
+
+            Assert.IsFalse(Offered(nonOracle, SharedSchemaExplorerMenuCommand.AddColumn));
+
+            var view = Selection();
+
+            view.SchemaType = "Views";
+
+            Assert.IsFalse(Offered(view, SharedSchemaExplorerMenuCommand.AddColumn));
+        }
+
+        [TestMethod, TestCategory("F7U1")]
+        public void U09_TableRowReResolutionRejectsChangedOwnerOrTable()
+        {
+            Assert.IsTrue(Same(Selection(), Selection()));
+            Assert.IsFalse(Same(Selection(), Selection(table: "OTHER")));
+            Assert.IsFalse(Same(Selection(), Selection(owner: "SYSTEM")));
+        }
+
+        [TestMethod, TestCategory("F7U1")]
+        public void U10_TableGroupReResolutionPreservesExactCase()
+        {
+            Assert.IsTrue(Same(TableObjectGroup("MiXeD", "CaseTable"), TableObjectGroup("MiXeD", "CaseTable")));
+            Assert.IsFalse(Same(TableObjectGroup("MiXeD", "CaseTable"), TableObjectGroup("MIXED", "CaseTable")));
+            Assert.IsFalse(Same(TableObjectGroup("MiXeD", "CaseTable"), TableObjectGroup("MiXeD", "CASETABLE")));
         }
 
         //Post-GUI correction: Oracle F7 uses the TABLE OBJECT group row when the grid groups columns by SchemaName.

@@ -81,6 +81,12 @@ namespace JasonQuery.UI.LeftPanel
                     commands.Add(SharedSchemaExplorerMenuCommand.DropTable);
                     commands.Add(SharedSchemaExplorerMenuCommand.RenameTable);
                     commands.Add(SharedSchemaExplorerMenuCommand.TruncateTable);
+
+                    //F7-U1: only Oracle Table object rows gain the second Add Column entry.
+                    if (selection.SourceType == DataSourceType.Oracle)
+                    {
+                        commands.Add(SharedSchemaExplorerMenuCommand.AddColumn);
+                    }
                 }
             }
 

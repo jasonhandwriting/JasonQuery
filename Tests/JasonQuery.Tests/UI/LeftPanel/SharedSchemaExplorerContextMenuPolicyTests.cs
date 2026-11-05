@@ -41,6 +41,7 @@ namespace JasonQuery.Tests.UI.LeftPanel
                 SharedSchemaExplorerMenuCommand.DropTable,
                 SharedSchemaExplorerMenuCommand.RenameTable,
                 SharedSchemaExplorerMenuCommand.TruncateTable,
+                SharedSchemaExplorerMenuCommand.AddColumn,
                 SharedSchemaExplorerMenuCommand.CopyToClipboard,
                 SharedSchemaExplorerMenuCommand.PasteSelectAll,
                 SharedSchemaExplorerMenuCommand.PasteName,
@@ -203,6 +204,43 @@ namespace JasonQuery.Tests.UI.LeftPanel
         {
             Assert.IsTrue(SharedSchemaExplorerContextMenuPolicy.TryGetCopyText(Selection(), out var text));
             Assert.AreEqual("ORDERS", text);
+        }
+
+        [TestMethod, TestCategory("F7U1")]
+        public void U01_OracleTableMenuOffersAddColumnInBothHosts()
+        {
+            foreach (var target in new[] { LeftPanelTargetKind.QueryForm, LeftPanelTargetKind.SchemaBrowserForm })
+            {
+                CollectionAssert.Contains(Menu(target, Selection()), SharedSchemaExplorerMenuCommand.AddColumn);
+            }
+        }
+
+        [TestMethod, TestCategory("F7U1")]
+        public void U02_OracleColumnMenuRetainsAddColumn()
+        {
+            CollectionAssert.Contains(Menu(LeftPanelTargetKind.QueryForm, Selection(column: true)), SharedSchemaExplorerMenuCommand.AddColumn);
+        }
+
+        [TestMethod, TestCategory("F7U1")]
+        public void U03_NonOracleTableMenusDoNotGainAddColumn()
+        {
+            foreach (var source in new[] { DataSourceType.PostgreSql, DataSourceType.SqlServer, DataSourceType.MySql })
+            {
+                CollectionAssert.DoesNotContain(Menu(LeftPanelTargetKind.QueryForm, Selection(sourceType: source)), SharedSchemaExplorerMenuCommand.AddColumn);
+            }
+        }
+
+        [TestMethod, TestCategory("F7U1")]
+        public void U04_OracleViewAndCategoryGroupDoNotGainAddColumn()
+        {
+            CollectionAssert.DoesNotContain(Menu(LeftPanelTargetKind.QueryForm, Selection("Views")), SharedSchemaExplorerMenuCommand.AddColumn);
+
+            var group = Selection();
+
+            group.Kind = SchemaExplorerSelectionKind.GroupNode;
+            group.IsGroupRow = true;
+
+            CollectionAssert.DoesNotContain(Menu(LeftPanelTargetKind.QueryForm, group), SharedSchemaExplorerMenuCommand.AddColumn);
         }
 
         [TestMethod]

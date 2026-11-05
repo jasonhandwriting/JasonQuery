@@ -230,8 +230,8 @@ namespace JasonQuery.UI.Forms
 
             foreach (var command in commands)
             {
-                //L2-C3-C2: 保留舊 F7 的選單分類分隔線
-                if (command == SharedSchemaExplorerMenuCommand.OpenSchemaBrowser || command == SharedSchemaExplorerMenuCommand.CommentTable)
+                //L2-C3-C2 / F7-U1: separate Table and Column commands for all providers.
+                if (command == SharedSchemaExplorerMenuCommand.OpenSchemaBrowser || command == SharedSchemaExplorerMenuCommand.CommentTable || (command == SharedSchemaExplorerMenuCommand.AddColumn && selection.Kind != SchemaExplorerSelectionKind.ColumnInfo && !selection.IsColumnInfoRow))
                 {
                     menu.Items.Add("-");
                 }
