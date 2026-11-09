@@ -14,7 +14,7 @@ namespace JasonQuery.UI.LeftPanel
 
             return cachedSnapshotReadable && selection != null
                    && selection.SourceType == JasonQuery.Core.Database.Connection.DataSourceType.Oracle
-                   && (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm)
+                   && (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm || target == LeftPanelTargetKind.OtherForm)
                    && (isTableCommand || isColumnCommand)
                    && SharedSchemaExplorerObjectCommandPolicy.CanExecute(target, selection, command);
         }

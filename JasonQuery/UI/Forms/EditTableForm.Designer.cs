@@ -838,7 +838,7 @@
             // btnExecute
             // 
             this.btnExecute.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnExecute.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.btnExecute.DialogResult = System.Windows.Forms.DialogResult.None;
             this.btnExecute.Enabled = false;
             this.btnExecute.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.btnExecute.ForeColor = System.Drawing.Color.Black;
@@ -952,7 +952,6 @@
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Table";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form_FormClosing);
             this.Load += new System.EventHandler(this.Form_Load);
             this.ResizeEnd += new System.EventHandler(this.Form_ResizeEnd);
             ((System.ComponentModel.ISupportInitialize)(this.tabTable)).EndInit();

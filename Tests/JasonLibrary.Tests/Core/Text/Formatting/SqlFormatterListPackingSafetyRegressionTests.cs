@@ -1,15 +1,15 @@
-using System;
-using System.IO;
-using System.Runtime.CompilerServices;
-using JasonLibrary.Core.Database.Enums;
+﻿using JasonLibrary.Core.Database.Enums;
 using JasonLibrary.Core.Text.Formatting;
 using JasonLibrary.Core.Text.Formatting.Engines;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace JasonLibrary.Tests.Core.Text.Formatting
 {
     [TestClass]
-    public sealed class SqlFormatterStep4DRegressionTests
+    public sealed class SqlFormatterListPackingSafetyRegressionTests
     {
         [TestMethod]
         [DataRow(DatabaseProviderKind.PostgreSql)]
@@ -66,7 +66,6 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.IsTrue(tenItemResult.Success, tenItemResult.ErrorMessage);
             Assert.AreEqual(engineKind, oneItemResult.EngineKind);
             Assert.AreEqual(engineKind, tenItemResult.EngineKind);
-
             Assert.AreNotEqual(oneItemResult.FormattedSql, tenItemResult.FormattedSql);
         }
 
@@ -88,6 +87,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.Contains("C.COLUMN_ID IN (1, 2, 3)", result.FormattedSql);
             Assert.Contains("AS STATUS_TEXT, NVL2", result.FormattedSql);
             Assert.Contains("AS DISPLAY_VALUE,\r\n       C.COLUMN_ID", result.FormattedSql);
+
             AssertSemanticallySafe(sql, result.FormattedSql);
         }
 
@@ -110,6 +110,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.Contains("q'[C,D]'", result.FormattedSql);
             Assert.Contains("-- keep, line comment", result.FormattedSql);
             Assert.Contains("/* keep, block comment */", result.FormattedSql);
+
             AssertSemanticallySafe(sql, result.FormattedSql);
         }
 
@@ -131,6 +132,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             Assert.DoesNotContain("SELECT X.A, X.B, X.C", result.FormattedSql);
             Assert.DoesNotContain("SELECT Y.A, Y.B, Y.C", result.FormattedSql);
             Assert.Contains(" ORDER BY C.OWNER, C.TABLE_NAME,", result.FormattedSql);
+
             AssertSemanticallySafe(sql, result.FormattedSql);
         }
 
@@ -195,9 +197,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
 
         private static SqlFormatResult FormatSqlServer(SqlFormatterEngineKind engineKind, string sql, SqlFormatOptions options)
         {
-            ISqlFormatterEngine engine = engineKind == SqlFormatterEngineKind.MicrosoftScriptDom
-                                         ? (ISqlFormatterEngine)new MicrosoftScriptDomSqlFormatterEngine()
-                                         : new HogimnSqlFormatterEngine();
+            ISqlFormatterEngine engine = engineKind == SqlFormatterEngineKind.MicrosoftScriptDom ? (ISqlFormatterEngine)new MicrosoftScriptDomSqlFormatterEngine() : new HogimnSqlFormatterEngine();
 
             return engine.Format
             (
@@ -228,7 +228,6 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
             var index = source.IndexOf(value, startIndex, StringComparison.Ordinal);
 
             Assert.IsGreaterThanOrEqualTo(0, index, "Required pipeline stage was not found: " + value);
-
             return index;
         }
 

@@ -90,7 +90,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
         [DataRow(DataSourceType.Oracle,
                  "ALTER TABLE \"SYS\".\"AABBCC\" ADD \"new_column\" VARCHAR2(50) NULL;")]
         [DataRow(DataSourceType.PostgreSql,
-                 "ALTER TABLE \"public\".\"AABBCC\" ADD COLUMN \"new_column\" varchar(50) NULL;")]
+                 "ALTER TABLE \"public\".\"AABBCC\" ADD COLUMN \"NEW_COLUMN\" varchar(50) NULL;")]
         [DataRow(DataSourceType.SqlServer,
                  "ALTER TABLE [MyDB].[dbo].[AABBCC] ADD [New_Column] nvarchar(50) NULL;")]
         [DataRow(DataSourceType.MySql,

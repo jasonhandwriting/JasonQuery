@@ -1,11 +1,11 @@
-using JasonLibrary.Core.Database.Enums;
+﻿using JasonLibrary.Core.Database.Enums;
 using JasonLibrary.Core.Text.Formatting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace JasonLibrary.Tests.Core.Text.Formatting
 {
     [TestClass]
-    public sealed class SqlFormatterStep5CRegressionTests
+    public sealed class SqlFormatterListItemsPerLineRegressionTests
     {
         private const string FourColumnSelect = "SELECT C.A,C.B,C.C,C.D FROM dbo.CUSTOMER C ORDER BY C.A,C.B,C.C,C.D;";
 
@@ -13,8 +13,7 @@ namespace JasonLibrary.Tests.Core.Text.Formatting
         [DataRow(SqlFormatterEngineKind.Unknown, SqlFormatterEngineKind.MicrosoftScriptDom)]
         [DataRow(SqlFormatterEngineKind.MicrosoftScriptDom, SqlFormatterEngineKind.MicrosoftScriptDom)]
         [DataRow(SqlFormatterEngineKind.Hogimn, SqlFormatterEngineKind.Hogimn)]
-        public void Coordinator_SqlServerListSetting_IsAppliedByResolvedEngine(SqlFormatterEngineKind requestedEngineKind,
-                                                                               SqlFormatterEngineKind expectedEngineKind)
+        public void Coordinator_SqlServerListSetting_IsAppliedByResolvedEngine(SqlFormatterEngineKind requestedEngineKind, SqlFormatterEngineKind expectedEngineKind)
         {
             var result = Format
             (

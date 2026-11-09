@@ -176,16 +176,22 @@ namespace JasonQuery.UI.Forms
 
             var grid = _sharedSchemaExplorerGrid;
             var previous = _sharedSchemaMetadataSnapshot;
+            var currentFocus = _schemaExplorerFocusPendingRestore ?? CaptureSchemaExplorerFocusBeforeRebind();
+
+            _schemaExplorerFocusPendingRestore = null;
 
             try
             {
                 BindSharedSchemaExplorerSnapshot(grid, next);
                 _sharedSchemaMetadataSnapshot = next;
+                _schemaExplorerFocusPendingRestore = currentFocus;
 
                 return true;
             }
             catch (Exception)
             {
+                _schemaExplorerFocusPendingRestore = null;
+
                 //Binding failure must not replace an already published, same-scope view.
                 if (SharedSchemaMetadataSnapshotPolicy.CanBindForScope(state, previous, sourceType, scope))
                 {
@@ -236,6 +242,7 @@ namespace JasonQuery.UI.Forms
 
             LayoutSharedSchemaExplorerPreviewGrid();
             ExpandSharedSchemaExplorerPreviewDefaultGroups();
+            RestoreSchemaExplorerFocusAfterSuccessfulRebind();
             SyncSharedSchemaExplorerPreviewUI();
 
             var state = CaptureSharedLeftPanelHostState();

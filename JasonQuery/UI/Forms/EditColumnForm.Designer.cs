@@ -706,7 +706,7 @@
             // btnExecute
             // 
             this.btnExecute.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnExecute.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.btnExecute.DialogResult = System.Windows.Forms.DialogResult.None;
             this.btnExecute.Enabled = false;
             this.btnExecute.Location = new System.Drawing.Point(538, 319);
             this.btnExecute.Name = "btnExecute";
@@ -808,7 +808,6 @@
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Column";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form_FormClosing);
             this.Load += new System.EventHandler(this.Form_Load);
             this.ResizeEnd += new System.EventHandler(this.Form_ResizeEnd);
             ((System.ComponentModel.ISupportInitialize)(this.tabColumn)).EndInit();

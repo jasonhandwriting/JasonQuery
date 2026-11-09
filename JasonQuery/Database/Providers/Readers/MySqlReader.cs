@@ -38,10 +38,24 @@ namespace JasonQuery.Database.Providers.Readers
         private string _sqlType = string.Empty;
         private string _sqlStatementType = string.Empty;
 
+        //F7-U2-C3B: per-open-connection token only. This is NOT database/target authorization.
+        //Live scope and exact target checks are the C3-C caller's responsibility.
+        private Guid _f7DdlConnectionId = Guid.Empty;
+
+        public Guid CurrentOpenConnectionId
+        {
+            get
+            {
+                return _conn != null && _conn.State == ConnectionState.Open && _transaction != null ? _f7DdlConnectionId : Guid.Empty;
+            }
+        }
+
 
         public string ConnectTo(string connectionString)
         {
             var errorMessage = string.Empty;
+
+            _f7DdlConnectionId = Guid.Empty;
 
             _command = new MySqlCommand();
             _conn = new MySqlConnection(connectionString);
@@ -50,6 +64,7 @@ namespace JasonQuery.Database.Providers.Readers
             {
                 _conn.Open();
                 _transaction = _conn.BeginTransaction(IsolationLevel.ReadCommitted);
+                _f7DdlConnectionId = Guid.NewGuid();
             }
             catch (MySqlException ex)
             {
@@ -190,6 +205,8 @@ namespace JasonQuery.Database.Providers.Readers
         public bool Disconnect()
         {
             var success = true;
+
+            _f7DdlConnectionId = Guid.Empty;
 
             success &= TryDisposeAndClearDataReader();
             success &= TryDisposeAndClear(ref _command);
@@ -1107,6 +1124,122 @@ namespace JasonQuery.Database.Providers.Readers
             databaseName = databaseName.TrimEnd(';').Trim();
             databaseName = databaseName.Trim('`');
             return databaseName;
+        }
+
+
+        //F7-U2-C3B: DDL-only. Deliberately does NOT call EnsureConnectionOpen or retry.
+        //C3-C must verify live database, table identity, transaction and exact builder SQL on this same physical connection immediately before dispatch.
+        public int ExecuteSingleNonQueryOnVerifiedConnection(string sql, Guid expectedConnectionId, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
+        {
+            errorMessage = string.Empty;
+            hasPendingTransactionAfterExecute = false;
+            isTransactionClosedBySqlCommand = false;
+
+            //Fail closed without opening a connection or altering the caller's transaction.
+            if (expectedConnectionId == Guid.Empty || CurrentOpenConnectionId != expectedConnectionId)
+            {
+                errorMessage = "F7U2C3B_CONNECTION_CHANGED";
+                return 0;
+            }
+
+            if (string.IsNullOrWhiteSpace(sql))
+            {
+                errorMessage = "F7U2C3B_SQL_EMPTY";
+                return 0;
+            }
+
+            var connection = _conn;
+            var transaction = _transaction;
+            var dispatched = false;
+
+            try
+            {
+                if (connection == null || transaction == null || connection.State != ConnectionState.Open || !ReferenceEquals(transaction.Connection, connection))
+                {
+                    errorMessage = "F7U2C3B_TRANSACTION_UNVERIFIED";
+                    return 0;
+                }
+
+                //Retain the existing provider's SQL splitter, but reject batches.
+                //Never silently take only Statements[0] for this privileged entry.
+                using (var script = new Devart.Data.Oracle.OracleScript(sql))
+                {
+                    if (script.Statements.Count != 1)
+                    {
+                        errorMessage = "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
+                        return 0;
+                    }
+
+                    var statement = script.Statements[0];
+                    var scriptText = statement.Text;
+                    var statementType = statement.StatementType.ToString();
+
+                    if (!string.Equals(statementType, "ALTER", StringComparison.OrdinalIgnoreCase)
+                        || !Regex.IsMatch(scriptText ?? string.Empty, @"^\s*ALTER\s+TABLE\s+.+?\s+ADD\s+(?:COLUMN\s+)?", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant))
+                    {
+                        errorMessage = "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
+                        return 0;
+                    }
+
+                    //Catch a connection replacement during parsing before actual dispatch.
+                    if (!ReferenceEquals(_conn, connection) || !ReferenceEquals(_transaction, transaction)
+                        || CurrentOpenConnectionId != expectedConnectionId || connection.State != ConnectionState.Open
+                        || !ReferenceEquals(transaction.Connection, connection))
+                    {
+                        errorMessage = "F7U2C3B_CONNECTION_CHANGED";
+                        return 0;
+                    }
+
+                    using (var command = new MySqlCommand())
+                    {
+                        command.CommandType = CommandType.Text;
+                        command.CommandText = scriptText;
+                        command.CommandTimeout = QueryTimeout;
+                        command.Connection = connection;
+                        command.Transaction = transaction;
+
+                        //After this point, errors may mean the server executed the DDL.
+                        //Never auto-reconnect, auto-commit, roll back, or retry.
+                        dispatched = true;
+
+                        var affectedRows = command.ExecuteNonQuery();
+
+                        GetResultString(statementType, "ALTER", affectedRows, out _sqlStatementType, scriptText);
+
+                        isTransactionClosedBySqlCommand = true; //MySQL ALTER TABLE implicitly commits.
+                        _f7DdlConnectionId = Guid.Empty; //The existing transaction handle cannot be reused as a verified DDL token.
+
+                        return affectedRows;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (dispatched)
+                {
+                    //A transport failure may hide a successful DDL. Require independent recovery.
+                    _f7DdlConnectionId = Guid.Empty;
+                }
+
+                errorMessage = dispatched ? "F7U2C3B_EXECUTION_OUTCOME_UNKNOWN: " + ex.Message : "F7U2C3B_PREPARATION_FAILED: " + ex.Message;
+                return 0;
+            }
+            finally
+            {
+                if (dispatched)
+                {
+                    try
+                    {
+                        NotifyQueryCompleted();
+                    }
+                    catch (Exception)
+                    {
+                        //Even UI completion failures cannot leave a reusable DDL token.
+                        _f7DdlConnectionId = Guid.Empty;
+                        throw;
+                    }
+                }
+            }
         }
 
         public int ExecuteSingleNonQuery(string sql, out string errorMessage)

@@ -176,7 +176,10 @@ namespace JasonQuery.Core.SchemaExplorer.Selection
             selection.SchemaType = schemaType;
             selection.SchemaName = schemaName;
 
-            FillDatabaseSpecificInfoForGroupRow(selection, schemaDataTable);
+            //Provider scope is the parent group (level 1), not the first matching DataRow.
+            var parentScope = rowReader.FindPreviousGroupText(request.DisplayRowIndex, schemaTypeGroupLevel - 1);
+
+            FillDatabaseSpecificInfoForGroupRow(selection, schemaDataTable, parentScope);
 
             NormalizeSelection(selection);
 
@@ -267,13 +270,78 @@ namespace JasonQuery.Core.SchemaExplorer.Selection
             return schemaType;
         }
 
-        private static void FillDatabaseSpecificInfoForGroupRow(SchemaExplorerSelectionInfo selection, DataTable schemaDataTable)
+        private static void FillDatabaseSpecificInfoForGroupRow(SchemaExplorerSelectionInfo selection, DataTable schemaDataTable, string parentScope)
         {
             if (schemaDataTable == null || schemaDataTable.Rows.Count == 0)
             {
                 return;
             }
 
+            //F7-U2-A: Table DDL candidates need an exact database/schema parent.
+            //Do not use the generic case-insensitive first-row lookup for a DDL target.
+            if ((selection.SourceType == DataSourceType.PostgreSql || selection.SourceType == DataSourceType.SqlServer || selection.SourceType == DataSourceType.MySql) && SchemaObjectTypeHelper.Is(selection.SchemaType, SchemaObjectNames.Tables))
+            {
+                if (string.IsNullOrWhiteSpace(parentScope))
+                {
+                    selection.Kind = SchemaExplorerSelectionKind.Invalid;
+                    return;
+                }
+
+                var found = false;
+                var exactSchema = string.Empty;
+                var exactObjectId = string.Empty;
+                DataRow first = null;
+
+                foreach (DataRow row in schemaDataTable.Rows)
+                {
+                    if (!string.Equals(NormalizeBeforeSeparator(GetSafeString(row, "SchemaType")), selection.SchemaType, StringComparison.Ordinal) || !string.Equals(NormalizeBeforeSeparator(GetSafeString(row, "SchemaName")), selection.SchemaName, StringComparison.Ordinal) || !string.Equals(GetSafeString(row, "SchemaNode"), parentScope, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    if (selection.SourceType == DataSourceType.SqlServer)
+                    {
+                        var candidateSchema = GetSafeString(row, "SchemaDbo");
+                        var candidateObjectId = GetSafeString(row, "ObjectID");
+
+                        if (string.IsNullOrWhiteSpace(candidateSchema) || string.IsNullOrWhiteSpace(candidateObjectId) || (found && (!string.Equals(exactSchema, candidateSchema, StringComparison.Ordinal) || !string.Equals(exactObjectId, candidateObjectId, StringComparison.Ordinal))))
+                        {
+                            selection.Kind = SchemaExplorerSelectionKind.Invalid;
+                            return;
+                        }
+
+                        exactSchema = candidateSchema;
+                        exactObjectId = candidateObjectId;
+                    }
+
+                    if (!found)
+                    {
+                        first = row;
+                    }
+
+                    found = true;
+                }
+
+                if (!found)
+                {
+                    selection.Kind = SchemaExplorerSelectionKind.Invalid;
+                    return;
+                }
+
+                selection.SchemaNode = parentScope;
+
+                if (selection.SourceType == DataSourceType.SqlServer)
+                {
+                    selection.SchemaDbo = exactSchema;
+                    selection.ObjectId = exactObjectId;
+                    selection.CreateDate = GetSafeString(first, "CreateDate");
+                    selection.ModifyDate = GetSafeString(first, "ModifyDate");
+                }
+
+                return;
+            }
+
+            //Retain existing non-Table display behavior; Oracle owner qualification is separate.
             switch (selection.SourceType)
             {
                 case DataSourceType.PostgreSql:

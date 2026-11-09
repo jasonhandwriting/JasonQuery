@@ -7,14 +7,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Data;
 using System.Reflection;
-using System.Linq;
 
 namespace JasonQuery.Tests.UI.LeftPanel
 {
     [TestClass]
     [DoNotParallelize]
     [TestCategory("F7L2B2C")]
-    public sealed class SharedF7StartupAndProvenanceGoldenTests
+    public sealed class SharedSchemaExplorerStartupAndProvenanceGoldenTests
     {
         private static readonly Guid VerifiedConnectionId = new Guid("F1B20000-0000-4000-8000-000000000001");
 

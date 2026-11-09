@@ -163,7 +163,7 @@ namespace JasonQuery.Tests.UI.LeftPanel
         public void UnknownDatabaseOrTarget_DoesNotOfferMenu()
         {
             Assert.AreEqual(0, Menu(LeftPanelTargetKind.QueryForm, Selection("Tables", false, DataSourceType.None)).Length);
-            Assert.AreEqual(0, Menu(LeftPanelTargetKind.OtherForm, Selection()).Length);
+            CollectionAssert.Contains(Menu(LeftPanelTargetKind.OtherForm, Selection()), SharedSchemaExplorerMenuCommand.ShowDdl);
             Assert.AreEqual(0, Menu(LeftPanelTargetKind.None, Selection()).Length);
         }
 
@@ -175,6 +175,7 @@ namespace JasonQuery.Tests.UI.LeftPanel
             var blank = Selection();
 
             blank.SchemaName = "  ";
+
             Assert.AreEqual(0, Menu(LeftPanelTargetKind.QueryForm, blank).Length);
 
             var invalid = Selection();
@@ -189,6 +190,7 @@ namespace JasonQuery.Tests.UI.LeftPanel
             var selection = Selection("Tables", true);
 
             selection.IsGroupRow = true;
+
             Assert.AreEqual(0, Menu(LeftPanelTargetKind.QueryForm, selection).Length);
         }
 
@@ -222,11 +224,12 @@ namespace JasonQuery.Tests.UI.LeftPanel
         }
 
         [TestMethod, TestCategory("F7U1")]
-        public void U03_NonOracleTableMenusDoNotGainAddColumn()
+        public void U03_NonOracleTableMenusGainAddColumnUnderF7U2()
         {
+            //F7-U2-A supersedes the U1-only menu restriction; no execution is granted here.
             foreach (var source in new[] { DataSourceType.PostgreSql, DataSourceType.SqlServer, DataSourceType.MySql })
             {
-                CollectionAssert.DoesNotContain(Menu(LeftPanelTargetKind.QueryForm, Selection(sourceType: source)), SharedSchemaExplorerMenuCommand.AddColumn);
+                CollectionAssert.Contains(Menu(LeftPanelTargetKind.QueryForm, Selection(sourceType: source)), SharedSchemaExplorerMenuCommand.AddColumn);
             }
         }
 
@@ -251,6 +254,7 @@ namespace JasonQuery.Tests.UI.LeftPanel
             var selection = Selection();
 
             selection.SchemaName = " ";
+
             Assert.IsFalse(SharedSchemaExplorerContextMenuPolicy.TryGetCopyText(selection, out _));
         }
     }

@@ -36,6 +36,12 @@ namespace JasonQuery.Core.SchemaExplorer.Selection
 
         public bool HasQualifiedOracleSelectedOwner { get; set; }
 
+        //F7-U2-B: immutable-in-practice metadata from the selected non-Oracle Column DataRow.
+        //Never derive a parent table from a displayed Column caption.
+        public bool HasQualifiedNonOracleColumnParent { get; set; }
+        public string NonOracleRawParentTableName { get; set; } = string.Empty;
+        public string NonOracleRawColumnCaption { get; set; } = string.Empty;
+
         public string SchemaNode { get; set; } = string.Empty;
 
         public string SchemaType { get; set; } = string.Empty;

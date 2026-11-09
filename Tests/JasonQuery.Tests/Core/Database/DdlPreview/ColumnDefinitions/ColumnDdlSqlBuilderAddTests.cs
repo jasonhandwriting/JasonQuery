@@ -14,7 +14,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview.ColumnDefinitions
         [DataRow(DataSourceType.Oracle, "VARCHAR2",
                  "ALTER TABLE \"SYS\".\"AABBCC\" ADD \"AA\" VARCHAR2(50) NULL;")]
         [DataRow(DataSourceType.PostgreSql, "VARCHAR",
-                 "ALTER TABLE \"public\".\"AABBCC\" ADD COLUMN \"aa\" varchar(50) NULL;")]
+                 "ALTER TABLE \"public\".\"AABBCC\" ADD COLUMN \"AA\" varchar(50) NULL;")]
         [DataRow(DataSourceType.SqlServer, "NVARCHAR",
                  "ALTER TABLE [MyDB].[dbo].[AABBCC] ADD [AA] nvarchar(50) NULL;")]
         [DataRow(DataSourceType.MySql, "VARCHAR",

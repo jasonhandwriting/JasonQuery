@@ -4289,10 +4289,19 @@ namespace JasonQuery.UI.Forms
                     MyGlobal.GlobalTemp5 = string.Empty;
                 }
             }
+            else if (newValue.StartsWith("F7EditorStructuralDdl`", StringComparison.Ordinal))
+            {
+                //F2-C2: Reader acknowledged a completed structural DDL script.
+                MarkF7EditorStructuralDdl();
+            }
             else if (newValue.StartsWith("ExecuteCommitRollback`", StringComparison.Ordinal)) //執行 Commit / Rollback 指令：設定按鈕狀態
             {
                 SetPendingTransactionStatus(false);
                 BroadcastCommitRollbackButtonState(false);
+
+                //F2-C2: refresh once only after the actual transaction closes.
+                //A failed/skipped reload must keep Schema Dirty for a later attempt.
+                RefreshF7MetadataAfterTransactionClosed(newValue.Substring("ExecuteCommitRollback`".Length));
             }
             else if (newValue.StartsWith("UpdateCommitRollbackButton`", StringComparison.Ordinal)) //執行 nonquery 指令：更新按鈕狀態
             {

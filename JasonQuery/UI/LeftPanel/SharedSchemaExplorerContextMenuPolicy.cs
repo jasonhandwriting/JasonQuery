@@ -35,7 +35,7 @@ namespace JasonQuery.UI.LeftPanel
         {
             var commands = new List<SharedSchemaExplorerMenuCommand>();
 
-            if (target != LeftPanelTargetKind.QueryForm && target != LeftPanelTargetKind.SchemaBrowserForm)
+            if (target == LeftPanelTargetKind.None)
             {
                 return commands;
             }
@@ -61,19 +61,23 @@ namespace JasonQuery.UI.LeftPanel
                 return commands;
             }
 
-            if (!isColumn && target == LeftPanelTargetKind.QueryForm)
+            if (!isColumn && (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.OtherForm))
             {
                 commands.Add(SharedSchemaExplorerMenuCommand.ShowDdl);
             }
 
             if (!isColumn && (isTable || isView))
             {
-                if (target == LeftPanelTargetKind.QueryForm)
+                if (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.OtherForm)
                 {
                     commands.Add(SharedSchemaExplorerMenuCommand.OpenSchemaBrowser);
                 }
 
-                commands.Add(SharedSchemaExplorerMenuCommand.GenerateSqlStatement);
+                //GenerateSqlForm requires a receiving SQL Editor; other tabs must not impersonate one.
+                if (target != LeftPanelTargetKind.OtherForm)
+                {
+                    commands.Add(SharedSchemaExplorerMenuCommand.GenerateSqlStatement);
+                }
 
                 if (isTable)
                 {
@@ -82,11 +86,9 @@ namespace JasonQuery.UI.LeftPanel
                     commands.Add(SharedSchemaExplorerMenuCommand.RenameTable);
                     commands.Add(SharedSchemaExplorerMenuCommand.TruncateTable);
 
-                    //F7-U1: only Oracle Table object rows gain the second Add Column entry.
-                    if (selection.SourceType == DataSourceType.Oracle)
-                    {
-                        commands.Add(SharedSchemaExplorerMenuCommand.AddColumn);
-                    }
+                    //F7-U2-A: all four providers offer Table Add Column as a UI candidate.
+                    //Non-Oracle click/execute wiring is qualified separately in U2-B/C.
+                    commands.Add(SharedSchemaExplorerMenuCommand.AddColumn);
                 }
             }
 
@@ -100,15 +102,18 @@ namespace JasonQuery.UI.LeftPanel
 
             commands.Add(SharedSchemaExplorerMenuCommand.CopyToClipboard);
 
-            if (!isColumn && (isTable || isView))
+            if (target != LeftPanelTargetKind.OtherForm && !isColumn && (isTable || isView))
             {
                 commands.Add(SharedSchemaExplorerMenuCommand.PasteSelectAll);
             }
 
-            commands.Add(SharedSchemaExplorerMenuCommand.PasteName);
+            if (target != LeftPanelTargetKind.OtherForm)
+            {
+                commands.Add(SharedSchemaExplorerMenuCommand.PasteName);
+            }
 
             //The suffix-paste commands are deliberately retained until the approved L2-C3.5 simplification.
-            if (isColumn || isTable || isView)
+            if (target != LeftPanelTargetKind.OtherForm && (isColumn || isTable || isView))
             {
                 commands.Add(SharedSchemaExplorerMenuCommand.PasteComma);
                 commands.Add(SharedSchemaExplorerMenuCommand.PasteCommaNewLine);

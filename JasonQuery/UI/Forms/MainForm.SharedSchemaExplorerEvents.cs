@@ -122,6 +122,12 @@ namespace JasonQuery.UI.Forms
                 OracleSharedColumnDdlBridgePolicy.TryQualifySelection(selection, rowReader.GetDataRow(displayRowIndex), _sharedSchemaMetadataSnapshot.OracleVerifiedSessionUser);
             }
 
+            //F7-U2-B: the shared Grid's selected Column DataRow supplies its parent Table.
+            if (_currentSourceType != DataSourceType.Oracle && selection != null && selection.IsColumnInfoRow)
+            {
+                NonOracleSharedAddColumnPreviewPolicy.TryQualifyColumn(selection, rowReader.GetDataRow(displayRowIndex));
+            }
+
             return selection;
         }
 
@@ -193,9 +199,11 @@ namespace JasonQuery.UI.Forms
 
             SchemaExplorerSelectionInfo selection;
 
+            var displayRowIndex = grid.RowContaining(e.Y);
+
             try
             {
-                selection = ResolveSharedSchemaExplorerInput(grid, grid.RowContaining(e.Y));
+                selection = ResolveSharedSchemaExplorerInput(grid, displayRowIndex);
             }
             catch (Exception)
             {
@@ -217,6 +225,9 @@ namespace JasonQuery.UI.Forms
             {
                 return;
             }
+
+            //Right-click target becomes the current F7 working focus.
+            new C1SchemaExplorerRowReader(grid).SetCurrentRow(displayRowIndex);
 
             //L2-C3-B1: render the complete command plan, but execute Copy only.
             //Other commands stay disabled until their target-specific handlers are qualified.

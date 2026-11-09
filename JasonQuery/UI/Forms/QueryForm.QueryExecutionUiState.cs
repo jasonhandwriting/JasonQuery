@@ -40,7 +40,7 @@ namespace JasonQuery.UI.Forms
                 btnQuery.AccessibleDescription = "Query"; //執行 Commit or Rollback 後，會「中斷連線」，故以「Query 狀態」來處理
 
                 //傳遞資訊至 MainForm，更新 Commit/Rollbak 狀態
-                TransferValueToMainForm("ExecuteCommitRollback`");
+                //F2-C1: never announce transaction completion before Reader execution.
             }
             else
             {
