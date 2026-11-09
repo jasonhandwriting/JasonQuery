@@ -37,12 +37,10 @@ namespace JasonQuery.UI.Forms
         //New shared F7 only: cached SQL generation is not permission to execute.
         internal bool OfflineSqlPreviewOnly { get; set; }
 
-        // Shared F7: the cached SQL preview is not authorization. An explicit Execute click
-        // may reconnect normally, then checks the current Oracle/PDB/target before dispatch.
+        //Shared F7: the cached SQL preview is not authorization. An explicit Execute click may reconnect normally, then checks the current Oracle/PDB/target before dispatch.
         internal bool RequireOracleF7ExecuteGate { get; set; }
         internal SharedOracleMetadataCompletedLoadReceipt OracleF7Receipt { get; set; }
         internal string OracleF7SelectedOwner { get; set; }
-
 
         public string Result { get; set; } //20250204 回傳值給呼叫方，判斷是否需要更新 Schema Info
         public string SchemaDatabase { get; set; }
@@ -54,7 +52,6 @@ namespace JasonQuery.UI.Forms
         private bool _hasSqlServerTableComment;
         private string _operationObject = string.Empty;
         private ContextMenuStrip _editorMenu = new ContextMenuStrip();
-        private bool _isFormClosing = true;
         private bool _commentMetadataReady = true;
 
         private readonly HashSet<char> _invalidChars = new HashSet<char>
@@ -275,15 +272,6 @@ namespace JasonQuery.UI.Forms
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            }
-        }
-
-        private void Form_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (!_isFormClosing)
-            {
-                e.Cancel = true;
-                _isFormClosing = true;
             }
         }
 
@@ -708,6 +696,26 @@ namespace JasonQuery.UI.Forms
 
             try
             {
+                if (IsOracle && RequireOracleF7ExecuteGate && EditMode != EditTableMode.None && !string.IsNullOrWhiteSpace(sqlText))
+                {
+                    var defaultMessage = "Oracle implicitly commits the current transaction before executing DDL, even if the DDL fails. A successful DDL is also committed afterward.\r\nCommitted changes cannot be undone with ROLLBACK. Do you want to continue?";
+
+                    var message = LocalizationHelper.GetLanguageString
+                    (
+                        defaultMessage,
+                        "form",
+                        GetType().Name,
+                        "msg",
+                        "OracleDdlImplicitCommitConfirmation",
+                        "Text"
+                    );
+
+                    if (MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                    {
+                        return;
+                    }
+                }
+
                 if (IsOracle && OracleTargetIdentity != null)
                 {
                     TableDdlOperation operation = TableDdlOperation.None;
@@ -759,13 +767,29 @@ namespace JasonQuery.UI.Forms
 
                     switch (EditMode)
                     {
-                        case EditTableMode.Comment: { operation = TableDdlOperation.Comment; break; }
-                        case EditTableMode.Drop: { operation = TableDdlOperation.Drop; break; }
-                        case EditTableMode.Rename: { operation = TableDdlOperation.Rename; break; }
-                        case EditTableMode.Truncate: { operation = TableDdlOperation.Truncate; break; }
+                        case EditTableMode.Comment:
+                            {
+                                operation = TableDdlOperation.Comment;
+                                break;
+                            }
+                        case EditTableMode.Drop:
+                            {
+                                operation = TableDdlOperation.Drop;
+                                break;
+                            }
+                        case EditTableMode.Rename:
+                            {
+                                operation = TableDdlOperation.Rename;
+                                break;
+                            }
+                        case EditTableMode.Truncate:
+                            {
+                                operation = TableDdlOperation.Truncate;
+                                break;
+                            }
                     }
 
-                    var guardedStatus = OracleF7ExecuteTimeHelper.Execute
+                    var guardedStatus = OracleSchemaExplorerExecuteTimeHelper.Execute
                     (
                         OracleF7Receipt,
                         OracleF7SelectedOwner,
@@ -782,7 +806,8 @@ namespace JasonQuery.UI.Forms
 
                     if (!string.IsNullOrEmpty(guardedStatus))
                     {
-                        var message = OracleF7ExecuteTimeHelper.GetFailureMessage(guardedStatus, errorMessage, newF7OracleDispatched);
+                        var message = OracleSchemaExplorerExecuteTimeHelper.GetFailureMessage(guardedStatus, errorMessage, newF7OracleDispatched);
+
                         MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
                         if (newF7OracleDispatched)
@@ -813,12 +838,13 @@ namespace JasonQuery.UI.Forms
                         }
                     case DataSourceType.PostgreSql:
                         {
-                            MyGlobal.PostgreSqlReader.ExecuteSingleNonQuery
+                            MyGlobal.PostgreSqlReader.ExecuteGuidedDdlWithSavepoint
                             (
                                 sqlText,
                                 out errorMessage,
                                 out hasPendingTransactionAfterExecute,
-                                out isTransactionClosedBySqlCommand
+                                out isTransactionClosedBySqlCommand,
+                                out _
                             );
 
                             break;
@@ -849,6 +875,18 @@ namespace JasonQuery.UI.Forms
                         }
                 }
 
+                if (IsPostgreSql)
+                {
+                    errorMessage = FormatPostgreSqlGuidedDdlFailure(errorMessage);
+
+                    if (!string.IsNullOrWhiteSpace(errorMessage) && hasPendingTransactionAfterExecute)
+                    {
+                        //A failed/uncertain Savepoint is not a completed transaction.
+                        //Keep the manual Commit/Rollback controls available.
+                        TransferValueToMainForm("UpdateCommitRollbackButton`");
+                    }
+                }
+
                 var completionDecision = DdlExecutionCompletionPolicy.Evaluate
                 (
                     errorMessage,
@@ -870,6 +908,7 @@ namespace JasonQuery.UI.Forms
 
                             //記錄舊的註解，呈現在 SQL History 中
                             note = $"{temp}\r\n{_tableComment}";
+
                             break;
                         }
                     case EditTableMode.Rename:
@@ -878,6 +917,7 @@ namespace JasonQuery.UI.Forms
 
                             //記錄舊的 Table Name，呈現在 SQL History 中
                             note = $"{temp}\r\n{txtTableName_Rename.Text}";
+
                             break;
                         }
                 }
@@ -909,7 +949,6 @@ namespace JasonQuery.UI.Forms
                 //更新 SQL 歷史記錄
                 UpdateSqlHistory(0, resultExecuted, $"{note}{lineBreak}", editorSqlPreview.Text);
 
-                _isFormClosing = false;
             }
             catch (Exception ex)
             {
@@ -932,6 +971,7 @@ namespace JasonQuery.UI.Forms
                         //停用整個選項區塊，避免 CheckedChanged 再次產生可執行 SQL
                         pnlDrop_Oracle.Enabled = false;
                         pnlDrop_PostgreSQL.Enabled = false;
+
                         break;
                     }
                 case EditTableMode.Truncate:
@@ -939,9 +979,53 @@ namespace JasonQuery.UI.Forms
                         //停用整個選項區塊，避免 CheckedChanged 再次產生可執行 SQL
                         pnlTruncate_Oracle.Enabled = false;
                         pnlTruncate_PostgreSQL.Enabled = false;
+
                         break;
                     }
             }
+        }
+
+        private string FormatPostgreSqlGuidedDdlFailure(string errorMessage)
+        {
+            if (string.IsNullOrWhiteSpace(errorMessage) || !errorMessage.StartsWith("F7U2C3B_", StringComparison.Ordinal))
+            {
+                return errorMessage;
+            }
+
+            var separator = errorMessage.IndexOf(": ", StringComparison.Ordinal);
+            var status = separator >= 0 ? errorMessage.Substring(0, separator) : errorMessage;
+            var detail = separator >= 0 ? errorMessage.Substring(separator + 2) : string.Empty;
+            string messageId;
+            string fallback;
+
+            switch (status)
+            {
+                case "F7U2C3B_SQL_ERROR_SAVEPOINT_RESTORED":
+                    {
+                        messageId = "PostgreSqlGuiDdlSavepointRestored";
+                        fallback = "The SQL failed. This operation was rolled back to a savepoint. Earlier uncommitted changes remain in the transaction.";
+
+                        break;
+                    }
+                case "F7U2C3B_SAVEPOINT_CREATION_FAILED":
+                    {
+                        messageId = "PostgreSqlGuiDdlSavepointCreationFailed";
+                        fallback = "A transaction savepoint could not be created; the SQL was not executed. Check the connection and transaction state.";
+
+                        break;
+                    }
+                default:
+                    {
+                        messageId = "PostgreSqlGuiDdlSavepointStateUncertain";
+                        fallback = "The SQL execution or savepoint recovery could not be fully verified. Check the transaction and schema before continuing.";
+
+                        break;
+                    }
+            }
+
+            var message = LocalizationHelper.GetLanguageString(fallback, "form", GetType().Name, "msg", messageId, "Text");
+
+            return string.IsNullOrWhiteSpace(detail) ? message : message + "\r\n\r\n" + detail;
         }
 
         private void UpdateMainFormTransactionState(DdlExecutionCompletionDecision decision)

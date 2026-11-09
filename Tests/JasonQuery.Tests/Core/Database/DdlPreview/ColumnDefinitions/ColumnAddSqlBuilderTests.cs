@@ -70,11 +70,11 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview.ColumnDefinitions
         [DataRow(DataSourceType.Oracle, "TIMESTAMP", "6", "", 0, true, 0, "",
                  "ALTER TABLE \"SYS\".\"AABBCC\" ADD \"AA\" TIMESTAMP(6) NULL;")]
         [DataRow(DataSourceType.PostgreSql, "VARCHAR", "50", "", 0, true, 0, "",
-                 "ALTER TABLE \"public\".\"aabbcc\" ADD COLUMN \"aa\" varchar(50) NULL;")]
+                 "ALTER TABLE \"public\".\"aabbcc\" ADD COLUMN \"AA\" varchar(50) NULL;")]
         [DataRow(DataSourceType.PostgreSql, "NUMERIC", "18", "2", 0, false, 0, "",
-                 "ALTER TABLE \"public\".\"aabbcc\" ADD COLUMN \"aa\" numeric(18,2) NOT NULL;")]
+                 "ALTER TABLE \"public\".\"aabbcc\" ADD COLUMN \"AA\" numeric(18,2) NOT NULL;")]
         [DataRow(DataSourceType.PostgreSql, "BOOLEAN", "", "", 0, true, 0, "",
-                 "ALTER TABLE \"public\".\"aabbcc\" ADD COLUMN \"aa\" boolean NULL;")]
+                 "ALTER TABLE \"public\".\"aabbcc\" ADD COLUMN \"AA\" boolean NULL;")]
         [DataRow(DataSourceType.SqlServer, "NVARCHAR", "50", "", 0, true, 0, "",
                  "ALTER TABLE [MyDB].[dbo].[AABBCC] ADD [AA] nvarchar(50) NULL;")]
         [DataRow(DataSourceType.SqlServer, "DECIMAL", "18", "2", 0, false, 0, "",
@@ -110,9 +110,9 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview.ColumnDefinitions
         [DataRow(DataSourceType.Oracle, "VARCHAR2", "Jason's data", 1,
                  "ALTER TABLE \"SYS\".\"AABBCC\" ADD \"AA\" VARCHAR2(50) DEFAULT 'Jason''s data' NULL;")]
         [DataRow(DataSourceType.PostgreSql, "INTEGER", "123", 1,
-                 "ALTER TABLE \"public\".\"aabbcc\" ADD COLUMN \"aa\" integer DEFAULT 123 NULL;")]
+                 "ALTER TABLE \"public\".\"aabbcc\" ADD COLUMN \"AA\" integer DEFAULT 123 NULL;")]
         [DataRow(DataSourceType.PostgreSql, "TIMESTAMP", "CURRENT_TIMESTAMP", 2,
-                 "ALTER TABLE \"public\".\"aabbcc\" ADD COLUMN \"aa\" timestamp(6) DEFAULT CURRENT_TIMESTAMP NULL;")]
+                 "ALTER TABLE \"public\".\"aabbcc\" ADD COLUMN \"AA\" timestamp(6) DEFAULT CURRENT_TIMESTAMP NULL;")]
         [DataRow(DataSourceType.SqlServer, "NVARCHAR", "台北'101", 1,
                  "ALTER TABLE [MyDB].[dbo].[AABBCC] ADD [AA] nvarchar(50) NULL DEFAULT N'台北''101';")]
         [DataRow(DataSourceType.SqlServer, "UNIQUEIDENTIFIER", "NEWID()", 2,
@@ -246,6 +246,24 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview.ColumnDefinitions
             Assert.IsFalse(result.Succeeded);
             Assert.AreEqual(ColumnAddBuildFailureKind.InvalidDefaultValue, result.FailureKind);
             Assert.AreEqual("integer", result.ResolvedDataType);
+        }
+
+        [TestMethod]
+        [TestCategory("Regression")]
+        [TestCategory("DdlPreview")]
+        [TestCategory("F7U2B1")]
+        [DataRow("New", "\"New\"")]
+        [DataRow("new", "\"new\"")]
+        [DataRow("NEW", "\"NEW\"")]
+        [DataRow("New_Column", "\"New_Column\"")]
+        [DataRow("\"Mixed Column\"", "\"Mixed Column\"")]
+        public void Build_PostgreSqlAdd_PreservesInputCase(string columnName, string expectedQuotedName)
+        {
+            var request = CreateRequest(DataSourceType.PostgreSql, columnName, "VARCHAR", "50", string.Empty);
+            var result = ColumnAddSqlBuilder.Build(request);
+
+            Assert.IsTrue(result.Succeeded, result.ErrorMessage);
+            Assert.AreEqual("ALTER TABLE \"public\".\"aabbcc\" ADD COLUMN " + expectedQuotedName + " varchar(50) NULL;", result.Sql);
         }
 
         private static ColumnAddRequest CreateRequest(DataSourceType dataSourceType, string columnName, string typeKey, string parameter1, string parameter2)

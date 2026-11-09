@@ -102,12 +102,12 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
         }
 
         [TestMethod]
-        public void G12_PostgreSqlAddKeepsExistingNormalization()
+        public void G12_PostgreSqlAddPreservesInputCase()
         {
             var result = ColumnAddSqlBuilder.Build(CreateAdd(DataSourceType.PostgreSql, "New_Column"));
 
             Assert.IsTrue(result.Succeeded, result.ErrorMessage);
-            Assert.AreEqual("ALTER TABLE \"public\".\"a_test\" ADD COLUMN \"new_column\" varchar(50) NULL;", result.Sql);
+            Assert.AreEqual("ALTER TABLE \"public\".\"a_test\" ADD COLUMN \"New_Column\" varchar(50) NULL;", result.Sql);
         }
 
         [TestMethod]

@@ -1388,6 +1388,17 @@
   <language category="form" class="EditColumnForm" type="msg" id="AddInvalidDefaultValue" attribute="Text" name="默认值不符合所选数据类型。" />
   <language category="form" class="EditColumnForm" type="msg" id="OriginalComment" attribute="Text" name="--原有的注释：" />
   <language category="form" class="EditColumnForm" type="msg" id="OriginalColumnName" attribute="Text" name="--原有的字段名：" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlDdlImplicitCommitConfirmation" attribute="Text" name="MySQL 执行 DDL 时可能隐式提交事务，包括尚未提交的数据变更。&#x000A;此操作无法通过普通 ROLLBACK 撤销。确定要继续吗？" />
+  <language category="form" class="EditColumnForm" type="msg" id="OracleDdlImplicitCommitConfirmation" attribute="Text" name="Oracle 执行 DDL 前会隐式提交当前事务，即使 DDL 执行失败，之前未提交的更改仍可能已被提交。DDL 成功后也会提交。&#x000A;已提交的更改无法通过 ROLLBACK 撤销。确定要继续吗？" />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7ExecutionOutcomeUnknown" attribute="Text" name="无法确认指令是否已生效。&#x000A;重新执行前，请先确认数据库结构及事务状态。" />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7ConnectionUnverified" attribute="Text" name="无法验证当前数据库连接。&#x000A;请重新连接、刷新 Schema Explorer，再重新打开新增字段窗体。" />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7ConnectionChanged" attribute="Text" name="数据库连接已更改。&#x000A;请关闭此窗体，从当前 Schema Explorer 重新打开新增字段。" />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7TransactionUnsafe" attribute="Text" name="事务尚未完成或状态不明。&#x000A;再次更改数据库结构前，请先确认事务状态。" />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7SafetyCheckFailed" attribute="Text" name="新增字段操作未通过安全检查，因此已停止。&#x000A;请确认数据库、数据表及 SQL，再重新打开窗体。" />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7PostgreSqlAutoRollbackCompleted" attribute="Text" name="SQL 执行失败后，已按照设置自动执行 Rollback。本次事务中尚未提交的更改均已回滚。" />
+  <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlGuiDdlSavepointRestored" attribute="Text" name="SQL 执行失败，已将本次操作回滚至 Savepoint。之前尚未提交的更改仍保留在事务中。" />
+  <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlGuiDdlSavepointCreationFailed" attribute="Text" name="无法建立事务 Savepoint，因此未执行 SQL。请检查连接与事务状态。" />
+  <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlGuiDdlSavepointStateUncertain" attribute="Text" name="无法完整确认 SQL 执行或 Savepoint 回滚结果。请先检查事务和数据库结构，再继续操作。" />
   <!-- EditTableForm-->
   <language category="form" class="EditTableForm" type="object" id="this" attribute="Text" name="表" />
   <language category="form" class="EditTableForm" type="object" id="CommentTable" attribute="Text" name="表 - 注释(Comment)" />
@@ -1448,6 +1459,11 @@
   <language category="form" class="EditTableForm" type="msg" id="TruncateNG" attribute="Text" name="清空表 {0} 失败！" />
   <language category="form" class="EditTableForm" type="msg" id="OriginalComment" attribute="Text" name="--原有的注释：" />
   <language category="form" class="EditTableForm" type="msg" id="OriginalTableName" attribute="Text" name="--原有的表名：" />
+  <language category="form" class="EditTableForm" type="msg" id="MySqlDdlImplicitCommitConfirmation" attribute="Text" name="MySQL 执行 DDL 时可能隐式提交事务，包括尚未提交的数据变更。&#x000A;此操作无法通过普通 ROLLBACK 撤销。确定要继续吗？" />
+  <language category="form" class="EditTableForm" type="msg" id="OracleDdlImplicitCommitConfirmation" attribute="Text" name="Oracle 执行 DDL 前会隐式提交当前事务，即使 DDL 执行失败，之前未提交的更改仍可能已被提交。DDL 成功后也会提交。&#x000A;已提交的更改无法通过 ROLLBACK 撤销。确定要继续吗？" />
+  <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointRestored" attribute="Text" name="SQL 执行失败，已将本次操作回滚至 Savepoint。之前尚未提交的更改仍保留在事务中。" />
+  <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointCreationFailed" attribute="Text" name="无法建立事务 Savepoint，因此未执行 SQL。请检查连接与事务状态。" />
+  <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointStateUncertain" attribute="Text" name="无法完整确认 SQL 执行或 Savepoint 回滚结果。请先检查事务和数据库结构，再继续操作。" />
   <!-- EditTableFormData-->
   <language category="form" class="EditTableFormData" type="object" id="this" attribute="Text" name="编辑表数据" />
   <language category="form" class="EditTableFormData" type="object" id="lblSchema" attribute="Text" name="Schema:" />

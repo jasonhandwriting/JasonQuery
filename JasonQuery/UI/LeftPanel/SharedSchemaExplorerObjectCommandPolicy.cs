@@ -36,7 +36,7 @@ namespace JasonQuery.UI.LeftPanel
             {
                 case SharedSchemaExplorerMenuCommand.ShowDdl:
                     {
-                        if (target != LeftPanelTargetKind.QueryForm)
+                        if (target != LeftPanelTargetKind.QueryForm && target != LeftPanelTargetKind.OtherForm)
                         {
                             return false;
                         }
@@ -45,7 +45,7 @@ namespace JasonQuery.UI.LeftPanel
                     }
                 case SharedSchemaExplorerMenuCommand.OpenSchemaBrowser:
                     {
-                        return target == LeftPanelTargetKind.QueryForm && SchemaObjectTypeHelper.IsAny(selection.SchemaType, SchemaObjectNames.Tables, SchemaObjectNames.Views) && HasRequiredObjectScope(selection);
+                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.OtherForm) && SchemaObjectTypeHelper.IsAny(selection.SchemaType, SchemaObjectNames.Tables, SchemaObjectNames.Views) && HasRequiredObjectScope(selection);
                     }
                 case SharedSchemaExplorerMenuCommand.GenerateSqlStatement:
                     {
@@ -57,20 +57,66 @@ namespace JasonQuery.UI.LeftPanel
                 case SharedSchemaExplorerMenuCommand.TruncateTable:
                     {
                         //B3-B2-T GUI correction: only a G2-qualified Oracle TABLE data row or object-level group row may expose commands. MainForm and EditTableForm independently check live OracleReader identity before Preview/Execute.
-                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm) && OracleSharedTableDdlBridgePolicy.IsTableObjectRow(selection);
+                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm || target == LeftPanelTargetKind.OtherForm) && OracleSharedTableDdlBridgePolicy.IsTableObjectRow(selection);
                     }
                 case SharedSchemaExplorerMenuCommand.AddColumn:
                     {
-                        //F7-U1: either the qualified Table object or the existing raw Column row.
-                        //Neither selection is authorization; the form still verifies the live target.
-                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm)
-                               && (OracleSharedTableDdlBridgePolicy.IsTableObjectRow(selection) || OracleSharedColumnDdlBridgePolicy.IsQualifiedColumnDataRow(selection));
+                        if (target != LeftPanelTargetKind.QueryForm && target != LeftPanelTargetKind.SchemaBrowserForm && target != LeftPanelTargetKind.OtherForm)
+                        {
+                            return false;
+                        }
+
+                        //Keep the existing Oracle U1 bridge and last-mile gate untouched.
+                        if (selection.SourceType == DataSourceType.Oracle)
+                        {
+                            return OracleSharedTableDdlBridgePolicy.IsTableObjectRow(selection) || OracleSharedColumnDdlBridgePolicy.IsQualifiedColumnDataRow(selection);
+                        }
+
+                        //A non-Oracle Table candidate is NOT execute-time authorization.
+                        //Column rows need authoritative parent-Table identity in U2-B.
+                        if (selection.Kind == SchemaExplorerSelectionKind.ColumnInfo || selection.IsColumnInfoRow)
+                        {
+                            return NonOracleSharedAddColumnPreviewPolicy.IsQualifiedColumn(selection);
+                        }
+
+                        return IsNonOracleAddColumnTableCandidate(selection);
                     }
                 case SharedSchemaExplorerMenuCommand.CommentColumn:
                 case SharedSchemaExplorerMenuCommand.DropColumn:
                 case SharedSchemaExplorerMenuCommand.RenameColumn:
                     {
-                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm) && OracleSharedColumnDdlBridgePolicy.IsQualifiedColumnDataRow(selection);
+                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm || target == LeftPanelTargetKind.OtherForm) && OracleSharedColumnDdlBridgePolicy.IsQualifiedColumnDataRow(selection);
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+        }
+
+        //Only the selected Table object may offer Add Column. No generic group, Column caption or first-match metadata row may supply the DDL target identity.
+        private static bool IsNonOracleAddColumnTableCandidate(SchemaExplorerSelectionInfo selection)
+        {
+            if (selection == null
+                || selection.Kind != SchemaExplorerSelectionKind.SchemaObject
+                || selection.IsColumnInfoRow
+                || !SchemaObjectTypeHelper.Is(selection.SchemaType, SchemaObjectNames.Tables)
+                || !HasRequiredObjectScope(selection)
+                || (selection.IsGroupRow && selection.GroupLevel != SchemaExplorerGroupLevelPolicy.GetMinimumObjectGroupLevel(selection.SourceType)))
+            {
+                return false;
+            }
+
+            switch (selection.SourceType)
+            {
+                case DataSourceType.PostgreSql:
+                case DataSourceType.MySql:
+                    {
+                        return true;
+                    }
+                case DataSourceType.SqlServer:
+                    {
+                        return !string.IsNullOrWhiteSpace(selection.ObjectId);
                     }
                 default:
                     {

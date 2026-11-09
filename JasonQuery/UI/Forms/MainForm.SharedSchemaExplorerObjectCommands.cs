@@ -78,6 +78,18 @@ namespace JasonQuery.UI.Forms
                             break;
                         }
                     case SharedSchemaExplorerMenuCommand.AddColumn:
+                        {
+                            if (_currentSourceType == DataSourceType.Oracle)
+                            {
+                                TryOpenSharedOracleColumnDdl(selection, command);
+                            }
+                            else
+                            {
+                                TryOpenSharedNonOracleAddColumnPreview(selection);
+                            }
+
+                            break;
+                        }
                     case SharedSchemaExplorerMenuCommand.CommentColumn:
                     case SharedSchemaExplorerMenuCommand.DropColumn:
                     case SharedSchemaExplorerMenuCommand.RenameColumn:
@@ -162,8 +174,10 @@ namespace JasonQuery.UI.Forms
                 form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, icon);
                 form.ShowInTaskbar = false;
                 form.StartPosition = FormStartPosition.CenterParent;
+
                 //Keep the raw metadata owner case, including quoted mixed-case Oracle identifiers.
                 form.SchemaName = "\"" + current.OracleSelectedOwner.Replace("\"", "\"\"") + "\"";
+
                 form.TableName = current.SchemaName;
                 form.EditMode = mode;
                 form.OfflineSqlPreviewOnly = false;
@@ -273,6 +287,72 @@ namespace JasonQuery.UI.Forms
                 if (string.Equals(form.Result, "REFRESH", StringComparison.Ordinal) && !IsDisposed && !Disposing && CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))
                 {
                     RefreshSharedSchemaExplorerPreviewMetadata();
+                }
+            }
+
+            return true;
+        }
+
+        //Refresh F7 only after the Add Column transaction is resolved.
+        private bool _pendingF7AddColumnMetadataRefresh;
+
+        //F7-U2-C98: open a qualified Add Column form with an opt-in last-mile Execute Gate.
+        //Legacy F7 and Oracle paths are not changed.
+        private bool TryOpenSharedNonOracleAddColumnPreview(SchemaExplorerSelectionInfo captured)
+        {
+            if (captured == null || _currentSourceType == DataSourceType.Oracle
+                || captured.SourceType != _currentSourceType
+                || _sharedSchemaMetadataSnapshot == null
+                || !CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid)
+                || !SharedSchemaExplorerObjectCommandPolicy.CanExecute(CaptureLeftPanelContext().ActiveTarget, captured, SharedSchemaExplorerMenuCommand.AddColumn))
+            {
+                return false;
+            }
+
+            var current = ResolveSharedSchemaExplorerInput(_sharedSchemaExplorerGrid, captured.DisplayRowIndex);
+
+            if (!NonOracleSharedAddColumnPreviewPolicy.IsSameSelection(captured, current)
+                || !NonOracleSharedAddColumnPreviewPolicy.TryCreate(current, out var target)
+                || !target.OfflineSqlPreviewOnly)
+            {
+                return false;
+            }
+
+            using (var form = new EditColumnForm())
+            {
+                form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "Column Add.ico");
+                form.ShowInTaskbar = false;
+                form.StartPosition = FormStartPosition.CenterParent;
+                form.SourceType = target.SourceType;
+                form.SchemaDatabase = target.SchemaDatabase;
+                form.SchemaName = target.SchemaName;
+                form.TableName = target.TableName;
+                form.ColumnName = string.Empty;
+                form.EditMode = EditColumnMode.Add;
+                form.OfflineSqlPreviewOnly = false;
+                form.RequireOracleF7ExecuteGate = false;
+                form.OracleTargetIdentity = null;
+                form.RequireNonOracleF7ExecuteGate = true;
+                form.NonOracleF7ExpectedDatabase = target.SourceType == DataSourceType.PostgreSql ? DatabaseSqlExecutor.DatabaseName : target.SchemaDatabase;
+                form.NonOracleF7ExpectedSchema = target.SchemaName;
+                form.NonOracleF7ExpectedTable = target.TableName;
+                form.NonOracleF7ExpectedConnectionString = DatabaseSqlExecutor.DbConnectionString;
+
+                UIHelper.ApplyEditColumnFormSize(form);
+                form.ShowDialog(this);
+
+                if (string.Equals(form.Result, "REFRESH", StringComparison.Ordinal) && !IsDisposed && !Disposing && CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))
+                {
+                    if (target.SourceType == DataSourceType.MySql)
+                    {
+                        //MySQL ALTER TABLE implicitly commits.
+                        RefreshSharedSchemaExplorerPreviewMetadata();
+                    }
+                    else if (target.SourceType == DataSourceType.PostgreSql || target.SourceType == DataSourceType.SqlServer)
+                    {
+                        //Wait for an explicit successful Commit or Rollback.
+                        MarkF7TransactionBoundAddColumn();
+                    }
                 }
             }
 

@@ -1,36 +1,30 @@
-using JasonQuery.Core.Config;
+﻿using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Database.DdlPreview;
 using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.Localization;
-using JasonQuery.UI.Helpers;
 using System;
 using System.Data;
 
 namespace JasonQuery.UI.LeftPanel
 {
-    // Q2-98B2: this coordinator is used ONLY by the new shared F7 Oracle Table/Column GUI.
-    // The F7 cache is for display. Execution authority is obtained after normal reconnect
-    // from the current physical Reader, fresh scope observations, and the exact target.
-    internal static class OracleF7ExecuteTimeHelper
+    //Q2-98B2: this coordinator is used ONLY by the new shared F7 Oracle Table/Column GUI.
+    //The F7 cache is for display. Execution authority is obtained after normal reconnect from the current physical Reader, fresh scope observations, and the exact target.
+    internal static class OracleSchemaExplorerExecuteTimeHelper
     {
-        public static string CheckMetadata(bool currentCompletedLoad, bool logicalScopeCurrent,
-                                           string receiptSessionUser, string selectedOwner,
-                                           string displayedSql, string rebuiltSql)
+        public static string CheckMetadata(bool currentCompletedLoad, bool logicalScopeCurrent, string receiptSessionUser, string selectedOwner, string displayedSql, string rebuiltSql)
         {
             if (!currentCompletedLoad || !logicalScopeCurrent)
             {
                 return "Q298_METADATA_STALE";
             }
 
-            if (string.IsNullOrWhiteSpace(receiptSessionUser) || string.IsNullOrWhiteSpace(selectedOwner)
-                || !string.Equals(receiptSessionUser, selectedOwner, StringComparison.Ordinal))
+            if (string.IsNullOrWhiteSpace(receiptSessionUser) || string.IsNullOrWhiteSpace(selectedOwner) || !string.Equals(receiptSessionUser, selectedOwner, StringComparison.Ordinal))
             {
                 return "Q298_OWNER_MISMATCH";
             }
 
-            if (string.IsNullOrWhiteSpace(displayedSql) || string.IsNullOrWhiteSpace(rebuiltSql)
-                || !string.Equals(displayedSql, rebuiltSql, StringComparison.Ordinal))
+            if (string.IsNullOrWhiteSpace(displayedSql) || string.IsNullOrWhiteSpace(rebuiltSql) || !string.Equals(displayedSql, rebuiltSql, StringComparison.Ordinal))
             {
                 return "Q298_SQL_CHANGED";
             }
@@ -38,10 +32,8 @@ namespace JasonQuery.UI.LeftPanel
             return string.Empty;
         }
 
-        public static string Execute(SharedOracleMetadataCompletedLoadReceipt receipt,
-                                     string selectedOwner, string tableName, string columnName,
-                                     bool requireExistingColumn, string displayedSql, string rebuiltSql,
-                                     out string errorMessage, out bool pendingAfterExecute,
+        public static string Execute(SharedOracleMetadataCompletedLoadReceipt receipt, string selectedOwner, string tableName, string columnName,
+                                     bool requireExistingColumn, string displayedSql, string rebuiltSql, out string errorMessage, out bool pendingAfterExecute,
                                      out bool transactionClosed, out bool dispatchAttempted)
         {
             var reader = MyGlobal.OracleReader;
@@ -79,16 +71,10 @@ namespace JasonQuery.UI.LeftPanel
                     },
                     () =>
                     {
-                        // The loader receipt remains valid across an ordinary closed/open physical
-                        // session; its ORIGINAL source and logical configuration must still match.
-                        var currentCompletedLoad = receipt != null
-                            && ReferenceEquals(receipt, DatabaseSqlExecutor.LastOracleCompletedLoadReceipt)
-                            && ReferenceEquals(receipt.SourceTable, DatabaseSqlExecutor.dtSchema)
-                            && SharedOracleMetadataCompletedLoadReceipt.HasRawOracleIdentifiers(receipt.SourceTable);
-                        var currentLogicalScope = receipt != null
-                            && string.Equals(receipt.LogicalScopeKey,
-                                             DatabaseSqlExecutor.GetOracleLoadLogicalScopeKey(),
-                                             StringComparison.Ordinal);
+                        //The loader receipt remains valid across an ordinary closed/open physical session; its ORIGINAL source and logical configuration must still match.
+                        var currentCompletedLoad = receipt != null && ReferenceEquals(receipt, DatabaseSqlExecutor.LastOracleCompletedLoadReceipt) && ReferenceEquals(receipt.SourceTable, DatabaseSqlExecutor.dtSchema) && SharedOracleMetadataCompletedLoadReceipt.HasRawOracleIdentifiers(receipt.SourceTable);
+
+                        var currentLogicalScope = receipt != null && string.Equals(receipt.LogicalScopeKey, DatabaseSqlExecutor.GetOracleLoadLogicalScopeKey(), StringComparison.Ordinal);
 
                         var metadataStatus = CheckMetadata
                         (
@@ -126,14 +112,14 @@ namespace JasonQuery.UI.LeftPanel
                     },
                     () =>
                     {
-                        if (reader.VerifiedConnectionId != verifiedConnectionId
-                            || reader.GetState() != ConnectionState.Open)
+                        if (reader.VerifiedConnectionId != verifiedConnectionId || reader.GetState() != ConnectionState.Open)
                         {
                             return "Q298_SESSION_CHANGED";
                         }
 
-                        // The execution method MUST NOT open/retry/reconnect another Oracle session.
+                        //The execution method MUST NOT open/retry/reconnect another Oracle session.
                         dispatched = true;
+
                         reader.ExecuteSingleNonQueryOnVerifiedConnection
                         (
                             displayedSql,
@@ -157,6 +143,7 @@ namespace JasonQuery.UI.LeftPanel
             pendingAfterExecute = pending;
             transactionClosed = closed;
             dispatchAttempted = dispatched;
+
             return failure ?? "Q298_VERIFICATION_FAILED";
         }
 
@@ -168,6 +155,7 @@ namespace JasonQuery.UI.LeftPanel
             if (colon >= 0)
             {
                 var extra = code.Substring(colon + 1).Trim();
+
                 code = code.Substring(0, colon);
 
                 if (string.IsNullOrWhiteSpace(detail))

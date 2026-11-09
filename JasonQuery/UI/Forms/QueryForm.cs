@@ -884,6 +884,7 @@ namespace JasonQuery.UI.Forms
         {
             try
             {
+                _f7PendingEditorStructuralDdl = false;
                 InitializeQueryExecutionState();
 
                 var textContext = ResolveQueryExecutionText(sql);
@@ -942,6 +943,7 @@ namespace JasonQuery.UI.Forms
                 AppendQueryExecutionPipelinePagingPayloadIfNeeded(runContext);
 
                 //20260501 建立執行 SQL 並啟動查詢執行緒
+                CaptureF7EditorStructuralDdlIntent(runContext.QueryText, runContext.QueryKind.IsQuery);
                 StartQueryExecutionThread(runContext.PayloadText, runContext.QueryKind);
             }
             catch (Exception ex)
@@ -1504,7 +1506,9 @@ namespace JasonQuery.UI.Forms
             if (result.ShouldClearPendingState)
             {
                 //只有 Commit / Rollback 確實成功，才清除 MainForm 的 pending 狀態。Disconnect 失敗不代表交易仍 pending。
-                TransferValueToMainForm("ExecuteCommitRollback`");
+                var completedAction = result.ActionKind == DatabaseTransactionActionKind.Rollback ? "ROLLBACK" : "COMMIT";
+
+                TransferValueToMainForm("ExecuteCommitRollback`" + completedAction);
             }
         }
 
@@ -2301,23 +2305,40 @@ namespace JasonQuery.UI.Forms
 
                     var transactionState = parts.Length >= 3 ? parts[2] : "TX_UNCHANGED";
 
-                    switch (transactionState)
+                    //The Reader acknowledgement is produced only after ExecuteNonQuery returns normally.
+                    //A cancelled or failed batch must not clear the transaction's pending state.
+                    var cancellationRequested = string.Equals(TextHelper.GetSafeString(btnCancelQuery.Tag), "CANCEL", StringComparison.OrdinalIgnoreCase) || MyGlobal.IsProgressCancel || string.Equals(TextHelper.GetSafeString(editorMessage.Tag), "ERROR", StringComparison.OrdinalIgnoreCase);
+
+                    var completion = EditorStatementCompletionPolicy.Evaluate
+                    (
+                        true,
+                        "Complete",
+                        transactionState,
+                        cancellationRequested
+                    );
+
+                    if (completion.CanNotifyStatementCompleted)
                     {
-                        case "TX_PENDING":
-                            {
-                                TransferValueToMainForm("UpdateCommitRollbackButton`");
-                                break;
-                            }
-                        case "TX_CLOSED":
-                            {
-                                DisconnectDatabase();
-                                TransferValueToMainForm("ExecuteCommitRollback`");
-                                break;
-                            }
+                        NotifyF7CompletedEditorStructuralDdl();
                     }
 
-                    //20260720 交易狀態已由 Reader 回傳的 TX_* Token 完整處理，清空此旗標，避免 QueryCompleted() 後段再次把 NonQuery 一律視為 Pending，
-                    //造成 Oracle, MySQL implicit-commit DDL 在中斷連線後 Commit/Rollback 按鈕又重新亮起
+                    _f7PendingEditorStructuralDdl = false;
+
+                    if (completion.CanNotifyStatementCompleted && string.Equals(transactionState, "TX_PENDING", StringComparison.OrdinalIgnoreCase))
+                    {
+                        TransferValueToMainForm("UpdateCommitRollbackButton`");
+                    }
+
+                    if (completion.CanNotifyTransactionClosed)
+                    {
+                        //The action is a captured hint; TX_CLOSED is the required Reader receipt.
+                        var completedAction = GetF7ConfirmedEditorTransactionAction();
+
+                        DisconnectDatabase();
+                        TransferValueToMainForm("ExecuteCommitRollback`" + completedAction);
+                    }
+
+                    //F2-C1: transaction completion is determined from Reader outcome, not SQL text.
                     btnQuery.AccessibleDescription = string.Empty;
                 }
             }
@@ -3053,12 +3074,6 @@ namespace JasonQuery.UI.Forms
                         {
                             //單純的查詢、且沒有錯誤、且不需要 Commit / Rollback，全部「中斷連線」
                             TransferValueToMainForm("DisconnectAfterQueryOnly`");
-                            break;
-                        }
-                    case "NONQUERY":
-                        {
-                            //傳遞資訊至 MainForm，更新每個 QueryForm 的 Commit/Rollbak 按鈕狀態
-                            TransferValueToMainForm("UpdateCommitRollbackButton`");
                             break;
                         }
                 }

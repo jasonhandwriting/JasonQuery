@@ -1388,6 +1388,17 @@
   <language category="form" class="EditColumnForm" type="msg" id="AddInvalidDefaultValue" attribute="Text" name="The default value is invalid for the selected data type." />
   <language category="form" class="EditColumnForm" type="msg" id="OriginalComment" attribute="Text" name="--Original Comment:" />
   <language category="form" class="EditColumnForm" type="msg" id="OriginalColumnName" attribute="Text" name="--Original Column Name:" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlDdlImplicitCommitConfirmation" attribute="Text" name="MySQL DDL may implicitly commit the transaction, including uncommitted changes.&#x000A;This operation cannot be undone with a normal ROLLBACK. Do you want to continue?" />
+  <language category="form" class="EditColumnForm" type="msg" id="OracleDdlImplicitCommitConfirmation" attribute="Text" name="Oracle implicitly commits the current transaction before executing DDL, even if the DDL fails. A successful DDL is also committed afterward.&#x000A;Committed changes cannot be undone with ROLLBACK. Do you want to continue?" />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7ExecutionOutcomeUnknown" attribute="Text" name="The execution result could not be confirmed.&#x000A;Verify the database schema and transaction status before retrying." />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7ConnectionUnverified" attribute="Text" name="The current database connection could not be verified.&#x000A;Reconnect, refresh Schema Explorer, and reopen the Add Column form." />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7ConnectionChanged" attribute="Text" name="The database connection has changed.&#x000A;Close this form and reopen Add Column from the current Schema Explorer." />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7TransactionUnsafe" attribute="Text" name="There is an unfinished or uncertain transaction.&#x000A;Confirm its state before attempting another schema change." />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7SafetyCheckFailed" attribute="Text" name="The Add Column operation was stopped by a safety check.&#x000A;Verify the database, table and SQL, then reopen this form." />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7PostgreSqlAutoRollbackCompleted" attribute="Text" name="Auto Rollback completed after the SQL error. All uncommitted changes in the transaction were rolled back." />
+  <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlGuiDdlSavepointRestored" attribute="Text" name="The SQL failed. This operation was rolled back to a savepoint. Earlier uncommitted changes remain in the transaction." />
+  <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlGuiDdlSavepointCreationFailed" attribute="Text" name="A transaction savepoint could not be created; the SQL was not executed. Check the connection and transaction state." />
+  <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlGuiDdlSavepointStateUncertain" attribute="Text" name="The SQL execution or savepoint recovery could not be fully verified. Check the transaction and schema before continuing." />
   <!-- EditTableForm-->
   <language category="form" class="EditTableForm" type="object" id="this" attribute="Text" name="Table" />
   <language category="form" class="EditTableForm" type="object" id="CommentTable" attribute="Text" name="Table - Comment" />
@@ -1448,6 +1459,11 @@
   <language category="form" class="EditTableForm" type="msg" id="TruncateNG" attribute="Text" name="Failed to truncate table {0}!" />
   <language category="form" class="EditTableForm" type="msg" id="OriginalComment" attribute="Text" name="--Original Comment:" />
   <language category="form" class="EditTableForm" type="msg" id="OriginalTableName" attribute="Text" name="--Original Table Name:" />
+  <language category="form" class="EditTableForm" type="msg" id="MySqlDdlImplicitCommitConfirmation" attribute="Text" name="MySQL DDL may implicitly commit the transaction, including uncommitted changes.&#x000A;This operation cannot be undone with a normal ROLLBACK. Do you want to continue?" />
+  <language category="form" class="EditTableForm" type="msg" id="OracleDdlImplicitCommitConfirmation" attribute="Text" name="Oracle implicitly commits the current transaction before executing DDL, even if the DDL fails. A successful DDL is also committed afterward.&#x000A;Committed changes cannot be undone with ROLLBACK. Do you want to continue?" />
+  <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointRestored" attribute="Text" name="The SQL failed. This operation was rolled back to a savepoint. Earlier uncommitted changes remain in the transaction." />
+  <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointCreationFailed" attribute="Text" name="A transaction savepoint could not be created; the SQL was not executed. Check the connection and transaction state." />
+  <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointStateUncertain" attribute="Text" name="The SQL execution or savepoint recovery could not be fully verified. Check the transaction and schema before continuing." />
   <!-- EditTableFormData-->
   <language category="form" class="EditTableFormData" type="object" id="this" attribute="Text" name="Edit Table Data" />
   <language category="form" class="EditTableFormData" type="object" id="lblSchema" attribute="Text" name="Schema:" />

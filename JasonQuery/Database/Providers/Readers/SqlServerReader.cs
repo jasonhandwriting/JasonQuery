@@ -14,6 +14,7 @@ using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.UI.Forms;
 using JasonQuery.UI.Helpers;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
@@ -39,10 +40,24 @@ namespace JasonQuery.Database.Providers.Readers
         private string _sqlType = string.Empty;
         private string _sqlStatementType = string.Empty;
 
+        //F7-U2-C3B: per-open-connection token only. This is NOT database/target authorization.
+        //Live scope and exact target checks are the C3-C caller's responsibility.
+        private Guid _f7DdlConnectionId = Guid.Empty;
+
+        public Guid CurrentOpenConnectionId
+        {
+            get
+            {
+                return _conn != null && _conn.State == ConnectionState.Open && _transaction != null ? _f7DdlConnectionId : Guid.Empty;
+            }
+        }
+
 
         public string ConnectTo(string connectionString)
         {
             var errorMessage = string.Empty;
+
+            _f7DdlConnectionId = Guid.Empty;
 
             _command = new SqlCommand();
             _conn = new SqlConnection(connectionString);
@@ -51,6 +66,7 @@ namespace JasonQuery.Database.Providers.Readers
             {
                 _conn.Open();
                 _transaction = _conn.BeginTransaction(IsolationLevel.ReadCommitted);
+                _f7DdlConnectionId = Guid.NewGuid();
             }
             catch (SqlException ex)
             {
@@ -71,6 +87,12 @@ namespace JasonQuery.Database.Providers.Readers
             try
             {
                 _transaction?.Commit();
+
+                if (_command != null)
+                {
+                    _command.Transaction = null;
+                }
+
                 _transaction?.Dispose();
                 _transaction = null;
             }
@@ -93,6 +115,12 @@ namespace JasonQuery.Database.Providers.Readers
             try
             {
                 _transaction?.Rollback();
+
+                if (_command != null)
+                {
+                    _command.Transaction = null;
+                }
+
                 _transaction?.Dispose();
                 _transaction = null;
             }
@@ -171,6 +199,8 @@ namespace JasonQuery.Database.Providers.Readers
         public bool Disconnect()
         {
             var success = true;
+
+            _f7DdlConnectionId = Guid.Empty;
 
             success &= TryDisposeAndClearDataReader();
             success &= TryDisposeAndClear(ref _command);
@@ -877,11 +907,37 @@ namespace JasonQuery.Database.Providers.Readers
 
                 using (var script = new SqlScript(sql))
                 {
+                    //F2-C2-F2: Devart may keep "ALTER ...; COMMIT;" in one Statement.
+                    //Split only a trailing standalone managed transaction command.
+                    var executionStatements = new List<(string Text, string StatementType, int Offset)>();
+
+                    for (var statementIndex = 0; statementIndex < script.Statements.Count; statementIndex++)
+                    {
+                        var scriptStatement = script.Statements[statementIndex];
+                        var parts = SqlServerEditorTransactionSplitter.Split(scriptStatement.Text);
+
+                        executionStatements.Add
+                        (
+                            (parts[0], scriptStatement.StatementType.ToString(), scriptStatement.Offset)
+                        );
+
+                        if (parts.Length == 2)
+                        {
+                            var action = EditorTransactionCommandPolicy.Classify(parts[1]);
+                            var transactionStatementType = action == EditorTransactionAction.Commit ? "COMMIT" : "ROLLBACK";
+
+                            executionStatements.Add
+                            (
+                                (parts[1], transactionStatementType, scriptStatement.Offset + parts[0].Length)
+                            );
+                        }
+                    }
+
                     var result = string.Empty;
 
                     _command.CommandTimeout = QueryTimeout;
 
-                    if (script.Statements.Count > 1)
+                    if (executionStatements.Count > 1)
                     {
                         _command.CommandType = CommandType.Text;
                         _command.Connection = _conn;
@@ -891,7 +947,7 @@ namespace JasonQuery.Database.Providers.Readers
 
                         var executeNonQueryScripts = LocalizationHelper.GetLanguageString("Execute non-query SQL scripts", "Global", "Global", "msg", "ExecuteNonQueryScripts", "Text");
 
-                        batchRunQty = script.Statements.Count;
+                        batchRunQty = executionStatements.Count;
 
                         using (var form = CreateExecuteNonQueryProgressDialog(executeNonQueryScripts, batchRunQty))
                         {
@@ -902,17 +958,18 @@ namespace JasonQuery.Database.Providers.Readers
                                 for (i = 0; i < batchRunQty; i++)
                                 {
                                     dtStartTime = DateTime.Now;
-                                    positionOffset = script.Statements[i].Offset;
-                                    sqlExecuted = script.Statements[i].Text;
+                                    positionOffset = executionStatements[i].Offset;
+                                    sqlExecuted = executionStatements[i].Text;
                                     affectedRows = 0;
 
-                                    var statementType = script.Statements[i].StatementType.ToString();
+                                    var statementType = executionStatements[i].StatementType;
                                     var sqlExecutedFirstWord = TextHelper.GetFirstWord(sqlExecuted.ToUpper());
+                                    var transactionAction = string.Empty;
 
                                     if (!string.Equals(statementType, "SELECT", StringComparison.OrdinalIgnoreCase))
                                     {
                                         _command.CommandText = sqlExecuted;
-                                        affectedRows = _command.ExecuteNonQuery();
+                                        affectedRows = ExecuteEditorManagedNonQueryStatement(sqlExecuted, statementType, out transactionAction);
 
                                         queryTime = MyGlobal.DateDiff(dtStartTime, DateTime.Now);
                                     }
@@ -921,15 +978,9 @@ namespace JasonQuery.Database.Providers.Readers
 
                                     executedResult += $"{result}\r\n";
 
-                                    if (result == "Use script - Database changed!")
+                                    if (!string.IsNullOrEmpty(transactionAction))
                                     {
-                                        var temp01 = script.Statements[i].Text.Substring(4).Trim();
-                                        var databaseName = TextHelper.GetFirstWord(temp01);
-
-                                        executedResult = $"Database ({databaseName}) changed!\r\n";
-                                        DatabaseSqlExecutor.DatabaseName = databaseName;
-                                        MyGlobal.GlobalTemp2 = $"SQLServerSwitchDatabase{MyGlobal.Separator}{accessibleDescription};{databaseName}";
-                                        MyGlobal.GlobalTemp3 = $"SQLServerSwitchDatabaseByUsing`{databaseName}";
+                                        _sqlStatementType = transactionAction;
                                     }
 
                                     DatabaseTransactionStatePolicy.Apply
@@ -979,18 +1030,19 @@ namespace JasonQuery.Database.Providers.Readers
                     }
                     else //ExecuteNonQuery, 單一 SQL
                     {
-                        var scriptText = script.Statements[0].Text;
-                        var statementType = script.Statements[0].StatementType.ToString();
+                        var scriptText = executionStatements[0].Text;
+                        var statementType = executionStatements[0].StatementType;
 
                         dtStartTime = DateTime.Now;
                         sqlExecuted = sql;
 
                         _command.CommandType = CommandType.Text;
-                        _command.CommandText = scriptText; //20240706 只有一筆，改用 script.Statements[0].Text，因為 sql 裡面可能會包含註釋
+                        _command.CommandText = scriptText; //20240706 只有一筆，改用 executionStatements[0].Text，因為 sql 裡面可能會包含註釋
                         _command.CommandTimeout = QueryTimeout;
                         _command.Connection = _conn;
 
-                        affectedRows = _command.ExecuteNonQuery();
+                        string transactionAction;
+                        affectedRows = ExecuteEditorManagedNonQueryStatement(scriptText, statementType, out transactionAction);
                         queryTime = MyGlobal.DateDiff(dtStartTime, DateTime.Now);
                         result = GetResultString(statementType, TextHelper.GetFirstWord(scriptText.ToUpper()), affectedRows, out _sqlStatementType, scriptText);
 
@@ -1004,6 +1056,11 @@ namespace JasonQuery.Database.Providers.Readers
                             DatabaseSqlExecutor.DatabaseName = databaseName;
                             MyGlobal.GlobalTemp2 = $"SQLServerSwitchDatabase{MyGlobal.Separator}{accessibleDescription};{databaseName}";
                             MyGlobal.GlobalTemp3 = $"SQLServerSwitchDatabaseByUsing`{databaseName}";
+                        }
+
+                        if (!string.IsNullOrEmpty(transactionAction))
+                        {
+                            _sqlStatementType = transactionAction;
                         }
 
                         DatabaseTransactionStatePolicy.Apply
@@ -1119,6 +1176,118 @@ namespace JasonQuery.Database.Providers.Readers
             }
         }
 
+        //F7-U2-C3B: DDL-only. Deliberately does NOT call EnsureConnectionOpen or retry.
+        //C3-C must verify live database, table identity, transaction and exact builder SQL on this same physical connection immediately before dispatch.
+        public int ExecuteSingleNonQueryOnVerifiedConnection(string sql, Guid expectedConnectionId, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
+        {
+            errorMessage = string.Empty;
+            hasPendingTransactionAfterExecute = false;
+            isTransactionClosedBySqlCommand = false;
+
+            //Fail closed without opening a connection or altering the caller's transaction.
+            if (expectedConnectionId == Guid.Empty || CurrentOpenConnectionId != expectedConnectionId)
+            {
+                errorMessage = "F7U2C3B_CONNECTION_CHANGED";
+                return 0;
+            }
+
+            if (string.IsNullOrWhiteSpace(sql))
+            {
+                errorMessage = "F7U2C3B_SQL_EMPTY";
+                return 0;
+            }
+
+            var connection = _conn;
+            var transaction = _transaction;
+            var dispatched = false;
+
+            try
+            {
+                if (connection == null || transaction == null || connection.State != ConnectionState.Open || !ReferenceEquals(transaction.Connection, connection))
+                {
+                    errorMessage = "F7U2C3B_TRANSACTION_UNVERIFIED";
+                    return 0;
+                }
+
+                //Retain the existing provider's SQL splitter, but reject batches.
+                //Never silently take only Statements[0] for this privileged entry.
+                using (var script = new SqlScript(sql))
+                {
+                    if (script.Statements.Count != 1)
+                    {
+                        errorMessage = "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
+                        return 0;
+                    }
+
+                    var statement = script.Statements[0];
+                    var scriptText = statement.Text;
+                    var statementType = statement.StatementType.ToString();
+
+                    if (!string.Equals(statementType, "ALTER", StringComparison.OrdinalIgnoreCase)
+                        || !Regex.IsMatch(scriptText ?? string.Empty, @"^\s*ALTER\s+TABLE\s+.+?\s+ADD\s+(?:COLUMN\s+)?", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant))
+                    {
+                        errorMessage = "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
+                        return 0;
+                    }
+
+                    //Catch a connection replacement during parsing before actual dispatch.
+                    if (!ReferenceEquals(_conn, connection) || !ReferenceEquals(_transaction, transaction)
+                        || CurrentOpenConnectionId != expectedConnectionId || connection.State != ConnectionState.Open
+                        || !ReferenceEquals(transaction.Connection, connection))
+                    {
+                        errorMessage = "F7U2C3B_CONNECTION_CHANGED";
+                        return 0;
+                    }
+
+                    using (var command = new SqlCommand())
+                    {
+                        command.CommandType = CommandType.Text;
+                        command.CommandText = scriptText;
+                        command.CommandTimeout = QueryTimeout;
+                        command.Connection = connection;
+                        command.Transaction = transaction;
+
+                        //After this point, errors may mean the server executed the DDL.
+                        //Never auto-reconnect, auto-commit, roll back, or retry.
+                        dispatched = true;
+
+                        var affectedRows = command.ExecuteNonQuery();
+
+                        GetResultString(statementType, "ALTER", affectedRows, out _sqlStatementType, scriptText);
+                        hasPendingTransactionAfterExecute = true;
+
+                        return affectedRows;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (dispatched)
+                {
+                    //A transport failure may hide a successful DDL. Require independent recovery.
+                    _f7DdlConnectionId = Guid.Empty;
+                }
+
+                errorMessage = dispatched ? "F7U2C3B_EXECUTION_OUTCOME_UNKNOWN: " + ex.Message : "F7U2C3B_PREPARATION_FAILED: " + ex.Message; return 0;
+            }
+            finally
+            {
+                if (dispatched)
+                {
+                    try
+                    {
+                        NotifyQueryCompleted();
+                    }
+                    catch (Exception)
+                    {
+                        //Even UI completion failures cannot leave a reusable DDL token.
+                        _f7DdlConnectionId = Guid.Empty;
+                        throw;
+                    }
+                }
+            }
+        }
+
         public int ExecuteSingleNonQuery(string sql, out string errorMessage)
         {
             bool hasPendingTransactionAfterExecute;
@@ -1188,6 +1357,65 @@ namespace JasonQuery.Database.Providers.Readers
             }
 
             return affectedRows;
+        }
+
+        //F2-C2-F1: Editor transaction commands share the SAME managed transaction
+        //used by the GUI Commit/Rollback buttons. Never dispatch raw COMMIT to the server.
+        private int ExecuteEditorManagedNonQueryStatement(string statementSql, string statementType, out string transactionAction)
+        {
+            transactionAction = string.Empty;
+
+            if (_conn == null || _conn.State != ConnectionState.Open)
+            {
+                throw new InvalidOperationException("The current database connection is not open.");
+            }
+
+            var action = EditorTransactionCommandPolicy.Classify(statementSql);
+
+            if (action == EditorTransactionAction.None && (string.Equals(statementType, "COMMIT", StringComparison.OrdinalIgnoreCase) || string.Equals(statementType, "ROLLBACK", StringComparison.OrdinalIgnoreCase)))
+            {
+                //Do not let an unrecognized transaction variant bypass the managed transaction.
+                throw new InvalidOperationException("Unsupported SQL transaction command. Use COMMIT or ROLLBACK.");
+            }
+
+            if (action == EditorTransactionAction.Commit || action == EditorTransactionAction.Rollback)
+            {
+                var transaction = _transaction;
+
+                if (transaction == null)
+                {
+                    throw new InvalidOperationException("No active managed transaction to commit or roll back.");
+                }
+
+                if (action == EditorTransactionAction.Commit)
+                {
+                    transaction.Commit();
+                    transactionAction = "COMMIT";
+                }
+
+                if (action == EditorTransactionAction.Rollback)
+                {
+                    transaction.Rollback();
+                    transactionAction = "ROLLBACK";
+                }
+
+                _transaction = null;
+                _command.Transaction = null;
+                transaction.Dispose();
+
+                return 0;
+            }
+
+            if (_transaction == null)
+            {
+                _transaction = _conn.BeginTransaction(IsolationLevel.ReadCommitted);
+            }
+
+            _command.Connection = _conn;
+            _command.Transaction = _transaction;
+            _command.CommandText = statementSql;
+
+            return _command.ExecuteNonQuery();
         }
 
         public string GetResultString(string mode, string firstWord, int rowsCount, out string sqlStatementType, string sql = "")
@@ -1995,6 +2223,77 @@ namespace JasonQuery.Database.Providers.Readers
         private void NotifyQueryCompleted()
         {
             QueryCompleted?.Invoke();
+        }
+    }
+
+    //F2-C2-F2: narrow compatibility fix for SQL Server Editor, not a general SQL batch splitter.
+    internal static class SqlServerEditorTransactionSplitter
+    {
+        internal static string[] Split(string statementSql)
+        {
+            if (string.IsNullOrWhiteSpace(statementSql))
+            {
+                return new[] { statementSql ?? string.Empty };
+            }
+
+            var action = EditorTransactionCommandPolicy.Classify(statementSql);
+
+            if (action != EditorTransactionAction.None)
+            {
+                return new[] { statementSql };
+            }
+
+            var tokens = SqlTokenizer.Tokenize(statementSql, DataSourceType.SqlServer).Tokens;
+
+            foreach (var separator in tokens)
+            {
+                if (!separator.IsSymbol(";") || separator.Depth != 0)
+                {
+                    continue;
+                }
+
+                var tail = statementSql.Substring(separator.EndExclusive);
+                var tailAction = EditorTransactionCommandPolicy.Classify(tail);
+
+                if (tailAction == EditorTransactionAction.None)
+                {
+                    continue;
+                }
+
+                var head = statementSql.Substring(0, separator.EndExclusive);
+
+                if (string.IsNullOrWhiteSpace(head.TrimEnd(';')))
+                {
+                    continue;
+                }
+
+                //Do not allow an earlier transaction control / BEGIN block to escape the managed transaction by being included in the leading SQL batch.
+                foreach (var token in tokens)
+                {
+                    if (token.Start >= separator.Start)
+                    {
+                        break;
+                    }
+
+                    if (token.IsWord("COMMIT") || token.IsWord("ROLLBACK") || token.IsWord("BEGIN"))
+                    {
+                        throw new InvalidOperationException("Unsupported SQL Server transaction batch. Execute transaction control separately.");
+                    }
+                }
+
+                return new[] { head, tail };
+            }
+
+            //An embedded control must never pass through as a normal SqlCommand batch.
+            foreach (var token in tokens)
+            {
+                if (token.IsWord("COMMIT") || token.IsWord("ROLLBACK"))
+                {
+                    throw new InvalidOperationException("Unsupported SQL Server transaction batch. Execute transaction control separately.");
+                }
+            }
+
+            return new[] { statementSql };
         }
     }
 }

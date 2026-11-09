@@ -113,7 +113,7 @@ namespace JasonQuery.Tests.UI.LeftPanel
         [TestMethod]
         public void UnknownTargetDenied()
         {
-            Assert.IsFalse(Allowed(LeftPanelTargetKind.OtherForm, Selection(), SharedSchemaExplorerMenuCommand.ShowDdl));
+            Assert.IsTrue(Allowed(LeftPanelTargetKind.OtherForm, Selection(), SharedSchemaExplorerMenuCommand.ShowDdl));
         }
 
         [TestMethod]

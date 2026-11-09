@@ -8,6 +8,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using JasonQuery.Core.Localization;
 
 namespace JasonQuery.UI.Forms
 {
@@ -152,6 +153,30 @@ namespace JasonQuery.UI.Forms
 
         private void SharedSchemaPreviewRefreshClick(object sender, EventArgs e)
         {
+            if (AppConfigHelper.IsNotCommitYet)
+            {
+                var message = LocalizationHelper.GetLanguageString
+                (
+                    "There is a pending transaction. Please Commit or Rollback first.",
+                    "form",
+                    GetType().Name,
+                    "msg",
+                    "PendingTransactionIdleWarning",
+                    "Text"
+                );
+
+                MessageBox.Show
+                (
+                    this,
+                    message,
+                    AppConfigHelper.MessageBoxCaption,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                return;
+            }
+
             RefreshSharedSchemaExplorerPreviewMetadata();
         }
 
@@ -428,6 +453,9 @@ namespace JasonQuery.UI.Forms
                 stateBefore, retained, _currentSourceType, scopeBefore
             );
 
+            //Capture current GroupBy focus BEFORE the progress window and metadata loader.
+            _schemaExplorerFocusPendingRestore = CaptureSchemaExplorerFocusBeforeRebind();
+
             _sharedSchemaPreviewBinding = true;
 
             //The non-Oracle legacy loaders currently publish some globals during load.
@@ -444,68 +472,87 @@ namespace JasonQuery.UI.Forms
 
             try
             {
-                //Use the exact four providers' established metadata loaders, but do not pass the MainForm Designer Grid to legacy QueryForm layout routines.
-                switch (_currentSourceType)
+                using (var progressForm = new MessageForm())
                 {
-                    case DataSourceType.Oracle:
+                    progressForm.Caption = LocalizationHelper.GetLanguageString("Please wait...", "Global", "Global", "msg", "PleaseWait", "Text");
+                    progressForm.Info = LocalizationHelper.GetLanguageString("Getting schema information...", "Global", "Global", "msg", "GetSchemaInfo", "Text");
+
+                    if (MyGlobal.IsShowColumnInfo && MyGlobal.ShowColumnInfo != -1)
                     {
-                        DatabaseSqlExecutor.UpdateSchemaData_Oracle(null);
-                        break;
+                        progressForm.Info = LocalizationHelper.GetLanguageString("Getting schema information (include all column information of Tables) ...", "Global", "Global", "msg", "GetSchemaInfoIncludeColumn", "Text");
                     }
-                    case DataSourceType.PostgreSql:
+
+                    progressForm.IsNeedToMovePosition = true;
+                    progressForm.StartPosition = FormStartPosition.CenterScreen;
+                    progressForm.TopLevel = true;
+                    progressForm.Show(this);
+                    progressForm.Refresh();
+
+                    //Use the exact four providers' established metadata loaders, but do not pass the MainForm Designer Grid to legacy QueryForm layout routines.
+                    switch (_currentSourceType)
                     {
-                        DatabaseSqlExecutor.UpdateSchemaData_PostgreSql(null, false);
-                        break;
+                        case DataSourceType.Oracle:
+                            {
+                                DatabaseSqlExecutor.UpdateSchemaData_Oracle(null);
+                                break;
+                            }
+                        case DataSourceType.PostgreSql:
+                            {
+                                DatabaseSqlExecutor.UpdateSchemaData_PostgreSql(null, false);
+                                break;
+                            }
+                        case DataSourceType.SqlServer:
+                            {
+                                DatabaseSqlExecutor.UpdateSchemaData_SqlServer(null, false);
+                                break;
+                            }
+                        case DataSourceType.MySql:
+                            {
+                                DatabaseSqlExecutor.UpdateSchemaData_MySql(null);
+                                break;
+                            }
+                        default:
+                            {
+                                throw new InvalidOperationException("No metadata loader for the current provider.");
+                            }
                     }
-                    case DataSourceType.SqlServer:
+
+                    //A DB switch or unexpected connection change during load must not publish new metadata under an unrelated logical scope.
+                    if (!string.Equals(scopeBefore, GetSharedSchemaDatabaseScope(), StringComparison.Ordinal))
                     {
-                        DatabaseSqlExecutor.UpdateSchemaData_SqlServer(null, false);
-                        break;
+                        throw new InvalidOperationException("Database scope changed during metadata refresh.");
                     }
-                    case DataSourceType.MySql:
+
+                    var includeColumns = MyGlobal.IsShowColumnInfo && MyGlobal.ShowColumnInfo != -1;
+
+                    if (!TryBindSharedSchemaExplorerMetadata(DatabaseSqlExecutor.dtSchema, _currentSourceType, includeColumns, true))
                     {
-                        DatabaseSqlExecutor.UpdateSchemaData_MySql(null);
-                        break;
+                        throw new InvalidOperationException("Metadata was loaded but could not be verified and bound.");
                     }
-                    default:
+
+                    var grid = _sharedSchemaExplorerGrid;
+
+                    grid.Visible = true;
+                    grid.BringToFront();
+
+                    _sharedLeftPanelHostPanel.BringToFront();
+
+                    LayoutSharedSchemaExplorerPreviewGrid();
+                    ExpandSharedSchemaExplorerPreviewDefaultGroups();
+                    RestoreSchemaExplorerFocusAfterSuccessfulRebind();
+
+                    //Each QueryForm rebinds from the one published batch. No extra DB query.
+                    for (var i = 0; i < tabControl1.TabPages.Count; i++)
                     {
-                        throw new InvalidOperationException("No metadata loader for the current provider.");
+                        if (tabControl1.TabPages[i].Control is QueryForm query)
+                        {
+                            query.ApplyPublishedSharedSchemaMetadata();
+                        }
                     }
+
+                    _sharedSchemaPreviewStatus.Text = "F7: metadata refreshed successfully.";
+                    ClearF7SchemaDirtyAfterSuccessfulReload();
                 }
-
-                //A DB switch or unexpected connection change during load must not publish new metadata under an unrelated logical scope.
-                if (!string.Equals(scopeBefore, GetSharedSchemaDatabaseScope(), StringComparison.Ordinal))
-                {
-                    throw new InvalidOperationException("Database scope changed during metadata refresh.");
-                }
-
-                var includeColumns = MyGlobal.IsShowColumnInfo && MyGlobal.ShowColumnInfo != -1;
-
-                if (!TryBindSharedSchemaExplorerMetadata(DatabaseSqlExecutor.dtSchema, _currentSourceType, includeColumns, true))
-                {
-                    throw new InvalidOperationException("Metadata was loaded but could not be verified and bound.");
-                }
-
-                var grid = _sharedSchemaExplorerGrid;
-
-                grid.Visible = true;
-                grid.BringToFront();
-
-                _sharedLeftPanelHostPanel.BringToFront();
-
-                LayoutSharedSchemaExplorerPreviewGrid();
-                ExpandSharedSchemaExplorerPreviewDefaultGroups();
-
-                //Each QueryForm rebinds from the one published batch. No extra DB query.
-                for (var i = 0; i < tabControl1.TabPages.Count; i++)
-                {
-                    if (tabControl1.TabPages[i].Control is QueryForm query)
-                    {
-                        query.ApplyPublishedSharedSchemaMetadata();
-                    }
-                }
-
-                _sharedSchemaPreviewStatus.Text = "F7: metadata refreshed successfully.";
             }
             catch (Exception)
             {
@@ -544,6 +591,9 @@ namespace JasonQuery.UI.Forms
             }
             finally
             {
+                //Restore consumes this on success; failures must never reuse stale UI state.
+                _schemaExplorerFocusPendingRestore = null;
+
                 _sharedSchemaPreviewBinding = false;
                 SyncSharedSchemaExplorerPreviewUI();
             }

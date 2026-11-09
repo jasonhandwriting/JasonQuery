@@ -1,4 +1,4 @@
-using JasonLibrary.Core.Database.Enums;
+﻿using JasonLibrary.Core.Database.Enums;
 using JasonLibrary.Core.Text.Formatting;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.QueryEngine.Editor.Editing;
@@ -8,7 +8,7 @@ using System;
 namespace JasonQuery.Tests.Core.QueryEngine.Editor.Editing
 {
     [TestClass]
-    public sealed class SqlFormatterStep5CFlowTests
+    public sealed class EditorSqlFormatterListItemsPerLineTests
     {
         [TestMethod]
         [DataRow(SqlFormatterEngineKind.Unknown)]

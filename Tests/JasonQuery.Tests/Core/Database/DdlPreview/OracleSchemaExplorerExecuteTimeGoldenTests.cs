@@ -11,7 +11,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
     //New F7 may display SQL from its cache, but authority is evaluated on Execute.
     [TestClass]
     [TestCategory("Q298")]
-    public sealed class OracleF7ExecuteTimeGoldenTests
+    public sealed class OracleSchemaExplorerExecuteTimeGoldenTests
     {
         private const string ValidSql = "DROP TABLE \"JQ98XX\".\"JQ98_B2_C_ADD\";";
 

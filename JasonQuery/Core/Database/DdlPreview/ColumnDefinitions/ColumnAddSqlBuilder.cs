@@ -46,7 +46,8 @@ namespace JasonQuery.Core.Database.DdlPreview.ColumnDefinitions
             }
 
             //Oracle Column Add follows the exact new name entered by the user.
-            var caseMode = request.DataSourceType == DataSourceType.Oracle ? DdlNewIdentifierCaseMode.PreserveInput : DdlNewIdentifierCaseMode.NormalizeDatabaseDefault;
+            var preserveInputCase = request.DataSourceType == DataSourceType.Oracle || request.DataSourceType == DataSourceType.PostgreSql;
+            var caseMode = preserveInputCase ? DdlNewIdentifierCaseMode.PreserveInput : DdlNewIdentifierCaseMode.NormalizeDatabaseDefault;
 
             var columnName = DdlIdentifierQuotingPolicy.QuoteNewIdentifier(request.DataSourceType, rawColumnName, caseMode);
 

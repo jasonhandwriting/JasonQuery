@@ -11,11 +11,11 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
     //Existing Q298 G01-G05 cover orchestration; these tests target real GUI integration seams.
     [TestClass]
     [TestCategory("Q298B2")]
-    public sealed class OracleF7GuiIntegrationGoldenTests
+    public sealed class OracleSchemaExplorerGuiIntegrationGoldenTests
     {
         private static MethodInfo CheckMetadataMethod()
         {
-            var helper = typeof(TableDdlRequest).Assembly.GetType("JasonQuery.UI.LeftPanel.OracleF7ExecuteTimeHelper", false);
+            var helper = typeof(TableDdlRequest).Assembly.GetType("JasonQuery.UI.LeftPanel.OracleSchemaExplorerExecuteTimeHelper", false);
 
             Assert.IsNotNull(helper, "New shared-F7 Oracle execution must use one common Table/Column coordinator.");
 
