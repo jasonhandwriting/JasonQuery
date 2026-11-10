@@ -1464,6 +1464,7 @@
   <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointRestored" attribute="Text" name="The SQL failed. This operation was rolled back to a savepoint. Earlier uncommitted changes remain in the transaction." />
   <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointCreationFailed" attribute="Text" name="A transaction savepoint could not be created; the SQL was not executed. Check the connection and transaction state." />
   <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointStateUncertain" attribute="Text" name="The SQL execution or savepoint recovery could not be fully verified. Check the transaction and schema before continuing." />
+  <language category="form" class="EditTableForm" type="msg" id="NonOracleF7DestructiveTableDdlConfirmation" attribute="Text" name="The selected operation can permanently remove the table or its data. Review the target and SQL before continuing." />
   <!-- EditTableFormData-->
   <language category="form" class="EditTableFormData" type="object" id="this" attribute="Text" name="Edit Table Data" />
   <language category="form" class="EditTableFormData" type="object" id="lblSchema" attribute="Text" name="Schema:" />

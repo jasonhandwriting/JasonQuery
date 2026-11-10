@@ -1136,6 +1136,52 @@ namespace JasonQuery.Database.Providers.Readers
             );
         }
 
+        //U3-B1: same connection, same savepoint handling, strictly restricted to one Table Comment.
+        public int ExecuteTableCommentOnVerifiedConnection(string sql, Guid expectedConnectionId, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand, out bool savepointRestored, out bool ddlDispatched)
+        {
+            if (!Core.Database.DdlPreview.NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedTableCommentSql(DataSourceType.PostgreSql, sql))
+            {
+                errorMessage = "F7U3B1_SQL_NOT_TABLE_COMMENT";
+                hasPendingTransactionAfterExecute = false;
+                isTransactionClosedBySqlCommand = false;
+                savepointRestored = false;
+                ddlDispatched = false;
+
+                return 0;
+            }
+
+            return ExecuteGuidedDdlOnVerifiedConnection
+            (
+                sql, expectedConnectionId, false,
+                out errorMessage, out hasPendingTransactionAfterExecute,
+                out isTransactionClosedBySqlCommand, out savepointRestored,
+                out ddlDispatched
+            );
+        }
+
+        //U3-B2: explicitly qualified Table DDL only. Existing verified connection and Savepoint stay unchanged.
+        internal int ExecuteTableDdlOnVerifiedConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation operation, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand, out bool savepointRestored, out bool ddlDispatched)
+        {
+            if (!Core.Database.DdlPreview.NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedTableDdlSql(DataSourceType.PostgreSql, operation, sql))
+            {
+                errorMessage = "F7U3B2_SQL_OPERATION_MISMATCH";
+                hasPendingTransactionAfterExecute = false;
+                isTransactionClosedBySqlCommand = false;
+                savepointRestored = false;
+                ddlDispatched = false;
+
+                return 0;
+            }
+
+            return ExecuteGuidedDdlOnVerifiedConnection
+            (
+                sql, expectedConnectionId, false,
+                out errorMessage, out hasPendingTransactionAfterExecute,
+                out isTransactionClosedBySqlCommand, out savepointRestored,
+                out ddlDispatched
+            );
+        }
+
         //Legacy PostgreSQL Table/Column GUI forms opt in without changing SQL Editor behavior.
         //Establish/reuse a transaction BEFORE capturing the physical identity; never reconnect inside the verified Savepoint + DDL + recovery sequence.
         public int ExecuteGuidedDdlWithSavepoint(string sql, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand, out bool savepointRestored)
@@ -1226,8 +1272,7 @@ namespace JasonQuery.Database.Providers.Readers
                     //The qualified NEW F7 entry stays Add-Column-only. Legacy GUI forms may use other single DDL verbs, but cannot inject COMMIT/ROLLBACK.
                     if (requireAddColumn)
                     {
-                        if (!string.Equals(statementType, "ALTER", StringComparison.OrdinalIgnoreCase)
-                            || !Regex.IsMatch(scriptText ?? string.Empty, @"^\s*ALTER\s+TABLE\s+.+?\s+ADD\s+(?:COLUMN\s+)?", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant))
+                        if (!string.Equals(statementType, "ALTER", StringComparison.OrdinalIgnoreCase) || !Regex.IsMatch(scriptText ?? string.Empty, @"^\s*ALTER\s+TABLE\s+.+?\s+ADD\s+(?:COLUMN\s+)?", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant))
                         {
                             errorMessage = "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
                             return 0;
@@ -1465,6 +1510,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DML";
                         result = "Select script - process ignored! (ExecuteNonQuery)";
                         sqlStatementType = "Select";
+
                         break;
                     }
                 case "WITH":
@@ -1519,6 +1565,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DDL";
                         result = "Create script - process OK!";
                         sqlStatementType = "Create";
+
                         break;
                     }
                 case "ALTER":
@@ -1526,6 +1573,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DDL";
                         result = "Alter script - process OK!";
                         sqlStatementType = "Alter";
+
                         break;
                     }
                 case "BATCH":
@@ -1533,6 +1581,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "Batch";
                         result = "Batch script - process OK!";
                         sqlStatementType = "Batch";
+
                         break;
                     }
                 case "DROP":
@@ -1540,6 +1589,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DDL";
                         result = "Drop script - process OK!";
                         sqlStatementType = "Drop";
+
                         break;
                     }
                 case "EXECUTE":
@@ -1547,6 +1597,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "Execute";
                         result = "Execute script - process OK!";
                         sqlStatementType = "Execute";
+
                         break;
                     }
                 case "EXTENDED":
@@ -1554,6 +1605,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "Extended";
                         result = "Extended script - process OK!";
                         sqlStatementType = "Extended";
+
                         break;
                     }
                 case "TRUNCATE":
@@ -1561,6 +1613,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DDL";
                         result = "Truncate script - process OK!";
                         sqlStatementType = "Truncate";
+
                         break;
                     }
                 case "ROLLBACK":
@@ -1568,6 +1621,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "TCL";
                         result = "Rollback script - process OK!";
                         sqlStatementType = "Rollback";
+
                         break;
                     }
                 case "COMMIT":
@@ -1575,6 +1629,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "TCL";
                         result = "Commit script - process OK!";
                         sqlStatementType = "Commit";
+
                         break;
                     }
                 case "UNKNOWN":

@@ -12,10 +12,16 @@ namespace JasonQuery.UI.LeftPanel
             var isTableCommand = command == SharedSchemaExplorerMenuCommand.CommentTable || command == SharedSchemaExplorerMenuCommand.DropTable || command == SharedSchemaExplorerMenuCommand.RenameTable || command == SharedSchemaExplorerMenuCommand.TruncateTable;
             var isColumnCommand = command == SharedSchemaExplorerMenuCommand.AddColumn || command == SharedSchemaExplorerMenuCommand.CommentColumn || command == SharedSchemaExplorerMenuCommand.DropColumn || command == SharedSchemaExplorerMenuCommand.RenameColumn;
 
-            return cachedSnapshotReadable && selection != null
-                   && selection.SourceType == JasonQuery.Core.Database.Connection.DataSourceType.Oracle
+            if (!cachedSnapshotReadable || selection == null)
+            {
+                return false;
+            }
+
+            var oracle = selection.SourceType == JasonQuery.Core.Database.Connection.DataSourceType.Oracle;
+            var accepted = oracle ? (isTableCommand || isColumnCommand) : isTableCommand;
+
+            return accepted
                    && (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm || target == LeftPanelTargetKind.OtherForm)
-                   && (isTableCommand || isColumnCommand)
                    && SharedSchemaExplorerObjectCommandPolicy.CanExecute(target, selection, command);
         }
 

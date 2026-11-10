@@ -52,12 +52,24 @@ namespace JasonQuery.UI.LeftPanel
                         return SchemaObjectTypeHelper.IsAny(selection.SchemaType, SchemaObjectNames.Tables, SchemaObjectNames.Views) && HasRequiredObjectScope(selection);
                     }
                 case SharedSchemaExplorerMenuCommand.CommentTable:
+                    {
+                        if (selection.SourceType == DataSourceType.Oracle)
+                        {
+                            return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm || target == LeftPanelTargetKind.OtherForm) && OracleSharedTableDdlBridgePolicy.IsTableObjectRow(selection);
+                        }
+
+                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm || target == LeftPanelTargetKind.OtherForm) && IsNonOracleAddColumnTableCandidate(selection);
+                    }
                 case SharedSchemaExplorerMenuCommand.DropTable:
                 case SharedSchemaExplorerMenuCommand.RenameTable:
                 case SharedSchemaExplorerMenuCommand.TruncateTable:
                     {
-                        //B3-B2-T GUI correction: only a G2-qualified Oracle TABLE data row or object-level group row may expose commands. MainForm and EditTableForm independently check live OracleReader identity before Preview/Execute.
-                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm || target == LeftPanelTargetKind.OtherForm) && OracleSharedTableDdlBridgePolicy.IsTableObjectRow(selection);
+                        if (selection.SourceType == DataSourceType.Oracle)
+                        {
+                            return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm || target == LeftPanelTargetKind.OtherForm) && OracleSharedTableDdlBridgePolicy.IsTableObjectRow(selection);
+                        }
+
+                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm || target == LeftPanelTargetKind.OtherForm) && IsNonOracleAddColumnTableCandidate(selection);
                     }
                 case SharedSchemaExplorerMenuCommand.AddColumn:
                     {

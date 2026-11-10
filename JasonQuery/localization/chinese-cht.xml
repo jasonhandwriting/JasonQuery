@@ -1464,6 +1464,7 @@
   <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointRestored" attribute="Text" name="SQL 執行失敗，已將本次操作還原至 Savepoint。先前尚未提交的變更仍保留在交易中。" />
   <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointCreationFailed" attribute="Text" name="無法建立交易 Savepoint，因此未執行 SQL。請檢查連線與交易狀態。" />
   <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointStateUncertain" attribute="Text" name="無法完整確認 SQL 執行或 Savepoint 回復結果。請先檢查交易與資料庫結構，再繼續操作。" />
+  <language category="form" class="EditTableForm" type="msg" id="NonOracleF7DestructiveTableDdlConfirmation" attribute="Text" name="此操作可能永久刪除資料表或清空其中的資料。請確認目標資料表及 SQL 後再繼續。" />
   <!-- EditTableFormData-->
   <language category="form" class="EditTableFormData" type="object" id="this" attribute="Text" name="編輯資料表資料" />
   <language category="form" class="EditTableFormData" type="object" id="lblSchema" attribute="Text" name="Schema:" />
