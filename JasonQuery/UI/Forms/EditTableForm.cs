@@ -42,6 +42,13 @@ namespace JasonQuery.UI.Forms
         internal SharedOracleMetadataCompletedLoadReceipt OracleF7Receipt { get; set; }
         internal string OracleF7SelectedOwner { get; set; }
 
+        //New shared F7, Table Comment only. Legacy/Oracle form entry points remain unchanged.
+        internal bool RequireNonOracleF7TableDdlGate { get; set; }
+        internal string NonOracleF7ExpectedDatabase { get; set; }
+        internal string NonOracleF7ExpectedSchema { get; set; }
+        internal string NonOracleF7ExpectedTable { get; set; }
+        internal string NonOracleF7ExpectedConnectionString { get; set; }
+
         public string Result { get; set; } //20250204 回傳值給呼叫方，判斷是否需要更新 Schema Info
         public string SchemaDatabase { get; set; }
         public string SchemaName { get; set; }
@@ -675,6 +682,327 @@ namespace JasonQuery.UI.Forms
             _editorMenu.Show(editorSqlPreview, new Point(e.X, e.Y));
         }
 
+        private TableDdlOperation GetNonOracleF7TableOperation()
+        {
+            switch (EditMode)
+            {
+                case EditTableMode.Comment:
+                    {
+                        return TableDdlOperation.Comment;
+                    }
+                case EditTableMode.Rename:
+                    {
+                        return TableDdlOperation.Rename;
+                    }
+                case EditTableMode.Drop:
+                    {
+                        return TableDdlOperation.Drop;
+                    }
+                case EditTableMode.Truncate:
+                    {
+                        return TableDdlOperation.Truncate;
+                    }
+                default:
+                    {
+                        return TableDdlOperation.None;
+                    }
+            }
+        }
+
+        private string GetNonOracleF7DisplayedTableName()
+        {
+            switch (EditMode)
+            {
+                case EditTableMode.Comment:
+                    {
+                        return txtTableName_Comment.Text;
+                    }
+                case EditTableMode.Rename:
+                    {
+                        return txtTableName_Rename.Text;
+                    }
+                case EditTableMode.Drop:
+                    {
+                        return txtTableName_Drop.Text;
+                    }
+                case EditTableMode.Truncate:
+                    {
+                        return txtTableName_Truncate.Text;
+                    }
+                default:
+                    {
+                        return string.Empty;
+                    }
+            }
+        }
+
+        private string TryExecuteNonOracleF7TableDdl(out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand, out bool didDispatch)
+        {
+            var readerError = string.Empty;
+            var pending = false;
+            var closed = false;
+            var dispatched = false;
+            var pgSavepointRestored = false;
+            var operation = GetNonOracleF7TableOperation();
+
+            errorMessage = string.Empty;
+            hasPendingTransactionAfterExecute = false;
+            isTransactionClosedBySqlCommand = false;
+            didDispatch = false;
+
+            if (operation == TableDdlOperation.None || IsOracle || !RequireNonOracleF7TableDdlGate
+                || string.IsNullOrWhiteSpace(NonOracleF7ExpectedConnectionString)
+                || DatabaseSqlExecutor.CurrentDataSource != _currentSourceType)
+            {
+                return "F7U2C2_CONNECTION_UNVERIFIED";
+            }
+
+            if (!string.Equals(NonOracleF7ExpectedConnectionString, DatabaseSqlExecutor.DbConnectionString, StringComparison.Ordinal))
+            {
+                return "F7U2C2_CONNECTION_CHANGED";
+            }
+
+            var pendingOrUnknownTransaction = AppConfigHelper.IsNotCommitYet;
+            var mysqlAcknowledged = !IsMySql;
+
+            if (!pendingOrUnknownTransaction && (operation == TableDdlOperation.Drop || operation == TableDdlOperation.Truncate))
+            {
+                //One deliberate confirmation for destructive operations, with exact qualified target and preview SQL.
+                var action = operation == TableDdlOperation.Drop ? lblDropInfo.Text : lblTruncateInfo.Text;
+                var defaultText = "The selected operation can permanently remove the table or its data. Review the target and SQL before continuing.";
+                var warning = LocalizationHelper.GetLanguageString(defaultText, "form", GetType().Name, "msg", "NonOracleF7DestructiveTableDdlConfirmation", "Text");
+                var qualifiedTarget = IsMySql ? NonOracleF7ExpectedDatabase + "." + NonOracleF7ExpectedTable : IsSqlServer ? NonOracleF7ExpectedDatabase + "." + NonOracleF7ExpectedSchema + "." + NonOracleF7ExpectedTable : NonOracleF7ExpectedSchema + "." + NonOracleF7ExpectedTable;
+                var prompt = action + "\r\n" + qualifiedTarget + "\r\n\r\n" + warning + "\r\n\r\n" + editorSqlPreview.Text;
+
+                if (IsMySql)
+                {
+                    prompt += "\r\n\r\n" + LocalizationHelper.GetLanguageString
+                    (
+                        "MySQL DDL may implicitly commit the transaction, including uncommitted changes. This operation cannot be undone with a normal ROLLBACK.",
+                        "form", "EditColumnForm", "msg", "MySqlDdlImplicitCommitConfirmation", "Text"
+                    );
+                }
+
+                if (MessageBox.Show(prompt, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                {
+                    return "F7U2C98_USER_CANCELLED";
+                }
+
+                if (IsMySql)
+                {
+                    mysqlAcknowledged = true;
+                }
+            }
+
+            if (IsMySql && !pendingOrUnknownTransaction && !mysqlAcknowledged)
+            {
+                var defaultMessage = "MySQL DDL may implicitly commit the transaction, including uncommitted changes.\r\nThis operation cannot be undone with a normal ROLLBACK. Do you want to continue?";
+                var message = LocalizationHelper.GetLanguageString(defaultMessage, "form", "EditColumnForm", "msg", "MySqlDdlImplicitCommitConfirmation", "Text");
+
+                mysqlAcknowledged = MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes;
+
+                if (!mysqlAcknowledged)
+                {
+                    return "F7U2C98_USER_CANCELLED";
+                }
+            }
+
+            var status = NonOracleSchemaExplorerDdlExecuteGate.TryExecuteF7
+            (
+                _currentSourceType,
+                pendingOrUnknownTransaction,
+                mysqlAcknowledged,
+                () =>
+                {
+                    if (!string.Equals(NonOracleF7ExpectedConnectionString, DatabaseSqlExecutor.DbConnectionString, StringComparison.Ordinal) || DatabaseSqlExecutor.CurrentDataSource != _currentSourceType)
+                    {
+                        return "F7U2C2_CONNECTION_CHANGED";
+                    }
+
+                    var connectionError = string.Empty;
+                    bool opened = false;
+
+                    switch (_currentSourceType)
+                    {
+                        case DataSourceType.PostgreSql:
+                            {
+                                opened = MyGlobal.PostgreSqlReader != null && MyGlobal.PostgreSqlReader.TryEnsureConnectionOpen(out connectionError);
+                                break;
+                            }
+                        case DataSourceType.SqlServer:
+                            {
+                                opened = MyGlobal.SqlServerReader != null && MyGlobal.SqlServerReader.TryEnsureConnectionOpen(out connectionError);
+                                break;
+                            }
+                        case DataSourceType.MySql:
+                            {
+                                opened = MyGlobal.MySqlReader != null && MyGlobal.MySqlReader.TryEnsureConnectionOpen(out connectionError);
+                                break;
+                            }
+                    }
+
+                    if (!opened)
+                    {
+                        readerError = connectionError;
+                        return "F7U2C2_CONNECTION_FAILED";
+                    }
+
+                    return string.Empty;
+                },
+                () =>
+                {
+                    if (!string.Equals(NonOracleF7ExpectedConnectionString, DatabaseSqlExecutor.DbConnectionString, StringComparison.Ordinal) || DatabaseSqlExecutor.CurrentDataSource != _currentSourceType)
+                    {
+                        return "F7U2C2_CONNECTION_CHANGED";
+                    }
+
+                    //The preview is rebuilt from this visible TextBox, not just from the form's TableName property.
+                    //Do not allow the SQL generator to retarget a different Table while preserving the original F7 identity.
+                    if (!string.Equals(GetNonOracleF7DisplayedTableName(), NonOracleF7ExpectedTable, StringComparison.Ordinal))
+                    {
+                        return "F7U2C2_TABLE_MISMATCH";
+                    }
+
+                    return NonOracleSchemaExplorerDdlExecuteGate.ValidateFormIntent
+                    (
+                        _currentSourceType,
+                        NonOracleF7ExpectedDatabase,
+                        NonOracleF7ExpectedSchema,
+                        NonOracleF7ExpectedTable,
+                        SchemaDatabase,
+                        SchemaName,
+                        TableName,
+                        IsPostgreSql ? MyGlobal.PostgreSqlReader?.CurrentOpenDatabaseName : string.Empty,
+                        editorSqlPreview.Text,
+                        BuildTableDdlSql(operation)
+                    );
+                },
+                () =>
+                {
+                    switch (_currentSourceType)
+                    {
+                        case DataSourceType.PostgreSql:
+                            {
+                                return MyGlobal.PostgreSqlReader?.CurrentOpenConnectionId ?? Guid.Empty;
+                            }
+                        case DataSourceType.SqlServer:
+                            {
+                                return MyGlobal.SqlServerReader?.CurrentOpenConnectionId ?? Guid.Empty;
+                            }
+                        case DataSourceType.MySql:
+                            {
+                                return MyGlobal.MySqlReader?.CurrentOpenConnectionId ?? Guid.Empty;
+                            }
+                        default:
+                            {
+                                return Guid.Empty;
+                            }
+                    }
+                },
+                connectionId =>
+                {
+                    var sql = editorSqlPreview.Text;
+
+                    if (!NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedTableDdlSql(_currentSourceType, operation, sql))
+                    {
+                        return "F7U3B2_SQL_OPERATION_MISMATCH";
+                    }
+
+                    switch (_currentSourceType)
+                    {
+                        case DataSourceType.PostgreSql:
+                            {
+                                MyGlobal.PostgreSqlReader.ExecuteTableDdlOnVerifiedConnection(sql, connectionId, operation, out readerError, out pending, out closed, out pgSavepointRestored, out dispatched);
+                                break;
+                            }
+                        case DataSourceType.SqlServer:
+                            {
+                                MyGlobal.SqlServerReader.ExecuteTableDdlOnVerifiedConnection(sql, connectionId, operation, out readerError, out pending, out closed);
+                                break;
+                            }
+                        case DataSourceType.MySql:
+                            {
+                                MyGlobal.MySqlReader.ExecuteTableDdlOnVerifiedConnection(sql, connectionId, operation, out readerError, out pending, out closed);
+                                break;
+                            }
+                        default:
+                            {
+                                return "F7U2C2_INVALID_PROVIDER";
+                            }
+                    }
+
+                    if (!string.IsNullOrEmpty(readerError))
+                    {
+                        dispatched = IsPostgreSql ? dispatched : readerError.StartsWith("F7U2C3B_EXECUTION_OUTCOME_UNKNOWN", StringComparison.Ordinal);
+                        return readerError;
+                    }
+
+                    dispatched = true;
+                    return string.Empty;
+                }
+            );
+
+            errorMessage = readerError;
+            hasPendingTransactionAfterExecute = pending;
+            isTransactionClosedBySqlCommand = closed;
+            didDispatch = dispatched;
+
+            return status;
+        }
+
+        //Return an actionable localized message; machine-readable status belongs in SQL History.
+        private string GetNonOracleF7TableDdlFailureMessage(string status, string errorMessage)
+        {
+            string messageId;
+            string fallback;
+
+            if (status.StartsWith("F7U2C3B_SQL_ERROR_SAVEPOINT_RESTORED", StringComparison.Ordinal))
+            {
+                return FormatPostgreSqlGuidedDdlFailure(status);
+            }
+
+            if (status.StartsWith("F7U2C3B_SAVEPOINT_", StringComparison.Ordinal))
+            {
+                return FormatPostgreSqlGuidedDdlFailure(status);
+            }
+
+            if (status.IndexOf("EXECUTION_OUTCOME_UNKNOWN", StringComparison.Ordinal) >= 0)
+            {
+                messageId = "NonOracleF7ExecutionOutcomeUnknown";
+                fallback = "The execution result could not be confirmed. Verify the schema and transaction before retrying.";
+            }
+            else if (status.IndexOf("CONNECTION", StringComparison.Ordinal) >= 0)
+            {
+                messageId = "NonOracleF7ConnectionChanged";
+                fallback = "The database connection is not the one selected. Close this form and reopen Table Comment from Schema Explorer.";
+            }
+            else if (status.IndexOf("TRANSACTION", StringComparison.Ordinal) >= 0)
+            {
+                messageId = "NonOracleF7TransactionUnsafe";
+                fallback = "An unfinished or uncertain transaction prevents this schema change. Confirm its state before continuing.";
+            }
+            else
+            {
+                messageId = "NonOracleF7SafetyCheckFailed";
+                fallback = "Table Comment was stopped by a safety check. Verify the selected database, table and SQL.";
+            }
+
+            //Reuse the generic localized transaction/outcome warnings. Never display Add Column-specific connection/safety text while the user is commenting a Table.
+            var message = messageId == "NonOracleF7ConnectionChanged" || messageId == "NonOracleF7SafetyCheckFailed"
+                ? LocalizationHelper.GetLanguageString("Table operation for {0} failed.", "form", GetType().Name, "msg", $"{EditMode}NG", "Text").Replace("{0}", TableName) + "\r\n" + fallback
+                : LocalizationHelper.GetLanguageString(fallback, "form", "EditColumnForm", "msg", messageId, "Text");
+
+            var separator = status.IndexOf(": ", StringComparison.Ordinal);
+            var detail = separator >= 0 ? status.Substring(separator + 2) : errorMessage;
+
+            if (!string.IsNullOrWhiteSpace(detail) && !detail.StartsWith("F7U", StringComparison.Ordinal))
+            {
+                message += "\r\n\r\n" + detail;
+            }
+
+            return message;
+        }
+
         private void btnExecute_Click(object sender, EventArgs e)
         {
             //Defense in depth: programmatic PerformClick must not bypass preview-only restrictions.
@@ -819,6 +1147,43 @@ namespace JasonQuery.UI.Forms
                     }
                 }
 
+                var newF7NonOracleDispatched = false;
+
+                if (RequireNonOracleF7TableDdlGate)
+                {
+                    var guardedStatus = TryExecuteNonOracleF7TableDdl
+                    (
+                        out errorMessage,
+                        out hasPendingTransactionAfterExecute,
+                        out isTransactionClosedBySqlCommand,
+                        out newF7NonOracleDispatched
+                    );
+
+                    if (string.Equals(guardedStatus, "F7U2C98_USER_CANCELLED", StringComparison.Ordinal))
+                    {
+                        return;
+                    }
+
+                    if (!string.IsNullOrEmpty(guardedStatus))
+                    {
+                        var message = GetNonOracleF7TableDdlFailureMessage(guardedStatus, errorMessage);
+
+                        MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
+                        if (newF7NonOracleDispatched)
+                        {
+                            UpdateSqlHistory(0, "Error", message + "\r\n" + guardedStatus, sqlText);
+                        }
+
+                        if (IsPostgreSql && hasPendingTransactionAfterExecute)
+                        {
+                            TransferValueToMainForm("UpdateCommitRollbackButton`");
+                        }
+
+                        return;
+                    }
+                }
+
                 switch (_currentSourceType)
                 {
                     case DataSourceType.Oracle:
@@ -838,38 +1203,47 @@ namespace JasonQuery.UI.Forms
                         }
                     case DataSourceType.PostgreSql:
                         {
-                            MyGlobal.PostgreSqlReader.ExecuteGuidedDdlWithSavepoint
-                            (
-                                sqlText,
-                                out errorMessage,
-                                out hasPendingTransactionAfterExecute,
-                                out isTransactionClosedBySqlCommand,
-                                out _
-                            );
+                            if (!newF7NonOracleDispatched)
+                            {
+                                MyGlobal.PostgreSqlReader.ExecuteGuidedDdlWithSavepoint
+                                (
+                                    sqlText,
+                                    out errorMessage,
+                                    out hasPendingTransactionAfterExecute,
+                                    out isTransactionClosedBySqlCommand,
+                                    out _
+                                );
+                            }
 
                             break;
                         }
                     case DataSourceType.SqlServer:
                         {
-                            MyGlobal.SqlServerReader.ExecuteSingleNonQuery
-                            (
-                                sqlText,
-                                out errorMessage,
-                                out hasPendingTransactionAfterExecute,
-                                out isTransactionClosedBySqlCommand
-                            );
+                            if (!newF7NonOracleDispatched)
+                            {
+                                MyGlobal.SqlServerReader.ExecuteSingleNonQuery
+                                (
+                                    sqlText,
+                                    out errorMessage,
+                                    out hasPendingTransactionAfterExecute,
+                                    out isTransactionClosedBySqlCommand
+                                );
+                            }
 
                             break;
                         }
                     case DataSourceType.MySql:
                         {
-                            MyGlobal.MySqlReader.ExecuteSingleNonQuery
-                            (
-                                sqlText,
-                                out errorMessage,
-                                out hasPendingTransactionAfterExecute,
-                                out isTransactionClosedBySqlCommand
-                            );
+                            if (!newF7NonOracleDispatched)
+                            {
+                                MyGlobal.MySqlReader.ExecuteSingleNonQuery
+                                (
+                                    sqlText,
+                                    out errorMessage,
+                                    out hasPendingTransactionAfterExecute,
+                                    out isTransactionClosedBySqlCommand
+                                );
+                            }
 
                             break;
                         }
@@ -948,7 +1322,6 @@ namespace JasonQuery.UI.Forms
 
                 //更新 SQL 歷史記錄
                 UpdateSqlHistory(0, resultExecuted, $"{note}{lineBreak}", editorSqlPreview.Text);
-
             }
             catch (Exception ex)
             {

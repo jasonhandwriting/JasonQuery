@@ -1394,7 +1394,7 @@
   <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7ConnectionUnverified" attribute="Text" name="无法验证当前数据库连接。&#x000A;请重新连接、刷新 Schema Explorer，再重新打开新增字段窗体。" />
   <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7ConnectionChanged" attribute="Text" name="数据库连接已更改。&#x000A;请关闭此窗体，从当前 Schema Explorer 重新打开新增字段。" />
   <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7TransactionUnsafe" attribute="Text" name="事务尚未完成或状态不明。&#x000A;再次更改数据库结构前，请先确认事务状态。" />
-  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7SafetyCheckFailed" attribute="Text" name="新增字段操作未通过安全检查，因此已停止。&#x000A;请确认数据库、数据表及 SQL，再重新打开窗体。" />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7SafetyCheckFailed" attribute="Text" name="新增字段操作未通过安全检查，因此已停止。&#x000A;请确认数据库、表及 SQL，再重新打开窗体。" />
   <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7PostgreSqlAutoRollbackCompleted" attribute="Text" name="SQL 执行失败后，已按照设置自动执行 Rollback。本次事务中尚未提交的更改均已回滚。" />
   <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlGuiDdlSavepointRestored" attribute="Text" name="SQL 执行失败，已将本次操作回滚至 Savepoint。之前尚未提交的更改仍保留在事务中。" />
   <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlGuiDdlSavepointCreationFailed" attribute="Text" name="无法建立事务 Savepoint，因此未执行 SQL。请检查连接与事务状态。" />
@@ -1432,10 +1432,10 @@
   <language category="form" class="EditTableForm" type="object" id="chkTruncateCascade" attribute="Text" name="Cascade" />
   <language category="form" class="EditTableForm" type="msg" id="Help_TruncateCascade" attribute="Text" name="Automatically truncate all tables that have foreign-key references to any of the named tables, or to any tables added to the group due to CASCADE." />
   <language category="form" class="EditTableForm" type="object" id="lblPrompt1" attribute="Text" name="请注意:&#x000A;1. 所有执行过的 SQL 语句，会被记录在 “SQL 历史记录” 中。" />
-  <language category="form" class="EditTableForm" type="object" id="lblPrompt2_Oracle" attribute="Text" name="2. Oracle 的数据表 DDL 会在执行前隐式提交事务，成功后也会提交；之前未提交的更改可能一并提交。&#x000A;    这是 Oracle 的行为，并非 JasonQuery 主动 Commit；已提交的更改无法通过 Rollback 撤销。" />
-  <language category="form" class="EditTableForm" type="object" id="lblPrompt2_PostgreSql" attribute="Text" name="2. PostgreSQL 的数据表操作受事务控制。SQL 成功执行后，JasonQuery 不会自动提交事务。&#x000A;    请返回主窗口选择 Commit 或 Rollback，以完成事务并释放相关锁定。" />
-  <language category="form" class="EditTableForm" type="object" id="lblPrompt2_SqlServer" attribute="Text" name="2. SQL Server 的数据表操作可受事务控制。SQL 成功执行后，JasonQuery 不会主动 Commit。&#x000A;    若事务尚未结束，请返回主窗口选择 Commit 或 Rollback，以完成事务并释放相关锁定。" />
-  <language category="form" class="EditTableForm" type="object" id="lblPrompt2_MySql" attribute="Text" name="2. MySQL 的数据表 DDL 通常会在执行前及成功后隐式提交事务，之前未提交的更改也可能一并提交。&#x000A;    这是 MySQL 的行为，并非 JasonQuery 主动 Commit；已提交的更改无法通过 Rollback 撤销。" />
+  <language category="form" class="EditTableForm" type="object" id="lblPrompt2_Oracle" attribute="Text" name="2. Oracle 的表 DDL 会在执行前隐式提交事务，成功后也会提交；之前未提交的更改可能一并提交。&#x000A;    这是 Oracle 的行为，并非 JasonQuery 主动 Commit；已提交的更改无法通过 Rollback 撤销。" />
+  <language category="form" class="EditTableForm" type="object" id="lblPrompt2_PostgreSql" attribute="Text" name="2. PostgreSQL 的表操作受事务控制。SQL 成功执行后，JasonQuery 不会自动提交事务。&#x000A;    请返回主窗口选择 Commit 或 Rollback，以完成事务并释放相关锁定。" />
+  <language category="form" class="EditTableForm" type="object" id="lblPrompt2_SqlServer" attribute="Text" name="2. SQL Server 的表操作可受事务控制。SQL 成功执行后，JasonQuery 不会主动 Commit。&#x000A;    若事务尚未结束，请返回主窗口选择 Commit 或 Rollback，以完成事务并释放相关锁定。" />
+  <language category="form" class="EditTableForm" type="object" id="lblPrompt2_MySql" attribute="Text" name="2. MySQL 的表 DDL 通常会在执行前及成功后隐式提交事务，之前未提交的更改也可能一并提交。&#x000A;    这是 MySQL 的行为，并非 JasonQuery 主动 Commit；已提交的更改无法通过 Rollback 撤销。" />
   <language category="form" class="EditTableForm" type="object" id="btnExecute" attribute="Text" name="执行(&amp;X)" />
   <language category="form" class="EditTableForm" type="object" id="btnClose" attribute="Text" name="关闭(&amp;C)" />
   <language category="form" class="EditTableForm" type="object" id="grpSqlPreview" attribute="Text" name="SQL 预览" />
@@ -1464,6 +1464,7 @@
   <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointRestored" attribute="Text" name="SQL 执行失败，已将本次操作回滚至 Savepoint。之前尚未提交的更改仍保留在事务中。" />
   <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointCreationFailed" attribute="Text" name="无法建立事务 Savepoint，因此未执行 SQL。请检查连接与事务状态。" />
   <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointStateUncertain" attribute="Text" name="无法完整确认 SQL 执行或 Savepoint 回滚结果。请先检查事务和数据库结构，再继续操作。" />
+  <language category="form" class="EditTableForm" type="msg" id="NonOracleF7DestructiveTableDdlConfirmation" attribute="Text" name="此操作可能永久删除表或清空其中的数据。请确认目标表及 SQL 后再继续。" />
   <!-- EditTableFormData-->
   <language category="form" class="EditTableFormData" type="object" id="this" attribute="Text" name="编辑表数据" />
   <language category="form" class="EditTableFormData" type="object" id="lblSchema" attribute="Text" name="Schema:" />

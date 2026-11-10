@@ -636,7 +636,6 @@ namespace JasonQuery.Database.Providers.Readers
 
                     command.CommandType = CommandType.Text;
                     command.CommandTimeout = QueryTimeout;
-
                     command.Parameters.Add(fieldName, lob);
 
                     affectedRows = command.ExecuteNonQuery();
@@ -1123,6 +1122,7 @@ namespace JasonQuery.Database.Providers.Readers
 
             databaseName = databaseName.TrimEnd(';').Trim();
             databaseName = databaseName.Trim('`');
+
             return databaseName;
         }
 
@@ -1130,6 +1130,22 @@ namespace JasonQuery.Database.Providers.Readers
         //F7-U2-C3B: DDL-only. Deliberately does NOT call EnsureConnectionOpen or retry.
         //C3-C must verify live database, table identity, transaction and exact builder SQL on this same physical connection immediately before dispatch.
         public int ExecuteSingleNonQueryOnVerifiedConnection(string sql, Guid expectedConnectionId, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
+        {
+            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, null, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
+        }
+
+        //Existing Add Column remains distinct. Table DDL entry is explicitly bound to the operation.
+        public int ExecuteTableCommentOnVerifiedConnection(string sql, Guid expectedConnectionId, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
+        {
+            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation.Comment, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
+        }
+
+        internal int ExecuteTableDdlOnVerifiedConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation operation, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
+        {
+            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, operation, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
+        }
+
+        private int ExecuteVerifiedF7DdlOnConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation? tableOperation, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
         {
             errorMessage = string.Empty;
             hasPendingTransactionAfterExecute = false;
@@ -1166,7 +1182,7 @@ namespace JasonQuery.Database.Providers.Readers
                 {
                     if (script.Statements.Count != 1)
                     {
-                        errorMessage = "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
+                        errorMessage = tableOperation.HasValue ? "F7U3B2_SQL_NOT_SINGLE_TABLE_DDL" : "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
                         return 0;
                     }
 
@@ -1174,10 +1190,13 @@ namespace JasonQuery.Database.Providers.Readers
                     var scriptText = statement.Text;
                     var statementType = statement.StatementType.ToString();
 
-                    if (!string.Equals(statementType, "ALTER", StringComparison.OrdinalIgnoreCase)
-                        || !Regex.IsMatch(scriptText ?? string.Empty, @"^\s*ALTER\s+TABLE\s+.+?\s+ADD\s+(?:COLUMN\s+)?", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant))
+                    var qualifiedSql = tableOperation.HasValue
+                        ? Core.Database.DdlPreview.NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedTableDdlSql(DataSourceType.MySql, tableOperation.Value, scriptText)
+                        : string.Equals(statementType, "ALTER", StringComparison.OrdinalIgnoreCase) && Regex.IsMatch(scriptText ?? string.Empty, @"^\s*ALTER\s+TABLE\s+.+?\s+ADD\s+(?:COLUMN\s+)?", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+                    if (!qualifiedSql)
                     {
-                        errorMessage = "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
+                        errorMessage = tableOperation.HasValue ? "F7U3B2_SQL_OPERATION_MISMATCH" : "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
                         return 0;
                     }
 
@@ -1204,7 +1223,7 @@ namespace JasonQuery.Database.Providers.Readers
 
                         var affectedRows = command.ExecuteNonQuery();
 
-                        GetResultString(statementType, "ALTER", affectedRows, out _sqlStatementType, scriptText);
+                        GetResultString(statementType, tableOperation.HasValue ? tableOperation.Value.ToString().ToUpperInvariant() : "ALTER", affectedRows, out _sqlStatementType, scriptText);
 
                         isTransactionClosedBySqlCommand = true; //MySQL ALTER TABLE implicitly commits.
                         _f7DdlConnectionId = Guid.Empty; //The existing transaction handle cannot be reused as a verified DDL token.
@@ -1325,6 +1344,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DML";
                         result = "Select script - process ignored! (ExecuteNonQuery)";
                         sqlStatementType = "Select";
+
                         break;
                     }
                 case "WITH":
@@ -1379,6 +1399,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DDL";
                         result = "Create script - process OK!";
                         sqlStatementType = "Create";
+
                         break;
                     }
                 case "ALTER":
@@ -1386,6 +1407,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DDL";
                         result = "Alter script - process OK!";
                         sqlStatementType = "Alter";
+
                         break;
                     }
                 case "BATCH":
@@ -1393,6 +1415,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "Batch";
                         result = "Batch script - process OK!";
                         sqlStatementType = "Batch";
+
                         break;
                     }
                 case "DROP":
@@ -1400,6 +1423,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DDL";
                         result = "Drop script - process OK!";
                         sqlStatementType = "Drop";
+
                         break;
                     }
                 case "EXEC":
@@ -1407,6 +1431,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "Exec";
                         result = "Exec script - process OK!";
                         sqlStatementType = "Exec";
+
                         break;
                     }
                 case "EXECUTE":
@@ -1414,6 +1439,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "Execute";
                         result = "Execute script - process OK!";
                         sqlStatementType = "Execute";
+
                         break;
                     }
                 case "EXTENDED":
@@ -1421,6 +1447,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "Extended";
                         result = "Extended script - process OK!";
                         sqlStatementType = "Extended";
+
                         break;
                     }
                 case "TRUNCATE":
@@ -1428,6 +1455,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DDL";
                         result = "Truncate script - process OK!";
                         sqlStatementType = "Truncate";
+
                         break;
                     }
                 case "ROLLBACK":
@@ -1435,6 +1463,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "TCL";
                         result = "Rollback script - process OK!";
                         sqlStatementType = "Rollback";
+
                         break;
                     }
                 case "COMMIT":
@@ -1442,6 +1471,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "TCL";
                         result = "Commit script - process OK!";
                         sqlStatementType = "Commit";
+
                         break;
                     }
                 case "UNKNOWN":
@@ -1453,6 +1483,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "DCL";
                                     result = "Grant script - process OK!";
                                     sqlStatementType = "Grant";
+
                                     break;
                                 }
                             case "REVOKE":
@@ -1460,6 +1491,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "DCL";
                                     result = "Revoke script - process OK!";
                                     sqlStatementType = "Revoke";
+
                                     break;
                                 }
                             case "SAVEPOINT":
@@ -1467,6 +1499,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "TCL";
                                     result = "Savepoint script - process OK!";
                                     sqlStatementType = "Savepoint";
+
                                     break;
                                 }
                             case "MERGE":
@@ -1474,6 +1507,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "DML";
                                     result = "Merge script - process OK!";
                                     sqlStatementType = "Merge";
+
                                     break;
                                 }
                             case "CALL":
@@ -1481,6 +1515,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "DML";
                                     result = "Call script - process OK!";
                                     sqlStatementType = "Call";
+
                                     break;
                                 }
                             case "EXPLAIN":
@@ -1488,6 +1523,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "DML";
                                     result = "Explain script - process OK!";
                                     sqlStatementType = "Explain";
+
                                     break;
                                 }
                             case "LOCK":
@@ -1495,6 +1531,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "Lock";
                                     result = "Lock script - process OK!";
                                     sqlStatementType = "Lock";
+
                                     break;
                                 }
                             case "COMMENT":
@@ -1502,6 +1539,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "DDL";
                                     result = "Comment script - process OK!";
                                     sqlStatementType = "Comment";
+
                                     break;
                                 }
                             case "USE":
@@ -1509,6 +1547,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "Use";
                                     result = "Use script - Database changed!";
                                     sqlStatementType = "Use";
+
                                     break;
                                 }
                             case "RENAME":
@@ -1516,6 +1555,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "DDL";
                                     result = "Rename script - process OK!";
                                     sqlStatementType = "Rename";
+
                                     break;
                                 }
                             case "ANALYZE":
@@ -1523,6 +1563,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "DDL";
                                     result = "Analyze script - process OK!";
                                     sqlStatementType = "Analyze";
+
                                     break;
                                 }
                             case "OPTIMIZE":
@@ -1530,6 +1571,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "DDL";
                                     result = "Optimize script - process OK!";
                                     sqlStatementType = "Optimize";
+
                                     break;
                                 }
                             case "REPAIR":
@@ -1537,6 +1579,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "DDL";
                                     result = "Repair script - process OK!";
                                     sqlStatementType = "Repair";
+
                                     break;
                                 }
                             case "CHECK":
@@ -1544,6 +1587,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "DDL";
                                     result = "Check script - process OK!";
                                     sqlStatementType = "Check";
+
                                     break;
                                 }
                             case "UNLOCK":
@@ -1551,6 +1595,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = "Unlock";
                                     result = "Unlock script - process OK!";
                                     sqlStatementType = "Unlock";
+
                                     break;
                                 }
                             default:
@@ -1558,6 +1603,7 @@ namespace JasonQuery.Database.Providers.Readers
                                     _sqlType = firstWord;
                                     result = $"{firstWord} script - process OK!";
                                     sqlStatementType = "Unknown";
+
                                     break;
                                 }
                         }
@@ -1569,6 +1615,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DML";
                         result = $"{affectedRows} inserted.";
                         sqlStatementType = "Insert";
+
                         break;
                     }
                 case "UPDATE":
@@ -1576,6 +1623,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DML";
                         result = $"{affectedRows} updated.";
                         sqlStatementType = "Update";
+
                         break;
                     }
                 case "DELETE":
@@ -1583,6 +1631,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = "DML";
                         result = $"{affectedRows} deleted.";
                         sqlStatementType = "Delete";
+
                         break;
                     }
                 default:
@@ -1590,6 +1639,7 @@ namespace JasonQuery.Database.Providers.Readers
                         _sqlType = firstWord;
                         result = $"{affectedRows} {mode} (undefineMode@JasonQuery)";
                         sqlStatementType = "Unknown";
+
                         break;
                     }
             }

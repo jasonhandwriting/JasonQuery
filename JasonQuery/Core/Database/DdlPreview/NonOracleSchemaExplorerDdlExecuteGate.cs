@@ -226,6 +226,150 @@ namespace JasonQuery.Core.Database.DdlPreview
             return reason ?? "F7U2C2_EXECUTION_OUTCOME_UNKNOWN";
         }
 
+        //U3-B1: operation-specific SQL-shape gate. Exact target and SQL equality are independently checked at Execute time.
+        //The provider Reader also requires one parsed statement on the same verified physical connection.
+        public static bool IsQualifiedTableCommentSql(DataSourceType provider, string sql)
+        {
+            if (!IsSupportedProvider(provider) || string.IsNullOrWhiteSpace(sql))
+            {
+                return false;
+            }
+
+            const System.Text.RegularExpressions.RegexOptions options = System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant | System.Text.RegularExpressions.RegexOptions.Singleline;
+
+            switch (provider)
+            {
+                case DataSourceType.PostgreSql:
+                    {
+                        return System.Text.RegularExpressions.Regex.IsMatch(sql, @"^\s*COMMENT\s+ON\s+TABLE\s+.+?\s+IS\s+'(?:''|[^'])*';?\s*$", options);
+                    }
+                case DataSourceType.SqlServer:
+                    {
+                        return System.Text.RegularExpressions.Regex.IsMatch(sql, @"^\s*EXEC\s+\[[^\r\n]+\]\.\[sys\]\.\[sp_(?:add|update)extendedproperty\]\s+@name=N'MS_Description',.*@level1type=N'TABLE',.*@level1name=N'(?:''|[^'])*';?\s*$", options);
+                    }
+                case DataSourceType.MySql:
+                    {
+                        return System.Text.RegularExpressions.Regex.IsMatch(sql, @"^\s*ALTER\s+TABLE\s+.+?\s+COMMENT\s*=\s*'(?:''|[^'])*';?\s*$", options);
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+        }
+
+        //U3-B2: this is only the SQL-shape whitelist. Caller must also verify captured target, exact form SQL, connection and transaction; Reader rejects multi-statement scripts.
+        public static bool IsQualifiedTableDdlSql(DataSourceType provider, TableDdlOperation operation, string sql)
+        {
+            if (!IsSupportedProvider(provider) || string.IsNullOrWhiteSpace(sql))
+            {
+                return false;
+            }
+
+            if (operation == TableDdlOperation.Comment)
+            {
+                return IsQualifiedTableCommentSql(provider, sql);
+            }
+
+            const System.Text.RegularExpressions.RegexOptions options = System.Text.RegularExpressions.RegexOptions.CultureInvariant;
+            const string pgIdentifier = "\"(?:\"\"|[^\";\\r\\n])+\"";
+            const string sqlIdentifier = @"\[(?:\]\]|[^\];\r\n])+\]";
+            const string myIdentifier = @"`(?:``|[^`;\r\n])+`";
+
+            var pgTable = pgIdentifier + @"\." + pgIdentifier;
+            var sqlTable = sqlIdentifier + @"\." + sqlIdentifier + @"\." + sqlIdentifier;
+            var myTable = myIdentifier + @"\." + myIdentifier;
+            string pattern;
+
+            switch (provider)
+            {
+                case DataSourceType.PostgreSql:
+                    {
+                        switch (operation)
+                        {
+                            case TableDdlOperation.Rename:
+                                {
+                                    pattern = @"^\s*ALTER\s+TABLE\s+" + pgTable + @"\s+RENAME\s+TO\s+" + pgIdentifier + @";?\s*$";
+                                    break;
+                                }
+                            case TableDdlOperation.Drop:
+                                {
+                                    pattern = @"^\s*DROP\s+TABLE\s+" + pgTable + @"(?:\s+CASCADE)?;\s*$";
+                                    break;
+                                }
+                            case TableDdlOperation.Truncate:
+                                {
+                                    pattern = @"^\s*TRUNCATE\s+TABLE\s+(?:ONLY\s+)?" + pgTable + @"(?:\s+RESTART\s+IDENTITY)?(?:\s+CASCADE)?;\s*$";
+                                    break;
+                                }
+                            default:
+                                {
+                                    return false;
+                                }
+                        }
+                        break;
+                    }
+                case DataSourceType.SqlServer:
+                    {
+                        switch (operation)
+                        {
+                            case TableDdlOperation.Rename:
+                                {
+                                    pattern = @"^\s*EXEC\s+" + sqlIdentifier + @"\.\[sys\]\.\[sp_rename\]\s+@objname=N'(?:''|[^';\r\n])*',\s+@newname=N'(?:''|[^';\r\n])*';\s*$";
+                                    break;
+                                }
+                            case TableDdlOperation.Drop:
+                                {
+                                    pattern = @"^\s*DROP\s+TABLE\s+" + sqlTable + @";?\s*$";
+                                    break;
+                                }
+                            case TableDdlOperation.Truncate:
+                                {
+                                    pattern = @"^\s*TRUNCATE\s+TABLE\s+" + sqlTable + @";?\s*$";
+                                    break;
+                                }
+                            default:
+                                {
+                                    return false;
+                                }
+                        }
+                        break;
+                    }
+                case DataSourceType.MySql:
+                    {
+                        switch (operation)
+                        {
+                            case TableDdlOperation.Rename:
+                                {
+                                    pattern = @"^\s*RENAME\s+TABLE\s+" + myTable + @"\s+TO\s+" + myTable + @";?\s*$";
+                                    break;
+                                }
+                            case TableDdlOperation.Drop:
+                                {
+                                    pattern = @"^\s*DROP\s+TABLE\s+" + myTable + @";?\s*$";
+                                    break;
+                                }
+                            case TableDdlOperation.Truncate:
+                                {
+                                    pattern = @"^\s*TRUNCATE\s+TABLE\s+" + myTable + @";?\s*$";
+                                    break;
+                                }
+                            default:
+                                {
+                                    return false;
+                                }
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+
+            return System.Text.RegularExpressions.Regex.IsMatch(sql, pattern, options | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        }
+
         private static bool IsSupportedProvider(DataSourceType provider)
         {
             return provider == DataSourceType.PostgreSql || provider == DataSourceType.SqlServer || provider == DataSourceType.MySql;

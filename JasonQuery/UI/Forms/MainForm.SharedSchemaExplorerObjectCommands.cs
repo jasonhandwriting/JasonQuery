@@ -74,7 +74,15 @@ namespace JasonQuery.UI.Forms
                     case SharedSchemaExplorerMenuCommand.RenameTable:
                     case SharedSchemaExplorerMenuCommand.TruncateTable:
                         {
-                            TryOpenSharedOracleTableDdl(selection, command);
+                            if (_currentSourceType == DataSourceType.Oracle)
+                            {
+                                TryOpenSharedOracleTableDdl(selection, command);
+                            }
+                            else
+                            {
+                                TryOpenSharedNonOracleTableDdl(selection, command);
+                            }
+
                             break;
                         }
                     case SharedSchemaExplorerMenuCommand.AddColumn:
@@ -287,6 +295,102 @@ namespace JasonQuery.UI.Forms
                 if (string.Equals(form.Result, "REFRESH", StringComparison.Ordinal) && !IsDisposed && !Disposing && CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))
                 {
                     RefreshSharedSchemaExplorerPreviewMetadata();
+                }
+            }
+
+            return true;
+        }
+
+        //U3-B2: one click-time qualified Table form for Comment/Rename/Drop/Truncate, never a database authorization by itself.
+        private bool TryOpenSharedNonOracleTableDdl(SchemaExplorerSelectionInfo captured, SharedSchemaExplorerMenuCommand command)
+        {
+            if (captured == null || captured.SourceType != _currentSourceType || _currentSourceType == DataSourceType.Oracle
+                || _sharedSchemaMetadataSnapshot == null || !CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid)
+                || !SharedSchemaExplorerObjectCommandPolicy.CanExecute(CaptureLeftPanelContext().ActiveTarget, captured, command))
+            {
+                return false;
+            }
+
+            EditTableMode mode;
+            string icon;
+
+            switch (command)
+            {
+                case SharedSchemaExplorerMenuCommand.CommentTable:
+                    {
+                        mode = EditTableMode.Comment;
+                        icon = "Table Comment.ico";
+
+                        break;
+                    }
+                case SharedSchemaExplorerMenuCommand.RenameTable:
+                    {
+                        mode = EditTableMode.Rename;
+                        icon = "Table Rename.ico";
+
+                        break;
+                    }
+                case SharedSchemaExplorerMenuCommand.DropTable:
+                    {
+                        mode = EditTableMode.Drop;
+                        icon = "Table Drop.ico";
+
+                        break;
+                    }
+                case SharedSchemaExplorerMenuCommand.TruncateTable:
+                    {
+                        mode = EditTableMode.Truncate;
+                        icon = "Table Truncate.ico";
+
+                        break;
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+
+            var current = ResolveSharedSchemaExplorerInput(_sharedSchemaExplorerGrid, captured.DisplayRowIndex);
+
+            if (!NonOracleSharedAddColumnPreviewPolicy.IsSameSelection(captured, current)
+                || !NonOracleSharedAddColumnPreviewPolicy.TryCreate(current, out var target)
+                || current.Kind != SchemaExplorerSelectionKind.SchemaObject || current.IsColumnInfoRow)
+            {
+                return false;
+            }
+
+            using (var form = new EditTableForm())
+            {
+                form.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, icon);
+                form.ShowInTaskbar = false;
+                form.StartPosition = FormStartPosition.CenterParent;
+                form.SchemaDatabase = target.SchemaDatabase;
+                form.SchemaName = target.SchemaName;
+                form.TableName = target.TableName;
+                form.EditMode = mode;
+                form.OfflineSqlPreviewOnly = false;
+                form.RequireOracleF7ExecuteGate = false;
+                form.RequireNonOracleF7TableDdlGate = true;
+                form.NonOracleF7ExpectedDatabase = target.SourceType == DataSourceType.PostgreSql ? DatabaseSqlExecutor.DatabaseName : target.SchemaDatabase;
+                form.NonOracleF7ExpectedSchema = target.SchemaName;
+                form.NonOracleF7ExpectedTable = target.TableName;
+                form.NonOracleF7ExpectedConnectionString = DatabaseSqlExecutor.DbConnectionString;
+
+                UIHelper.ApplyEditTableFormSize(form);
+                form.ShowDialog(this);
+
+                //Comment does not change structural metadata; Rename and Drop do. PG/SQL Server wait for explicit Commit.
+                if (mode != EditTableMode.Comment && mode != EditTableMode.Truncate && string.Equals(form.Result, "REFRESH", StringComparison.Ordinal)
+                    && !IsDisposed && !Disposing && CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))
+                {
+                    if (target.SourceType == DataSourceType.MySql)
+                    {
+                        RefreshSharedSchemaExplorerPreviewMetadata();
+                    }
+                    else if (target.SourceType == DataSourceType.PostgreSql || target.SourceType == DataSourceType.SqlServer)
+                    {
+                        MarkF7TransactionBoundAddColumn();
+                    }
                 }
             }
 
