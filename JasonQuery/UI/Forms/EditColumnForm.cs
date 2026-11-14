@@ -39,13 +39,73 @@ namespace JasonQuery.UI.Forms
 
         //F7-U2-C98: immutable-by-convention selection intent; never infer it from the live Reader.
         internal bool RequireNonOracleF7ExecuteGate { get; set; }
+
+        //F7-U3-C2B3A: Existing Column requires a distinct Execute permit.
+        //Preview-only and a separate click-time fail-closed guard protect this staged bridge.
+        internal bool RequireNonOracleF7ExistingColumnGate { get; set; }
+
+        //Only allows a modern MySQL Rename preview; Execute must independently verify VERSION() again.
+        internal bool NonOracleF7MySqlModernRenamePreview { get; set; }
+
+        //B3-B2A contract only. B3-B2B must wire a qualified Reader receipt into preview and last-mile Execute.
+        internal MySqlVerifiedColumnDefinitionSnapshot NonOracleF7MySqlCompleteDefinitionPreview { get; set; }
+
+        //Diagnostic text only. Does not participate in any Preview or Execute eligibility check.
+        internal string NonOracleF7MySqlPreviewBlockReasonCode { get; set; }
+
+        internal string NonOracleF7ExpectedColumn { get; set; }
+        internal int NonOracleF7ExpectedSqlServerObjectId { get; set; }
+
+        //Only existing-column operations with a qualified live-metadata Reader path may opt in.
+        //MySQL CHANGE COLUMN can silently alter other attributes; keep Comment/Rename disabled until full DDL reconstruction is qualified.
+        internal static bool CanEnableNonOracleExistingColumnDdl(DataSourceType provider, EditColumnMode mode)
+        {
+            if (provider == DataSourceType.PostgreSql || provider == DataSourceType.SqlServer)
+            {
+                return mode == EditColumnMode.Comment || mode == EditColumnMode.Rename || mode == EditColumnMode.Drop;
+            }
+
+            return provider == DataSourceType.MySql && mode == EditColumnMode.Drop;
+        }
+
+        //A version string alone is never authorization; caller also requires a verified Reader connection.
+        internal static bool CanEnableVerifiedMySqlModernRename(DataSourceType provider, EditColumnMode mode, string serverVersion)
+        {
+            return provider == DataSourceType.MySql && mode == EditColumnMode.Rename
+                   && MySqlColumnDdlVersionPolicy.SelectRenameSyntax(serverVersion) == MySqlColumnRenameSyntax.RenameColumn;
+        }
+
+        //A receipt is only a preview prerequisite. The Reader must issue it on a verified physical connection; the last-mile Execute gate will re-read it.
+        internal static bool CanEnableVerifiedMySqlCompleteDefinition(DataSourceType provider, EditColumnMode mode, MySqlVerifiedColumnDefinitionSnapshot preview, bool modernRenamePreview)
+        {
+            if (provider != DataSourceType.MySql || preview == null || preview.ConnectionId == Guid.Empty
+                || preview.ServerConnectionId <= 0 || string.IsNullOrWhiteSpace(preview.ServerVersion)
+                || string.IsNullOrWhiteSpace(preview.DatabaseName) || string.IsNullOrWhiteSpace(preview.TableName)
+                || string.IsNullOrWhiteSpace(preview.ColumnName)
+                || !MySqlCompleteColumnDefinitionSqlBuilder.TryQualifyCompleteDefinition(preview.CompleteDefinition, out _))
+            {
+                return false;
+            }
+
+            var syntax = MySqlColumnDdlVersionPolicy.SelectRenameSyntax(preview.ServerVersion);
+
+            return mode == EditColumnMode.Comment && syntax != MySqlColumnRenameSyntax.Unknown
+                   || mode == EditColumnMode.Rename && !modernRenamePreview && syntax == MySqlColumnRenameSyntax.ChangeRequiresVerifiedDefinition;
+        }
+
+        private bool CanEnableNonOracleF7ExistingColumnNow()
+        {
+            return CanEnableNonOracleExistingColumnDdl(_currentSourceType, EditMode)
+                   || (RequireNonOracleF7ExistingColumnGate && IsMySql && EditMode == EditColumnMode.Rename && NonOracleF7MySqlModernRenamePreview)
+                   || (RequireNonOracleF7ExistingColumnGate && CanEnableVerifiedMySqlCompleteDefinition(_currentSourceType, EditMode, NonOracleF7MySqlCompleteDefinitionPreview, NonOracleF7MySqlModernRenamePreview));
+        }
+
         internal string NonOracleF7ExpectedDatabase { get; set; }
         internal string NonOracleF7ExpectedSchema { get; set; }
         internal string NonOracleF7ExpectedTable { get; set; }
         internal string NonOracleF7ExpectedConnectionString { get; set; }
 
-        // Shared F7: the cached SQL preview is not authorization. An explicit Execute click
-        // may reconnect normally, then checks the current Oracle/PDB/target before dispatch.
+        //Shared F7: the cached SQL preview is not authorization. An explicit Execute click may reconnect normally, then checks the current Oracle/PDB/target before dispatch.
         internal bool RequireOracleF7ExecuteGate { get; set; }
         internal SharedOracleMetadataCompletedLoadReceipt OracleF7Receipt { get; set; }
         internal string OracleF7SelectedOwner { get; set; }
@@ -229,8 +289,8 @@ namespace JasonQuery.UI.Forms
                 if (OfflineSqlPreviewOnly)
                 {
                     Text += " [SQL Preview Only]";
-                    lblPrompt1.Text = "Cached metadata may be stale. Review or copy the generated SQL; Execute is disabled.";
                     btnExecute.Enabled = false;
+                    ShowMySqlCompleteDefinitionBlockReason();
                 }
 
                 UpdateSqlPreviewCopyState();
@@ -249,6 +309,40 @@ namespace JasonQuery.UI.Forms
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
+        }
+
+        private void ShowMySqlCompleteDefinitionBlockReason()
+        {
+            if (!IsMySql || !RequireNonOracleF7ExistingColumnGate
+                || (EditMode != EditColumnMode.Comment && EditMode != EditColumnMode.Rename)
+                || string.IsNullOrWhiteSpace(NonOracleF7MySqlPreviewBlockReasonCode))
+            {
+                return;
+            }
+
+            //Only a stable classification key reaches localization; raw Reader exception text must never be shown to the user. No SQL or Execute state changes here.
+            var reasonKey = MySqlColumnDdlPreviewFeedbackPolicy.GetReasonKey(NonOracleF7MySqlPreviewBlockReasonCode);
+            var fallback = MySqlColumnDdlPreviewFeedbackPolicy.GetDefaultMessage(reasonKey);
+
+            var message = LocalizationHelper.GetLanguageString
+            (
+                fallback, "form", GetType().Name, "msg", reasonKey, "Text"
+            );
+
+            var warning = new Label
+            {
+                Name = "lblMySqlCompleteDefinitionBlockReason",
+                Location = new Point(17, 158),
+                Size = new Size(Math.Max(120, tabColumn.SelectedTab.ClientSize.Width - 34), 70),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+                AutoSize = false,
+                ForeColor = Color.DarkRed,
+                BackColor = Color.Transparent,
+                Text = message
+            };
+
+            tabColumn.SelectedTab.Controls.Add(warning);
+            warning.BringToFront();
         }
 
         private void Form_ResizeEnd(object sender, EventArgs e)
@@ -283,6 +377,37 @@ namespace JasonQuery.UI.Forms
 
         private void LoadCommentMetadata()
         {
+            //B3-B2B: qualified MySQL F7 uses Reader-owned preview metadata. Do not call the legacy auto-reconnecting ExecuteQueryToDataTable to load the original Comment.
+            if (IsMySql && RequireNonOracleF7ExistingColumnGate && NonOracleF7MySqlCompleteDefinitionPreview != null)
+            {
+                var definition = NonOracleF7MySqlCompleteDefinitionPreview.CompleteDefinition;
+
+                if (!MySqlCompleteColumnDefinitionSqlBuilder.TryQualifyCompleteDefinition(definition, out var withoutComment))
+                {
+                    throw new InvalidOperationException("F7U3C4B3B2_DEFINITION_NOT_QUALIFIED");
+                }
+
+                var suffix = definition.Substring(withoutComment.Length);
+
+                const string commentPrefix = " COMMENT '";
+
+                if (suffix.Length == 0)
+                {
+                    _columnComment = string.Empty;
+                }
+                else if (suffix.StartsWith(commentPrefix, StringComparison.Ordinal) && suffix.EndsWith("'", StringComparison.Ordinal))
+                {
+                    _columnComment = suffix.Substring(commentPrefix.Length, suffix.Length - commentPrefix.Length - 1).Replace("''", "'");
+                }
+                else
+                {
+                    throw new InvalidOperationException("F7U3C4B3B2_COMMENT_METADATA_UNQUALIFIED");
+                }
+
+                txtNewColumnName.Tag = _columnComment.Length > 0 ? "NOTNULL" : string.Empty;
+                return;
+            }
+
             var request = new MetadataCommentQueryRequest
             {
                 DataSourceType = _currentSourceType,
@@ -462,6 +587,23 @@ namespace JasonQuery.UI.Forms
                 HasExistingSqlServerComment = !TextHelper.IsNullOrEmptyTag(txtNewColumnName.Tag),
                 ColumnDefinition = operation == ColumnDdlOperation.Add ? CreateAddColumnDefinition() : null
             };
+
+            if (IsMySql && RequireNonOracleF7ExistingColumnGate && NonOracleF7MySqlCompleteDefinitionPreview != null
+                && (operation == ColumnDdlOperation.Comment || (operation == ColumnDdlOperation.Rename && !NonOracleF7MySqlModernRenamePreview)))
+            {
+                string verifiedSql;
+                var definition = NonOracleF7MySqlCompleteDefinitionPreview.CompleteDefinition;
+                var built = operation == ColumnDdlOperation.Comment
+                    ? MySqlCompleteColumnDefinitionSqlBuilder.TryBuildComment(request, definition, out verifiedSql)
+                    : MySqlCompleteColumnDefinitionSqlBuilder.TryBuildLegacyRename(request, definition, out verifiedSql);
+
+                return built ? verifiedSql : string.Empty;
+            }
+
+            if (IsMySql && operation == ColumnDdlOperation.Rename && RequireNonOracleF7ExistingColumnGate && NonOracleF7MySqlModernRenamePreview)
+            {
+                return ColumnDdlSqlBuilder.BuildMySqlRenameColumnSql(request);
+            }
 
             return ColumnDdlSqlBuilder.Build(request);
         }
@@ -757,7 +899,7 @@ namespace JasonQuery.UI.Forms
                     var rebuilt = BuildAddColumnResult();
                     var actualPostgreSqlDatabase = _currentSourceType == DataSourceType.PostgreSql ? MyGlobal.PostgreSqlReader?.CurrentOpenDatabaseName : string.Empty;
 
-                    return NonOracleSchemaExplorerDdlExecuteGate.ValidateFormIntent
+                    var scopeStatus = NonOracleSchemaExplorerDdlExecuteGate.ValidateFormIntent
                     (
                         _currentSourceType,
                         NonOracleF7ExpectedDatabase,
@@ -770,6 +912,20 @@ namespace JasonQuery.UI.Forms
                         editorSqlPreview.Text,
                         rebuilt != null && rebuilt.Succeeded ? rebuilt.Sql : string.Empty
                     );
+
+                    if (!string.IsNullOrEmpty(scopeStatus))
+                    {
+                        return scopeStatus;
+                    }
+
+                    if (IsPostgreSql)
+                    {
+                        var reader = MyGlobal.PostgreSqlReader;
+
+                        return reader == null ? "F7U3C_PG_IDENTIFIER_LIMIT_UNVERIFIED" : reader.ValidateNewIdentifierLengthOnVerifiedConnection(reader.CurrentOpenConnectionId, txtColumnName_Add.Text);
+                    }
+
+                    return string.Empty;
                 },
                 () =>
                 {
@@ -857,10 +1013,492 @@ namespace JasonQuery.UI.Forms
             return status;
         }
 
+        //F7-U3-C2B3B: Existing Column DDL is a separate privileged path; it never falls through to generic ExecuteSingleNonQuery.
+        //Recheck the selected scope, exact original Column, rebuilt SQL and live metadata after opening the verified connection.
+        private string TryExecuteNonOracleF7ExistingColumn(out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand, out bool didDispatch, out bool savepointRestored)
+        {
+            errorMessage = string.Empty;
+            hasPendingTransactionAfterExecute = false;
+            isTransactionClosedBySqlCommand = false;
+            didDispatch = false;
+            savepointRestored = false;
+
+            if (!RequireNonOracleF7ExistingColumnGate || RequireNonOracleF7ExecuteGate || !CanEnableNonOracleF7ExistingColumnNow()
+                || DatabaseSqlExecutor.CurrentDataSource != _currentSourceType || string.IsNullOrWhiteSpace(NonOracleF7ExpectedConnectionString) || string.IsNullOrWhiteSpace(NonOracleF7ExpectedColumn))
+            {
+                return "F7U3C2B3_COLUMN_EXECUTION_NOT_QUALIFIED";
+            }
+
+            if (!string.Equals(NonOracleF7ExpectedConnectionString, DatabaseSqlExecutor.DbConnectionString, StringComparison.Ordinal))
+            {
+                return "F7U2C2_CONNECTION_CHANGED";
+            }
+
+            if (IsSqlServer && NonOracleF7ExpectedSqlServerObjectId <= 0)
+            {
+                return "F7U3C2B3_SQLSERVER_OBJECT_ID_UNQUALIFIED";
+            }
+
+
+            var operation = ColumnDdlOperation.None;
+
+            switch (EditMode)
+            {
+                case EditColumnMode.Comment:
+                    {
+                        operation = ColumnDdlOperation.Comment;
+                        break;
+                    }
+                case EditColumnMode.Rename:
+                    {
+                        operation = ColumnDdlOperation.Rename;
+                        break;
+                    }
+                case EditColumnMode.Drop:
+                    {
+                        operation = ColumnDdlOperation.Drop;
+                        break;
+                    }
+                default:
+                    {
+                        return "F7U3C2B3_INVALID_COLUMN_OPERATION";
+                    }
+            }
+
+            //Only the qualified F7 MainForm bridge can opt into this definition-bearing path.
+            var completeDefinitionPreview = NonOracleF7MySqlCompleteDefinitionPreview;
+
+            var useCompleteDefinition = RequireNonOracleF7ExistingColumnGate
+                && CanEnableVerifiedMySqlCompleteDefinition (_currentSourceType, EditMode, completeDefinitionPreview, NonOracleF7MySqlModernRenamePreview);
+
+            //Never ask for permission while a pending or unknown transaction could be lost.
+            var pendingOrUnknownTransaction = AppConfigHelper.IsNotCommitYet;
+
+            if (pendingOrUnknownTransaction)
+            {
+                return "F7U2C2_TRANSACTION_UNSAFE";
+            }
+
+            var mysqlAcknowledged = !IsMySql;
+
+            if (operation == ColumnDdlOperation.Drop)
+            {
+                var tableScope = IsMySql ? NonOracleF7ExpectedDatabase + "." + NonOracleF7ExpectedTable
+                    : IsSqlServer ? NonOracleF7ExpectedDatabase + "." + NonOracleF7ExpectedSchema + "." + NonOracleF7ExpectedTable
+                    : NonOracleF7ExpectedSchema + "." + NonOracleF7ExpectedTable;
+
+                var fallback = "Dropping a column may permanently destroy data. Review the exact target and SQL before continuing.";
+
+                var warning = LocalizationHelper.GetLanguageString
+                (
+                    fallback, "form", GetType().Name, "msg", "NonOracleF7DestructiveColumnDdlConfirmation", "Text"
+                );
+
+                var prompt = warning + "\r\n" + tableScope + "." + NonOracleF7ExpectedColumn + "\r\n\r\n" + editorSqlPreview.Text;
+
+                if (IsMySql)
+                {
+                    prompt += "\r\n\r\n" + LocalizationHelper.GetLanguageString
+                    (
+                        "MySQL DDL may implicitly commit the transaction, including uncommitted changes.\r\nThis operation cannot be undone with a normal ROLLBACK. Do you want to continue?",
+                        "form",
+                        GetType().Name,
+                        "msg",
+                        "MySqlDdlImplicitCommitConfirmation",
+                        "Text"
+                    );
+                }
+
+                if (MessageBox.Show(prompt, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                {
+                    return "F7U3C2B3_USER_CANCELLED";
+                }
+
+                //For MySQL Drop this same explicit confirmation also acknowledges implicit-commit semantics.
+                mysqlAcknowledged = true;
+            }
+
+            if (IsMySql && ((operation == ColumnDdlOperation.Rename && NonOracleF7MySqlModernRenamePreview) || useCompleteDefinition))
+            {
+                var warning = LocalizationHelper.GetLanguageString
+                (
+                    "MySQL DDL may implicitly commit the transaction, including uncommitted changes.\r\nThis operation cannot be undone with a normal ROLLBACK. Do you want to continue?",
+                    "form", GetType().Name, "msg", "MySqlDdlImplicitCommitConfirmation", "Text"
+                );
+
+                var target = NonOracleF7ExpectedDatabase + "." + NonOracleF7ExpectedTable + "." + NonOracleF7ExpectedColumn;
+                var prompt = target + "\r\n\r\n" + editorSqlPreview.Text + "\r\n\r\n" + warning;
+
+                if (MessageBox.Show(prompt, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                {
+                    return "F7U3C2B3_USER_CANCELLED";
+                }
+
+                mysqlAcknowledged = true;
+            }
+
+            var pending = false;
+            var closed = false;
+            var dispatched = false;
+            var pgSavepointRestored = false;
+            var readerError = string.Empty;
+
+            var status = NonOracleSchemaExplorerDdlExecuteGate.TryExecuteF7
+            (
+                _currentSourceType,
+                pendingOrUnknownTransaction,
+                mysqlAcknowledged,
+                () =>
+                {
+                    if (!string.Equals(NonOracleF7ExpectedConnectionString, DatabaseSqlExecutor.DbConnectionString, StringComparison.Ordinal)
+                        || DatabaseSqlExecutor.CurrentDataSource != _currentSourceType)
+                    {
+                        return "F7U2C2_CONNECTION_CHANGED";
+                    }
+
+                    //A completed-definition receipt is bound to one physical connection.
+                    //Unlike an ordinary preview, this path must NEVER auto-reconnect.
+                    if (useCompleteDefinition)
+                    {
+                        return MyGlobal.MySqlReader != null && MyGlobal.MySqlReader.CurrentOpenConnectionId == completeDefinitionPreview.ConnectionId ? string.Empty : "F7U3C4B3B2_PHYSICAL_CONNECTION_CHANGED";
+                    }
+
+                    string connectionError;
+                    bool opened;
+
+                    switch (_currentSourceType)
+                    {
+                        case DataSourceType.PostgreSql:
+                            {
+                                opened = MyGlobal.PostgreSqlReader != null && MyGlobal.PostgreSqlReader.TryEnsureConnectionOpen(out connectionError);
+                                break;
+                            }
+                        case DataSourceType.SqlServer:
+                            {
+                                opened = MyGlobal.SqlServerReader != null && MyGlobal.SqlServerReader.TryEnsureConnectionOpen(out connectionError);
+                                break;
+                            }
+                        case DataSourceType.MySql:
+                            {
+                                opened = MyGlobal.MySqlReader != null && MyGlobal.MySqlReader.TryEnsureConnectionOpen(out connectionError);
+                                break;
+                            }
+                        default:
+                            {
+                                return "F7U2C2_INVALID_PROVIDER";
+                            }
+                    }
+
+                    return opened ? string.Empty : "F7U2C2_CONNECTION_FAILED";
+                },
+                () =>
+                {
+                    if (!string.Equals(NonOracleF7ExpectedConnectionString, DatabaseSqlExecutor.DbConnectionString, StringComparison.Ordinal)
+                        || DatabaseSqlExecutor.CurrentDataSource != _currentSourceType)
+                    {
+                        return "F7U2C2_CONNECTION_CHANGED";
+                    }
+
+                    //The UI's preview-time version is never an Execute permit.
+                    //Read VERSION() again from the same Reader connection captured by TryExecuteF7.
+                    if (IsMySql && operation == ColumnDdlOperation.Rename && !useCompleteDefinition)
+                    {
+                        if (!NonOracleF7MySqlModernRenamePreview || MyGlobal.MySqlReader == null)
+                        {
+                            return "F7U3C4_MYSQL_RENAME_VERSION_UNVERIFIED";
+                        }
+
+                        var versionConnectionId = MyGlobal.MySqlReader.CurrentOpenConnectionId;
+                        string liveVersion;
+                        string versionError;
+
+                        if (versionConnectionId == Guid.Empty
+                            || !MyGlobal.MySqlReader.TryReadServerVersionOnVerifiedConnection(versionConnectionId, out liveVersion, out versionError))
+                        {
+                            return "F7U3C4_MYSQL_RENAME_VERSION_UNVERIFIED";
+                        }
+
+                        if (!CanEnableVerifiedMySqlModernRename(_currentSourceType, EditMode, liveVersion))
+                        {
+                            return "F7U3C4_MYSQL_RENAME_VERSION_UNSUPPORTED";
+                        }
+                    }
+
+                    var rebuiltSql = BuildColumnDdlSql(operation);
+
+                    var scope = NonOracleSchemaExplorerDdlExecuteGate.ValidateFormIntent
+                    (
+                        _currentSourceType,
+                        NonOracleF7ExpectedDatabase,
+                        NonOracleF7ExpectedSchema,
+                        NonOracleF7ExpectedTable,
+                        SchemaDatabase,
+                        SchemaName,
+                        TableName,
+                        IsPostgreSql ? MyGlobal.PostgreSqlReader?.CurrentOpenDatabaseName : string.Empty,
+                        editorSqlPreview.Text,
+                        rebuiltSql
+                    );
+
+                    if (!string.IsNullOrEmpty(scope))
+                    {
+                        return scope;
+                    }
+
+                    var columnIntent = NonOracleSchemaExplorerDdlExecuteGate.ValidateExistingColumnIntent
+                    (
+                        _currentSourceType, operation, true, NonOracleF7ExpectedColumn, ColumnName, editorSqlPreview.Text, rebuiltSql
+                    );
+
+                    if (!string.IsNullOrEmpty(columnIntent))
+                    {
+                        return columnIntent;
+                    }
+
+                    //B3-B2B: bypass ordinary auto-reconnecting metadata reads. Reader verifies the live definition, version, physical session and displayed SQL here, and repeats the check immediately before the sole DDL dispatch.
+                    if (useCompleteDefinition)
+                    {
+                        var reader = MyGlobal.MySqlReader;
+                        var id = reader?.CurrentOpenConnectionId ?? Guid.Empty;
+                        MySqlVerifiedColumnDefinitionSnapshot live;
+                        string definitionError;
+
+                        if (reader == null || id != completeDefinitionPreview.ConnectionId
+                            || !reader.TryReadVerifiedColumnDefinitionOnConnection
+                            (
+                                id, completeDefinitionPreview.DatabaseName, completeDefinitionPreview.TableName,
+                                completeDefinitionPreview.ColumnName, out live, out definitionError
+                            ))
+                        {
+                            return "F7U3C4B3B2_DEFINITION_UNVERIFIED";
+                        }
+
+                        var verifiedRequest = new ColumnDdlRequest
+                        {
+                            DataSourceType = DataSourceType.MySql,
+                            Operation = operation,
+                            SchemaDatabase = SchemaDatabase,
+                            TableName = TableName,
+                            ColumnName = ColumnName,
+                            NewColumnName = txtNewColumnName.Text,
+                            Comment = txtComment.Text
+                        };
+
+                        return MySqlVerifiedColumnDefinitionExecutionPolicy.Validate
+                        (
+                            operation, completeDefinitionPreview, live, verifiedRequest, editorSqlPreview.Text
+                        );
+                    }
+
+                    //A cached F7 row is not sufficient: ask the current Reader for the named live Column.
+                    var metadataSql = MetadataCommentQueryBuilder.Build
+                    (
+                        new MetadataCommentQueryRequest
+                        {
+                            DataSourceType = _currentSourceType,
+                            ObjectKind = MetadataCommentObjectKind.Column,
+                            SchemaDatabase = SchemaDatabase,
+                            SchemaName = SchemaName,
+                            TableName = TableName,
+                            ColumnName = NonOracleF7ExpectedColumn
+                        }
+                    );
+
+                    if (string.IsNullOrWhiteSpace(metadataSql))
+                    {
+                        return "F7U3C2B3_COLUMN_METADATA_UNQUALIFIED";
+                    }
+
+                    System.Data.DataTable liveData;
+
+                    switch (_currentSourceType)
+                    {
+                        case DataSourceType.PostgreSql:
+                            {
+                                liveData = MyGlobal.PostgreSqlReader.ExecuteMetadataQueryToDataTable(metadataSql);
+                                break;
+                            }
+                        case DataSourceType.SqlServer:
+                            {
+                                liveData = MyGlobal.SqlServerReader.ExecuteQueryToDataTable(metadataSql, false);
+                                break;
+                            }
+                        case DataSourceType.MySql:
+                            {
+                                liveData = MyGlobal.MySqlReader.ExecuteQueryToDataTable(metadataSql, false);
+                                break;
+                            }
+                        default:
+                            {
+                                return "F7U2C2_INVALID_PROVIDER";
+                            }
+                    }
+
+                    if (!MetadataCommentQualificationPolicy.TryQualify(liveData, out var liveMetadata))
+                    {
+                        return "F7U3C2B3_COLUMN_NOT_FOUND_OR_UNVERIFIED";
+                    }
+
+                    if (IsSqlServer)
+                    {
+                        //SQL Server ObjectID is part of the captured F7 identity; a dropped/recreated same-name table must not inherit permission.
+                        var quotedDatabase = DdlIdentifierQuotingPolicy.QuoteExistingIdentifier(DataSourceType.SqlServer, SchemaDatabase);
+                        var schemaValue = DdlIdentifierQuotingPolicy.GetExistingIdentifierValue(DataSourceType.SqlServer, SchemaName);
+                        var tableValue = DdlIdentifierQuotingPolicy.GetExistingIdentifierValue(DataSourceType.SqlServer, TableName);
+
+                        if (string.IsNullOrWhiteSpace(quotedDatabase) || string.IsNullOrWhiteSpace(schemaValue) || string.IsNullOrWhiteSpace(tableValue))
+                        {
+                            return "F7U3C2B3_SQLSERVER_OBJECT_ID_UNQUALIFIED";
+                        }
+
+                        var identitySql = "SELECT t.object_id AS LiveObjectId FROM " + quotedDatabase + ".sys.tables t "
+                            + "INNER JOIN " + quotedDatabase + ".sys.schemas s ON s.schema_id = t.schema_id "
+                            + "WHERE s.name = N'" + schemaValue.Replace("'", "''")
+                            + "' AND t.name = N'" + tableValue.Replace("'", "''") + "'";
+
+                        var identityRows = MyGlobal.SqlServerReader.ExecuteQueryToDataTable(identitySql, false);
+
+                        if (identityRows == null || identityRows.Rows.Count != 1 || !identityRows.Columns.Contains("LiveObjectId")
+                            || !int.TryParse(Convert.ToString(identityRows.Rows[0]["LiveObjectId"]), out var liveObjectId)
+                            || liveObjectId != NonOracleF7ExpectedSqlServerObjectId)
+                        {
+                            return "F7U3C2B3_SQLSERVER_OBJECT_ID_CHANGED";
+                        }
+                    }
+
+                    //A concurrent SQL Server Comment add/remove changes which extended-property procedure is legal.
+                    if (IsSqlServer && operation == ColumnDdlOperation.Comment && liveMetadata.HasExistingComment != !TextHelper.IsNullOrEmptyTag(txtNewColumnName.Tag))
+                    {
+                        return "F7U3C2B3_COLUMN_COMMENT_STATE_CHANGED";
+                    }
+
+                    //Preserve the selected/live Column identity checks above. Guard only the NEW rename target.
+                    if (IsPostgreSql && operation == ColumnDdlOperation.Rename)
+                    {
+                        var reader = MyGlobal.PostgreSqlReader;
+
+                        return reader == null ? "F7U3C_PG_IDENTIFIER_LIMIT_UNVERIFIED" : reader.ValidateNewIdentifierLengthOnVerifiedConnection(reader.CurrentOpenConnectionId, txtNewColumnName.Text);
+                    }
+
+                    return string.Empty;
+                },
+                () =>
+                {
+                    switch (_currentSourceType)
+                    {
+                        case DataSourceType.PostgreSql:
+                            {
+                                return MyGlobal.PostgreSqlReader?.CurrentOpenConnectionId ?? Guid.Empty;
+                            }
+                        case DataSourceType.SqlServer:
+                            {
+                                return MyGlobal.SqlServerReader?.CurrentOpenConnectionId ?? Guid.Empty;
+                            }
+                        case DataSourceType.MySql:
+                            {
+                                return MyGlobal.MySqlReader?.CurrentOpenConnectionId ?? Guid.Empty;
+                            }
+                        default:
+                            {
+                                return Guid.Empty;
+                            }
+                    }
+                },
+                connectionId =>
+                {
+                    //Never dispatch legacy CHANGE COLUMN through the modern, definition-free Rename permit.
+                    if (IsMySql && operation == ColumnDdlOperation.Rename && !useCompleteDefinition
+                        && (!NonOracleF7MySqlModernRenamePreview || !string.Equals(editorSqlPreview.Text, BuildColumnDdlSql(operation), StringComparison.Ordinal)))
+                    {
+                        return "F7U3C4_MYSQL_RENAME_SQL_NOT_VERIFIED";
+                    }
+
+                    if (!NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedColumnDdlSql(_currentSourceType, operation, editorSqlPreview.Text))
+                    {
+                        return "F7U3C2B3_COLUMN_SQL_OPERATION_MISMATCH";
+                    }
+
+                    var sql = editorSqlPreview.Text;
+
+                    //Conservatively mark an attempted Reader call, including exceptions with uncertain outcomes.
+                    dispatched = true;
+
+                    switch (_currentSourceType)
+                    {
+                        case DataSourceType.PostgreSql:
+                            {
+                                MyGlobal.PostgreSqlReader.ExecuteColumnDdlOnVerifiedConnection
+                                (
+                                    sql, connectionId, operation,
+                                    out readerError, out pending, out closed, out pgSavepointRestored, out var pgDispatched
+                                );
+
+                                if (!string.IsNullOrEmpty(readerError))
+                                {
+                                    dispatched = pgDispatched;
+                                }
+
+                                break;
+                            }
+                        case DataSourceType.SqlServer:
+                            {
+                                MyGlobal.SqlServerReader.ExecuteColumnDdlOnVerifiedConnection
+                                (
+                                    sql, connectionId, operation, out readerError, out pending, out closed
+                                );
+
+                                break;
+                            }
+                        case DataSourceType.MySql:
+                            {
+                                if (useCompleteDefinition)
+                                {
+                                    MyGlobal.MySqlReader.ExecuteCompleteColumnDdlOnVerifiedConnection
+                                    (
+                                        sql, connectionId, operation, completeDefinitionPreview,
+                                        out readerError, out pending, out closed
+                                    );
+                                }
+                                else
+                                {
+                                    MyGlobal.MySqlReader.ExecuteColumnDdlOnVerifiedConnection
+                                    (
+                                        sql, connectionId, operation, out readerError, out pending, out closed
+                                    );
+                                }
+
+                                break;
+                            }
+                        default:
+                            {
+                                return "F7U2C2_INVALID_PROVIDER";
+                            }
+                    }
+
+                    return readerError ?? "F7U2C2_EXECUTION_OUTCOME_UNKNOWN";
+                }
+            );
+
+            errorMessage = readerError;
+            hasPendingTransactionAfterExecute = pending;
+            isTransactionClosedBySqlCommand = closed;
+            didDispatch = dispatched;
+            savepointRestored = pgSavepointRestored;
+
+            return status;
+        }
+
         private void btnExecute_Click(object sender, EventArgs e)
         {
             //Defense in depth: a preview-only form must never issue DDL, including programmatic clicks.
             if (OfflineSqlPreviewOnly)
+            {
+                btnExecute.Enabled = false;
+                return;
+            }
+
+            //An unsupported Existing Column operation must never reach the generic SQL execution switch.
+            if (RequireNonOracleF7ExistingColumnGate && (RequireNonOracleF7ExecuteGate || !CanEnableNonOracleF7ExistingColumnNow()))
             {
                 btnExecute.Enabled = false;
                 return;
@@ -1004,6 +1642,61 @@ namespace JasonQuery.UI.Forms
                 var newF7NonOracleDispatched = false;
                 var newF7NonOracleSavepointRestored = false;
 
+                if (RequireNonOracleF7ExistingColumnGate)
+                {
+                    var existingColumnStatus = TryExecuteNonOracleF7ExistingColumn
+                    (
+                        out errorMessage,
+                        out hasPendingTransactionAfterExecute,
+                        out isTransactionClosedBySqlCommand,
+                        out newF7NonOracleDispatched,
+                        out newF7NonOracleSavepointRestored
+                    );
+
+                    if (string.Equals(existingColumnStatus, "F7U3C2B3_USER_CANCELLED", StringComparison.Ordinal))
+                    {
+                        return;
+                    }
+
+                    if (!string.IsNullOrEmpty(existingColumnStatus))
+                    {
+                        var message = GetPostgreSqlIdentifierTruncationMessage(existingColumnStatus);
+
+                        if (string.IsNullOrEmpty(message))
+                        {
+                            var failure = LocalizationHelper.GetLanguageString
+                            (
+                                "The existing Column operation was blocked by a safety check. Verify the live column, connection and SQL before retrying.",
+                                "form", GetType().Name, "msg", "NonOracleF7ExistingColumnSafetyCheckFailed", "Text"
+                            );
+
+                            message = failure + "\r\n\r\n" + existingColumnStatus;
+
+                            if (!string.IsNullOrWhiteSpace(errorMessage))
+                            {
+                                message += "\r\n" + errorMessage;
+                            }
+                        }
+
+                        MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
+                        if (newF7NonOracleDispatched || existingColumnStatus.IndexOf("EXECUTION_OUTCOME_UNKNOWN", StringComparison.Ordinal) >= 0)
+                        {
+                            UpdateSqlHistory(0, "Error", message, editorSqlPreview.Text);
+                        }
+
+                        if (IsPostgreSql && hasPendingTransactionAfterExecute)
+                        {
+                            TransferValueToMainForm("UpdateCommitRollbackButton`");
+                        }
+
+                        return;
+                    }
+
+                    //Successful Reader dispatch suppresses all legacy provider paths below.
+                    newF7NonOracleDispatched = true;
+                }
+
                 if (RequireNonOracleF7ExecuteGate)
                 {
                     var guardedStatus = TryExecuteNonOracleF7
@@ -1022,6 +1715,14 @@ namespace JasonQuery.UI.Forms
 
                     if (!string.IsNullOrEmpty(guardedStatus))
                     {
+                        var truncationMessage = GetPostgreSqlIdentifierTruncationMessage(guardedStatus);
+
+                        if (!string.IsNullOrEmpty(truncationMessage))
+                        {
+                            MessageBox.Show(truncationMessage, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                            return;
+                        }
+
                         var outcomeUnknown = guardedStatus.StartsWith("F7U2C3B_EXECUTION_OUTCOME_UNKNOWN", StringComparison.Ordinal) || string.Equals(guardedStatus, "F7U2C2_EXECUTION_OUTCOME_UNKNOWN", StringComparison.Ordinal);
                         string messageId;
                         string defaultMessage;
@@ -1224,7 +1925,7 @@ namespace JasonQuery.UI.Forms
 
                 if (completionDecision.Succeeded)
                 {
-                    Result = EditMode == EditColumnMode.Comment ? string.Empty : "REFRESH"; //20261107 異動 Comment 成功後，不需要更新 schema metadata
+                    Result = EditMode == EditColumnMode.Comment ? string.Empty : "REFRESH";
                     resultExecuted = "Complete";
 
                     btnExecute.Enabled = false;
@@ -1262,6 +1963,24 @@ namespace JasonQuery.UI.Forms
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
+        }
+
+        //F7-U3-C3: explain confirmed truncation with the exact measured UTF-8 bytes and live server limit.
+        //Other safety failures keep their established handling (including unverified server limits).
+        private string GetPostgreSqlIdentifierTruncationMessage(string status)
+        {
+            if (!NonOracleSchemaExplorerDdlExecuteGate.TryGetPostgreSqlIdentifierTruncationDetails(status, out var actualBytes, out var maxIdentifierBytes))
+            {
+                return string.Empty;
+            }
+
+            var fallback = "PostgreSQL identifier length exceeds the limit.\r\n\r\nNew name: {0} UTF-8 bytes\r\nServer limit: {1} bytes"
+                + "\r\n\r\nPostgreSQL may silently truncate the name, causing the actual identifier to differ from the requested name. The operation was blocked."
+                + "\r\n\r\nShorten the name and try again.";
+
+            return LocalizationHelper.GetLanguageString(fallback, "form", GetType().Name, "msg", "PostgreSqlIdentifierWouldTruncate", "Text")
+                   .Replace("{0}", actualBytes.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                   .Replace("{1}", maxIdentifierBytes.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
         private string FormatPostgreSqlGuidedDdlFailure(string errorMessage)

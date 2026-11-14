@@ -287,6 +287,7 @@
     <Compile Include="Core\Database\DdlPreview\ColumnDdlOperation.cs" />
     <Compile Include="Core\Database\DdlPreview\ColumnDdlRequest.cs" />
     <Compile Include="Core\Database\DdlPreview\ColumnDdlSqlBuilder.cs" />
+    <Compile Include="Core\Database\DdlPreview\MySqlColumnDdlVersionPolicy.cs" />
     <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnAddBuildFailureKind.cs" />
     <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnAddBuildResult.cs" />
     <Compile Include="Core\Database\DdlPreview\ColumnDefinitions\ColumnAddRequest.cs" />
@@ -993,6 +994,7 @@
     <Compile Include="UI\Helpers\MemoryHelper.cs" />
     <Compile Include="UI\Helpers\SingleRecordCellViewerContextBuilder.cs" />
     <Compile Include="UI\LeftPanel\NonOracleSharedAddColumnPreviewPolicy.cs" />
+    <Compile Include="UI\LeftPanel\NonOracleSharedColumnDdlBridgePolicy.cs" />
     <Compile Include="UI\Models\CellViewerCellContext.cs" />
     <Compile Include="UI\QueryEditor\AutoComplete\Builders\QueryEditorAutoCompleteDataBuilder.cs" />
     <Compile Include="UI\QueryEditor\AutoComplete\Contexts\QueryEditorAutoCompletePopupContextFactory.cs" />

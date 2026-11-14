@@ -1181,21 +1181,32 @@ namespace JasonQuery.Database.Providers.Readers
         //C3-C must verify live database, table identity, transaction and exact builder SQL on this same physical connection immediately before dispatch.
         public int ExecuteSingleNonQueryOnVerifiedConnection(string sql, Guid expectedConnectionId, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
         {
-            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, null, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
+            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, null, null, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
         }
 
         //Existing Add Column remains distinct. Table DDL entry is explicitly bound to the operation.
         public int ExecuteTableCommentOnVerifiedConnection(string sql, Guid expectedConnectionId, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
         {
-            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation.Comment, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
+            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation.Comment, null, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
         }
 
         internal int ExecuteTableDdlOnVerifiedConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation operation, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
         {
-            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, operation, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
+            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, operation, null, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
         }
 
-        private int ExecuteVerifiedF7DdlOnConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation? tableOperation, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
+        //F7-U3-C2B2: Existing Column has its own operation-specific Reader entry.
+        //Final caller-side Column identity, preview SQL, transaction, and MySQL definition verification remain mandatory.
+        internal int ExecuteColumnDdlOnVerifiedConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.ColumnDdlOperation operation, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
+        {
+            return ExecuteVerifiedF7DdlOnConnection
+            (
+                sql, expectedConnectionId, null, operation,
+                out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand
+            );
+        }
+
+        private int ExecuteVerifiedF7DdlOnConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation? tableOperation, Core.Database.DdlPreview.ColumnDdlOperation? columnOperation, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
         {
             errorMessage = string.Empty;
             hasPendingTransactionAfterExecute = false;
@@ -1232,7 +1243,7 @@ namespace JasonQuery.Database.Providers.Readers
                 {
                     if (script.Statements.Count != 1)
                     {
-                        errorMessage = tableOperation.HasValue ? "F7U3B2_SQL_NOT_SINGLE_TABLE_DDL" : "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
+                        errorMessage = columnOperation.HasValue ? "F7U3C2B2_SQL_NOT_SINGLE_COLUMN_DDL" : tableOperation.HasValue ? "F7U3B2_SQL_NOT_SINGLE_TABLE_DDL" : "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
                         return 0;
                     }
 
@@ -1240,13 +1251,16 @@ namespace JasonQuery.Database.Providers.Readers
                     var scriptText = statement.Text;
                     var statementType = statement.StatementType.ToString();
 
-                    var qualifiedSql = tableOperation.HasValue
-                        ? Core.Database.DdlPreview.NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedTableDdlSql(DataSourceType.SqlServer, tableOperation.Value, scriptText)
-                        : string.Equals(statementType, "ALTER", StringComparison.OrdinalIgnoreCase) && Regex.IsMatch(scriptText ?? string.Empty, @"^\s*ALTER\s+TABLE\s+.+?\s+ADD\s+(?:COLUMN\s+)?", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+                    //The operation type is selected before statement parsing; never let a Column DDL request fall back to Add Column or Table DDL qualification.
+                    var qualifiedSql = columnOperation.HasValue
+                        ? Core.Database.DdlPreview.NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedColumnDdlSql(DataSourceType.SqlServer, columnOperation.Value, scriptText)
+                        : tableOperation.HasValue
+                            ? Core.Database.DdlPreview.NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedTableDdlSql(DataSourceType.SqlServer, tableOperation.Value, scriptText)
+                            : string.Equals(statementType, "ALTER", StringComparison.OrdinalIgnoreCase) && Regex.IsMatch(scriptText ?? string.Empty, @"^\s*ALTER\s+TABLE\s+.+?\s+ADD\s+(?:COLUMN\s+)?", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
 
                     if (!qualifiedSql)
                     {
-                        errorMessage = tableOperation.HasValue ? "F7U3B2_SQL_OPERATION_MISMATCH" : "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
+                        errorMessage = columnOperation.HasValue ? "F7U3C2B2_SQL_OPERATION_MISMATCH" : tableOperation.HasValue ? "F7U3B2_SQL_OPERATION_MISMATCH" : "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
                         return 0;
                     }
 
@@ -1273,7 +1287,13 @@ namespace JasonQuery.Database.Providers.Readers
 
                         var affectedRows = command.ExecuteNonQuery();
 
-                        GetResultString(statementType, tableOperation.HasValue ? (tableOperation.Value == Core.Database.DdlPreview.TableDdlOperation.Rename || tableOperation.Value == Core.Database.DdlPreview.TableDdlOperation.Comment ? "EXEC" : tableOperation.Value.ToString().ToUpperInvariant()) : "ALTER", affectedRows, out _sqlStatementType, scriptText);
+                        var firstWord = columnOperation.HasValue
+                            ? (columnOperation.Value == Core.Database.DdlPreview.ColumnDdlOperation.Drop ? "ALTER" : "EXEC")
+                            : tableOperation.HasValue
+                                ? (tableOperation.Value == Core.Database.DdlPreview.TableDdlOperation.Rename || tableOperation.Value == Core.Database.DdlPreview.TableDdlOperation.Comment ? "EXEC" : tableOperation.Value.ToString().ToUpperInvariant())
+                                : "ALTER";
+
+                        GetResultString(statementType, firstWord, affectedRows, out _sqlStatementType, scriptText);
                         hasPendingTransactionAfterExecute = true;
 
                         return affectedRows;

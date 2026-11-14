@@ -51,6 +51,397 @@ namespace JasonQuery.Database.Providers.Readers
         }
 
 
+        //Read VERSION() on the already-verified physical MySQL transaction.
+        //Never reconnect or infer server capabilities from the Devart client version.
+        internal bool TryReadServerVersionOnVerifiedConnection(Guid expectedConnectionId, out string serverVersion, out string errorMessage)
+        {
+            serverVersion = string.Empty;
+            errorMessage = string.Empty;
+
+            var connection = _conn;
+            var transaction = _transaction;
+
+            if (expectedConnectionId == Guid.Empty || CurrentOpenConnectionId != expectedConnectionId
+                || connection == null || transaction == null || connection.State != ConnectionState.Open
+                || !ReferenceEquals(transaction.Connection, connection))
+            {
+                errorMessage = "F7U3C4_SERVER_VERSION_CONNECTION_UNVERIFIED";
+                return false;
+            }
+
+            try
+            {
+                using (var command = new MySqlCommand())
+                {
+                    command.Connection = connection;
+                    command.Transaction = transaction;
+                    command.CommandType = CommandType.Text;
+                    command.CommandText = "SELECT VERSION()";
+                    command.CommandTimeout = QueryTimeout;
+
+                    var value = command.ExecuteScalar();
+
+                    serverVersion = value == null || value == DBNull.Value ? string.Empty : Convert.ToString(value);
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = "F7U3C4_SERVER_VERSION_READ_FAILED: " + ex.Message;
+                serverVersion = string.Empty;
+
+                return false;
+            }
+
+            if (!ReferenceEquals(_conn, connection) || !ReferenceEquals(_transaction, transaction)
+                || CurrentOpenConnectionId != expectedConnectionId || connection.State != ConnectionState.Open
+                || !ReferenceEquals(transaction.Connection, connection))
+            {
+                errorMessage = "F7U3C4_SERVER_VERSION_CONNECTION_CHANGED";
+                serverVersion = string.Empty;
+
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(serverVersion))
+            {
+                errorMessage = "F7U3C4_SERVER_VERSION_UNVERIFIED";
+                return false;
+            }
+
+            return true;
+        }
+
+
+        //F7-U3-C4C2-C2: validates values from one INFORMATION_SCHEMA.COLLATIONS result row.
+        //A true result is only an attribute match, never provenance, a receipt or an Execute permit.
+        internal static bool IsExactCharacterSetCollationCatalogPair(string expectedCharset, string expectedCollation, string catalogCharset, string catalogCollation, int catalogRowCount)
+        {
+            const string safeName = @"\A[A-Za-z][A-Za-z0-9_]{0,63}\z";
+
+            return catalogRowCount == 1
+                   && !string.IsNullOrEmpty(expectedCharset) && !string.IsNullOrEmpty(expectedCollation)
+                   && !string.IsNullOrEmpty(catalogCharset) && !string.IsNullOrEmpty(catalogCollation)
+                   && Regex.IsMatch(expectedCharset, safeName, RegexOptions.CultureInvariant)
+                   && Regex.IsMatch(expectedCollation, safeName, RegexOptions.CultureInvariant)
+                   && Regex.IsMatch(catalogCharset, safeName, RegexOptions.CultureInvariant)
+                   && Regex.IsMatch(catalogCollation, safeName, RegexOptions.CultureInvariant)
+                   && string.Equals(expectedCharset, catalogCharset, StringComparison.OrdinalIgnoreCase)
+                   && string.Equals(expectedCollation, catalogCollation, StringComparison.OrdinalIgnoreCase);
+        }
+
+        //F7-U3-C4B3A: read-only, verified-connection metadata receipt for a VERY small MySQL integer-column subset. Never reconnect or execute DDL.
+        //B3-B must still re-read on Execute and compare receipts, identities and SQL.
+        internal bool TryReadVerifiedColumnDefinitionOnConnection(Guid expectedConnectionId, string databaseName, string tableName, string columnName, out Core.Database.DdlPreview.MySqlVerifiedColumnDefinitionSnapshot snapshot, out string errorMessage)
+        {
+            snapshot = null;
+            errorMessage = "F7U3C4B3_DEFINITION_UNVERIFIED";
+
+            //Only simple raw identifiers are supported in the first qualification.
+            //This also makes metadata query literals and SHOW CREATE identifiers exact.
+            var simpleName = @"\A[A-Za-z_][A-Za-z0-9_]*\z";
+
+            if (string.IsNullOrWhiteSpace(databaseName) || databaseName.Length > 64
+                || string.IsNullOrWhiteSpace(tableName) || tableName.Length > 64
+                || string.IsNullOrWhiteSpace(columnName) || columnName.Length > 64
+                || !Regex.IsMatch(databaseName, simpleName, RegexOptions.CultureInvariant)
+                || !Regex.IsMatch(tableName, simpleName, RegexOptions.CultureInvariant)
+                || !Regex.IsMatch(columnName, simpleName, RegexOptions.CultureInvariant))
+            {
+                return false;
+            }
+
+            var connection = _conn;
+            var transaction = _transaction;
+
+            if (expectedConnectionId == Guid.Empty || CurrentOpenConnectionId != expectedConnectionId
+                || connection == null || transaction == null || connection.State != ConnectionState.Open
+                || !ReferenceEquals(transaction.Connection, connection))
+            {
+                errorMessage = "F7U3C4B3_CONNECTION_UNVERIFIED";
+                return false;
+            }
+
+            //Check the server session id as well as the managed per-open token; providers may transparently reconnect without replacing _conn.
+            long serverConnectionId;
+
+            try
+            {
+                using (var command = new MySqlCommand())
+                {
+                    command.Connection = connection;
+                    command.Transaction = transaction;
+                    command.CommandType = CommandType.Text;
+                    command.CommandText = "SELECT CONNECTION_ID()";
+                    command.CommandTimeout = QueryTimeout;
+                    serverConnectionId = Convert.ToInt64(command.ExecuteScalar());
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (serverConnectionId <= 0 || CurrentOpenConnectionId != expectedConnectionId
+                || !ReferenceEquals(_conn, connection) || !ReferenceEquals(_transaction, transaction)
+                || !TryReadServerVersionOnVerifiedConnection(expectedConnectionId, out var version, out _)
+                || Core.Database.DdlPreview.MySqlColumnDdlVersionPolicy.SelectRenameSyntax(version) == Core.Database.DdlPreview.MySqlColumnRenameSyntax.Unknown)
+            {
+                errorMessage = "F7U3C4B3_VERSION_UNVERIFIED";
+                return false;
+            }
+
+            try
+            {
+                //COLUMNS alone cannot prove the presence of a DEFAULT clause. Require SHOW CREATE and corroborate each supported attribute below.
+                var metadataSql = "SELECT c.TABLE_SCHEMA, c.TABLE_NAME, c.COLUMN_NAME, "
+                    + "c.COLUMN_TYPE, c.IS_NULLABLE, c.COLUMN_DEFAULT, c.COLUMN_COMMENT, "
+                    + "c.EXTRA, c.GENERATION_EXPRESSION, c.COLUMN_KEY, "
+                    + "c.CHARACTER_SET_NAME, c.COLLATION_NAME, t.ENGINE "
+                    + "FROM INFORMATION_SCHEMA.COLUMNS c "
+                    + "INNER JOIN INFORMATION_SCHEMA.TABLES t "
+                    + "ON t.TABLE_SCHEMA = c.TABLE_SCHEMA AND t.TABLE_NAME = c.TABLE_NAME "
+                    + "WHERE t.TABLE_TYPE = 'BASE TABLE' "
+                    + "AND c.TABLE_SCHEMA = '" + databaseName + "' "
+                    + "AND c.TABLE_NAME = '" + tableName + "' "
+                    + "AND c.COLUMN_NAME = '" + columnName + "'";
+
+                string columnType;
+                string defaultValue;
+                string oldComment;
+                string characterSet;
+                string collation;
+                bool characterColumn;
+
+                using (var command = new MySqlCommand())
+                {
+                    command.Connection = connection;
+                    command.Transaction = transaction;
+                    command.CommandType = CommandType.Text;
+                    command.CommandText = metadataSql;
+                    command.CommandTimeout = QueryTimeout;
+
+                    using (var rows = command.ExecuteReader())
+                    {
+                        if (!rows.Read()
+                            || !string.Equals(Convert.ToString(rows["TABLE_SCHEMA"]), databaseName, StringComparison.Ordinal)
+                            || !string.Equals(Convert.ToString(rows["TABLE_NAME"]), tableName, StringComparison.Ordinal)
+                            || !string.Equals(Convert.ToString(rows["COLUMN_NAME"]), columnName, StringComparison.Ordinal)
+                            || !string.Equals(Convert.ToString(rows["IS_NULLABLE"]), "NO", StringComparison.Ordinal)
+                            || !string.Equals(Convert.ToString(rows["ENGINE"]), "InnoDB", StringComparison.OrdinalIgnoreCase)
+                            || rows["COLUMN_DEFAULT"] == DBNull.Value
+                            || !string.IsNullOrEmpty(Convert.ToString(rows["EXTRA"]))
+                            || !string.IsNullOrEmpty(Convert.ToString(rows["GENERATION_EXPRESSION"]))
+                            || !string.IsNullOrEmpty(Convert.ToString(rows["COLUMN_KEY"])))
+                        {
+                            errorMessage = "F7U3C4B3_METADATA_OUTSIDE_SAFE_SUBSET";
+                            return false;
+                        }
+
+                        columnType = Convert.ToString(rows["COLUMN_TYPE"]);
+                        defaultValue = Convert.ToString(rows["COLUMN_DEFAULT"]);
+                        oldComment = Convert.ToString(rows["COLUMN_COMMENT"]);
+
+                        //Both character attributes must be present together; no guessing from table defaults.
+                        var hasCharset = rows["CHARACTER_SET_NAME"] != DBNull.Value;
+                        var hasCollation = rows["COLLATION_NAME"] != DBNull.Value;
+
+                        characterColumn = hasCharset && hasCollation;
+                        characterSet = hasCharset ? Convert.ToString(rows["CHARACTER_SET_NAME"]) : string.Empty;
+                        collation = hasCollation ? Convert.ToString(rows["COLLATION_NAME"]) : string.Empty;
+
+                        //Keep the original integer DEFAULT proof unchanged; character DEFAULT is corroborated separately against the explicit SHOW CREATE literal.
+                        if (hasCharset != hasCollation
+                            || (!characterColumn && !Regex.IsMatch(defaultValue ?? "", @"\A-?(?:0|[1-9][0-9]*)\z"))
+                            || !Regex.IsMatch(oldComment ?? "", @"\A[A-Za-z0-9 _.,!?:/\-]*\z")
+                            || rows.Read())
+                        {
+                            errorMessage = "F7U3C4B3_METADATA_AMBIGUOUS";
+                            return false;
+                        }
+                    }
+                }
+
+                string createTable;
+
+                using (var command = new MySqlCommand())
+                {
+                    command.Connection = connection;
+                    command.Transaction = transaction;
+                    command.CommandType = CommandType.Text;
+                    command.CommandText = "SHOW CREATE TABLE `" + databaseName + "`.`" + tableName + "`";
+                    command.CommandTimeout = QueryTimeout;
+
+                    using (var rows = command.ExecuteReader())
+                    {
+                        if (!rows.Read() || rows.IsDBNull(1))
+                        {
+                            errorMessage = "F7U3C4B3_SHOW_CREATE_UNAVAILABLE";
+                            return false;
+                        }
+
+                        createTable = rows.GetString(1);
+
+                        if (rows.Read())
+                        {
+                            errorMessage = "F7U3C4B3_SHOW_CREATE_AMBIGUOUS";
+                            return false;
+                        }
+                    }
+                }
+
+                //Only the exact single-line SHOW CREATE column declaration is read.
+                //Nested expressions, multiline values and escaped identifiers are refused.
+                var prefix = "  `" + columnName + "` ";
+                string completeDefinition = null;
+
+                foreach (var rawLine in createTable.Split('\n'))
+                {
+                    var line = rawLine.TrimEnd('\r');
+
+                    if (!line.StartsWith(prefix, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    if (completeDefinition != null)
+                    {
+                        errorMessage = "F7U3C4B3_MULTIPLE_COLUMN_DECLARATIONS";
+                        return false;
+                    }
+
+                    var definition = line.Substring(prefix.Length);
+
+                    completeDefinition = definition.EndsWith(",", StringComparison.Ordinal) ? definition.Substring(0, definition.Length - 1) : definition;
+                }
+
+                if (completeDefinition == null
+                    || !Core.Database.DdlPreview.MySqlCompleteColumnDefinitionSqlBuilder.TryQualifyCompleteDefinition(completeDefinition, out _)
+                    || !completeDefinition.StartsWith(columnType + " ", StringComparison.OrdinalIgnoreCase))
+                {
+                    errorMessage = "F7U3C4B3_DEFINITION_NOT_QUALIFIED";
+                    return false;
+                }
+
+                if (characterColumn)
+                {
+                    //Only a complete, explicit CHAR/VARCHAR definition can enter this branch.
+                    //A plain varchar DEFAULT or an inherited table collation is not eligible.
+                    if (!Core.Database.DdlPreview.MySqlCompleteColumnDefinitionSqlBuilder.TryMatchExplicitCharacterDefinition(completeDefinition, out var characterMatch))
+                    {
+                        errorMessage = "F7U3C4B3_DEFINITION_NOT_QUALIFIED";
+                        return false;
+                    }
+
+                    var expectedCharset = characterMatch.Groups["characterSet"].Value;
+                    var expectedCollation = characterMatch.Groups["collation"].Value;
+
+                    //SQL literal is taken ONLY from the restrictive grammar, not the user or an unescaped database field. Query is on the same captured connection/transaction.
+                    var catalogSql = "SELECT COLLATION_NAME, CHARACTER_SET_NAME " + "FROM INFORMATION_SCHEMA.COLLATIONS " + "WHERE COLLATION_NAME = '" + expectedCollation + "'";
+
+                    var catalogRows = 0;
+                    var catalogCharset = string.Empty;
+                    var catalogCollation = string.Empty;
+
+                    using (var command = new MySqlCommand())
+                    {
+                        command.Connection = connection;
+                        command.Transaction = transaction;
+                        command.CommandType = CommandType.Text;
+                        command.CommandText = catalogSql;
+                        command.CommandTimeout = QueryTimeout;
+
+                        using (var rows = command.ExecuteReader())
+                        {
+                            while (rows.Read())
+                            {
+                                catalogRows++;
+
+                                if (catalogRows > 1)
+                                {
+                                    break;
+                                }
+
+                                catalogCharset = rows["CHARACTER_SET_NAME"] == DBNull.Value ? string.Empty : Convert.ToString(rows["CHARACTER_SET_NAME"]);
+                                catalogCollation = rows["COLLATION_NAME"] == DBNull.Value ? string.Empty : Convert.ToString(rows["COLLATION_NAME"]);
+                            }
+                        }
+                    }
+
+                    var catalogVerified = IsExactCharacterSetCollationCatalogPair
+                    (
+                        expectedCharset, expectedCollation, catalogCharset, catalogCollation, catalogRows
+                    );
+
+                    var proofStatus = Core.Database.DdlPreview.MySqlCharacterColumnDefinitionProofPolicy.Validate
+                    (
+                        completeDefinition, columnType, "NO", defaultValue, oldComment,
+                        characterSet, collation, string.Empty, string.Empty, string.Empty, catalogVerified
+                    );
+
+                    if (!string.IsNullOrEmpty(proofStatus))
+                    {
+                        errorMessage = proofStatus;
+                        return false;
+                    }
+                }
+                else
+                {
+                    //Keep the pre-C4C2 numeric-only proof and its exact DEFAULT behavior.
+                    var defaultMatch = Regex.Match
+                    (
+                        completeDefinition,
+                        @"\sDEFAULT (?<value>'-?(?:0|[1-9][0-9]*)'|-?(?:0|[1-9][0-9]*))(?: COMMENT '[A-Za-z0-9 _.,!?:/\-]*')?\z",
+                        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase
+                    );
+
+                    if (!defaultMatch.Success
+                        || !string.Equals(defaultMatch.Groups["value"].Value.Trim('\''), defaultValue, StringComparison.Ordinal)
+                        || (!string.IsNullOrEmpty(oldComment) && !completeDefinition.EndsWith(" COMMENT '" + oldComment + "'", StringComparison.Ordinal))
+                        || (string.IsNullOrEmpty(oldComment) && completeDefinition.IndexOf(" COMMENT '", StringComparison.OrdinalIgnoreCase) >= 0))
+                    {
+                        errorMessage = "F7U3C4B3_ATTRIBUTES_NOT_PROVEN";
+                        return false;
+                    }
+                }
+
+                long finalServerConnectionId;
+
+                using (var command = new MySqlCommand())
+                {
+                    command.Connection = connection;
+                    command.Transaction = transaction;
+                    command.CommandType = CommandType.Text;
+                    command.CommandText = "SELECT CONNECTION_ID()";
+                    command.CommandTimeout = QueryTimeout;
+                    finalServerConnectionId = Convert.ToInt64(command.ExecuteScalar());
+                }
+
+                if (finalServerConnectionId != serverConnectionId
+                    || !ReferenceEquals(_conn, connection) || !ReferenceEquals(_transaction, transaction)
+                    || CurrentOpenConnectionId != expectedConnectionId || connection.State != ConnectionState.Open
+                    || !ReferenceEquals(transaction.Connection, connection))
+                {
+                    errorMessage = "F7U3C4B3_CONNECTION_CHANGED";
+                    return false;
+                }
+
+                snapshot = new Core.Database.DdlPreview.MySqlVerifiedColumnDefinitionSnapshot
+                (
+                    expectedConnectionId, databaseName, tableName, columnName, version, completeDefinition, serverConnectionId
+                );
+
+                errorMessage = string.Empty;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                errorMessage = "F7U3C4B3_READ_FAILED: " + ex.Message;
+                snapshot = null;
+
+                return false;
+            }
+        }
+
         public string ConnectTo(string connectionString)
         {
             var errorMessage = string.Empty;
@@ -1131,21 +1522,115 @@ namespace JasonQuery.Database.Providers.Readers
         //C3-C must verify live database, table identity, transaction and exact builder SQL on this same physical connection immediately before dispatch.
         public int ExecuteSingleNonQueryOnVerifiedConnection(string sql, Guid expectedConnectionId, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
         {
-            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, null, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
+            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, null, null, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
+        }
+
+        //F7-U3-C4B3B2A: distinct, reader-owned complete-definition DDL path.
+        //B3-B2A does NOT wire this to the GUI; the opt-in remains closed until B3-B2B.
+        //Re-read metadata on the SAME physical connection and rebuild the exact SQL before one dispatch.
+        internal int ExecuteCompleteColumnDdlOnVerifiedConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.ColumnDdlOperation operation, Core.Database.DdlPreview.MySqlVerifiedColumnDefinitionSnapshot preview, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
+        {
+            errorMessage = "F7U3C4B3B2_RECEIPT_UNVERIFIED";
+            hasPendingTransactionAfterExecute = false;
+            isTransactionClosedBySqlCommand = false;
+
+            if (AppConfigHelper.IsNotCommitYet || expectedConnectionId == Guid.Empty
+                || preview == null || preview.ConnectionId != expectedConnectionId
+                || preview.ServerConnectionId <= 0 || CurrentOpenConnectionId != expectedConnectionId
+                || (operation != Core.Database.DdlPreview.ColumnDdlOperation.Rename && operation != Core.Database.DdlPreview.ColumnDdlOperation.Comment))
+            {
+                return 0;
+            }
+
+            if (!TryReadVerifiedColumnDefinitionOnConnection(expectedConnectionId, preview.DatabaseName, preview.TableName, preview.ColumnName,
+                 out var live, out var metadataError))
+            {
+                errorMessage = string.IsNullOrEmpty(metadataError) ? "F7U3C4B3B2_METADATA_UNVERIFIED" : metadataError;
+                return 0;
+            }
+
+            //The only identifiers the verified-definition Reader accepts are simple raw names.
+            //Extract *new* intent from the SQL, and re-create the statement from the verified definition.
+            //No arbitrary SQL text or caller-reported version may bypass this check.
+            var prefix = "ALTER TABLE `" + preview.DatabaseName + "`.`" + preview.TableName + "` ";
+
+            var request = new Core.Database.DdlPreview.ColumnDdlRequest
+            {
+                DataSourceType = DataSourceType.MySql,
+                Operation = operation,
+                SchemaDatabase = preview.DatabaseName,
+                TableName = preview.TableName,
+                ColumnName = preview.ColumnName
+            };
+
+            if (string.IsNullOrWhiteSpace(sql) || !sql.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                errorMessage = "F7U3C4B3B2_SQL_NOT_EXACT";
+                return 0;
+            }
+
+            if (operation == Core.Database.DdlPreview.ColumnDdlOperation.Rename)
+            {
+                var renamePrefix = prefix + "CHANGE COLUMN `" + preview.ColumnName + "` `";
+                var match = Regex.Match(sql.Substring(prefix.Length), @"\ACHANGE COLUMN `" + Regex.Escape(preview.ColumnName) + @"` `(?<new>[A-Za-z_][A-Za-z0-9_]*)` ", RegexOptions.CultureInvariant);
+
+                if (!sql.StartsWith(renamePrefix, StringComparison.Ordinal) || !match.Success)
+                {
+                    errorMessage = "F7U3C4B3B2_SQL_RENAME_UNQUALIFIED";
+                    return 0;
+                }
+
+                request.NewColumnName = match.Groups["new"].Value;
+            }
+            else
+            {
+                //Builder permits only simple ASCII comments; match the last, exact COMMENT clause.
+                var match = Regex.Match(sql, @" COMMENT '(?<comment>[A-Za-z0-9 _.,!?:/\-]*)';\z", RegexOptions.CultureInvariant);
+
+                if (!match.Success)
+                {
+                    errorMessage = "F7U3C4B3B2_SQL_COMMENT_UNQUALIFIED";
+                    return 0;
+                }
+
+                request.Comment = match.Groups["comment"].Value;
+            }
+
+            var status = Core.Database.DdlPreview.MySqlVerifiedColumnDefinitionExecutionPolicy.Validate (operation, preview, live, request, sql);
+
+            if (!string.IsNullOrEmpty(status) || CurrentOpenConnectionId != expectedConnectionId)
+            {
+                errorMessage = string.IsNullOrEmpty(status) ? "F7U3C4B3B2_CONNECTION_CHANGED" : status;
+                return 0;
+            }
+
+            //Existing single-statement Reader guard handles actual dispatch, token invalidation, unknown outcomes and MySQL implicit commit; no retry and no generic SQL fallback.
+            return ExecuteColumnDdlOnVerifiedConnection(sql, expectedConnectionId, operation, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
         }
 
         //Existing Add Column remains distinct. Table DDL entry is explicitly bound to the operation.
         public int ExecuteTableCommentOnVerifiedConnection(string sql, Guid expectedConnectionId, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
         {
-            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation.Comment, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
+            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation.Comment, null, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
         }
 
         internal int ExecuteTableDdlOnVerifiedConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation operation, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
         {
-            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, operation, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
+            return ExecuteVerifiedF7DdlOnConnection(sql, expectedConnectionId, operation, null, out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand);
         }
 
-        private int ExecuteVerifiedF7DdlOnConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation? tableOperation, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
+        //F7-U3-C2B2: Existing Column has its own operation-specific Reader entry.
+        //Final caller-side Column identity, preview SQL, transaction, and MySQL definition verification remain mandatory.
+        internal int ExecuteColumnDdlOnVerifiedConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.ColumnDdlOperation operation, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
+        {
+            return ExecuteVerifiedF7DdlOnConnection
+            (
+                sql, expectedConnectionId, null, operation,
+                out errorMessage, out hasPendingTransactionAfterExecute, out isTransactionClosedBySqlCommand
+            );
+        }
+
+        private int ExecuteVerifiedF7DdlOnConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.TableDdlOperation? tableOperation, Core.Database.DdlPreview.ColumnDdlOperation? columnOperation, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand)
         {
             errorMessage = string.Empty;
             hasPendingTransactionAfterExecute = false;
@@ -1182,7 +1667,7 @@ namespace JasonQuery.Database.Providers.Readers
                 {
                     if (script.Statements.Count != 1)
                     {
-                        errorMessage = tableOperation.HasValue ? "F7U3B2_SQL_NOT_SINGLE_TABLE_DDL" : "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
+                        errorMessage = columnOperation.HasValue ? "F7U3C2B2_SQL_NOT_SINGLE_COLUMN_DDL" : tableOperation.HasValue ? "F7U3B2_SQL_NOT_SINGLE_TABLE_DDL" : "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
                         return 0;
                     }
 
@@ -1190,13 +1675,16 @@ namespace JasonQuery.Database.Providers.Readers
                     var scriptText = statement.Text;
                     var statementType = statement.StatementType.ToString();
 
-                    var qualifiedSql = tableOperation.HasValue
-                        ? Core.Database.DdlPreview.NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedTableDdlSql(DataSourceType.MySql, tableOperation.Value, scriptText)
-                        : string.Equals(statementType, "ALTER", StringComparison.OrdinalIgnoreCase) && Regex.IsMatch(scriptText ?? string.Empty, @"^\s*ALTER\s+TABLE\s+.+?\s+ADD\s+(?:COLUMN\s+)?", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+                    //The operation type is selected before statement parsing; never let a Column DDL request fall back to Add Column or Table DDL qualification.
+                    var qualifiedSql = columnOperation.HasValue
+                        ? Core.Database.DdlPreview.NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedColumnDdlSql(DataSourceType.MySql, columnOperation.Value, scriptText)
+                        : tableOperation.HasValue
+                            ? Core.Database.DdlPreview.NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedTableDdlSql(DataSourceType.MySql, tableOperation.Value, scriptText)
+                            : string.Equals(statementType, "ALTER", StringComparison.OrdinalIgnoreCase) && Regex.IsMatch(scriptText ?? string.Empty, @"^\s*ALTER\s+TABLE\s+.+?\s+ADD\s+(?:COLUMN\s+)?", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
 
                     if (!qualifiedSql)
                     {
-                        errorMessage = tableOperation.HasValue ? "F7U3B2_SQL_OPERATION_MISMATCH" : "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
+                        errorMessage = columnOperation.HasValue ? "F7U3C2B2_SQL_OPERATION_MISMATCH" : tableOperation.HasValue ? "F7U3B2_SQL_OPERATION_MISMATCH" : "F7U2C3B_SQL_NOT_SINGLE_ADD_COLUMN";
                         return 0;
                     }
 

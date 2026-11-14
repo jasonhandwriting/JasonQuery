@@ -1182,6 +1182,30 @@ namespace JasonQuery.Database.Providers.Readers
             );
         }
 
+        //F7-U3-C2B2: Existing Column only. Same connection, transaction, and savepoint engine as the verified Table DDL path.
+        //A caller must separately verify the selected existing Column, exact rebuilt SQL, and (for MySQL) full definition.
+        internal int ExecuteColumnDdlOnVerifiedConnection(string sql, Guid expectedConnectionId, Core.Database.DdlPreview.ColumnDdlOperation operation, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand, out bool savepointRestored, out bool ddlDispatched)
+        {
+            if (!Core.Database.DdlPreview.NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedColumnDdlSql(DataSourceType.PostgreSql, operation, sql))
+            {
+                errorMessage = "F7U3C2B2_SQL_OPERATION_MISMATCH";
+                hasPendingTransactionAfterExecute = false;
+                isTransactionClosedBySqlCommand = false;
+                savepointRestored = false;
+                ddlDispatched = false;
+
+                return 0;
+            }
+
+            return ExecuteGuidedDdlOnVerifiedConnection
+            (
+                sql, expectedConnectionId, false,
+                out errorMessage, out hasPendingTransactionAfterExecute,
+                out isTransactionClosedBySqlCommand, out savepointRestored,
+                out ddlDispatched
+            );
+        }
+
         //Legacy PostgreSQL Table/Column GUI forms opt in without changing SQL Editor behavior.
         //Establish/reuse a transaction BEFORE capturing the physical identity; never reconnect inside the verified Savepoint + DDL + recovery sequence.
         public int ExecuteGuidedDdlWithSavepoint(string sql, out string errorMessage, out bool hasPendingTransactionAfterExecute, out bool isTransactionClosedBySqlCommand, out bool savepointRestored)
@@ -1786,6 +1810,58 @@ namespace JasonQuery.Database.Providers.Readers
         /// An error is surfaced to the caller; it never performs a full transaction rollback.
         /// Do not use this method for arbitrary user SQL.
         /// </summary>
+        //F7-U3-C3: read the live PostgreSQL identifier limit on the already-verified physical connection/transaction. Never reconnect, commit, roll back, or dispatch DDL.
+        internal string ValidateNewIdentifierLengthOnVerifiedConnection(Guid expectedConnectionId, string rawNewName)
+        {
+            const string unverified = "F7U3C_PG_IDENTIFIER_LIMIT_UNVERIFIED";
+
+            var connection = _conn;
+            var transaction = _transaction;
+
+            Func<bool> samePhysicalConnection = () =>
+                expectedConnectionId != Guid.Empty
+                && CurrentOpenConnectionId == expectedConnectionId
+                && ReferenceEquals(_conn, connection)
+                && ReferenceEquals(_transaction, transaction)
+                && connection != null
+                && connection.State == ConnectionState.Open
+                && transaction != null
+                && ReferenceEquals(transaction.Connection, connection);
+
+            if (!samePhysicalConnection())
+            {
+                return unverified;
+            }
+
+            try
+            {
+                object serverLimit;
+
+                using (var command = new PgSqlCommand())
+                {
+                    command.Connection = connection;
+                    command.Transaction = transaction;
+                    command.CommandText = "SHOW max_identifier_length";
+                    command.CommandType = CommandType.Text;
+                    command.CommandTimeout = QueryTimeout;
+
+                    serverLimit = command.ExecuteScalar();
+                }
+
+                if (!samePhysicalConnection() || !int.TryParse(Convert.ToString(serverLimit), out var maxIdentifierBytes) || maxIdentifierBytes <= 0)
+                {
+                    return unverified;
+                }
+
+                return Core.Database.DdlPreview.NonOracleSchemaExplorerDdlExecuteGate.ValidatePostgreSqlNewIdentifierLengthWithDetails(rawNewName, maxIdentifierBytes);
+            }
+            catch (Exception)
+            {
+                //Unknown connection or transaction outcome is never permission to execute DDL.
+                return unverified;
+            }
+        }
+
         public DataTable ExecuteMetadataQueryToDataTable(string sql)
         {
             if (string.IsNullOrWhiteSpace(sql))

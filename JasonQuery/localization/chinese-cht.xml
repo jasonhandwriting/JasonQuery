@@ -1399,6 +1399,17 @@
   <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlGuiDdlSavepointRestored" attribute="Text" name="SQL 執行失敗，已將本次操作還原至 Savepoint。先前尚未提交的變更仍保留在交易中。" />
   <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlGuiDdlSavepointCreationFailed" attribute="Text" name="無法建立交易 Savepoint，因此未執行 SQL。請檢查連線與交易狀態。" />
   <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlGuiDdlSavepointStateUncertain" attribute="Text" name="無法完整確認 SQL 執行或 Savepoint 回復結果。請先檢查交易與資料庫結構，再繼續操作。" />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7DestructiveColumnDdlConfirmation" attribute="Text" name="刪除欄位可能造成資料永久遺失。請確認目標欄位及 SQL 後再繼續。" />
+  <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7ExistingColumnSafetyCheckFailed" attribute="Text" name="現有欄位操作未通過安全檢查，已停止執行。請確認目前的欄位、資料庫連線及 SQL 後再重試。" />
+  <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlIdentifierWouldTruncate" attribute="Text" name="PostgreSQL 識別字長度超出限制。&#x000A;&#x000A;新名稱：{0} 個 UTF-8 位元組&#x000A;伺服器上限：{1} 個位元組&#x000A;&#x000A;PostgreSQL 可能自動截斷過長的名稱，導致實際名稱與輸入不一致，因此已停止執行。&#x000A;&#x000A;請縮短名稱後再試。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlPendingTransaction" attribute="Text" name="存在未完成的交易，無法執行此 DDL 操作。&#x000A;請先處理交易，再重新開啟表單。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlUnsupportedDefinition" attribute="Text" name="無法安全保留此欄位的部分屬性 (例如字元集、定序規則、AUTO_INCREMENT、產生欄位)。為避免意外變更，已停止產生 SQL 並停用執行。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlMetadataUnverified" attribute="Text" name="無法完整驗證原始欄位定義，因此不會產生可能變更其他屬性的 SQL。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlConnectionUnverified" attribute="Text" name="無法驗證 MySQL 連線。&#x000A;請重新連線，並從 Schema Explorer 重新開啟操作。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlConnectionChanged" attribute="Text" name="MySQL 實體連線已變更。&#x000A;請關閉表單，再重新開啟操作。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlVersionUnverified" attribute="Text" name="無法驗證 MySQL 伺服器版本，已阻止產生及執行 SQL。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlMetadataReadFailed" attribute="Text" name="無法安全讀取欄位 Metadata。&#x000A;請檢查連線與權限，再重新嘗試。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlDefinitionUnverified" attribute="Text" name="無法驗證此欄位的完整定義，已阻止產生與執行 SQL。" />
   <!-- EditTableForm-->
   <language category="form" class="EditTableForm" type="object" id="this" attribute="Text" name="資料表" />
   <language category="form" class="EditTableForm" type="object" id="CommentTable" attribute="Text" name="資料表 - 註解(Comment)" />
@@ -1465,6 +1476,7 @@
   <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointCreationFailed" attribute="Text" name="無法建立交易 Savepoint，因此未執行 SQL。請檢查連線與交易狀態。" />
   <language category="form" class="EditTableForm" type="msg" id="PostgreSqlGuiDdlSavepointStateUncertain" attribute="Text" name="無法完整確認 SQL 執行或 Savepoint 回復結果。請先檢查交易與資料庫結構，再繼續操作。" />
   <language category="form" class="EditTableForm" type="msg" id="NonOracleF7DestructiveTableDdlConfirmation" attribute="Text" name="此操作可能永久刪除資料表或清空其中的資料。請確認目標資料表及 SQL 後再繼續。" />
+  <language category="form" class="EditTableForm" type="msg" id="PostgreSqlIdentifierWouldTruncate" attribute="Text" name="PostgreSQL 識別字長度超出限制。&#x000A;&#x000A;新名稱：{0} 個 UTF-8 位元組&#x000A;伺服器上限：{1} 個位元組&#x000A;&#x000A;PostgreSQL 可能自動截斷過長的名稱，導致實際名稱與輸入不一致，因此已停止執行。&#x000A;&#x000A;請縮短名稱後再試。" />
   <!-- EditTableFormData-->
   <language category="form" class="EditTableFormData" type="object" id="this" attribute="Text" name="編輯資料表資料" />
   <language category="form" class="EditTableFormData" type="object" id="lblSchema" attribute="Text" name="Schema:" />

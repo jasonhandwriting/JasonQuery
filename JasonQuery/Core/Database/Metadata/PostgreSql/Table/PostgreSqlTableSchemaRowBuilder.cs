@@ -15,6 +15,11 @@ namespace JasonQuery.Core.Database.Metadata.PostgreSql.Table
             row["SchemaName"] = SchemaObjectNameWithCountTextBuilder.Build(tableName, rowCount);
             row["ColumnInfo"] = SchemaObjectColumnInfoTextBuilder.Build(columnName, dataType);
 
+            if (row.Table.Columns.Contains("NonOracleMetadataColumnName"))
+            {
+                row["NonOracleMetadataColumnName"] = columnName;
+            }
+
             return row;
         }
     }

@@ -181,7 +181,7 @@
             this.txtTableName_Comment.Enabled = false;
             this.txtTableName_Comment.ImeMode = System.Windows.Forms.ImeMode.Disable;
             this.txtTableName_Comment.Location = new System.Drawing.Point(100, 39);
-            this.txtTableName_Comment.MaxLength = 25;
+            this.txtTableName_Comment.MaxLength = 128;
             this.txtTableName_Comment.Name = "txtTableName_Comment";
             this.txtTableName_Comment.ReadOnly = true;
             this.txtTableName_Comment.ShortcutsEnabled = false;
@@ -360,7 +360,7 @@
             this.txtTableName_Drop.Enabled = false;
             this.txtTableName_Drop.ImeMode = System.Windows.Forms.ImeMode.Disable;
             this.txtTableName_Drop.Location = new System.Drawing.Point(100, 39);
-            this.txtTableName_Drop.MaxLength = 25;
+            this.txtTableName_Drop.MaxLength = 128;
             this.txtTableName_Drop.Name = "txtTableName_Drop";
             this.txtTableName_Drop.ReadOnly = true;
             this.txtTableName_Drop.ShortcutsEnabled = false;
@@ -412,12 +412,12 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtNewTableName.BackColor = System.Drawing.Color.White;
             this.txtNewTableName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtNewTableName.ImeMode = System.Windows.Forms.ImeMode.Disable;
+            this.txtNewTableName.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.txtNewTableName.Location = new System.Drawing.Point(100, 67);
-            this.txtNewTableName.MaxLength = 25;
+            this.txtNewTableName.MaxLength = 128;
             this.txtNewTableName.Name = "txtNewTableName";
-            this.txtNewTableName.ShortcutsEnabled = false;
-            this.txtNewTableName.ShowContextMenu = false;
+            this.txtNewTableName.ShortcutsEnabled = true;
+            this.txtNewTableName.ShowContextMenu = true;
             this.txtNewTableName.Size = new System.Drawing.Size(466, 21);
             this.txtNewTableName.TabIndex = 126;
             this.txtNewTableName.Tag = null;
@@ -435,7 +435,7 @@
             this.txtTableName_Rename.Enabled = false;
             this.txtTableName_Rename.ImeMode = System.Windows.Forms.ImeMode.Disable;
             this.txtTableName_Rename.Location = new System.Drawing.Point(100, 39);
-            this.txtTableName_Rename.MaxLength = 25;
+            this.txtTableName_Rename.MaxLength = 128;
             this.txtTableName_Rename.Name = "txtTableName_Rename";
             this.txtTableName_Rename.ReadOnly = true;
             this.txtTableName_Rename.ShortcutsEnabled = false;
@@ -663,7 +663,7 @@
             this.txtTableName_Truncate.Enabled = false;
             this.txtTableName_Truncate.ImeMode = System.Windows.Forms.ImeMode.Disable;
             this.txtTableName_Truncate.Location = new System.Drawing.Point(100, 39);
-            this.txtTableName_Truncate.MaxLength = 25;
+            this.txtTableName_Truncate.MaxLength = 128;
             this.txtTableName_Truncate.Name = "txtTableName_Truncate";
             this.txtTableName_Truncate.ReadOnly = true;
             this.txtTableName_Truncate.ShortcutsEnabled = false;

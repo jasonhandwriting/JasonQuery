@@ -11,7 +11,7 @@ namespace JasonQuery.UI.LeftPanel
         public static bool CanExecute(LeftPanelTargetKind target, SchemaExplorerSelectionInfo selection, SharedSchemaExplorerMenuCommand command)
         {
             //Only structural Table commands may consider a C1 object group. All other group actions keep their previous safety boundary; Table classification is checked by the bridge policy.
-            if (selection == null || (selection.IsGroupRow && !IsOracleTableDdlCommand(command)) || (selection.IsColumnInfoRow && !IsOracleColumnDdlCommand(command)) || (selection.Kind != SchemaExplorerSelectionKind.SchemaObject && selection.Kind != SchemaExplorerSelectionKind.ExternalObject && !(selection.Kind == SchemaExplorerSelectionKind.ColumnInfo && IsOracleColumnDdlCommand(command))) || string.IsNullOrWhiteSpace(selection.SchemaType) || string.IsNullOrWhiteSpace(selection.SchemaName))
+            if (selection == null || (selection.IsGroupRow && !IsOracleTableDdlCommand(command)) || (selection.IsColumnInfoRow && !IsColumnDdlCommand(command)) || (selection.Kind != SchemaExplorerSelectionKind.SchemaObject && selection.Kind != SchemaExplorerSelectionKind.ExternalObject && !(selection.Kind == SchemaExplorerSelectionKind.ColumnInfo && IsColumnDdlCommand(command))) || string.IsNullOrWhiteSpace(selection.SchemaType) || string.IsNullOrWhiteSpace(selection.SchemaName))
             {
                 return false;
             }
@@ -97,7 +97,12 @@ namespace JasonQuery.UI.LeftPanel
                 case SharedSchemaExplorerMenuCommand.DropColumn:
                 case SharedSchemaExplorerMenuCommand.RenameColumn:
                     {
-                        return (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm || target == LeftPanelTargetKind.OtherForm) && OracleSharedColumnDdlBridgePolicy.IsQualifiedColumnDataRow(selection);
+                        if (target != LeftPanelTargetKind.QueryForm && target != LeftPanelTargetKind.SchemaBrowserForm && target != LeftPanelTargetKind.OtherForm)
+                        {
+                            return false;
+                        }
+
+                        return selection.SourceType == DataSourceType.Oracle ? OracleSharedColumnDdlBridgePolicy.IsQualifiedColumnDataRow(selection) : NonOracleSharedColumnDdlBridgePolicy.IsQualifiedColumnDataRow(selection);
                     }
                 default:
                     {
@@ -137,7 +142,7 @@ namespace JasonQuery.UI.LeftPanel
             }
         }
 
-        private static bool IsOracleColumnDdlCommand(SharedSchemaExplorerMenuCommand command)
+        private static bool IsColumnDdlCommand(SharedSchemaExplorerMenuCommand command)
         {
             switch (command)
             {

@@ -64,7 +64,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
         [DataRow(DataSourceType.PostgreSql, (int)ColumnDdlOperation.Drop,
                  "ALTER TABLE \"public\".\"A_TEST\" DROP COLUMN \"C1\";")]
         [DataRow(DataSourceType.PostgreSql, (int)ColumnDdlOperation.Rename,
-                 "ALTER TABLE \"public\".\"A_TEST\" RENAME COLUMN \"C1\" TO \"c1_new\";")]
+                 "ALTER TABLE \"public\".\"A_TEST\" RENAME COLUMN \"C1\" TO \"C1_NEW\";")]
         [DataRow(DataSourceType.SqlServer, (int)ColumnDdlOperation.Comment,
                  "EXEC [MyDB].[sys].[sp_addextendedproperty] @name=N'MS_Description', @value=N'comment', @level0type=N'SCHEMA', @level0name=N'dbo', @level1type=N'TABLE', @level1name=N'A_TEST', @level2type=N'COLUMN', @level2name=N'C1';")]
         [DataRow(DataSourceType.SqlServer, (int)ColumnDdlOperation.Drop,
@@ -180,7 +180,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
         [TestCategory("Safety")]
         [TestCategory("DdlPreview")]
         [DataRow(DataSourceType.Oracle, "C1", "C1")]
-        [DataRow(DataSourceType.PostgreSql, "c1", "C1")]
+        [DataRow(DataSourceType.PostgreSql, "c1", "c1")]
         [DataRow(DataSourceType.SqlServer, "C1", "[C1]")]
         [DataRow(DataSourceType.MySql, "C1", "`C1`")]
         public void ColumnRename_ToEquivalentName_ReturnsEmpty(DataSourceType dataSourceType, string currentName, string newName)
@@ -279,7 +279,7 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
         [DataRow(DataSourceType.Oracle, "MixedColumn", "new_column",
                  "ALTER TABLE \"HR\".\"A_TEST\" RENAME COLUMN \"MixedColumn\" TO \"new_column\";")]
         [DataRow(DataSourceType.PostgreSql, "MixedColumn", "NEW_COLUMN",
-                 "ALTER TABLE \"public\".\"A_TEST\" RENAME COLUMN \"MixedColumn\" TO \"new_column\";")]
+                 "ALTER TABLE \"public\".\"A_TEST\" RENAME COLUMN \"MixedColumn\" TO \"NEW_COLUMN\";")]
         [DataRow(DataSourceType.SqlServer, "MixedColumn", "New_Column",
                  "EXEC [MyDB].[sys].[sp_rename] @objname=N'[dbo].[A_TEST].[MixedColumn]', @newname=N'New_Column', @objtype=N'COLUMN';")]
         [DataRow(DataSourceType.MySql, "MixedColumn", "New_Column",

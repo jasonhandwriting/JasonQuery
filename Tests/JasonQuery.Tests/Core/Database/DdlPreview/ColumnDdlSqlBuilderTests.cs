@@ -202,6 +202,23 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
         }
 
         [TestMethod]
+        [TestCategory("Regression")]
+        [TestCategory("DdlPreview")]
+        [DataRow("aaTest", "ALTER TABLE \"public\".\"aa2\" RENAME COLUMN \"aa\" TO \"aaTest\";")]
+        [DataRow("AA", "ALTER TABLE \"public\".\"aa2\" RENAME COLUMN \"aa\" TO \"AA\";")]
+        public void BuildRename_PostgreSql_PreservesExactNewColumnCase(string newColumnName, string expectedSql)
+        {
+            var request = CreateRequest(DataSourceType.PostgreSql, ColumnDdlOperation.Rename);
+
+            request.SchemaName = "public";
+            request.TableName = "aa2";
+            request.ColumnName = "aa";
+            request.NewColumnName = newColumnName;
+
+            Assert.AreEqual(expectedSql, ColumnDdlSqlBuilder.Build(request));
+        }
+
+        [TestMethod]
         [TestCategory("Unit")]
         [TestCategory("DdlPreview")]
         public void BuildRename_SqlServer_EscapesStringParameters()
