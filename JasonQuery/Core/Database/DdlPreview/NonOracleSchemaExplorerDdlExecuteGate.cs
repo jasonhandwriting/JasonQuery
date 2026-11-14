@@ -1,5 +1,7 @@
 ﻿using JasonQuery.Core.Database.Connection;
 using System;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace JasonQuery.Core.Database.DdlPreview
 {
@@ -235,21 +237,21 @@ namespace JasonQuery.Core.Database.DdlPreview
                 return false;
             }
 
-            const System.Text.RegularExpressions.RegexOptions options = System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant | System.Text.RegularExpressions.RegexOptions.Singleline;
+            const RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Singleline;
 
             switch (provider)
             {
                 case DataSourceType.PostgreSql:
                     {
-                        return System.Text.RegularExpressions.Regex.IsMatch(sql, @"^\s*COMMENT\s+ON\s+TABLE\s+.+?\s+IS\s+'(?:''|[^'])*';?\s*$", options);
+                        return Regex.IsMatch(sql, @"^\s*COMMENT\s+ON\s+TABLE\s+.+?\s+IS\s+'(?:''|[^'])*';?\s*$", options);
                     }
                 case DataSourceType.SqlServer:
                     {
-                        return System.Text.RegularExpressions.Regex.IsMatch(sql, @"^\s*EXEC\s+\[[^\r\n]+\]\.\[sys\]\.\[sp_(?:add|update)extendedproperty\]\s+@name=N'MS_Description',.*@level1type=N'TABLE',.*@level1name=N'(?:''|[^'])*';?\s*$", options);
+                        return Regex.IsMatch(sql, @"^\s*EXEC\s+\[[^\r\n]+\]\.\[sys\]\.\[sp_(?:add|update)extendedproperty\]\s+@name=N'MS_Description',.*@level1type=N'TABLE',.*@level1name=N'(?:''|[^'])*';?\s*$", options);
                     }
                 case DataSourceType.MySql:
                     {
-                        return System.Text.RegularExpressions.Regex.IsMatch(sql, @"^\s*ALTER\s+TABLE\s+.+?\s+COMMENT\s*=\s*'(?:''|[^'])*';?\s*$", options);
+                        return Regex.IsMatch(sql, @"^\s*ALTER\s+TABLE\s+.+?\s+COMMENT\s*=\s*'(?:''|[^'])*';?\s*$", options);
                     }
                 default:
                     {
@@ -271,7 +273,7 @@ namespace JasonQuery.Core.Database.DdlPreview
                 return IsQualifiedTableCommentSql(provider, sql);
             }
 
-            const System.Text.RegularExpressions.RegexOptions options = System.Text.RegularExpressions.RegexOptions.CultureInvariant;
+            const RegexOptions options = RegexOptions.CultureInvariant;
             const string pgIdentifier = "\"(?:\"\"|[^\";\\r\\n])+\"";
             const string sqlIdentifier = @"\[(?:\]\]|[^\];\r\n])+\]";
             const string myIdentifier = @"`(?:``|[^`;\r\n])+`";
@@ -307,6 +309,7 @@ namespace JasonQuery.Core.Database.DdlPreview
                                     return false;
                                 }
                         }
+
                         break;
                     }
                 case DataSourceType.SqlServer:
@@ -333,6 +336,7 @@ namespace JasonQuery.Core.Database.DdlPreview
                                     return false;
                                 }
                         }
+
                         break;
                     }
                 case DataSourceType.MySql:
@@ -359,6 +363,7 @@ namespace JasonQuery.Core.Database.DdlPreview
                                     return false;
                                 }
                         }
+
                         break;
                     }
                 default:
@@ -367,7 +372,277 @@ namespace JasonQuery.Core.Database.DdlPreview
                     }
             }
 
-            return System.Text.RegularExpressions.Regex.IsMatch(sql, pattern, options | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            return Regex.IsMatch(sql, pattern, options | RegexOptions.IgnoreCase);
+        }
+
+        //Column SQL shape only. Final execution must still verify raw Column identity, exact rebuilt SQL, verified Reader connection, transaction and one statement.
+        public static bool IsQualifiedColumnDdlSql(DataSourceType provider, ColumnDdlOperation operation, string sql)
+        {
+            if (!IsSupportedProvider(provider) || string.IsNullOrWhiteSpace(sql))
+            {
+                return false;
+            }
+
+            const RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant;
+            const string pgIdentifier = "\"(?:\"\"|[^\";\r\n])+\"";
+            const string sqlIdentifier = @"\[(?:\]\]|[^\];\r\n])+\]";
+            const string myIdentifier = @"`(?:``|[^`;\r\n])+`";
+            const string sqlValue = @"(?:''|[^'\r\n])*";
+
+            var pgColumn = pgIdentifier + @"\." + pgIdentifier + @"\." + pgIdentifier;
+            var sqlTable = sqlIdentifier + @"\." + sqlIdentifier + @"\." + sqlIdentifier;
+            var myTable = myIdentifier + @"\." + myIdentifier;
+            string pattern;
+
+            switch (provider)
+            {
+                case DataSourceType.PostgreSql:
+                    {
+                        switch (operation)
+                        {
+                            case ColumnDdlOperation.Comment:
+                                {
+                                    pattern = @"^\s*COMMENT\s+ON\s+COLUMN\s+" + pgColumn + @"\s+IS\s+'" + sqlValue + @"';\s*$";
+                                    break;
+                                }
+                            case ColumnDdlOperation.Rename:
+                                {
+                                    pattern = @"^\s*ALTER\s+TABLE\s+" + pgIdentifier + @"\." + pgIdentifier + @"\s+RENAME\s+COLUMN\s+" + pgIdentifier + @"\s+TO\s+" + pgIdentifier + @";\s*$";
+                                    break;
+                                }
+                            case ColumnDdlOperation.Drop:
+                                {
+                                    pattern = @"^\s*ALTER\s+TABLE\s+" + pgIdentifier + @"\." + pgIdentifier + @"\s+DROP\s+COLUMN\s+" + pgIdentifier + @";\s*$";
+                                    break;
+                                }
+                            default:
+                                {
+                                    return false;
+                                }
+                        }
+
+                        break;
+                    }
+                case DataSourceType.SqlServer:
+                    {
+                        switch (operation)
+                        {
+                            case ColumnDdlOperation.Comment:
+                                {
+                                    pattern = @"^\s*EXEC\s+" + sqlIdentifier + @"\.\[sys\]\.\[sp_(?:add|update)extendedproperty\]\s+@name=N'MS_Description',\s+@value=N'" + sqlValue + @"',\s+@level0type=N'SCHEMA',\s+@level0name=N'" + sqlValue + @"',\s+@level1type=N'TABLE',\s+@level1name=N'" + sqlValue + @"',\s+@level2type=N'COLUMN',\s+@level2name=N'" + sqlValue + @"';\s*$";
+                                    break;
+                                }
+                            case ColumnDdlOperation.Rename:
+                                {
+                                    pattern = @"^\s*EXEC\s+" + sqlIdentifier + @"\.\[sys\]\.\[sp_rename\]\s+@objname=N'" + sqlValue + @"',\s+@newname=N'" + sqlValue + @"',\s+@objtype=N'COLUMN';\s*$";
+                                    break;
+                                }
+                            case ColumnDdlOperation.Drop:
+                                {
+                                    pattern = @"^\s*ALTER\s+TABLE\s+" + sqlTable + @"\s+DROP\s+COLUMN\s+" + sqlIdentifier + @";\s*$";
+                                    break;
+                                }
+                            default:
+                                {
+                                    return false;
+                                }
+                        }
+
+                        break;
+                    }
+                case DataSourceType.MySql:
+                    {
+                        switch (operation)
+                        {
+                            case ColumnDdlOperation.Comment:
+                                {
+                                    pattern = @"^\s*ALTER\s+TABLE\s+" + myTable + @"\s+MODIFY\s+COLUMN\s+" + myIdentifier + @"\s+[^;\r\n]+?\s+COMMENT\s+'[A-Za-z0-9 _.,!?:/\-]*';?\s*$";
+                                    break;
+                                }
+                            case ColumnDdlOperation.Rename:
+                                {
+                                    //Legacy MySQL: CHANGE COLUMN requires a verified complete definition.
+                                    var legacyChange = @"^\s*ALTER\s+TABLE\s+" + myTable
+                                        + @"\s+CHANGE\s+COLUMN\s+(?<old>" + myIdentifier
+                                        + @")\s+(?!\k<old>\s+)" + myIdentifier + @"\s+[^;\r\n]+;?\s*$";
+
+                                    //MySQL 8.0.3+: RENAME COLUMN does not restate column attributes.
+                                    //The caller must verify server VERSION() before authorizing execution.
+                                    var modernRename = @"^\s*ALTER\s+TABLE\s+" + myTable
+                                        + @"\s+RENAME\s+COLUMN\s+(?<modernOld>" + myIdentifier
+                                        + @")\s+TO\s+(?!\k<modernOld>\s*;?\s*$)"
+                                        + myIdentifier + @";?\s*$";
+
+                                    pattern = "(?:" + legacyChange + ")|(?:" + modernRename + ")";
+                                    break;
+                                }
+                            case ColumnDdlOperation.Drop:
+                                {
+                                    pattern = @"^\s*ALTER\s+TABLE\s+" + myTable + @"\s+DROP\s+COLUMN\s+" + myIdentifier + @";?\s*$";
+                                    break;
+                                }
+                            default:
+                                {
+                                    return false;
+                                }
+                        }
+
+                        break;
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+
+            return Regex.IsMatch(sql, pattern, options);
+        }
+
+        //F7-U3-C2B: pure Existing Column intent qualification; this is not an Execute permit.
+        //The caller must separately prove the live Table scope, complete Column metadata, verified Reader connection and transaction.
+        public static string ValidateExistingColumnIntent(DataSourceType provider, ColumnDdlOperation operation, bool rawQualified, string selectedColumn, string formColumn, string displayedSql, string rebuiltSql)
+        {
+            if (!IsSupportedProvider(provider))
+            {
+                return "F7U3C2B_INVALID_PROVIDER";
+            }
+
+            if (operation != ColumnDdlOperation.Comment && operation != ColumnDdlOperation.Rename && operation != ColumnDdlOperation.Drop)
+            {
+                return "F7U3C2B_INVALID_COLUMN_OPERATION";
+            }
+
+            if (!rawQualified)
+            {
+                return "F7U3C2B_COLUMN_IDENTITY_UNQUALIFIED";
+            }
+
+            if (string.IsNullOrWhiteSpace(selectedColumn) || string.IsNullOrWhiteSpace(formColumn))
+            {
+                return "F7U3C2B_COLUMN_IDENTITY_INCOMPLETE";
+            }
+
+            //Ordinal comparison preserves quoted/case-sensitive metadata identity, even for providers with case-insensitive defaults.
+            if (!string.Equals(selectedColumn, formColumn, StringComparison.Ordinal))
+            {
+                return "F7U3C2B_COLUMN_IDENTITY_CHANGED";
+            }
+
+            if (string.IsNullOrWhiteSpace(displayedSql) || string.IsNullOrWhiteSpace(rebuiltSql))
+            {
+                return "F7U3C2B_SQL_EMPTY";
+            }
+
+            if (!string.Equals(displayedSql, rebuiltSql, StringComparison.Ordinal))
+            {
+                return "F7U3C2B_SQL_CHANGED";
+            }
+
+            if (!IsQualifiedColumnDdlSql(provider, operation, rebuiltSql))
+            {
+                return "F7U3C2B_COLUMN_SQL_NOT_ALLOWED";
+            }
+
+            return string.Empty;
+        }
+
+        //F7-U3-C2B: compare an independently verified, complete MySQL Column definition with the definition to be applied.
+        //The verifiedLiveDefinition flag MUST be established by trusted live metadata; it is not a caller-supplied shortcut.
+        //DROP COLUMN does not restate attributes; Comment/Rename CHANGE COLUMN may change them, so reject any uncertainty.
+        public static string ValidateMySqlColumnDefinitionSafety(ColumnDdlOperation operation, bool verifiedLiveDefinition, string fullLiveDefinition, string completeSqlDefinition)
+        {
+            if (operation == ColumnDdlOperation.Drop)
+            {
+                return string.Empty;
+            }
+
+            if (operation != ColumnDdlOperation.Comment && operation != ColumnDdlOperation.Rename)
+            {
+                return "F7U3C2B_INVALID_COLUMN_OPERATION";
+            }
+
+            if (!verifiedLiveDefinition)
+            {
+                return "F7U3C2B_MYSQL_DEFINITION_UNVERIFIED";
+            }
+
+            if (string.IsNullOrWhiteSpace(fullLiveDefinition) || string.IsNullOrWhiteSpace(completeSqlDefinition))
+            {
+                return "F7U3C2B_MYSQL_DEFINITION_INCOMPLETE";
+            }
+
+            //No SQL/collation whitespace normalization: the complete executable attribute definition must be identical.
+            if (!string.Equals(fullLiveDefinition, completeSqlDefinition, StringComparison.Ordinal))
+            {
+                return "F7U3C2B_MYSQL_DEFINITION_CHANGED";
+            }
+
+            return string.Empty;
+        }
+
+        //F7-U3-C3: PostgreSQL may silently truncate an overlong identifier and report DDL success.
+        //Only F7-guided NEW names are checked. The Reader supplies the live server byte limit.
+        public static string ValidatePostgreSqlNewIdentifierLength(string rawNewName, int maxIdentifierBytes)
+        {
+            if (maxIdentifierBytes <= 0)
+            {
+                return "F7U3C_PG_IDENTIFIER_LIMIT_UNVERIFIED";
+            }
+
+            if (!DdlIdentifierQuotingPolicy.TryGetNewIdentifierValue (DataSourceType.PostgreSql, rawNewName, DdlNewIdentifierCaseMode.PreserveInput, out var identifierValue) || string.IsNullOrEmpty(identifierValue))
+            {
+                return "F7U3C_PG_IDENTIFIER_INVALID";
+            }
+
+            //The identifier VALUE excludes SQL delimiters and doubled quote escapes.
+            return Encoding.UTF8.GetByteCount(identifierValue) > maxIdentifierBytes ? "F7U3C_PG_IDENTIFIER_WOULD_TRUNCATE" : string.Empty;
+        }
+
+        //Add measured bytes only to the Execute-time failure receipt; the original pure Golden contract remains unchanged.
+        public static string ValidatePostgreSqlNewIdentifierLengthWithDetails(string rawNewName, int maxIdentifierBytes)
+        {
+            var status = ValidatePostgreSqlNewIdentifierLength(rawNewName, maxIdentifierBytes);
+
+            if (!string.Equals(status, "F7U3C_PG_IDENTIFIER_WOULD_TRUNCATE", StringComparison.Ordinal))
+            {
+                return status;
+            }
+
+            var identifierValue = DdlIdentifierQuotingPolicy.GetNewIdentifierValue
+            (
+                DataSourceType.PostgreSql, rawNewName, DdlNewIdentifierCaseMode.PreserveInput
+            );
+
+            var actualBytes = Encoding.UTF8.GetByteCount(identifierValue);
+
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}|{1}|{2}", status, actualBytes, maxIdentifierBytes);
+        }
+
+        //Only a validated, measured truncation receipt may trigger the length-specific user message.
+        //Reject partial or malformed details rather than showing an incorrect byte count.
+        public static bool TryGetPostgreSqlIdentifierTruncationDetails(string status, out int actualBytes, out int maxIdentifierBytes)
+        {
+            actualBytes = 0;
+            maxIdentifierBytes = 0;
+
+            var parts = (status ?? string.Empty).Split('|');
+
+            if (parts.Length != 3 || !string.Equals(parts[0], "F7U3C_PG_IDENTIFIER_WOULD_TRUNCATE", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (!int.TryParse(parts[1], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var parsedBytes)
+                || !int.TryParse(parts[2], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var parsedLimit)
+                || parsedLimit <= 0 || parsedBytes <= parsedLimit)
+            {
+                return false;
+            }
+
+            actualBytes = parsedBytes;
+            maxIdentifierBytes = parsedLimit;
+
+            return true;
         }
 
         private static bool IsSupportedProvider(DataSourceType provider)

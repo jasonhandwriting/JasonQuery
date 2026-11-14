@@ -126,6 +126,13 @@ namespace JasonQuery.UI.LeftPanel
                 hidden = new[] { "CreateDate", "ModifyDate" };
             }
 
+            if (sourceType != DataSourceType.Oracle && owned.Columns.Contains("NonOracleMetadataColumnName"))
+            {
+                var nonOracleHidden = new List<string>(hidden) { "NonOracleMetadataColumnName" };
+
+                hidden = nonOracleHidden.ToArray();
+            }
+
             snapshot = new SharedSchemaMetadataSnapshot(sourceType, connectionRevision, owned, groups.ToArray(), hidden, oracleVerifiedSessionUser, oracleConnectionId, databaseScope);
             return true;
         }

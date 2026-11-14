@@ -56,6 +56,11 @@ namespace JasonQuery.Core.Database.Metadata.MySql.Table
                     row["SchemaName"] = $"{columnInfo}, {columnType}";
                 }
 
+                if (row.Table.Columns.Contains("NonOracleMetadataColumnName"))
+                {
+                    row["NonOracleMetadataColumnName"] = columnInfo;
+                }
+
                 rows.Add(row);
             }
 

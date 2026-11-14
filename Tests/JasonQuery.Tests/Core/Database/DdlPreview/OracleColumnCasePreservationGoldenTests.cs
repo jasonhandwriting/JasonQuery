@@ -111,11 +111,11 @@ namespace JasonQuery.Tests.Core.Database.DdlPreview
         }
 
         [TestMethod]
-        public void G13_PostgreSqlRenameKeepsExistingNormalization()
+        public void G13_PostgreSqlRenamePreservesInputCase()
         {
             var request = CreateRename(DataSourceType.PostgreSql, "c1", "New_Column");
 
-            Assert.AreEqual("ALTER TABLE \"public\".\"a_test\" RENAME COLUMN \"c1\" TO \"new_column\";", ColumnDdlSqlBuilder.Build(request));
+            Assert.AreEqual("ALTER TABLE \"public\".\"a_test\" RENAME COLUMN \"c1\" TO \"New_Column\";", ColumnDdlSqlBuilder.Build(request));
         }
 
         [TestMethod]

@@ -125,7 +125,10 @@ namespace JasonQuery.UI.Forms
             //F7-U2-B: the shared Grid's selected Column DataRow supplies its parent Table.
             if (_currentSourceType != DataSourceType.Oracle && selection != null && selection.IsColumnInfoRow)
             {
-                NonOracleSharedAddColumnPreviewPolicy.TryQualifyColumn(selection, rowReader.GetDataRow(displayRowIndex));
+                var selectedDataRow = rowReader.GetDataRow(displayRowIndex);
+
+                NonOracleSharedAddColumnPreviewPolicy.TryQualifyColumn(selection, selectedDataRow);
+                NonOracleSharedColumnDdlBridgePolicy.TryQualifySelection(selection, selectedDataRow);
             }
 
             return selection;

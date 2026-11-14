@@ -2,7 +2,6 @@
 using JasonLibrary.Core;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Data.DataRows;
-using JasonQuery.Core.Data.DataTables;
 using JasonQuery.Core.Data.Schema;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Database.CreateScript.MySql;
@@ -28,8 +27,8 @@ using JasonQuery.Core.Database.SqlBuilder.SqlServer.Metadata.QueryEditor;
 using JasonQuery.Core.Database.SqlBuilder.SqlServer.Metadata.Table;
 using JasonQuery.Core.Database.SqlBuilder.SqlServer.Metadata.View;
 using JasonQuery.Core.Logging;
-using JasonQuery.UI.LeftPanel;
 using JasonQuery.UI.Helpers;
+using JasonQuery.UI.LeftPanel;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -1607,6 +1606,12 @@ namespace JasonQuery.Core.Database.Execution
             if (MyGlobal.IsShowColumnInfo && (MyGlobal.ShowColumnInfo != -1 || isFromSchemaBrowser))
             {
                 dtNewSchema.Columns.Add("ColumnInfo");
+
+                if (effectiveDataSourceType == DataSourceType.PostgreSql || effectiveDataSourceType == DataSourceType.SqlServer || effectiveDataSourceType == DataSourceType.MySql)
+                {
+                    //Raw metadata identifier is never derived from the formatted ColumnInfo caption.
+                    dtNewSchema.Columns.Add("NonOracleMetadataColumnName");
+                }
             }
 
             if (effectiveDataSourceType == DataSourceType.Oracle)
@@ -1623,12 +1628,14 @@ namespace JasonQuery.Core.Database.Execution
                         dtNewSchema.Columns.Add("ObjectID");
                         dtNewSchema.Columns.Add("CreateDate");
                         dtNewSchema.Columns.Add("ModifyDate");
+
                         break;
                     }
                 case DataSourceType.MySql:
                     {
                         dtNewSchema.Columns.Add("CreateDate");
                         dtNewSchema.Columns.Add("ModifyDate");
+
                         break;
                     }
             }
@@ -2260,6 +2267,7 @@ namespace JasonQuery.Core.Database.Execution
 
                 var metadataContext = CreateSqlServerMetadataContext(candidateSchema);
                 var loader = new SqlServerQueryEditorMetadataLoader();
+
                 loader.Load
                 (
                     metadataContext,
@@ -2488,6 +2496,7 @@ namespace JasonQuery.Core.Database.Execution
 
             //UI binding is updated only after the entire candidate batch has been published.
             UpdateSchemaGrid(c1Grid, true, isFromSchemaBrowser);
+
             MyGlobal.ClearMemory();
         }
 

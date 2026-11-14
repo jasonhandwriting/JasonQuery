@@ -42,6 +42,10 @@ namespace JasonQuery.Core.SchemaExplorer.Selection
         public string NonOracleRawParentTableName { get; set; } = string.Empty;
         public string NonOracleRawColumnCaption { get; set; } = string.Empty;
 
+        //Qualified from the selected metadata DataRow, independent of the display caption.
+        public string NonOracleRawColumnName { get; set; } = string.Empty;
+        public bool HasQualifiedNonOracleColumnIdentity { get; set; }
+
         public string SchemaNode { get; set; } = string.Empty;
 
         public string SchemaType { get; set; } = string.Empty;

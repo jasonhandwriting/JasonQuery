@@ -863,7 +863,7 @@ namespace JasonQuery.UI.Forms
                         return "F7U2C2_TABLE_MISMATCH";
                     }
 
-                    return NonOracleSchemaExplorerDdlExecuteGate.ValidateFormIntent
+                    var scopeStatus = NonOracleSchemaExplorerDdlExecuteGate.ValidateFormIntent
                     (
                         _currentSourceType,
                         NonOracleF7ExpectedDatabase,
@@ -876,6 +876,21 @@ namespace JasonQuery.UI.Forms
                         editorSqlPreview.Text,
                         BuildTableDdlSql(operation)
                     );
+
+                    if (!string.IsNullOrEmpty(scopeStatus))
+                    {
+                        return scopeStatus;
+                    }
+
+                    //A successful PostgreSQL RENAME may silently truncate an overlong new name.
+                    if (IsPostgreSql && operation == TableDdlOperation.Rename)
+                    {
+                        var reader = MyGlobal.PostgreSqlReader;
+
+                        return reader == null ? "F7U3C_PG_IDENTIFIER_LIMIT_UNVERIFIED" : reader.ValidateNewIdentifierLengthOnVerifiedConnection(reader.CurrentOpenConnectionId, txtNewTableName.Text);
+                    }
+
+                    return string.Empty;
                 },
                 () =>
                 {
@@ -951,8 +966,34 @@ namespace JasonQuery.UI.Forms
         }
 
         //Return an actionable localized message; machine-readable status belongs in SQL History.
+        //F7-U3-C3: explain confirmed truncation with the exact measured UTF-8 bytes and live server limit.
+        //Other safety failures keep their established handling (including unverified server limits).
+        private string GetPostgreSqlIdentifierTruncationMessage(string status)
+        {
+            if (!NonOracleSchemaExplorerDdlExecuteGate.TryGetPostgreSqlIdentifierTruncationDetails
+                (status, out var actualBytes, out var maxIdentifierBytes))
+            {
+                return string.Empty;
+            }
+
+            var fallback = "PostgreSQL identifier length exceeds the limit.\r\n\r\nNew name: {0} UTF-8 bytes\r\nServer limit: {1} bytes"
+                + "\r\n\r\nPostgreSQL may silently truncate the name, causing the actual identifier to differ from the requested name. The operation was blocked."
+                + "\r\n\r\nShorten the name and try again.";
+
+            return LocalizationHelper.GetLanguageString(fallback, "form", GetType().Name, "msg", "PostgreSqlIdentifierWouldTruncate", "Text")
+                   .Replace("{0}", actualBytes.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                   .Replace("{1}", maxIdentifierBytes.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
         private string GetNonOracleF7TableDdlFailureMessage(string status, string errorMessage)
         {
+            var truncationMessage = GetPostgreSqlIdentifierTruncationMessage(status);
+
+            if (!string.IsNullOrEmpty(truncationMessage))
+            {
+                return truncationMessage;
+            }
+
             string messageId;
             string fallback;
 

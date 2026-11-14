@@ -76,6 +76,11 @@ namespace JasonQuery.Core.Database.Metadata.SqlServer.Table
                 {
                     row["SchemaName"] = $"{columnName}, {columnTypeText}";
                 }
+
+                if (row.Table.Columns.Contains("NonOracleMetadataColumnName"))
+                {
+                    row["NonOracleMetadataColumnName"] = columnName;
+                }
             }
 
             return row;

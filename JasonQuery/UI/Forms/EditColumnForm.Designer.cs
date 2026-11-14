@@ -385,7 +385,7 @@
             this.txtColumnName_Comment.Enabled = false;
             this.txtColumnName_Comment.ImeMode = System.Windows.Forms.ImeMode.Disable;
             this.txtColumnName_Comment.Location = new System.Drawing.Point(100, 67);
-            this.txtColumnName_Comment.MaxLength = 25;
+            this.txtColumnName_Comment.MaxLength = 128;
             this.txtColumnName_Comment.Name = "txtColumnName_Comment";
             this.txtColumnName_Comment.ReadOnly = true;
             this.txtColumnName_Comment.ShortcutsEnabled = false;
@@ -449,7 +449,7 @@
             this.txtColumnName_Drop.Enabled = false;
             this.txtColumnName_Drop.ImeMode = System.Windows.Forms.ImeMode.Disable;
             this.txtColumnName_Drop.Location = new System.Drawing.Point(100, 67);
-            this.txtColumnName_Drop.MaxLength = 25;
+            this.txtColumnName_Drop.MaxLength = 128;
             this.txtColumnName_Drop.Name = "txtColumnName_Drop";
             this.txtColumnName_Drop.ReadOnly = true;
             this.txtColumnName_Drop.ShortcutsEnabled = false;
@@ -501,12 +501,12 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtNewColumnName.BackColor = System.Drawing.Color.White;
             this.txtNewColumnName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtNewColumnName.ImeMode = System.Windows.Forms.ImeMode.Disable;
+            this.txtNewColumnName.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.txtNewColumnName.Location = new System.Drawing.Point(100, 95);
-            this.txtNewColumnName.MaxLength = 25;
+            this.txtNewColumnName.MaxLength = 128;
             this.txtNewColumnName.Name = "txtNewColumnName";
-            this.txtNewColumnName.ShortcutsEnabled = false;
-            this.txtNewColumnName.ShowContextMenu = false;
+            this.txtNewColumnName.ShortcutsEnabled = true;
+            this.txtNewColumnName.ShowContextMenu = true;
             this.txtNewColumnName.Size = new System.Drawing.Size(412, 21);
             this.txtNewColumnName.TabIndex = 126;
             this.txtNewColumnName.Tag = null;
@@ -523,7 +523,7 @@
             this.txtColumnName_Rename.Enabled = false;
             this.txtColumnName_Rename.ImeMode = System.Windows.Forms.ImeMode.Disable;
             this.txtColumnName_Rename.Location = new System.Drawing.Point(100, 67);
-            this.txtColumnName_Rename.MaxLength = 25;
+            this.txtColumnName_Rename.MaxLength = 128;
             this.txtColumnName_Rename.Name = "txtColumnName_Rename";
             this.txtColumnName_Rename.ReadOnly = true;
             this.txtColumnName_Rename.ShortcutsEnabled = false;
@@ -763,7 +763,7 @@
             this.txtTableName.Enabled = false;
             this.txtTableName.ImeMode = System.Windows.Forms.ImeMode.Disable;
             this.txtTableName.Location = new System.Drawing.Point(111, 53);
-            this.txtTableName.MaxLength = 25;
+            this.txtTableName.MaxLength = 128;
             this.txtTableName.Name = "txtTableName";
             this.txtTableName.ReadOnly = true;
             this.txtTableName.ShortcutsEnabled = false;

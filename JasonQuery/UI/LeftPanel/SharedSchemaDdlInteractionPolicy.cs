@@ -18,7 +18,10 @@ namespace JasonQuery.UI.LeftPanel
             }
 
             var oracle = selection.SourceType == JasonQuery.Core.Database.Connection.DataSourceType.Oracle;
-            var accepted = oracle ? (isTableCommand || isColumnCommand) : isTableCommand;
+
+            //Non-Oracle existing-column generators may open from qualified cached rows.
+            //Keep the separate Add Column interaction path unchanged.
+            var accepted = oracle ? (isTableCommand || isColumnCommand) : (isTableCommand || (isColumnCommand && command != SharedSchemaExplorerMenuCommand.AddColumn));
 
             return accepted
                    && (target == LeftPanelTargetKind.QueryForm || target == LeftPanelTargetKind.SchemaBrowserForm || target == LeftPanelTargetKind.OtherForm)
