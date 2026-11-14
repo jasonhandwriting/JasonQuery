@@ -15,7 +15,7 @@ JasonQuery PR guide
 
 <!-- Briefly describe the affected components, providers, and operations. Keep unrelated work out. -->
 
-- 
+-
 
 ## Design Decisions & Trade-offs (if applicable)
 
