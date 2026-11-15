@@ -2034,6 +2034,20 @@
   <language category="form" class="MainForm" type="menu" id="CopyFullFilePath" attribute="Text" name="Copy Full File Path to Clipboard" />
   <language category="form" class="MainForm" type="menu" id="CopyFileName" attribute="Text" name="Copy File Name to Clipboard" />
   <language category="form" class="MainForm" type="menu" id="CopyCurrentPath" attribute="Text" name="Copy Current Dir. Path to Clipboard" />
+  <language category="form" class="MainForm" type="object" id="tabLeftAutoReplace" attribute="Text" name="Auto Replace" />
+  <language category="form" class="MainForm" type="object" id="tabLeftSchemaExplorer" attribute="Text" name="Schema Information" />
+  <language category="form" class="MainForm" type="object" id="tabLeftTabList" attribute="Text" name="Tab List" />
+  <language category="form" class="MainForm" type="object" id="tabLeftSqlNavigator" attribute="Text" name="SQL List" />
+  <language category="form" class="MainForm" type="object" id="btnRefresh" attribute="ToolTipText" name="Refresh (Schema Information)" />
+  <language category="form" class="MainForm" type="object" id="btnExpandCollapse" attribute="ToolTipText" name="Expand/Collapse" />
+  <language category="form" class="MainForm" type="object" id="mnuExpandAll" attribute="Text" name="Expand All" />
+  <language category="form" class="MainForm" type="object" id="mnuCollapseAll" attribute="Text" name="Collapse All" />
+  <language category="form" class="MainForm" type="object" id="btnSettingOfFocus" attribute="ToolTipText" name="Setting of Focus" />
+  <language category="form" class="MainForm" type="object" id="mnuFocusOnDataGrid" attribute="Text" name="After Pasting to Query Editor, Focus on Data Grid" />
+  <language category="form" class="MainForm" type="object" id="mnuFocusOnQueryEditor" attribute="Text" name="After Pasting to Query Editor, Focus on Query Editor" />
+  <language category="form" class="MainForm" type="object" id="lblSchemaType" attribute="Text" name="Schema Type:" />
+  <language category="form" class="MainForm" type="object" id="lblSchemaFilter" attribute="Text" name="Filter:" />
+  <language category="form" class="MainForm" type="object" id="btnHelp_SchemaFilter" attribute="ToolTipText" name="Filter by object, column name, and data type" />
   <language category="form" class="MainForm" type="object" id="lblAutoCommit" attribute="Text" name="Auto Commit is off" />
   <language category="form" class="MainForm" type="object" id="btnAutoRollbackOnError" attribute="Text" name="Auto Rollback on error" />
   <language category="form" class="MainForm" type="object" id="lblPrompt4NewConnection" attribute="Text" name="You can create or select database connection from [File] &gt; [New Connection]!" />
@@ -2045,6 +2059,8 @@
   <language category="form" class="MainForm" type="msg" id="AskMeBeforeOpenUnsavedFiles" attribute="Text" name="Do you want to open &quot;All unsaved files&quot; ?&#x000A;There are {QTY} file(s) in total." />
   <language category="form" class="MainForm" type="msg" id="PendingTransactionIdleWarning" attribute="Text" name="There is a pending transaction that has not been committed or rolled back.&#x000A;&#x000A;Please return to any QueryForm tab and click the Commit or Rollback button.&#x000A;Alternatively, return to any &quot;Query Editor&quot; tab and execute the Commit or Rollback command." />
   <language category="form" class="MainForm" type="msg" id="CommitPrompt" attribute="Text" name="Not yet committed or rolled back!" />
+  <language category="form" class="MainForm" type="msg" id="Help_SchemaFilterTitle" attribute="Text" name="Schema Filter Overview" />
+  <language category="form" class="MainForm" type="msg" id="Help_SchemaFilter" attribute="Text" name="The Schema Filter allows you to search database objects using keywords and display the results in a tree structure.&#x000A;&#x000A;Supported object types include the following:&#x000A;- Functions&#x000A;- Packages&#x000A;- Procedures&#x000A;- Tables&#x000A;- Views&#x000A;&#x000A;For Tables and Views, the filter also applies to:&#x000A;- Column names&#x000A;- Data types&#x000A;&#x000A;If the keyword matches either one, the table or view will be included in the result.&#x000A;&#x000A;This feature is especially useful when you know a column name but are not sure which tables or views reference it." />
   <!-- ExportToFileForm-->
   <language category="form" class="ExportToFileForm" type="object" id="this" attribute="Text" name="Export All Data to File (Excel/CSV...)" />
   <language category="form" class="ExportToFileForm" type="object" id="lblFileName" attribute="Text" name="File name:" />

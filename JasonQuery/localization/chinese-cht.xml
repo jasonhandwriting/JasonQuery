@@ -2034,6 +2034,20 @@
   <language category="form" class="MainForm" type="menu" id="CopyFullFilePath" attribute="Text" name="將完整的資料夾路徑和檔案名稱複製到剪貼簿" />
   <language category="form" class="MainForm" type="menu" id="CopyFileName" attribute="Text" name="將檔案名稱複製到剪貼簿" />
   <language category="form" class="MainForm" type="menu" id="CopyCurrentPath" attribute="Text" name="將資料夾路徑複製到剪貼簿" />
+  <language category="form" class="MainForm" type="object" id="tabLeftAutoReplace" attribute="Text" name="自動取代" />
+  <language category="form" class="MainForm" type="object" id="tabLeftSchemaExplorer" attribute="Text" name="Schema 資訊" />
+  <language category="form" class="MainForm" type="object" id="tabLeftTabList" attribute="Text" name="頁籤清單" />
+  <language category="form" class="MainForm" type="object" id="tabLeftSqlNavigator" attribute="Text" name="SQL清單" />
+  <language category="form" class="MainForm" type="object" id="btnRefresh" attribute="ToolTipText" name="重新整理 (Schema 資訊)" />
+  <language category="form" class="MainForm" type="object" id="btnExpandCollapse" attribute="ToolTipText" name="展開/收合" />
+  <language category="form" class="MainForm" type="object" id="mnuExpandAll" attribute="Text" name="全部展開" />
+  <language category="form" class="MainForm" type="object" id="mnuCollapseAll" attribute="Text" name="全部收合" />
+  <language category="form" class="MainForm" type="object" id="btnSettingOfFocus" attribute="ToolTipText" name="焦點設定" />
+  <language category="form" class="MainForm" type="object" id="mnuFocusOnDataGrid" attribute="Text" name="貼至查詢編輯器後，將焦點設置在資料網格" />
+  <language category="form" class="MainForm" type="object" id="mnuFocusOnQueryEditor" attribute="Text" name="貼至查詢編輯器後，將焦點設置在查詢編輯器" />
+  <language category="form" class="MainForm" type="object" id="lblSchemaType" attribute="Text" name="Schema 類型:" />
+  <language category="form" class="MainForm" type="object" id="lblSchemaFilter" attribute="Text" name="篩選:" />
+  <language category="form" class="MainForm" type="object" id="btnHelp_SchemaFilter" attribute="ToolTipText" name="依物件、欄位名稱與型別進行篩選" />
   <language category="form" class="MainForm" type="object" id="lblAutoCommit" attribute="Text" name="自動 Commit 已關閉" />
   <language category="form" class="MainForm" type="object" id="btnAutoRollbackOnError" attribute="Text" name="錯誤時自動 Rollback" />
   <language category="form" class="MainForm" type="object" id="lblPrompt4NewConnection" attribute="Text" name="您可以從 [檔案] &gt; [新的連線] 建立或選擇資料庫連線訊息！" />
@@ -2045,6 +2059,8 @@
   <language category="form" class="MainForm" type="msg" id="AskMeBeforeOpenUnsavedFiles" attribute="Text" name="是否要開啟「所有尚未保存的文件」？ &#x000A;共有 {QTY} 個文件。" />
   <language category="form" class="MainForm" type="msg" id="PendingTransactionIdleWarning" attribute="Text" name="目前有尚未 Commit 或 Rollback 的交易。&#x000A;&#x000A;請回到任一個「查詢編輯器」頁籤，按下 Commit 或 Rollback 按鈕。&#x000A;或是回到任一個「查詢編輯器」頁籤，執行 Commit 或 Rollback 指令。" />
   <language category="form" class="MainForm" type="msg" id="CommitPrompt" attribute="Text" name="尚未「Commit」或「Rollback」！" />
+  <language category="form" class="MainForm" type="msg" id="Help_SchemaFilterTitle" attribute="Text" name="Schema 篩選說明" />
+  <language category="form" class="MainForm" type="msg" id="Help_SchemaFilter" attribute="Text" name="Schema 篩選功能可讓您使用關鍵字，快速搜尋資料庫中的所有物件，並以樹狀結構顯示結果。&#x000A;&#x000A;支援的物件類型例如以下幾類：&#x000A;- Functions&#x000A;- Packages&#x000A;- Procedures&#x000A;- Tables&#x000A;- Views&#x000A;&#x000A;對於 Tables / Views，篩選條件同時套用於：&#x000A;- 欄位名稱&#x000A;- 欄位型別&#x000A;&#x000A;只要關鍵字符合其中任一項，該資料表或檢視表即會被列出。&#x000A;&#x000A;此功能特別適合在您只知道某個欄位名稱，但不確定它存在於哪幾張資料表時，用來快速找出所有相關物件。" />
   <!-- ExportToFileForm-->
   <language category="form" class="ExportToFileForm" type="object" id="this" attribute="Text" name="將所有資料匯出至檔案 (Excel/CSV...)" />
   <language category="form" class="ExportToFileForm" type="object" id="lblFileName" attribute="Text" name="檔案名稱：" />

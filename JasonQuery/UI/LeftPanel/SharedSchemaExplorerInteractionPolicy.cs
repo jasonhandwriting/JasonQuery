@@ -8,7 +8,8 @@ namespace JasonQuery.UI.LeftPanel
     {
         DoubleClick = 1,
         Enter = 2,
-        RightClick = 3
+        RightClick = 3,
+        LeftClick = 4
     }
 
     public static class SharedSchemaExplorerInteractionPolicy
@@ -22,8 +23,8 @@ namespace JasonQuery.UI.LeftPanel
                 return false;
             }
 
-            //The C1 GroupBy row owns expand/collapse. Never turn its activation into a Query paste.
-            if (input != SharedSchemaExplorerInputKind.DoubleClick && input != SharedSchemaExplorerInputKind.Enter)
+            //Only a qualified object group can route LeftClick to SchemaBrowser; ordinary C1 group navigation never becomes a Query paste.
+            if (input != SharedSchemaExplorerInputKind.DoubleClick && input != SharedSchemaExplorerInputKind.Enter && input != SharedSchemaExplorerInputKind.LeftClick)
             {
                 return false;
             }
@@ -40,6 +41,17 @@ namespace JasonQuery.UI.LeftPanel
                 SchemaType = selection.SchemaType,
                 SchemaName = selection.SchemaName
             };
+
+            if (input == SharedSchemaExplorerInputKind.LeftClick)
+            {
+                if (activeTarget != LeftPanelTargetKind.SchemaBrowserForm || !SchemaExplorerReceiverActionPolicy.CanDisplayInSchemaBrowser(portable, SchemaExplorerActionKind.SelectionChanged))
+                {
+                    return false;
+                }
+
+                action = SchemaExplorerActionKind.SelectionChanged;
+                return true;
+            }
 
             if (activeTarget == LeftPanelTargetKind.QueryForm)
             {
