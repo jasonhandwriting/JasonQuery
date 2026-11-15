@@ -2034,6 +2034,20 @@
   <language category="form" class="MainForm" type="menu" id="CopyFullFilePath" attribute="Text" name="将完整的文件夹路径和文件名称复制到粘贴板" />
   <language category="form" class="MainForm" type="menu" id="CopyFileName" attribute="Text" name="将文件名称复制到粘贴板" />
   <language category="form" class="MainForm" type="menu" id="CopyCurrentPath" attribute="Text" name="将文件夹路径复制到粘贴板" />
+  <language category="form" class="MainForm" type="object" id="tabLeftAutoReplace" attribute="Text" name="自动替换" />
+  <language category="form" class="MainForm" type="object" id="tabLeftSchemaExplorer" attribute="Text" name="Schema 信息" />
+  <language category="form" class="MainForm" type="object" id="tabLeftTabList" attribute="Text" name="页签列表" />
+  <language category="form" class="MainForm" type="object" id="tabLeftSqlNavigator" attribute="Text" name="SQL列表" />
+  <language category="form" class="MainForm" type="object" id="btnRefresh" attribute="ToolTipText" name="刷新 (Schema 信息)" />
+  <language category="form" class="MainForm" type="object" id="btnExpandCollapse" attribute="ToolTipText" name="展开/收合" />
+  <language category="form" class="MainForm" type="object" id="mnuExpandAll" attribute="Text" name="全部展开" />
+  <language category="form" class="MainForm" type="object" id="mnuCollapseAll" attribute="Text" name="全部收合" />
+  <language category="form" class="MainForm" type="object" id="btnSettingOfFocus" attribute="ToolTipText" name="焦点设置" />
+  <language category="form" class="MainForm" type="object" id="mnuFocusOnDataGrid" attribute="Text" name="粘贴到查询编辑器后，将焦点设置于为数据网格" />
+  <language category="form" class="MainForm" type="object" id="mnuFocusOnQueryEditor" attribute="Text" name="粘贴到查询编辑器后，将焦点设置于查询编辑器" />
+  <language category="form" class="MainForm" type="object" id="lblSchemaType" attribute="Text" name="Schema 类型:" />
+  <language category="form" class="MainForm" type="object" id="lblSchemaFilter" attribute="Text" name="过滤:" />
+  <language category="form" class="MainForm" type="object" id="btnHelp_SchemaFilter" attribute="ToolTipText" name="依对象、字段名称与类型进行筛选" />
   <language category="form" class="MainForm" type="object" id="lblAutoCommit" attribute="Text" name="自动 Commit 已关闭" />
   <language category="form" class="MainForm" type="object" id="btnAutoRollbackOnError" attribute="Text" name="错误时自动 Rollback" />
   <language category="form" class="MainForm" type="object" id="lblPrompt4NewConnection" attribute="Text" name="您可以從 [文件] &gt; [新的连线] 建立或选择数据库连线信息！" />
@@ -2045,6 +2059,8 @@
   <language category="form" class="MainForm" type="msg" id="AskMeBeforeOpenUnsavedFiles" attribute="Text" name="是否要开启 “所有尚未保存的文件” ？&#x000A;共有 {QTY} 個文件。" />
   <language category="form" class="MainForm" type="msg" id="PendingTransactionIdleWarning" attribute="Text" name="当前有尚未 Commit 或 Rollback 的事务。&#x000A;&#x000A;请回到任一个 “查询编辑器” 页签，点击 Commit 或 Rollback 按钮。&#x000A;或是回到任一个 “查询编辑器” 页签，执行 Commit 或 Rollback 指令。" />
   <language category="form" class="MainForm" type="msg" id="CommitPrompt" attribute="Text" name="尚未 “Commit” 或 “Rollback” ！" />
+  <language category="form" class="MainForm" type="msg" id="Help_SchemaFilterTitle" attribute="Text" name="Schema 筛选说明" />
+  <language category="form" class="MainForm" type="msg" id="Help_SchemaFilter" attribute="Text" name="Schema 筛选功能可让您使用关键词，快速搜寻数据库中的所有对象，并以树状结构显示结果。&#x000A;&#x000A;支持的对象类型例如以下几类：&#x000A;- Functions&#x000A;- Packages&#x000A;- Procedures&#x000A;- Tables&#x000A;- Views&#x000A;&#x000A;对于 Tables / Views，筛选条件同时套用于：&#x000A;- 字段名称&#x000A;- 字段类型&#x000A;&#x000A;只要关键词符合其中任一项，该表或检视表即会被列出。&#x000A;&#x000A;此功能特别适合在您只知道某个字段名称，但不确定它存在于哪几张表时，用来快速找出所有相关对象。" />
   <!-- ExportToFileForm-->
   <language category="form" class="ExportToFileForm" type="object" id="this" attribute="Text" name="将所有数据导出到文件 (Excel/CSV...)" />
   <language category="form" class="ExportToFileForm" type="object" id="lblFileName" attribute="Text" name="文件名：" />

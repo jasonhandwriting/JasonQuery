@@ -145,8 +145,9 @@ namespace JasonQuery.UI.Forms
                 return false;
             }
 
-            //Double-click/Enter may execute a DB operation; stale sessions must fail closed.
-            if (!CanHandleSharedSchemaExplorerSessionAction())
+            //F7 typed input only performs QueryForm paste or SchemaBrowser navigation.
+            //The current Metadata Snapshot, connection revision and database scope must remain valid. A physical Oracle session may be reconnected for SchemaBrowser's read-only queries.
+            if (!CanHandleSharedSchemaExplorerInput(grid))
             {
                 return false;
             }
@@ -195,7 +196,29 @@ namespace JasonQuery.UI.Forms
 
         private void SharedSchemaExplorerGridMouseUp(object sender, MouseEventArgs e)
         {
-            if (e.Button != MouseButtons.Right || !(sender is C1TrueDBGrid grid) || !CanHandleSharedSchemaExplorerInput(grid))
+            if (!(sender is C1TrueDBGrid grid) || !CanHandleSharedSchemaExplorerInput(grid))
+            {
+                return;
+            }
+
+            if (e.Button == MouseButtons.Left)
+            {
+                if (e.Clicks == 1)
+                {
+                    try
+                    {
+                        TryActivateSharedSchemaExplorerInput(grid, grid.RowContaining(e.Y), SharedSchemaExplorerInputKind.LeftClick);
+                    }
+                    catch (Exception)
+                    {
+                        //C1 may be regrouping; never turn a failed LeftClick into a database action.
+                    }
+                }
+
+                return;
+            }
+
+            if (e.Button != MouseButtons.Right)
             {
                 return;
             }
@@ -229,8 +252,22 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
-            //Right-click target becomes the current F7 working focus.
-            new C1SchemaExplorerRowReader(grid).SetCurrentRow(displayRowIndex);
+            //Select the right-click target without changing the visible scroll position.
+            try
+            {
+                grid.Select(displayRowIndex, 0, 1, 1, false);
+                grid.Focus();
+
+                if (grid.Row != displayRowIndex)
+                {
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+                //Do not offer actions against an object that could not be focused.
+                return;
+            }
 
             //L2-C3-B1: render the complete command plan, but execute Copy only.
             //Other commands stay disabled until their target-specific handlers are qualified.

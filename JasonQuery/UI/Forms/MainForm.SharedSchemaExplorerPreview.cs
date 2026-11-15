@@ -18,7 +18,6 @@ namespace JasonQuery.UI.Forms
         private ToolStripMenuItem _sharedSchemaPreviewMenu;
         private Panel _sharedSchemaPreviewHeader;
         private Label _sharedSchemaPreviewStatus;
-        private Button _sharedSchemaPreviewRefreshButton;
         private bool _sharedSchemaPreviewRequested;
         private bool _sharedSchemaPreviewChangingLayout;
         private bool _sharedSchemaPreviewBinding;
@@ -61,37 +60,25 @@ namespace JasonQuery.UI.Forms
 
             _sharedSchemaPreviewMenu = menu;
 
+            //Keep the internal status host: refreshing and filtering still need an error surface, but no obsolete Preview caption or extra Refresh button.
             var header = new Panel
             {
                 Name = "sharedSchemaPreviewHeader",
                 Dock = DockStyle.Top,
-                Height = 57
+                Height = 0
             };
 
             var status = new Label
             {
                 Name = "sharedSchemaPreviewStatus",
-                Dock = DockStyle.Top,
+                Dock = DockStyle.Fill,
                 AutoEllipsis = true,
-                Height = 32,
-                Text = "F7 Preview: double-click / Enter; full context actions remain in original F7."
+                Text = string.Empty
             };
-
-            var refreshButton = new Button
-            {
-                Name = "sharedSchemaPreviewRefresh",
-                Dock = DockStyle.Bottom,
-                Height = 24,
-                TabStop = false,
-                Text = "Refresh preview metadata"
-            };
-
-            refreshButton.Click += SharedSchemaPreviewRefreshClick;
 
             header.Controls.Add(status);
-            header.Controls.Add(refreshButton);
 
-            _sharedLeftPanelHostPanel.BorderStyle = BorderStyle.FixedSingle;
+            _sharedLeftPanelHostPanel.BorderStyle = BorderStyle.None;
             _sharedLeftPanelHostPanel.BackColor = SystemColors.Control;
             _sharedLeftPanelHostPanel.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _sharedLeftPanelHostPanel.Controls.Add(header);
@@ -101,12 +88,12 @@ namespace JasonQuery.UI.Forms
 
             _sharedSchemaPreviewHeader = header;
             _sharedSchemaPreviewStatus = status;
-            _sharedSchemaPreviewRefreshButton = refreshButton;
 
             tabLeftSchemaExplorer.SizeChanged += SharedSchemaPreviewPageSizeChanged;
             _sharedSchemaPreviewPreviousWindowState = WindowState;
             SizeChanged += SharedSchemaPreviewMainFormSizeChanged;
 
+            InitializeSharedSchemaExplorerFilterUI();
             LayoutSharedSchemaPreviewHost();
             SyncSharedSchemaExplorerPreviewUI();
         }
@@ -203,7 +190,30 @@ namespace JasonQuery.UI.Forms
 
         private void SharedSchemaPreviewPageSizeChanged(object sender, EventArgs e)
         {
+            LayoutSharedSchemaFilterUI();
             LayoutSharedSchemaPreviewHost();
+        }
+
+        //A compact, error-only status row replaces the old permanent Preview header.
+        //An empty status leaves the Grid directly below the existing F7 toolbar.
+        private void SetSharedSchemaExplorerStatus(string message)
+        {
+            if (_sharedSchemaPreviewStatus == null || _sharedSchemaPreviewHeader == null || _sharedSchemaPreviewHeader.IsDisposed)
+            {
+                return;
+            }
+
+            var text = message ?? string.Empty;
+
+            _sharedSchemaPreviewStatus.Text = text;
+
+            var height = string.IsNullOrWhiteSpace(text) ? 0 : 22;
+
+            if (_sharedSchemaPreviewHeader.Height != height)
+            {
+                _sharedSchemaPreviewHeader.Height = height;
+                LayoutSharedSchemaPreviewHost();
+            }
         }
 
         private void LayoutSharedSchemaPreviewHost()
@@ -213,12 +223,11 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
-            //The temporary host now contains ONLY the Preview status/Refresh header.
-            //The C1 Grid itself remains a direct Designer-owned child of the F7 page.
+            //This host must remain logically visible: CanHandleSharedSchemaExplorerInput requires it. A one-pixel host reserves no usable Grid space.
             var top = tsSchemaBrowser.Bottom;
             var headerHeight = _sharedSchemaPreviewHeader == null ? 0 : _sharedSchemaPreviewHeader.Height;
 
-            _sharedLeftPanelHostPanel.Bounds = new Rectangle(0, top, tabLeftSchemaExplorer.ClientSize.Width, headerHeight);
+            _sharedLeftPanelHostPanel.Bounds = new Rectangle(0, top, tabLeftSchemaExplorer.ClientSize.Width, Math.Max(1, headerHeight));
             LayoutSharedSchemaExplorerPreviewGrid();
         }
 
@@ -243,8 +252,23 @@ namespace JasonQuery.UI.Forms
             var areaHeight = Math.Max(0, tabLeftSchemaExplorer.ClientSize.Height - top);
             var bounds = SharedSchemaExplorerPreviewPolicy.GetGridBounds(tabLeftSchemaExplorer.ClientSize.Width, areaHeight, header.Height);
 
-            //Preserve the Designer's one-pixel side inset, Anchor, PropBag and grid styles.
-            grid.Bounds = new Rectangle(1, top + bounds.Y, Math.Max(0, bounds.Width - 2), bounds.Height);
+            //Keep a small margin around the Designer-owned C1 Grid as the left SplitContainer is resized.
+            grid.Bounds = new Rectangle(4, top + bounds.Y, Math.Max(0, bounds.Width - 8), bounds.Height);
+
+            //In GroupBy mode, resizing the Grid control alone does not stretch its visible tree column.
+            //The snapshot has an independent display copy; never modify global metadata here.
+            if (grid.DataSource != null && grid.Splits.Count > 0
+                && _sharedSchemaMetadataSnapshot != null
+                && _sharedSchemaMetadataSnapshot.Table.Columns.Contains("Schema_Browser"))
+            {
+                var column = grid.Splits[0].DisplayColumns["Schema_Browser"];
+                var availableWidth = Math.Max(24, grid.ClientSize.Width - SystemInformation.VerticalScrollBarWidth - 8);
+
+                if (column.Width != availableWidth)
+                {
+                    column.Width = availableWidth;
+                }
+            }
         }
 
         //GroupBy initially exposes only its collapsed root; expand it after the Grid becomes visible.
@@ -440,7 +464,7 @@ namespace JasonQuery.UI.Forms
 
             if (AppConfigHelper.IsNotCommitYet)
             {
-                _sharedSchemaPreviewStatus.Text = "F7: finish the pending transaction before refreshing metadata.";
+                SetSharedSchemaExplorerStatus("F7: finish the pending transaction before refreshing metadata.");
                 return;
             }
 
@@ -550,7 +574,7 @@ namespace JasonQuery.UI.Forms
                         }
                     }
 
-                    _sharedSchemaPreviewStatus.Text = "F7: metadata refreshed successfully.";
+                    SetSharedSchemaExplorerStatus(string.Empty);
                     ClearF7SchemaDirtyAfterSuccessfulReload();
                 }
             }
@@ -587,7 +611,7 @@ namespace JasonQuery.UI.Forms
                     InvalidateSharedSchemaExplorerMetadataIfStale();
                 }
 
-                _sharedSchemaPreviewStatus.Text = "F7: metadata refresh failed; previously valid data retained when possible.";
+                SetSharedSchemaExplorerStatus("F7: metadata refresh failed; previously valid data retained when possible.");
             }
             finally
             {
@@ -601,6 +625,8 @@ namespace JasonQuery.UI.Forms
 
         private void DisposeSharedSchemaExplorerPreviewUI()
         {
+            DisposeSharedSchemaExplorerFilterUI();
+
             SizeChanged -= SharedSchemaPreviewMainFormSizeChanged;
             tabLeftSchemaExplorer.SizeChanged -= SharedSchemaPreviewPageSizeChanged;
 
@@ -615,12 +641,6 @@ namespace JasonQuery.UI.Forms
                 mnuMainForm.Items.Remove(_sharedSchemaPreviewMenu);
                 _sharedSchemaPreviewMenu.Dispose();
                 _sharedSchemaPreviewMenu = null;
-            }
-
-            if (_sharedSchemaPreviewRefreshButton != null)
-            {
-                _sharedSchemaPreviewRefreshButton.Click -= SharedSchemaPreviewRefreshClick;
-                _sharedSchemaPreviewRefreshButton = null;
             }
 
             _sharedSchemaPreviewStatus = null;

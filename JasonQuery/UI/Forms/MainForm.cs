@@ -348,6 +348,8 @@ namespace JasonQuery.UI.Forms
             MessageBoxManager.FolderBrowserDialogTitle = _languageText;
             MessageBoxManager.Register();
 
+            ApplySharedSchemaExplorerLocalization();
+
             var myItems = GetItems(mnuMainForm);
 
             var Check3DotText = new HashSet<string>

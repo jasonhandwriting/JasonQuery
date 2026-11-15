@@ -5,6 +5,7 @@ using JasonQuery.Core.Database.Execution;
 using JasonQuery.UI.LeftPanel;
 using System;
 using System.Data;
+using System.Drawing;
 
 namespace JasonQuery.UI.Forms
 {
@@ -35,6 +36,11 @@ namespace JasonQuery.UI.Forms
             //Never reparent, recreate or dispose the control owned by MainForm.Designer.
             _sharedSchemaExplorerGrid = grid;
             grid.Visible = false;
+
+            //F7-U4A-C2B3: highlight the current object row consistently.
+            grid.MarqueeStyle = MarqueeEnum.HighlightRow;
+            grid.Styles["HighlightRow"].BackColor = SystemColors.Highlight;
+            grid.Styles["HighlightRow"].ForeColor = SystemColors.HighlightText;
 
             AttachSharedSchemaExplorerInputHandlers(grid);
         }
@@ -182,8 +188,18 @@ namespace JasonQuery.UI.Forms
 
             try
             {
+                var filterText = GetSharedSchemaFilterForRebind(previous, next);
+
+                if (!SharedSchemaExplorerFilterPolicy.TryApplyFilter(next, filterText))
+                {
+                    throw new InvalidOperationException("Unable to apply the shared F7 filter to the new snapshot.");
+                }
+
                 BindSharedSchemaExplorerSnapshot(grid, next);
+
                 _sharedSchemaMetadataSnapshot = next;
+                _sharedSchemaFilterAppliedText = filterText;
+                txtSchemaFilter.Text = filterText;
                 _schemaExplorerFocusPendingRestore = currentFocus;
 
                 return true;
