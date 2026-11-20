@@ -14,6 +14,7 @@ using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.UI.Helpers;
 using JasonQuery.UI.LeftPanel;
 using System;
+using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
@@ -82,7 +83,10 @@ namespace JasonQuery.UI.Forms
                 || preview.ServerConnectionId <= 0 || string.IsNullOrWhiteSpace(preview.ServerVersion)
                 || string.IsNullOrWhiteSpace(preview.DatabaseName) || string.IsNullOrWhiteSpace(preview.TableName)
                 || string.IsNullOrWhiteSpace(preview.ColumnName)
-                || !MySqlCompleteColumnDefinitionSqlBuilder.TryQualifyCompleteDefinition(preview.CompleteDefinition, out _))
+                || !(mode == EditColumnMode.Comment && preview.HasVerifiedSessionSqlMode
+                     && MySqlColumnCommentSessionModePolicy.TryParse(preview.VerifiedSessionSqlMode, out var noBackslashEscapes)
+                     ? MySqlCompleteColumnDefinitionSqlBuilder.TryQualifyCompleteDefinition(preview.CompleteDefinition, noBackslashEscapes, out _)
+                     : MySqlCompleteColumnDefinitionSqlBuilder.TryQualifyCompleteDefinition(preview.CompleteDefinition, out _)))
             {
                 return false;
             }
@@ -91,6 +95,29 @@ namespace JasonQuery.UI.Forms
 
             return mode == EditColumnMode.Comment && syntax != MySqlColumnRenameSyntax.Unknown
                    || mode == EditColumnMode.Rename && !modernRenamePreview && syntax == MySqlColumnRenameSyntax.ChangeRequiresVerifiedDefinition;
+        }
+
+        //Session-aware preview consumes a Reader-issued Receipt; legacy mode-less snapshots cannot be promoted into verified SQL mode evidence by this UI helper.
+        internal static bool TryBuildMySqlVerifiedCommentPreview(ColumnDdlRequest request, MySqlVerifiedColumnDefinitionSnapshot receipt, out string sql)
+        {
+            sql = string.Empty;
+
+            if (request == null || receipt == null || !receipt.HasVerifiedSessionSqlMode
+                || request.DataSourceType != DataSourceType.MySql
+                || request.Operation != ColumnDdlOperation.Comment
+                || request.SchemaDatabase != receipt.DatabaseName
+                || request.TableName != receipt.TableName
+                || request.ColumnName != receipt.ColumnName
+                || receipt.ConnectionId == Guid.Empty || receipt.ServerConnectionId <= 0
+                || !MySqlColumnCommentSessionModePolicy.TryParse(receipt.VerifiedSessionSqlMode, out var noBackslashEscapes))
+            {
+                return false;
+            }
+
+            return MySqlCompleteColumnDefinitionSqlBuilder.TryBuildComment
+            (
+                request, receipt.CompleteDefinition, noBackslashEscapes, out sql
+            );
         }
 
         private bool CanEnableNonOracleF7ExistingColumnNow()
@@ -126,6 +153,14 @@ namespace JasonQuery.UI.Forms
         private string _operationObject = string.Empty;
         private ContextMenuStrip _editorContextMenu = new ContextMenuStrip();
         private bool _commentMetadataReady = true;
+        private bool _ddlPendingTransactionLocked;
+        private bool _ddlTransactionOutcomeUnknown;
+        private string _ddlPendingTransactionWarningMessage = string.Empty;
+        private bool _ddlPendingTransactionWarningShown;
+        private bool _ddlFormShown;
+        private Label _mySqlSqlPreviewUnavailableLabel;
+        private Label _mySqlCommentInputRejectionLabel;
+        private string _ddlInitialConnectionString;
 
         //20250602 簡化資料庫判斷方式
         private DataSourceType _currentSourceType;
@@ -152,6 +187,10 @@ namespace JasonQuery.UI.Forms
 
                 ApplyEditorSetting();
                 ApplyLocalizedFormSettings();
+
+                _ddlInitialConnectionString = DatabaseSqlExecutor.DbConnectionString;
+
+                ApplyPendingTransactionProtectionOnOpen();
 
                 txtTableName.Text = TableName;
 
@@ -239,7 +278,7 @@ namespace JasonQuery.UI.Forms
 
                             _commentMetadataReady = false;
 
-                            if (!OfflineSqlPreviewOnly)
+                            if (!OfflineSqlPreviewOnly && !_ddlPendingTransactionLocked)
                             {
                                 LoadCommentMetadata();
                             }
@@ -311,6 +350,182 @@ namespace JasonQuery.UI.Forms
             }
         }
 
+
+        //F7-S1-B2C: sticky only for a known pending transaction or a genuinely unverified state.
+        //A normal closed Reader may reconnect at Execute; no physical-session equality is added here.
+        private void ApplyPendingTransactionProtectionOnOpen()
+        {
+            if (!IsOracle && !IsMySql)
+            {
+                return;
+            }
+
+            //Preview-only has no Execute authority. Avoid an unnecessary Reader reconnect or warning.
+            if (OfflineSqlPreviewOnly && !AppConfigHelper.IsNotCommitYet)
+            {
+                return;
+            }
+
+            var evidence = ObserveDdlTransactionEvidence();
+
+            if (evidence.Kind == DdlTransactionEvidenceKind.Pending || evidence.Kind == DdlTransactionEvidenceKind.Unknown)
+            {
+                LockPendingTransactionDdl(evidence.Kind == DdlTransactionEvidenceKind.Pending);
+            }
+        }
+
+        private DdlTransactionEvidenceDecision ObserveDdlTransactionEvidence()
+        {
+            //Pending must be handled without touching/reconnecting the Reader.
+            if (AppConfigHelper.IsNotCommitYet)
+            {
+                return DdlTransactionEvidencePolicy.Evaluate(_currentSourceType, true, false, true, false, ConnectionState.Closed);
+            }
+
+            var logicalScopeCurrent = DatabaseSqlExecutor.CurrentDataSource == _currentSourceType
+                                      && string.Equals(_ddlInitialConnectionString, DatabaseSqlExecutor.DbConnectionString, StringComparison.Ordinal);
+
+            var readerAvailable = IsOracle ? MyGlobal.OracleReader != null : MyGlobal.MySqlReader != null;
+            var readerState = ConnectionState.Broken;
+
+            if (readerAvailable)
+            {
+                try
+                {
+                    readerState = IsOracle ? MyGlobal.OracleReader.GetState() : MyGlobal.MySqlReader.GetState();
+                }
+                catch (Exception)
+                {
+                    readerState = ConnectionState.Broken;
+                }
+            }
+
+            return DdlTransactionEvidencePolicy.Evaluate
+            (
+                _currentSourceType,
+                false,
+                _ddlTransactionOutcomeUnknown,
+                logicalScopeCurrent,
+                readerAvailable,
+                readerState
+            );
+        }
+
+        private bool TryRejectPendingTransactionDdlExecute()
+        {
+            if (!IsOracle && !IsMySql)
+            {
+                return false;
+            }
+
+            //Never reconnect merely because a disabled Preview-only form receives a programmatic click.
+            if (OfflineSqlPreviewOnly || _ddlPendingTransactionLocked)
+            {
+                return true;
+            }
+
+            var evidence = ObserveDdlTransactionEvidence();
+
+            if (evidence.CanAttemptReconnect)
+            {
+                //Reconnection is allowed only after a non-pending, matching logical-scope observation.
+                //Any newly opened connection must be checked again before the existing Execute Gates.
+                var connected = false;
+
+                try
+                {
+                    string connectionError;
+
+                    connected = IsOracle ? MyGlobal.OracleReader.TryEnsureConnectionOpen(out connectionError) : MyGlobal.MySqlReader.TryEnsureConnectionOpen(out connectionError);
+                }
+                catch (Exception)
+                {
+                    connected = false;
+                }
+
+                if (!connected)
+                {
+                    LockPendingTransactionDdl(false);
+                    return true;
+                }
+
+                evidence = ObserveDdlTransactionEvidence();
+            }
+
+            if (evidence.BlockExecute)
+            {
+                LockPendingTransactionDdl(evidence.Kind == DdlTransactionEvidenceKind.Pending);
+                return true;
+            }
+
+            //A classified Clean state is ONLY admission to the existing target/SQL/Reader Gates.
+            var decision = DdlPendingTransactionProtectionPolicy.Evaluate
+            (
+                _currentSourceType,
+                "Column." + EditMode,
+                evidence.HasPendingTransaction
+            );
+
+            if (decision.BlockExecute)
+            {
+                LockPendingTransactionDdl(string.Equals(decision.ReasonCode, "S1_TRANSACTION_PENDING", StringComparison.Ordinal));
+                return true;
+            }
+
+            return false;
+        }
+
+        private void LockPendingTransactionDdl(bool knownPending)
+        {
+            if (_ddlPendingTransactionLocked)
+            {
+                return;
+            }
+
+            _ddlPendingTransactionLocked = true;
+            btnExecute.Enabled = false;
+
+            var fallback = knownPending
+                ? "An unfinished transaction exists.\r\n\r\nA transaction has not been Committed or Rolled back.\r\n\r\nOracle/MySQL table or column changes may implicitly commit unconfirmed data changes. To avoid permanently committing them, Execute has been disabled in this form.\r\n\r\nReturn to the Query Editor, review SQL history and data, and decide whether to Commit or Rollback. Close and reopen this form afterward."
+                : "The transaction status could not be verified.\r\n\r\nTo prevent an unintended commit, Execute has been disabled in this form. Check the database connection and transaction status in the Query Editor, then close and reopen this form.";
+
+            var message = LocalizationHelper.GetLanguageString
+            (
+                fallback, "Global", "Global", "msg",
+                knownPending ? "DdlPendingTransactionBlocked" : "DdlTransactionStateUnverified", "Text"
+            );
+
+            //Form_Load sets the lock before the form is shown. Delay only the dialog.
+            _ddlPendingTransactionWarningMessage = message;
+
+            if (_ddlFormShown)
+            {
+                ShowPendingTransactionWarningIfNeeded();
+            }
+        }
+
+        //The Execute lock is already active before any warning is displayed.
+        private void ShowPendingTransactionWarningIfNeeded()
+        {
+            if (!_ddlPendingTransactionLocked || _ddlPendingTransactionWarningShown
+                || string.IsNullOrWhiteSpace(_ddlPendingTransactionWarningMessage)
+                || IsDisposed || Disposing || !Visible)
+            {
+                return;
+            }
+
+            _ddlPendingTransactionWarningShown = true;
+
+            MessageBox.Show
+            (
+                this,
+                _ddlPendingTransactionWarningMessage,
+                AppConfigHelper.MessageBoxCaption,
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning
+            );
+        }
+
         private void ShowMySqlCompleteDefinitionBlockReason()
         {
             if (!IsMySql || !RequireNonOracleF7ExistingColumnGate
@@ -343,6 +558,143 @@ namespace JasonQuery.UI.Forms
 
             tabColumn.SelectedTab.Controls.Add(warning);
             warning.BringToFront();
+
+            //Do not invent MySQL DDL when the server version or full column definition is unavailable.
+            //An explanation belongs in the preview UI, not in editorSqlPreview.Text.
+            if (OfflineSqlPreviewOnly && string.IsNullOrWhiteSpace(editorSqlPreview.Text))
+            {
+                ShowMySqlSqlPreviewUnavailable(message);
+            }
+        }
+
+        //Informational overlay only. It never changes SQL text or Execute authorization.
+        private void ShowMySqlSqlPreviewUnavailable(string localizedReason)
+        {
+            if (!IsMySql || !RequireNonOracleF7ExistingColumnGate || !OfflineSqlPreviewOnly
+                || !string.IsNullOrWhiteSpace(editorSqlPreview.Text) || editorSqlPreview.Parent == null
+                || _mySqlSqlPreviewUnavailableLabel != null)
+            {
+                return;
+            }
+
+            var fallback = "SQL Preview is unavailable because the required MySQL column information could not be verified. Reason:";
+
+            var heading = LocalizationHelper.GetLanguageString
+            (
+                fallback, "form", GetType().Name, "msg", "MySqlSqlPreviewUnavailable", "Text"
+            );
+
+            //The Label is hosted by the Editor's parent. Its left edge must start after the live Scintilla margins (line numbers/folding), not in the gutter.
+            var editorTextMarginWidth = editorSqlPreview.Margins[0].Width
+                                        + editorSqlPreview.Margins[1].Width
+                                        + editorSqlPreview.Margins[2].Width
+                                        + editorSqlPreview.Margins[3].Width;
+
+            const int contentPadding = 6;
+
+            var labelLeft = editorSqlPreview.Left + editorTextMarginWidth + contentPadding;
+            var labelWidth = Math.Max(0, editorSqlPreview.Right - labelLeft - contentPadding);
+
+            var label = new Label
+            {
+                Name = "lblMySqlSqlPreviewUnavailable",
+                Location = new Point(labelLeft, editorSqlPreview.Top + 8),
+                Size = new Size(labelWidth, Math.Max(40, Math.Min(105, editorSqlPreview.Height - 14))),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+                AutoSize = false,
+                Padding = new Padding(3),
+                UseMnemonic = false,
+                ForeColor = MyLibrary.IsDarkMode ? Color.Orange : Color.DarkRed,
+                BackColor = ColorTranslator.FromHtml(MyLibrary.ColorEditorBackground),
+                Text = heading + "\r\n\r\n" + localizedReason
+            };
+
+            editorSqlPreview.Parent.Controls.Add(label);
+            label.BringToFront();
+            _mySqlSqlPreviewUnavailableLabel = label;
+        }
+
+        //D3C-04B: visual feedback for unsupported MySQL comment input.
+        //This label never modifies SQL text or Execute authorization.
+        private void UpdateMySqlCommentInputFeedback(string reasonKey)
+        {
+            if (_mySqlCommentInputRejectionLabel != null)
+            {
+                _mySqlCommentInputRejectionLabel.Visible = false;
+            }
+
+            if (string.IsNullOrEmpty(reasonKey)
+                || !IsMySql
+                || !RequireNonOracleF7ExistingColumnGate
+                || OfflineSqlPreviewOnly
+                || editorSqlPreview.Parent == null
+                || !string.IsNullOrWhiteSpace(editorSqlPreview.Text))
+            {
+                return;
+            }
+
+            var fallback = MySqlColumnDdlPreviewFeedbackPolicy.GetDefaultMessage(reasonKey);
+
+            var message = LocalizationHelper.GetLanguageString
+            (
+                fallback,
+                "form",
+                GetType().Name,
+                "msg",
+                reasonKey,
+                "Text"
+            );
+
+            if (_mySqlCommentInputRejectionLabel == null)
+            {
+                var marginWidth = editorSqlPreview.Margins[0].Width
+                                  + editorSqlPreview.Margins[1].Width
+                                  + editorSqlPreview.Margins[2].Width
+                                  + editorSqlPreview.Margins[3].Width;
+
+                const int padding = 6;
+
+                var labelLeft = editorSqlPreview.Left + marginWidth + padding;
+
+                var labelWidth = Math.Max
+                (
+                    0,
+                    editorSqlPreview.Right - labelLeft - padding
+                );
+
+                _mySqlCommentInputRejectionLabel = new Label
+                {
+                    Name = "lblMySqlCommentInputRejection",
+                    Location = new Point
+                    (
+                        labelLeft,
+                        editorSqlPreview.Top + 8
+                    ),
+                    Size = new Size
+                    (
+                        labelWidth,
+                        Math.Max(40, Math.Min(105, editorSqlPreview.Height - 14))
+                    ),
+                    Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+                    AutoSize = false,
+                    Padding = new Padding(3),
+                    UseMnemonic = false,
+                    ForeColor = MyLibrary.IsDarkMode ? Color.Orange : Color.DarkRed,
+                    BackColor = ColorTranslator.FromHtml
+                    (
+                        MyLibrary.ColorEditorBackground
+                    )
+                };
+
+                editorSqlPreview.Parent.Controls.Add
+                (
+                    _mySqlCommentInputRejectionLabel
+                );
+            }
+
+            _mySqlCommentInputRejectionLabel.Text = message;
+            _mySqlCommentInputRejectionLabel.Visible = true;
+            _mySqlCommentInputRejectionLabel.BringToFront();
         }
 
         private void Form_ResizeEnd(object sender, EventArgs e)
@@ -380,24 +732,26 @@ namespace JasonQuery.UI.Forms
             //B3-B2B: qualified MySQL F7 uses Reader-owned preview metadata. Do not call the legacy auto-reconnecting ExecuteQueryToDataTable to load the original Comment.
             if (IsMySql && RequireNonOracleF7ExistingColumnGate && NonOracleF7MySqlCompleteDefinitionPreview != null)
             {
-                var definition = NonOracleF7MySqlCompleteDefinitionPreview.CompleteDefinition;
+                var receipt = NonOracleF7MySqlCompleteDefinitionPreview;
+                var definition = receipt.CompleteDefinition;
 
-                if (!MySqlCompleteColumnDefinitionSqlBuilder.TryQualifyCompleteDefinition(definition, out var withoutComment))
+                if (!receipt.HasVerifiedSessionSqlMode
+                    || !MySqlColumnCommentSessionModePolicy.TryParse(receipt.VerifiedSessionSqlMode, out var noBackslashEscapes)
+                    || !MySqlCompleteColumnDefinitionSqlBuilder.TryQualifyCompleteDefinition(definition, noBackslashEscapes, out var withoutComment))
                 {
                     throw new InvalidOperationException("F7U3C4B3B2_DEFINITION_NOT_QUALIFIED");
                 }
 
                 var suffix = definition.Substring(withoutComment.Length);
 
-                const string commentPrefix = " COMMENT '";
-
                 if (suffix.Length == 0)
                 {
                     _columnComment = string.Empty;
                 }
-                else if (suffix.StartsWith(commentPrefix, StringComparison.Ordinal) && suffix.EndsWith("'", StringComparison.Ordinal))
+                else if (suffix.StartsWith(" COMMENT '", StringComparison.Ordinal) //D3C-05B: decode the verified SHOW CREATE literal independently of the session mode used when generating new DDL SQL.
+                         && MySqlColumnCommentLiteralPolicy.TryUnquote(suffix.Substring(" COMMENT ".Length), false, out var oldComment))
                 {
-                    _columnComment = suffix.Substring(commentPrefix.Length, suffix.Length - commentPrefix.Length - 1).Replace("''", "'");
+                    _columnComment = oldComment;
                 }
                 else
                 {
@@ -479,17 +833,45 @@ namespace JasonQuery.UI.Forms
                 if (!_commentMetadataReady)
                 {
                     UpdateSqlPreviewText(string.Empty);
+                    UpdateMySqlCommentInputFeedback(string.Empty);
+
                     return;
                 }
 
-                if (txtComment.Text == TextHelper.GetSafeString(txtComment.Tag))
+                var originalComment = TextHelper.GetSafeString(txtComment.Tag);
+                var currentComment = txtComment.Text;
+
+                if (string.Equals(originalComment, currentComment, StringComparison.Ordinal))
                 {
-                    UpdateSqlPreviewText("");
+                    UpdateSqlPreviewText(string.Empty);
+                    UpdateMySqlCommentInputFeedback(string.Empty);
+
+                    return;
                 }
-                else
+
+                var sql = BuildColumnDdlSql(ColumnDdlOperation.Comment);
+
+                UpdateSqlPreviewText(sql);
+
+                var reasonKey = string.Empty;
+
+                if (IsMySql && RequireNonOracleF7ExistingColumnGate && !OfflineSqlPreviewOnly)
                 {
-                    UpdateSqlPreviewText(BuildColumnDdlSql(ColumnDdlOperation.Comment));
+                    var receipt = NonOracleF7MySqlCompleteDefinitionPreview;
+
+                    if (receipt != null && receipt.HasVerifiedSessionSqlMode)
+                    {
+                        reasonKey = MySqlColumnDdlPreviewFeedbackPolicy.GetInputRejectionReasonKey
+                        (
+                            originalComment,
+                            currentComment,
+                            receipt.VerifiedSessionSqlMode,
+                            !string.IsNullOrEmpty(sql)
+                        );
+                    }
                 }
+
+                UpdateMySqlCommentInputFeedback(reasonKey);
             }
             catch (Exception ex)
             {
@@ -497,12 +879,23 @@ namespace JasonQuery.UI.Forms
                 txtComment.Enabled = false;
 
                 UpdateSqlPreviewText(string.Empty);
+                UpdateMySqlCommentInputFeedback(string.Empty);
 
                 btnExecute.Enabled = false;
 
-                var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
+                var message = TraceLogger.GetStackTraceMessageAndContent
+                (
+                    ex.StackTrace,
+                    ex.Message
+                );
 
-                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show
+                (
+                    message,
+                    AppConfigHelper.MessageBoxCaption,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Exclamation
+                );
             }
         }
 
@@ -512,7 +905,7 @@ namespace JasonQuery.UI.Forms
             {
                 var hasValidRename = !string.IsNullOrWhiteSpace(txtNewColumnName.Text) && txtColumnName_Rename.Text != txtNewColumnName.Text;
 
-                btnExecute.Enabled = !OfflineSqlPreviewOnly && hasValidRename;
+                btnExecute.Enabled = !OfflineSqlPreviewOnly && !_ddlPendingTransactionLocked && hasValidRename;
 
                 if (!hasValidRename)
                 {
@@ -594,7 +987,7 @@ namespace JasonQuery.UI.Forms
                 string verifiedSql;
                 var definition = NonOracleF7MySqlCompleteDefinitionPreview.CompleteDefinition;
                 var built = operation == ColumnDdlOperation.Comment
-                    ? MySqlCompleteColumnDefinitionSqlBuilder.TryBuildComment(request, definition, out verifiedSql)
+                    ? TryBuildMySqlVerifiedCommentPreview(request, NonOracleF7MySqlCompleteDefinitionPreview, out verifiedSql)
                     : MySqlCompleteColumnDefinitionSqlBuilder.TryBuildLegacyRename(request, definition, out verifiedSql);
 
                 return built ? verifiedSql : string.Empty;
@@ -608,18 +1001,23 @@ namespace JasonQuery.UI.Forms
             return ColumnDdlSqlBuilder.Build(request);
         }
 
-        private void UpdateSqlPreviewText(string sText)
+        private void UpdateSqlPreviewText(string text)
         {
             editorSqlPreview.ReadOnly = false;
-            editorSqlPreview.Text = sText;
+            editorSqlPreview.Text = text;
             editorSqlPreview.ReadOnly = true;
+
+            if (_mySqlSqlPreviewUnavailableLabel != null)
+            {
+                _mySqlSqlPreviewUnavailableLabel.Visible = string.IsNullOrWhiteSpace(text);
+            }
         }
 
         private void editorSqlPreview_TextChanged(object sender, EventArgs e)
         {
             UpdateSqlPreviewCopyState();
 
-            btnExecute.Enabled = !OfflineSqlPreviewOnly && _commentMetadataReady && !string.IsNullOrEmpty(editorSqlPreview.Text);
+            btnExecute.Enabled = !OfflineSqlPreviewOnly && !_ddlPendingTransactionLocked && _commentMetadataReady && !string.IsNullOrEmpty(editorSqlPreview.Text);
         }
 
         private void UpdateSqlPreviewCopyState()
@@ -1156,12 +1554,8 @@ namespace JasonQuery.UI.Forms
                         return "F7U2C2_CONNECTION_CHANGED";
                     }
 
-                    //A completed-definition receipt is bound to one physical connection.
-                    //Unlike an ordinary preview, this path must NEVER auto-reconnect.
-                    if (useCompleteDefinition)
-                    {
-                        return MyGlobal.MySqlReader != null && MyGlobal.MySqlReader.CurrentOpenConnectionId == completeDefinitionPreview.ConnectionId ? string.Empty : "F7U3C4B3B2_PHYSICAL_CONNECTION_CHANGED";
-                    }
+                    //A clean operation may safely reopen the provider connection.
+                    //The next callbacks re-read live metadata and SQL mode before DDL dispatch.
 
                     string connectionError;
                     bool opened;
@@ -1245,17 +1639,24 @@ namespace JasonQuery.UI.Forms
                         return scope;
                     }
 
-                    var columnIntent = NonOracleSchemaExplorerDdlExecuteGate.ValidateExistingColumnIntent
-                    (
-                        _currentSourceType, operation, true, NonOracleF7ExpectedColumn, ColumnName, editorSqlPreview.Text, rebuiltSql
-                    );
+                    var noBackslashEscapes = false;
+
+                    var verifiedCommentMode = useCompleteDefinition && IsMySql
+                        && operation == ColumnDdlOperation.Comment
+                        && completeDefinitionPreview.HasVerifiedSessionSqlMode
+                        && MySqlColumnCommentSessionModePolicy.TryParse(completeDefinitionPreview.VerifiedSessionSqlMode, out noBackslashEscapes);
+
+                    var columnIntent = verifiedCommentMode
+                        ? NonOracleSchemaExplorerDdlExecuteGate.ValidateExistingMySqlCommentIntentForSessionMode(true, NonOracleF7ExpectedColumn, ColumnName, editorSqlPreview.Text, rebuiltSql, noBackslashEscapes)
+                        : NonOracleSchemaExplorerDdlExecuteGate.ValidateExistingColumnIntent(_currentSourceType, operation, true, NonOracleF7ExpectedColumn, ColumnName, editorSqlPreview.Text, rebuiltSql);
 
                     if (!string.IsNullOrEmpty(columnIntent))
                     {
                         return columnIntent;
                     }
 
-                    //B3-B2B: bypass ordinary auto-reconnecting metadata reads. Reader verifies the live definition, version, physical session and displayed SQL here, and repeats the check immediately before the sole DDL dispatch.
+                    //Re-read live definition/version/mode on the CURRENT connection; the preview connection may have closed.
+                    //The Reader still validates the active token immediately before the sole DDL dispatch.
                     if (useCompleteDefinition)
                     {
                         var reader = MyGlobal.MySqlReader;
@@ -1263,7 +1664,7 @@ namespace JasonQuery.UI.Forms
                         MySqlVerifiedColumnDefinitionSnapshot live;
                         string definitionError;
 
-                        if (reader == null || id != completeDefinitionPreview.ConnectionId
+                        if (reader == null || id == Guid.Empty
                             || !reader.TryReadVerifiedColumnDefinitionOnConnection
                             (
                                 id, completeDefinitionPreview.DatabaseName, completeDefinitionPreview.TableName,
@@ -1413,7 +1814,17 @@ namespace JasonQuery.UI.Forms
                         return "F7U3C4_MYSQL_RENAME_SQL_NOT_VERIFIED";
                     }
 
-                    if (!NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedColumnDdlSql(_currentSourceType, operation, editorSqlPreview.Text))
+                    var verifiedNoBackslashEscapes = false;
+
+                    var modeAwareComment = useCompleteDefinition && IsMySql
+                        && operation == ColumnDdlOperation.Comment && completeDefinitionPreview.HasVerifiedSessionSqlMode
+                        && MySqlColumnCommentSessionModePolicy.TryParse(completeDefinitionPreview.VerifiedSessionSqlMode, out verifiedNoBackslashEscapes);
+
+                    var shapeQualified = modeAwareComment
+                        ? NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedMySqlCommentSqlForSessionMode(editorSqlPreview.Text, verifiedNoBackslashEscapes)
+                        : NonOracleSchemaExplorerDdlExecuteGate.IsQualifiedColumnDdlSql(_currentSourceType, operation, editorSqlPreview.Text);
+
+                    if (!shapeQualified)
                     {
                         return "F7U3C2B3_COLUMN_SQL_OPERATION_MISMATCH";
                     }
@@ -1490,6 +1901,11 @@ namespace JasonQuery.UI.Forms
 
         private void btnExecute_Click(object sender, EventArgs e)
         {
+            if (TryRejectPendingTransactionDdlExecute())
+            {
+                return;
+            }
+
             //Defense in depth: a preview-only form must never issue DDL, including programmatic clicks.
             if (OfflineSqlPreviewOnly)
             {
@@ -1632,6 +2048,10 @@ namespace JasonQuery.UI.Forms
 
                         if (newF7OracleDispatched)
                         {
+                            _ddlTransactionOutcomeUnknown = true;
+                            _ddlPendingTransactionLocked = true;
+                            btnExecute.Enabled = false;
+
                             UpdateSqlHistory(0, "Error", message, editorSqlPreview.Text);
                         }
 
@@ -1682,6 +2102,13 @@ namespace JasonQuery.UI.Forms
 
                         if (newF7NonOracleDispatched || existingColumnStatus.IndexOf("EXECUTION_OUTCOME_UNKNOWN", StringComparison.Ordinal) >= 0)
                         {
+                            if (IsMySql)
+                            {
+                                _ddlTransactionOutcomeUnknown = true;
+                                _ddlPendingTransactionLocked = true;
+                                btnExecute.Enabled = false;
+                            }
+
                             UpdateSqlHistory(0, "Error", message, editorSqlPreview.Text);
                         }
 
@@ -1799,6 +2226,13 @@ namespace JasonQuery.UI.Forms
 
                         if (newF7NonOracleDispatched)
                         {
+                            if (IsMySql)
+                            {
+                                _ddlTransactionOutcomeUnknown = true;
+                                _ddlPendingTransactionLocked = true;
+                                btnExecute.Enabled = false;
+                            }
+
                             //Machine-readable reason is retained only in SQL History for diagnostics.
                             UpdateSqlHistory(0, "Error", message + "\r\n" + guardedStatus, editorSqlPreview.Text);
                         }
@@ -1812,6 +2246,11 @@ namespace JasonQuery.UI.Forms
 
                         return;
                     }
+                }
+
+                if (!newF7OracleDispatched && !newF7NonOracleDispatched && TryRejectPendingTransactionDdlExecute())
+                {
+                    return;
                 }
 
                 switch (_currentSourceType)
@@ -1959,6 +2398,13 @@ namespace JasonQuery.UI.Forms
             }
             catch (Exception ex)
             {
+                if (IsOracle || IsMySql)
+                {
+                    _ddlTransactionOutcomeUnknown = true;
+                    _ddlPendingTransactionLocked = true;
+                    btnExecute.Enabled = false;
+                }
+
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -2118,8 +2564,13 @@ namespace JasonQuery.UI.Forms
         {
             base.OnShown(e);
 
+            _ddlFormShown = true;
+
             //等表單、TabPage 與 C1 控制項完成顯示及焦點初始化後再套用
             BeginInvoke(new MethodInvoker(ApplyInitialFocus));
+
+            //Present an owner-modal warning only after the DDL form is visible.
+            BeginInvoke(new MethodInvoker(ShowPendingTransactionWarningIfNeeded));
         }
 
         private void ApplyInitialFocus()

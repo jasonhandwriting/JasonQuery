@@ -207,13 +207,17 @@ namespace JasonQuery.Tests.UI.LeftPanel
         }
 
         [TestMethod]
-        public void B3B10_ChangedPhysicalSessionMustReject()
+        public void B3B10_ChangedPhysicalSessionWithSameDefinitionMayQualify()
         {
             var request = NewRequest(ColumnDdlOperation.Rename);
             var preview = NewSnapshot(SessionId, 381, "5.7.44", CompleteDefinition);
             var live = NewSnapshot(SessionId, 382, "5.7.44", CompleteDefinition);
 
-            Assert.IsFalse(string.IsNullOrEmpty(InvokeExpectedPolicy(request, preview, live, BuildExpectedSql(request))));
+            Assert.AreEqual
+            (
+                string.Empty,
+                InvokeExpectedPolicy(request, preview, live, BuildExpectedSql(request))
+            );
         }
 
         [TestMethod]

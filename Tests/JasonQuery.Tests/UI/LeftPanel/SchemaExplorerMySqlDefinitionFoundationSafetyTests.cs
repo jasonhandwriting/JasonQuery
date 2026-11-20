@@ -36,13 +36,30 @@ namespace JasonQuery.Tests.UI.LeftPanel
         }
 
         [TestMethod]
-        public void B3A02_OmittedAndAmbiguousDefaultsMustBeRejected()
+        public void B3A02_OmittedDefaultsStayRejectedExplicitNullIsGrammarOnly()
         {
             var request = CreateRequest(ColumnDdlOperation.Rename);
 
-            Assert.IsFalse(MySqlCompleteColumnDefinitionSqlBuilder.TryBuildLegacyRename(request, "int NOT NULL", out _));
-            Assert.IsFalse(MySqlCompleteColumnDefinitionSqlBuilder.TryBuildLegacyRename(request, "int DEFAULT NULL", out _));
-            Assert.IsFalse(MySqlCompleteColumnDefinitionSqlBuilder.TryBuildLegacyRename(request, "int NULL DEFAULT NULL", out _));
+            //A missing DEFAULT is outside the current verified-definition grammar.
+            foreach (var definition in new[]
+            {
+                "int",
+                "int NOT NULL",
+                "int NULL",
+                "int DEFAULT",
+                "int NULL DEFAULT"
+            })
+            {
+                Assert.IsFalse(MySqlCompleteColumnDefinitionSqlBuilder.TryBuildLegacyRename(request, definition, out var sql), definition);
+                Assert.AreEqual(string.Empty, sql, definition);
+            }
+
+            //C3-B2 intentionally accepts explicit DEFAULT NULL as grammar only.
+            Assert.IsTrue(MySqlCompleteColumnDefinitionSqlBuilder.TryQualifyCompleteDefinition("int DEFAULT NULL", out _));
+            Assert.IsTrue(MySqlCompleteColumnDefinitionSqlBuilder.TryQualifyCompleteDefinition("int NULL DEFAULT NULL", out _));
+
+            //Grammar acceptance never grants the old unverified Existing Column Execute path.
+            Assert.IsFalse(EditColumnForm.CanEnableNonOracleExistingColumnDdl(DataSourceType.MySql, EditColumnMode.Rename));
         }
 
         [TestMethod]

@@ -14,6 +14,7 @@ using JasonQuery.UI.Helpers;
 using JasonQuery.UI.LeftPanel;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
@@ -60,6 +61,12 @@ namespace JasonQuery.UI.Forms
         private string _operationObject = string.Empty;
         private ContextMenuStrip _editorMenu = new ContextMenuStrip();
         private bool _commentMetadataReady = true;
+        private bool _ddlPendingTransactionLocked;
+        private bool _ddlTransactionOutcomeUnknown;
+        private string _ddlPendingTransactionWarningMessage = string.Empty;
+        private bool _ddlPendingTransactionWarningShown;
+        private bool _ddlFormShown;
+        private string _ddlInitialConnectionString;
 
         private readonly HashSet<char> _invalidChars = new HashSet<char>
         {
@@ -89,6 +96,10 @@ namespace JasonQuery.UI.Forms
             {
                 ApplyEditorSetting();
                 LocalizationHelper.ApplyLanguageInfo(this, false);
+
+                _ddlInitialConnectionString = DatabaseSqlExecutor.DbConnectionString;
+
+                ApplyPendingTransactionProtectionOnOpen();
 
                 lblPrompt2_Oracle.Visible = IsOracle;
                 lblPrompt2_PostgreSql.Visible = IsPostgreSql;
@@ -204,7 +215,7 @@ namespace JasonQuery.UI.Forms
 
                             _commentMetadataReady = false;
 
-                            if (!OfflineSqlPreviewOnly)
+                            if (!OfflineSqlPreviewOnly && !_ddlPendingTransactionLocked)
                             {
                                 LoadCommentMetadata();
                             }
@@ -280,6 +291,182 @@ namespace JasonQuery.UI.Forms
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
+        }
+
+
+        //F7-S1-B2C: sticky only for a known pending transaction or a genuinely unverified state.
+        //A normal closed Reader may reconnect at Execute; no physical-session equality is added here.
+        private void ApplyPendingTransactionProtectionOnOpen()
+        {
+            if (!IsOracle && !IsMySql)
+            {
+                return;
+            }
+
+            //Preview-only has no Execute authority. Avoid an unnecessary Reader reconnect or warning.
+            if (OfflineSqlPreviewOnly && !AppConfigHelper.IsNotCommitYet)
+            {
+                return;
+            }
+
+            var evidence = ObserveDdlTransactionEvidence();
+
+            if (evidence.Kind == DdlTransactionEvidenceKind.Pending || evidence.Kind == DdlTransactionEvidenceKind.Unknown)
+            {
+                LockPendingTransactionDdl(evidence.Kind == DdlTransactionEvidenceKind.Pending);
+            }
+        }
+
+        private DdlTransactionEvidenceDecision ObserveDdlTransactionEvidence()
+        {
+            //Pending must be handled without touching/reconnecting the Reader.
+            if (AppConfigHelper.IsNotCommitYet)
+            {
+                return DdlTransactionEvidencePolicy.Evaluate(_currentSourceType, true, false, true, false, ConnectionState.Closed);
+            }
+
+            var logicalScopeCurrent = DatabaseSqlExecutor.CurrentDataSource == _currentSourceType
+                                      && string.Equals(_ddlInitialConnectionString, DatabaseSqlExecutor.DbConnectionString, StringComparison.Ordinal);
+
+            var readerAvailable = IsOracle ? MyGlobal.OracleReader != null : MyGlobal.MySqlReader != null;
+            var readerState = ConnectionState.Broken;
+
+            if (readerAvailable)
+            {
+                try
+                {
+                    readerState = IsOracle ? MyGlobal.OracleReader.GetState() : MyGlobal.MySqlReader.GetState();
+                }
+                catch (Exception)
+                {
+                    readerState = ConnectionState.Broken;
+                }
+            }
+
+            return DdlTransactionEvidencePolicy.Evaluate
+            (
+                _currentSourceType,
+                false,
+                _ddlTransactionOutcomeUnknown,
+                logicalScopeCurrent,
+                readerAvailable,
+                readerState
+            );
+        }
+
+        private bool TryRejectPendingTransactionDdlExecute()
+        {
+            if (!IsOracle && !IsMySql)
+            {
+                return false;
+            }
+
+            //Never reconnect merely because a disabled Preview-only form receives a programmatic click.
+            if (OfflineSqlPreviewOnly || _ddlPendingTransactionLocked)
+            {
+                return true;
+            }
+
+            var evidence = ObserveDdlTransactionEvidence();
+
+            if (evidence.CanAttemptReconnect)
+            {
+                //Reconnection is allowed only after a non-pending, matching logical-scope observation.
+                //Any newly opened connection must be checked again before the existing Execute Gates.
+                var connected = false;
+
+                try
+                {
+                    string connectionError;
+
+                    connected = IsOracle ? MyGlobal.OracleReader.TryEnsureConnectionOpen(out connectionError) : MyGlobal.MySqlReader.TryEnsureConnectionOpen(out connectionError);
+                }
+                catch (Exception)
+                {
+                    connected = false;
+                }
+
+                if (!connected)
+                {
+                    LockPendingTransactionDdl(false);
+                    return true;
+                }
+
+                evidence = ObserveDdlTransactionEvidence();
+            }
+
+            if (evidence.BlockExecute)
+            {
+                LockPendingTransactionDdl(evidence.Kind == DdlTransactionEvidenceKind.Pending);
+                return true;
+            }
+
+            //A classified Clean state is ONLY admission to the existing target/SQL/Reader Gates.
+            var decision = DdlPendingTransactionProtectionPolicy.Evaluate
+            (
+                _currentSourceType,
+                "Table." + EditMode,
+                evidence.HasPendingTransaction
+            );
+
+            if (decision.BlockExecute)
+            {
+                LockPendingTransactionDdl(string.Equals(decision.ReasonCode, "S1_TRANSACTION_PENDING", StringComparison.Ordinal));
+                return true;
+            }
+
+            return false;
+        }
+
+        private void LockPendingTransactionDdl(bool knownPending)
+        {
+            if (_ddlPendingTransactionLocked)
+            {
+                return;
+            }
+
+            _ddlPendingTransactionLocked = true;
+            btnExecute.Enabled = false;
+
+            var fallback = knownPending
+                ? "An unfinished transaction exists.\r\n\r\nA transaction has not been Committed or Rolled back.\r\n\r\nOracle/MySQL table or column changes may implicitly commit unconfirmed data changes. To avoid permanently committing them, Execute has been disabled in this form.\r\n\r\nReturn to the Query Editor, review SQL history and data, and decide whether to Commit or Rollback. Close and reopen this form afterward."
+                : "The transaction status could not be verified.\r\n\r\nTo prevent an unintended commit, Execute has been disabled in this form. Check the database connection and transaction status in the Query Editor, then close and reopen this form.";
+
+            var message = LocalizationHelper.GetLanguageString
+            (
+                fallback, "Global", "Global", "msg",
+                knownPending ? "DdlPendingTransactionBlocked" : "DdlTransactionStateUnverified", "Text"
+            );
+
+            //Form_Load sets the lock before the form is shown. Delay only the dialog.
+            _ddlPendingTransactionWarningMessage = message;
+
+            if (_ddlFormShown)
+            {
+                ShowPendingTransactionWarningIfNeeded();
+            }
+        }
+
+        //The Execute lock is already active before any warning is displayed.
+        private void ShowPendingTransactionWarningIfNeeded()
+        {
+            if (!_ddlPendingTransactionLocked || _ddlPendingTransactionWarningShown
+                || string.IsNullOrWhiteSpace(_ddlPendingTransactionWarningMessage)
+                || IsDisposed || Disposing || !Visible)
+            {
+                return;
+            }
+
+            _ddlPendingTransactionWarningShown = true;
+
+            MessageBox.Show
+            (
+                this,
+                _ddlPendingTransactionWarningMessage,
+                AppConfigHelper.MessageBoxCaption,
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning
+            );
         }
 
         private void Form_ResizeEnd(object sender, EventArgs e)
@@ -503,7 +690,7 @@ namespace JasonQuery.UI.Forms
         private void editorSqlPreview_TextChanged(object sender, EventArgs e)
         {
             UpdateSqlPreviewCopyState();
-            btnExecute.Enabled = !OfflineSqlPreviewOnly && _commentMetadataReady && !string.IsNullOrEmpty(editorSqlPreview.Text);
+            btnExecute.Enabled = !OfflineSqlPreviewOnly && !_ddlPendingTransactionLocked && _commentMetadataReady && !string.IsNullOrEmpty(editorSqlPreview.Text);
         }
 
         private void UpdateSqlPreviewCopyState()
@@ -1046,6 +1233,11 @@ namespace JasonQuery.UI.Forms
 
         private void btnExecute_Click(object sender, EventArgs e)
         {
+            if (TryRejectPendingTransactionDdlExecute())
+            {
+                return;
+            }
+
             //Defense in depth: programmatic PerformClick must not bypass preview-only restrictions.
             if (OfflineSqlPreviewOnly)
             {
@@ -1181,6 +1373,10 @@ namespace JasonQuery.UI.Forms
 
                         if (newF7OracleDispatched)
                         {
+                            _ddlTransactionOutcomeUnknown = true;
+                            _ddlPendingTransactionLocked = true;
+                            btnExecute.Enabled = false;
+
                             UpdateSqlHistory(0, "Error", message, sqlText);
                         }
 
@@ -1213,6 +1409,13 @@ namespace JasonQuery.UI.Forms
 
                         if (newF7NonOracleDispatched)
                         {
+                            if (IsMySql)
+                            {
+                                _ddlTransactionOutcomeUnknown = true;
+                                _ddlPendingTransactionLocked = true;
+                                btnExecute.Enabled = false;
+                            }
+
                             UpdateSqlHistory(0, "Error", message + "\r\n" + guardedStatus, sqlText);
                         }
 
@@ -1223,6 +1426,11 @@ namespace JasonQuery.UI.Forms
 
                         return;
                     }
+                }
+
+                if (!newF7OracleDispatched && !newF7NonOracleDispatched && TryRejectPendingTransactionDdlExecute())
+                {
+                    return;
                 }
 
                 switch (_currentSourceType)
@@ -1366,6 +1574,13 @@ namespace JasonQuery.UI.Forms
             }
             catch (Exception ex)
             {
+                if (IsOracle || IsMySql)
+                {
+                    _ddlTransactionOutcomeUnknown = true;
+                    _ddlPendingTransactionLocked = true;
+                    btnExecute.Enabled = false;
+                }
+
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -1565,7 +1780,7 @@ namespace JasonQuery.UI.Forms
                 //PostgreSQL, Oracle: "{TableName}"
                 //MySQL: `{TableName}`
 
-                btnExecute.Enabled = !OfflineSqlPreviewOnly && !string.IsNullOrEmpty(sql);
+                btnExecute.Enabled = !OfflineSqlPreviewOnly && !_ddlPendingTransactionLocked && !string.IsNullOrEmpty(sql);
                 UpdateSqlPreviewText(sql);
             }
             catch (Exception ex)
@@ -1580,8 +1795,13 @@ namespace JasonQuery.UI.Forms
         {
             base.OnShown(e);
 
+            _ddlFormShown = true;
+
             //等表單、TabPage 與 C1 控制項完成顯示及焦點初始化後再套用
             BeginInvoke(new MethodInvoker(ApplyInitialFocus));
+
+            //Present an owner-modal warning only after the DDL form is visible.
+            BeginInvoke(new MethodInvoker(ShowPendingTransactionWarningIfNeeded));
         }
 
         private void ApplyInitialFocus()

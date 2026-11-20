@@ -136,6 +136,8 @@
     <Compile Include="Core\Arrange\SqlServer\SqlServerArrangeStrategy.cs" />
     <Compile Include="Core\Arrange\SqlServer\SqlServerSchemaPreparationStrategy.cs" />
     <Compile Include="Core\Config\AppConfigHelper.cs" />
+    <Compile Include="Core\Database\DdlPreview\DdlPendingTransactionProtectionPolicy.cs" />
+    <Compile Include="Core\Database\DdlPreview\DdlTransactionEvidencePolicy.cs" />
     <Compile Include="Core\Security\ConnectionCredentials\ConnectionCredentialStorageContract.cs" />
     <Compile Include="Core\Security\ConnectionCredentials\ConnectionCredentialStorageMigrationBoundary.cs" />
     <Compile Include="Core\Security\ConnectionCredentials\ConnectionCredentialStorageVersion.cs" />
