@@ -1402,14 +1402,16 @@
   <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7DestructiveColumnDdlConfirmation" attribute="Text" name="删除字段可能导致数据永久丢失。请确认目标字段及 SQL 后再继续。" />
   <language category="form" class="EditColumnForm" type="msg" id="NonOracleF7ExistingColumnSafetyCheckFailed" attribute="Text" name="现有字段操作未通过安全检查，已停止执行。请确认当前字段、数据库连接及 SQL 后再重试。" />
   <language category="form" class="EditColumnForm" type="msg" id="PostgreSqlIdentifierWouldTruncate" attribute="Text" name="PostgreSQL 标识符长度超出限制。&#x000A;&#x000A;新名称：{0} 个 UTF-8 字节&#x000A;服务器上限：{1} 个字节&#x000A;&#x000A;PostgreSQL 可能自动截断过长的名称，导致实际名称与输入不一致，因此已停止执行。&#x000A;&#x000A;请缩短名称后重试。" />
-  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlPendingTransaction" attribute="Text" name="存在未完成的事务，无法执行此 DDL 操作。&#x000A;请先处理事务，再重新打开表单。" />
-  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlUnsupportedDefinition" attribute="Text" name="无法安全保留此列的部分属性 (例如字符集、排序规则、AUTO_INCREMENT、生成列)。为避免意外更改，已停止生成 SQL 并禁用执行。" />
-  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlMetadataUnverified" attribute="Text" name="无法完整验证原始列定义，因此不会生成可能更改其他属性的 SQL。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlPendingTransaction" attribute="Text" name="仍有未完成的事务。MySQL DDL 可能自动提交尚未确认的数据更改，因此已禁用执行。请返回查询编辑器核对数据和 SQL 历史记录，自行决定 Commit 或 Rollback，完成后关闭并重新打开此表单。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlUnsupportedDefinition" attribute="Text" name="JasonQuery 目前无法完整验证原始列属性。修改列可能影响 NULL、DEFAULT、字符集、排序规则或其他设置，因此已停止生成 SQL 并禁用执行。请先使用 SHOW CREATE TABLE 检查原始定义，再自行评估是否通过查询编辑器操作。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlMetadataUnverified" attribute="Text" name="无法完整验证原始列定义，因此未生成 SQL。请先使用 SHOW CREATE TABLE 核对列属性；确认 SQL 和事务状态后，可自行在查询编辑器操作。" />
   <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlConnectionUnverified" attribute="Text" name="无法验证 MySQL 连接。&#x000A;请重新连接，并从 Schema Explorer 重新打开操作。" />
   <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlConnectionChanged" attribute="Text" name="MySQL 物理连接已更改。&#x000A;请关闭表单，再重新打开操作。" />
-  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlVersionUnverified" attribute="Text" name="无法验证 MySQL 服务器版本，已阻止生成及执行 SQL。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlVersionUnverified" attribute="Text" name="无法确认 MySQL 服务器版本。为避免使用不适用的 DDL 语法，已停止生成 SQL 并禁用执行。请检查连接，必要时重新连接，再从 Schema Explorer 重新打开此表单。" />
   <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlMetadataReadFailed" attribute="Text" name="无法安全读取列元数据。&#x000A;请检查连接和权限，再重新尝试。" />
-  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlDefinitionUnverified" attribute="Text" name="无法验证此列的完整定义，已阻止生成和执行 SQL。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnDdlDefinitionUnverified" attribute="Text" name="无法验证此列的完整定义，因此未生成 SQL 并禁用执行。请使用 SHOW CREATE TABLE 检查原始列属性，确认 SQL 和事务状态后，再自行在查询编辑器操作。" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlSqlPreviewUnavailable" attribute="Text" name="目前无法安全生成 SQL 预览，原因如下：" />
+  <language category="form" class="EditColumnForm" type="msg" id="MySqlColumnCommentNbeControlCharactersUnsupported" attribute="Text" name="当前 MySQL 连接使用 NO_BACKSLASH_ESCAPES 模式。列注释包含换行或不支持的控制字符，因此无法生成 SQL Preview，Execute 已禁用。请移除换行或控制字符，再确认 SQL Preview。JasonQuery 不会自动修改您输入的内容。" />
   <!-- EditTableForm-->
   <language category="form" class="EditTableForm" type="object" id="this" attribute="Text" name="表" />
   <language category="form" class="EditTableForm" type="object" id="CommentTable" attribute="Text" name="表 - 注释(Comment)" />
@@ -1543,7 +1545,6 @@
   <language category="form" class="EditTableFormData" type="msg" id="ModifiedCurrentTitle" attribute="Text" name="当前值: (长度: {LEN})" />
   <language category="form" class="EditTableFormData" type="msg" id="ModifiedOriginalTitle" attribute="Text" name="原始值: (长度: {LEN})" />
   <language category="form" class="EditTableFormData" type="msg" id="ValueErrorString" attribute="Text" name="&quot;{ColumnName}&quot; 的值违反了此字段的 &quot;最大长度&quot; 限制。" />
-  <language category="form" class="EditTableFormData" type="msg" id="ValueErrorNumber" attribute="Text" name="" />
   <!-- OptionsForm-->
   <language category="form" class="OptionsForm" type="object" id="lblRequireRestart" attribute="Text" name="需要重新开启 JasonQuery" />
   <language category="form" class="OptionsForm" type="object" id="btnRestoreDefaults" attribute="Text" name="还原设置值(&amp;R)" />
@@ -1883,7 +1884,6 @@
   <language category="form" class="OptionsForm" type="object" id="lblOptionsTabActiveForeColor" attribute="Text" name="使用中前景颜色:" />
   <language category="form" class="OptionsForm" type="object" id="lblOptionsTabActiveBackColor" attribute="Text" name="使用中背景颜色:" />
   <language category="form" class="OptionsForm" type="object" id="lblOptionsTabInactiveForeColor" attribute="Text" name="非使用中前景颜色:" />
-  <language category="form" class="OptionsForm" type="object" id="grpBackup" attribute="Text" name="" />
   <language category="form" class="OptionsForm" type="object" id="chkEnableBackup" attribute="Text" name="启用工作阶段快照及定期备份" />
   <language category="form" class="OptionsForm" type="object" id="chkAskMeBeforeOpenUnsavedFiles" attribute="Text" name="每次启动 JasonQuery 时，询问我是否要开启 “所有尚未保存的文件” " />
   <language category="form" class="OptionsForm" type="object" id="chkRememberUnsavedFiles" attribute="Text" name="记住工作阶段所有尚未保存的文件" />
@@ -2210,4 +2210,6 @@
   <language category="Global" class="Global" type="msg" id="Q298_SESSION_CHANGED" attribute="Text" name="本次 DDL 未执行：已验证的 Oracle Session 发生变化。请重新打开操作后重试。" />
   <language category="Global" class="Global" type="msg" id="Q298_VERIFICATION_FAILED" attribute="Text" name="本次 DDL 未执行：无法验证 Oracle 目标对象。请查看详细错误后重试。" />
   <language category="Global" class="Global" type="msg" id="Q298_EXECUTION_FAILED" attribute="Text" name="DDL 已尝试发送到数据库，但数据库返回错误。请先确认目标对象的实际状态，再决定是否重试。" />
+  <language category="Global" class="Global" type="msg" id="DdlPendingTransactionBlocked" attribute="Text" name="尚有未完成的事务。&#x000A;&#x000A;目前有尚未 Commit 或 Rollback 的事务。&#x000A;&#x000A;在 Oracle 或 MySQL 中执行表或列变更时，数据库可能自动提交尚未完成的事务。为避免未完成事务中的数据变更被意外永久提交，此功能表单的执行按钮已禁用。&#x000A;&#x000A;请返回查询编辑器，查看 SQL 历史记录并确认数据内容，再自行决定 Commit 或 Rollback。完成后，请关闭并重新打开此功能表单。" />
+  <language category="Global" class="Global" type="msg" id="DdlTransactionStateUnverified" attribute="Text" name="无法确认事务状态。&#x000A;&#x000A;目前无法确认数据库事务是否已经完成。为避免数据变更被意外永久提交，此功能表单的执行按钮已禁用。&#x000A;&#x000A;请返回查询编辑器，检查连接、SQL 历史记录和事务状态。确认问题处理完成后，请关闭并重新打开此功能表单。" />
 </JasonQuery>

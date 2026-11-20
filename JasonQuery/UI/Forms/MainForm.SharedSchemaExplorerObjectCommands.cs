@@ -406,6 +406,19 @@ namespace JasonQuery.UI.Forms
             return true;
         }
 
+        //A version check for SQL Preview is not Execute authorization.
+        //Pending: inspect only the already-open Reader; never reconnect or create a new session.
+        //Clean: retain the existing safe-reconnect path. Actual SQL/target gates stay unchanged.
+        internal static bool CanInspectMySqlRenameVersionForPreview(bool hasPendingTransaction, Guid currentOpenConnectionId, Func<bool> ensureConnectionOpenIfClean)
+        {
+            if (hasPendingTransaction)
+            {
+                return currentOpenConnectionId != Guid.Empty;
+            }
+
+            return ensureConnectionOpenIfClean != null && ensureConnectionOpenIfClean();
+        }
+
         //F7-U3-C2B3A: re-resolve the selected raw Column before opening the non-Oracle form.
         //This first UI bridge is SQL Preview Only; no Existing Column DDL may execute yet.
         private bool TryOpenSharedNonOracleColumnDdl(SchemaExplorerSelectionInfo captured, SharedSchemaExplorerMenuCommand command)
@@ -472,14 +485,20 @@ namespace JasonQuery.UI.Forms
             var modernMySqlRenamePreview = false;
 
             if (target.SourceType == DataSourceType.MySql && mode == EditColumnMode.Rename
-                && !AppConfigHelper.IsNotCommitYet && MyGlobal.MySqlReader != null
+                && MyGlobal.MySqlReader != null
                 && DatabaseSqlExecutor.CurrentDataSource == DataSourceType.MySql)
             {
                 var expectedConnectionString = DatabaseSqlExecutor.DbConnectionString;
                 var reader = MyGlobal.MySqlReader;
+                var hasPendingTransaction = AppConfigHelper.IsNotCommitYet;
 
                 if (!string.IsNullOrWhiteSpace(expectedConnectionString)
-                    && reader.TryEnsureConnectionOpen(expectedConnectionString, out _)
+                    && CanInspectMySqlRenameVersionForPreview
+                       (
+                           hasPendingTransaction,
+                           reader.CurrentOpenConnectionId,
+                           () => reader.TryEnsureConnectionOpen(expectedConnectionString, out _)
+                       )
                     && string.Equals(expectedConnectionString, DatabaseSqlExecutor.DbConnectionString, StringComparison.Ordinal)
                     && DatabaseSqlExecutor.CurrentDataSource == DataSourceType.MySql)
                 {

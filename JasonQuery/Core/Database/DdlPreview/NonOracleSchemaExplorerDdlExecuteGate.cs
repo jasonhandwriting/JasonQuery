@@ -456,7 +456,7 @@ namespace JasonQuery.Core.Database.DdlPreview
                         {
                             case ColumnDdlOperation.Comment:
                                 {
-                                    pattern = @"^\s*ALTER\s+TABLE\s+" + myTable + @"\s+MODIFY\s+COLUMN\s+" + myIdentifier + @"\s+[^;\r\n]+?\s+COMMENT\s+'[A-Za-z0-9 _.,!?:/\-]*';?\s*$";
+                                    pattern = @"^\s*ALTER\s+TABLE\s+" + myTable + @"\s+MODIFY\s+COLUMN\s+" + myIdentifier + @"\s+[^;\r\n]+?\s+COMMENT\s+'(?:''|[^'\\\r\n\0])*';?\s*$";
                                     break;
                                 }
                             case ColumnDdlOperation.Rename:
@@ -496,6 +496,26 @@ namespace JasonQuery.Core.Database.DdlPreview
             }
 
             return Regex.IsMatch(sql, pattern, options);
+        }
+
+        //Session-mode-aware SQL SHAPE only. Exact Builder SQL, Reader receipt, transaction protection and single-statement verification remain separate mandatory Execute gates.
+        internal static bool IsQualifiedMySqlCommentSqlForSessionMode(string sql, bool noBackslashEscapes)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+            {
+                return false;
+            }
+
+            const string identifier = @"`(?:``|[^`;\r\n])+`";
+
+            var table = identifier + @"\." + identifier;
+            var literal = noBackslashEscapes ? @"'(?:''|[^'\r\n\0])*'" : @"'(?:''|\\.|[^'\\\r\n\0])*'";
+            var pattern = @"\A\s*ALTER\s+TABLE\s+" + table + @"\s+MODIFY\s+COLUMN\s+" + identifier + @"\s+(?<definition>[^;\r\n]+?)\s+COMMENT\s+(?<literal>" + literal + @")\s*;?\s*\z";
+            var match = Regex.Match(sql, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+            return match.Success
+                   && MySqlCompleteColumnDefinitionSqlBuilder.TryQualifyCompleteDefinition(match.Groups["definition"].Value, out _)
+                   && MySqlColumnCommentLiteralPolicy.TryUnquote(match.Groups["literal"].Value, noBackslashEscapes, out _);
         }
 
         //F7-U3-C2B: pure Existing Column intent qualification; this is not an Execute permit.
@@ -544,6 +564,37 @@ namespace JasonQuery.Core.Database.DdlPreview
             }
 
             return string.Empty;
+        }
+
+        //A verified Reader mode allows a canonical MySQL COMMENT literal. All target and exact-SQL checks are identical to the legacy intent validation; this is never Execute permission.
+        internal static string ValidateExistingMySqlCommentIntentForSessionMode(bool rawQualified, string selectedColumn, string formColumn, string displayedSql, string rebuiltSql, bool noBackslashEscapes)
+        {
+            if (!rawQualified)
+            {
+                return "F7U3C2B_COLUMN_IDENTITY_UNQUALIFIED";
+            }
+
+            if (string.IsNullOrWhiteSpace(selectedColumn) || string.IsNullOrWhiteSpace(formColumn))
+            {
+                return "F7U3C2B_COLUMN_IDENTITY_INCOMPLETE";
+            }
+
+            if (!string.Equals(selectedColumn, formColumn, StringComparison.Ordinal))
+            {
+                return "F7U3C2B_COLUMN_IDENTITY_CHANGED";
+            }
+
+            if (string.IsNullOrWhiteSpace(displayedSql) || string.IsNullOrWhiteSpace(rebuiltSql))
+            {
+                return "F7U3C2B_SQL_EMPTY";
+            }
+
+            if (!string.Equals(displayedSql, rebuiltSql, StringComparison.Ordinal))
+            {
+                return "F7U3C2B_SQL_CHANGED";
+            }
+
+            return IsQualifiedMySqlCommentSqlForSessionMode(rebuiltSql, noBackslashEscapes) ? string.Empty : "F7U3C2B_COLUMN_SQL_NOT_ALLOWED";
         }
 
         //F7-U3-C2B: compare an independently verified, complete MySQL Column definition with the definition to be applied.

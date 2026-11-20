@@ -59,23 +59,23 @@ namespace JasonQuery.Tests.UI.LeftPanel
         }
 
         [TestMethod]
-        public void B3B2A02_ChangedManagedConnectionMustReject()
+        public void B3B2A02_ChangedManagedConnectionWithEqualProofMayQualify()
         {
             var request = Request(ColumnDdlOperation.Rename);
             var preview = Receipt(ConnectionId, 381, "5.7.44", Definition);
             var live = Receipt(Guid.NewGuid(), 381, "5.7.44", Definition);
 
-            Assert.IsFalse(string.IsNullOrEmpty(MySqlVerifiedColumnDefinitionExecutionPolicy.Validate(request.Operation, preview, live, request, Sql(request))));
+            Assert.AreEqual(string.Empty, MySqlVerifiedColumnDefinitionExecutionPolicy.Validate(request.Operation, preview, live, request, Sql(request)));
         }
 
         [TestMethod]
-        public void B3B2A03_ChangedPhysicalConnectionMustReject()
+        public void B3B2A03_ChangedPhysicalConnectionWithEqualProofMayQualify()
         {
             var request = Request(ColumnDdlOperation.Rename);
             var preview = Receipt(ConnectionId, 381, "5.7.44", Definition);
             var live = Receipt(ConnectionId, 382, "5.7.44", Definition);
 
-            Assert.IsFalse(string.IsNullOrEmpty(MySqlVerifiedColumnDefinitionExecutionPolicy.Validate(request.Operation, preview, live, request, Sql(request))));
+            Assert.AreEqual(string.Empty, MySqlVerifiedColumnDefinitionExecutionPolicy.Validate(request.Operation, preview, live, request, Sql(request)));
         }
 
         [TestMethod]
