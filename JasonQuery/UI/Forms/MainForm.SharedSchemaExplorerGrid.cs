@@ -1,7 +1,9 @@
 ﻿using C1.Win.C1TrueDBGrid;
+using JasonLibrary.Core;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Database.Execution;
+using JasonQuery.UI.Helpers;
 using JasonQuery.UI.LeftPanel;
 using System;
 using System.Data;
@@ -18,6 +20,10 @@ namespace JasonQuery.UI.Forms
         //Select F7 only once for a successfully loaded logical database scope.
         private int _sharedF7StartupSelectedRevision = -1;
         private string _sharedF7StartupSelectedScope = string.Empty;
+
+        //F7-U4B-A: capture original Designer dimensions only once.
+        private int _sharedF7VisualBaseRowHeight = -1;
+        private int _sharedF7VisualBaseRecordSelectorWidth = -1;
 
         private void InitializeSharedSchemaExplorerGrid()
         {
@@ -43,6 +49,82 @@ namespace JasonQuery.UI.Forms
             grid.Styles["HighlightRow"].ForeColor = SystemColors.HighlightText;
 
             AttachSharedSchemaExplorerInputHandlers(grid);
+
+            //F7-U4B-A: restore legacy F7 row-level foreground styling.
+            grid.FetchRowStyle += SharedSchemaExplorerGrid_FetchRowStyle;
+        }
+
+        //F7-U4B-A v1.5: render ordinary data rows with the same foreground color as the legacy QueryForm F7.
+        private void SharedSchemaExplorerGrid_FetchRowStyle(object sender, FetchRowStyleEventArgs e)
+        {
+            var grid = sender as C1TrueDBGrid;
+
+            if (!ReferenceEquals(grid, _sharedSchemaExplorerGrid) || e.CellStyle == null || e.Row < 0 || e.Split < 0 || e.Split >= grid.Splits.Count)
+            {
+                return;
+            }
+
+            var rows = grid.Splits[e.Split].Rows;
+
+            if (e.Row >= rows.Count || rows[e.Row].RowType != RowTypeEnum.DataRow)
+            {
+                return;
+            }
+
+            e.CellStyle.ForeColor = MyLibrary.IsDarkMode ? Color.Yellow : Color.Blue;
+        }
+
+        //F7-U4B-A v1.2: match QueryForm's compact legacy F7 after GridConfig is loaded.
+        //Visual-only: no rebinding, SQL, connection changes or selection mutation.
+        private void ApplySharedSchemaExplorerVisualParity()
+        {
+            var grid = _sharedSchemaExplorerGrid;
+
+            if (grid == null || grid.IsDisposed)
+            {
+                return;
+            }
+
+            if (_sharedF7VisualBaseRowHeight <= 0)
+            {
+                _sharedF7VisualBaseRowHeight = grid.RowHeight;
+            }
+
+            if (_sharedF7VisualBaseRecordSelectorWidth <= 0)
+            {
+                _sharedF7VisualBaseRecordSelectorWidth = grid.RecordSelectorWidth;
+            }
+
+            //F7-U4B-A v1.3: QueryForm's legacy F7 uses only the font/color overload.
+            //Do not apply an additional C1 VisualStyle that can change style inheritance.
+            GridHelper.SetGridVisualStyle(grid, 10);
+
+            grid.RowHeight = _sharedF7VisualBaseRowHeight;
+            grid.RecordSelectorWidth = _sharedF7VisualBaseRecordSelectorWidth;
+
+            //Undo alternating backgrounds and selection-mode changes made by the general grid helper. The F7 tree uses a uniform, compact row style.
+            var rowBackground = MyLibrary.IsDarkMode ? Color.FromArgb(30, 30, 30) : Color.White;
+            var rowForeground = MyLibrary.IsDarkMode ? Color.White : Color.Black;
+            var borderColor = MyLibrary.IsDarkMode ? Color.FromArgb(63, 63, 63) : Color.FromArgb(192, 192, 192);
+
+            grid.BackColor = MyLibrary.IsDarkMode ? ColorTranslator.FromHtml("#2D2D30") : SystemColors.Control;
+            grid.ForeColor = rowForeground;
+            grid.BorderColor = borderColor;
+            grid.RowDivider.Color = borderColor;
+
+            grid.OddRowStyle.BackColor = rowBackground;
+            grid.EvenRowStyle.BackColor = rowBackground;
+            grid.OddRowStyle.ForeColor = rowForeground;
+            grid.EvenRowStyle.ForeColor = rowForeground;
+            grid.Styles["Normal"].BackColor = rowBackground;
+            grid.Styles["Normal"].ForeColor = rowForeground;
+            grid.GroupStyle.BackColor = rowBackground;
+            grid.GroupStyle.ForeColor = rowForeground;
+
+            //Keep the PR #101 whole-row selection contract.
+            grid.MarqueeStyle = MarqueeEnum.HighlightRow;
+            grid.Styles["HighlightRow"].BackColor = SystemColors.Highlight;
+            grid.Styles["HighlightRow"].ForeColor = SystemColors.HighlightText;
         }
 
         //C1TrueDBGrid may retain GroupBy definitions and hidden columns after a DataSource change.
@@ -319,6 +401,11 @@ namespace JasonQuery.UI.Forms
             _sharedSchemaMetadataSnapshot = null;
 
             var grid = _sharedSchemaExplorerGrid;
+
+            if (grid != null)
+            {
+                grid.FetchRowStyle -= SharedSchemaExplorerGrid_FetchRowStyle;
+            }
 
             DetachSharedSchemaExplorerInputHandlers(grid);
             DisposeSharedSchemaExplorerInputHandlers();

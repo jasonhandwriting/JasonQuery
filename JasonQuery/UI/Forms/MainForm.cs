@@ -1434,6 +1434,9 @@ namespace JasonQuery.UI.Forms
                     LoadDefaultSetting();
                 }
 
+                //F7-U4B-A v1.2: GridConfig is now loaded for this connection.
+                ApplySharedSchemaExplorerVisualParity();
+
                 TryAutoDeleteSqlHistoryForCurrentConnection();
 
                 _isMenuEnable = false; //使用者有指定連線
