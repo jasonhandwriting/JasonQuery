@@ -4,6 +4,8 @@ using System.Globalization;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using JasonLibrary.Core;
+using JasonQuery.UI.Helpers;
 
 namespace JasonQuery.UI.Forms
 {
@@ -40,6 +42,28 @@ namespace JasonQuery.UI.Forms
             //One subscription per MainForm lifetime; no QueryForm or Grid event hooks.
             tabControl1.SelectionChanged += SharedLeftPanelTabSelectionChanged;
             tabControl1.VisibleChanged += SharedLeftPanelWorkspaceVisibilityChanged;
+        }
+
+        //F7-U4B-B: apply the global Options Tab Appearance settings to the Designer-owned MainForm left workspace.
+        private void ApplySharedLeftPanelTabAppearance()
+        {
+            if (c1DockingTabLeftPanel == null || c1DockingTabLeftPanel.IsDisposed)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(MyLibrary.ColorOptionsTabActiveBackColor) || string.IsNullOrWhiteSpace(MyLibrary.ColorOptionsTabActiveForeColor) || string.IsNullOrWhiteSpace(MyLibrary.ColorOptionsTabInactiveForeColor))
+            {
+                return;
+            }
+
+            UIHelper.SetDockingTabColor
+            (
+                c1DockingTabLeftPanel,
+                ColorTranslator.FromHtml(MyLibrary.ColorOptionsTabActiveBackColor),
+                ColorTranslator.FromHtml(MyLibrary.ColorOptionsTabActiveForeColor),
+                ColorTranslator.FromHtml(MyLibrary.ColorOptionsTabInactiveForeColor)
+            );
         }
 
         private void SharedLeftPanelTabSelectionChanged(object sender, EventArgs e)

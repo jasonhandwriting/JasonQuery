@@ -349,6 +349,7 @@ namespace JasonQuery.UI.Forms
             MessageBoxManager.Register();
 
             ApplySharedSchemaExplorerLocalization();
+            ApplySharedLeftPanelTabAppearance();
 
             var myItems = GetItems(mnuMainForm);
 
@@ -1436,6 +1437,9 @@ namespace JasonQuery.UI.Forms
 
                 //F7-U4B-A v1.2: GridConfig is now loaded for this connection.
                 ApplySharedSchemaExplorerVisualParity();
+
+                //F7-U4B-B: reapply global tab colors after connection theme loading.
+                ApplySharedLeftPanelTabAppearance();
 
                 TryAutoDeleteSqlHistoryForCurrentConnection();
 
