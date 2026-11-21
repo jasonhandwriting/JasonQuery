@@ -1,9 +1,10 @@
 ﻿using C1.Win.C1TrueDBGrid;
+using IconLibrary;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.Core.Database.Execution;
-using JasonQuery.Core.SchemaExplorer.Selection;
 using JasonQuery.Core.Localization;
+using JasonQuery.Core.SchemaExplorer.Selection;
 using JasonQuery.UI.LeftPanel;
 using JasonQuery.UI.SchemaExplorer;
 using System;
@@ -296,6 +297,15 @@ namespace JasonQuery.UI.Forms
 
                 item.Tag = command;
 
+                //F7-U4B-B: icons are presentation-only.
+                //Never change Enabled or the existing command execution gates.
+                var iconName = GetSharedSchemaMenuIconName(command);
+
+                if (!string.IsNullOrEmpty(iconName))
+                {
+                    item.Image = IconManager.GetImage(MyGlobal.IconLibrary, iconName);
+                }
+
                 var isCopy = command == SharedSchemaExplorerMenuCommand.CopyToClipboard;
                 var isPaste = SharedSchemaExplorerPastePolicy.IsPasteCommand(command) && SharedSchemaExplorerPastePolicy.TryBuildText(context.ActiveTarget, selection, command, out _);
                 var pasteReceiverReady = context.ActiveTarget == LeftPanelTargetKind.SchemaBrowserForm || (activeForm is QueryForm query && query.CanAcceptSharedSchemaExplorerPaste);
@@ -366,6 +376,75 @@ namespace JasonQuery.UI.Forms
             _sharedSchemaMenuConnectionRevision = state.ConnectionRevision;
 
             menu.Show(grid, new Point(e.X, e.Y));
+        }
+
+        //F7-U4B-B: use the established legacy QueryForm F7 menu icons.
+        //Presentation only. Command availability remains unchanged.
+        private static string GetSharedSchemaMenuIconName(SharedSchemaExplorerMenuCommand command)
+        {
+            switch (command)
+            {
+                case SharedSchemaExplorerMenuCommand.ShowDdl:
+                    {
+                        return "Show SQL Statement 16x16.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.OpenSchemaBrowser:
+                    {
+                        return "Schema Browser 16x16.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.GenerateSqlStatement:
+                    {
+                        return "Generate SQL Statement 16x16.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.CommentTable:
+                    {
+                        return "Table Comment.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.DropTable:
+                    {
+                        return "Table Drop.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.RenameTable:
+                    {
+                        return "Table Rename.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.TruncateTable:
+                    {
+                        return "Table Truncate.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.AddColumn:
+                    {
+                        return "Column Add.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.CommentColumn:
+                    {
+                        return "Column Comment.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.DropColumn:
+                    {
+                        return "Column Drop.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.RenameColumn:
+                    {
+                        return "Column Rename.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.CopyToClipboard:
+                    {
+                        return "Copy 16x16.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.PasteSelectAll:
+                    {
+                        return "Paste2Editor 16x16.ico";
+                    }
+                case SharedSchemaExplorerMenuCommand.PasteName:
+                    {
+                        return "Paste2Editor 16x16.ico";
+                    }
+                default:
+                    {
+                        return string.Empty;
+                    }
+            }
         }
 
         //L2B-1: resolve from the already-qualified row and existing target/menu policy.
@@ -472,7 +551,9 @@ namespace JasonQuery.UI.Forms
             {
                 case SharedSchemaExplorerMenuCommand.ShowDdl:
                     {
-                        return LocalizationHelper.GetLanguageString("Show DDL Statement", "Global", "Global", "msg", "ShowDDL", "Text");
+                        var text = LocalizationHelper.GetLanguageString("Show DDL Statement", "Global", "Global", "msg", "ShowDDL", "Text");
+
+                        return $"{text}...";
                     }
                 case SharedSchemaExplorerMenuCommand.OpenSchemaBrowser:
                     {

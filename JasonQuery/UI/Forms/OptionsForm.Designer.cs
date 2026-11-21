@@ -5305,7 +5305,7 @@ namespace JasonQuery.UI.Forms
             // lblGlobalOverview
             // 
             this.lblGlobalOverview.AutoSize = true;
-            this.lblGlobalOverview.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(246)))), ((int)(((byte)(253)))));
+            this.lblGlobalOverview.BackColor = System.Drawing.Color.Transparent;
             this.lblGlobalOverview.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.lblGlobalOverview.ForeColor = System.Drawing.Color.Green;
             this.lblGlobalOverview.Location = new System.Drawing.Point(17, 10);
