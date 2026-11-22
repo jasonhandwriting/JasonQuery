@@ -210,44 +210,14 @@ namespace JasonQuery.UI.Forms
 
                 sbSql.AppendLine("SELECT * FROM SystemConfig");
                 sbSql.AppendLine($" WHERE DomainUser = '{MyGlobal.DomainUser}'");
-                sbSql.AppendLine($"   AND MPID = {JasonQueryRepository.DbMotherPid}");
-                sbSql.AppendLine("   AND AttributeKey = 'EditorConfig'");
-                sbSql.Append("   AND AttributeName = 'SortByColumnName'");
-
-                var sql = sbSql.ToString();
-                var dtTemp = JasonQueryRepository.ExecQuery(sql);
-                var isChecked = dtTemp.Rows.Count > 0 && dtTemp.Rows[0]["AttributeValue"].ToString() == "1";
-
-                chkSortByColumnName.Checked = isChecked; //重啟後才會生效，故此處要直接撈取 DB 的值
-
-                //20250205 直接設定為 true，且使用者不可變更 (因為 0.90 版本開始，啟動速度加快了，故此處改為一律顯示)
-                chkShowColumnInfo.Checked = true; //重啟後才會生效，故此處要直接撈取 DB 的值
-                chkShowColumnInfo.Enabled = false;
-
-                sbSql.Clear();
-                sbSql.AppendLine("SELECT * FROM SystemConfig");
-                sbSql.AppendLine($" WHERE DomainUser = '{MyGlobal.DomainUser}'");
-                sbSql.AppendLine($"   AND MPID = {JasonQueryRepository.DbMotherPid}");
-                sbSql.AppendLine("   AND AttributeKey = 'EditorConfig'");
-                sbSql.Append("   AND AttributeName = 'DefaultTabSchemaBrowser'");
-
-                sql = sbSql.ToString();
-                dtTemp = JasonQueryRepository.ExecQuery(sql);
-
-                isChecked = dtTemp.Rows.Count > 0 && dtTemp.Rows[0]["AttributeValue"].ToString() == "1";
-                chkDefaultTabSchemaInformation.Checked = isChecked; //重啟後才會生效，故此處要直接撈取 DB 的值
-
-                sbSql.Clear();
-                sbSql.AppendLine("SELECT * FROM SystemConfig");
-                sbSql.AppendLine($" WHERE DomainUser = '{MyGlobal.DomainUser}'");
                 sbSql.AppendLine("   AND MPID = 0");
                 sbSql.AppendLine("   AND AttributeKey = 'GlobalConfig'");
                 sbSql.Append("   AND AttributeName = 'BackupFile'");
 
-                sql = sbSql.ToString(); //20250830 BackupFile 屬於 Global 性質，MPid = "0"
-                dtTemp = JasonQueryRepository.ExecQuery(sql);
+                var sql = sbSql.ToString(); //20250830 BackupFile 屬於 Global 性質，MPid = "0"
+                var dtTemp = JasonQueryRepository.ExecQuery(sql);
+                var isChecked = dtTemp.Rows.Count == 0 || dtTemp.Rows[0]["AttributeValue"].ToString() != "0";
 
-                isChecked = dtTemp.Rows.Count == 0 || dtTemp.Rows[0]["AttributeValue"].ToString() != "0";
                 chkEnableBackup.Checked = isChecked; //重啟後才會生效，故此處要直接撈取 DB 的值
                 chkAskMeBeforeOpenUnsavedFiles.Checked = AppConfigHelper.AskBeforeOpenUnsavedFiles;
                 txtBackupPath.Text = AppConfigHelper.BackupPath;
@@ -1445,10 +1415,6 @@ namespace JasonQuery.UI.Forms
                 ControlLayoutHelper.PlaceRightOf(btnHelp_ColumnComment, chkShowColumnComment, -3);
                 ControlLayoutHelper.PlaceRightOf(btnHelp_RawDataMode, chkRawDataMode, -3);
                 ControlLayoutHelper.PlaceRightOf(btnHelp_AppendQueryResult, chkAppendQueryResult, -3);
-
-                ControlLayoutHelper.PlaceRightOf(lblStarSortByColumnName, chkSortByColumnName, -5);
-                ControlLayoutHelper.PlaceRightOf(lblStarShowColumnInfo, chkShowColumnInfo, -5);
-                ControlLayoutHelper.PlaceRightOf(btnHelp_ShowColumnInfo, lblStarShowColumnInfo, 3);
 
                 ControlLayoutHelper.PlaceRightOf(btnHelp_AutoListMembers, chkAutoListMembers, 3);
                 ControlLayoutHelper.PlaceRightOf(btnHelp_SavePoint, chkSavePoint, 3);
@@ -2667,10 +2633,6 @@ namespace JasonQuery.UI.Forms
 
             settingBatch.UpdateSetting("EditorConfig", "HighlightSelection", chkHighlightSelection.Checked ? "1" : "0");
             MyLibrary.HighlightSelection = chkHighlightSelection.Checked;
-
-            settingBatch.UpdateSetting("EditorConfig", "SortByColumnName", chkSortByColumnName.Checked ? "1" : "0");
-            settingBatch.UpdateSetting("EditorConfig", "ShowColumnInfo", chkShowColumnInfo.Checked ? "1" : "0");
-            settingBatch.UpdateSetting("EditorConfig", "DefaultTabSchemaBrowser", chkDefaultTabSchemaInformation.Checked ? "1" : "0");
 
             settingBatch.UpdateSetting("EditorConfig", "AutoListMembers", chkAutoListMembers.Checked ? "1" : "0");
             settingBatch.UpdateSetting("EditorConfig", "SavePoint", chkSavePoint.Checked ? "1" : "0");
@@ -6433,13 +6395,6 @@ namespace JasonQuery.UI.Forms
         private void btnHelp_SelectCurrentSqlBlock_Click(object sender, EventArgs e)
         {
             var message = LocalizationHelper.GetLanguageString("This option controls how SQL blocks are selected when using Ctrl+Enter.\r\n\r\nIf enabled, lines containing only whitespace are treated as part of the current SQL block, and JasonQuery continues selecting the full SQL statement.\r\n\r\nIf disabled, selection stops when a blank line is encountered.", "form", GetType().Name, "msg", "Help_SelectCurrentSqlBlock", "Text");
-
-            MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        private void btnHelp_ShowColumnInfo_Click(object sender, EventArgs e)
-        {
-            var message = LocalizationHelper.GetLanguageString("Display column information for Tables and Views in the Query Editor's \"Schema Information\".\r\n\r\nWhen enabled, JasonQuery retrieves all column names and data types while loading the schema information.\r\n\r\nIf the database contains a large number of Tables or Views, the schema initialization time may increase significantly.\r\n\r\nIf you only need to browse object names, disabling this option can improve loading performance.\r\n\r\nYou can change the setting from [Tools] > [Options] > [Query Editor].", "Global", "Global", "msg", "Help_ShowColumnInfo", "Text");
 
             MessageBoxHelper.ShowNearCursor(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }

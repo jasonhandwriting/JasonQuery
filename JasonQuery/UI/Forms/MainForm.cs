@@ -2192,7 +2192,10 @@ namespace JasonQuery.UI.Forms
                 MyLibrary.EntireBlankRowAsEmptyRow = true; //20250211 改為固定值 true (不勾選有 bug，暫時不花時間修復)
                 MyLibrary.HighlightSelection = GetBool("EditorConfig", "HighlightSelection", true);
                 MyGlobal.IsDefaultTabSchemaBrowser = GetBool("EditorConfig", "DefaultTabSchemaBrowser", true);
-                MyGlobal.IsSortByColumnName = GetBool("EditorConfig", "SortByColumnName", false);
+
+                //F7-U4C-A2: Preserve database column ordinal order across all four providers.
+                MyGlobal.IsSortByColumnName = false; //20261122 改為固定值 false (以 JasonQuery 的定位，應忠實呈現欄位在資料庫中的定義順序)
+
                 MyGlobal.IsAutoListMembers = GetBool("EditorConfig", "AutoListMembers", true);
                 MyGlobal.ShouldSavePoint = IsPostgreSql && GetBool("EditorConfig", "SavePoint", true);
                 AppConfigHelper.IsAfterPasteFocusOnQueryEditor = GetBool("EditorConfig", "AfterPasteFocusOnQueryEditor", true);

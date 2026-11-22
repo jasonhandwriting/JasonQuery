@@ -526,13 +526,6 @@ namespace JasonQuery.UI.Forms
             this.btnHelp_SavePoint = new C1.Win.C1Input.C1Button();
             this.chkSavePoint = new System.Windows.Forms.CheckBox();
             this.chkAutoListMembers = new System.Windows.Forms.CheckBox();
-            this.grpSchemaInformation = new System.Windows.Forms.GroupBox();
-            this.chkDefaultTabSchemaInformation = new C1.Win.C1Input.C1CheckBox();
-            this.lblStarShowColumnInfo = new System.Windows.Forms.Label();
-            this.lblStarSortByColumnName = new System.Windows.Forms.Label();
-            this.btnHelp_ShowColumnInfo = new C1.Win.C1Input.C1Button();
-            this.chkShowColumnInfo = new C1.Win.C1Input.C1CheckBox();
-            this.chkSortByColumnName = new C1.Win.C1Input.C1CheckBox();
             this.tabAutoComplete = new C1.Win.C1Command.C1DockingTabPage();
             this.tabAutoReplace = new C1.Win.C1Command.C1DockingTabPage();
             this.tabDataGrid = new C1.Win.C1Command.C1DockingTabPage();
@@ -792,11 +785,6 @@ namespace JasonQuery.UI.Forms
             this.grpStatementCompletion.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.btnHelp_AutoListMembers)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.btnHelp_SavePoint)).BeginInit();
-            this.grpSchemaInformation.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.chkDefaultTabSchemaInformation)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.btnHelp_ShowColumnInfo)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.chkShowColumnInfo)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.chkSortByColumnName)).BeginInit();
             this.tabAutoComplete.SuspendLayout();
             this.tabAutoReplace.SuspendLayout();
             this.tabDataGrid.SuspendLayout();
@@ -856,11 +844,11 @@ namespace JasonQuery.UI.Forms
             this.grpEditorColors.BackColor = System.Drawing.Color.Transparent;
             this.grpEditorColors.Controls.Add(this.panel1);
             this.grpEditorColors.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.grpEditorColors.Location = new System.Drawing.Point(12, 200);
+            this.grpEditorColors.Location = new System.Drawing.Point(12, 94);
             this.grpEditorColors.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.grpEditorColors.Name = "grpEditorColors";
             this.grpEditorColors.Padding = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.grpEditorColors.Size = new System.Drawing.Size(317, 473);
+            this.grpEditorColors.Size = new System.Drawing.Size(317, 579);
             this.grpEditorColors.TabIndex = 24;
             this.grpEditorColors.TabStop = false;
             this.grpEditorColors.Text = "Editor Colors";
@@ -908,7 +896,7 @@ namespace JasonQuery.UI.Forms
             this.panel1.Controls.Add(this.pnlNumber);
             this.panel1.Location = new System.Drawing.Point(0, 10);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(317, 458);
+            this.panel1.Size = new System.Drawing.Size(317, 564);
             this.panel1.TabIndex = 39;
             this.c1ThemeController1.SetTheme(this.panel1, "(default)");
             // 
@@ -7442,7 +7430,6 @@ namespace JasonQuery.UI.Forms
             // 
             this.tabQueryEditor.CaptionText = "Data Grid";
             this.tabQueryEditor.Controls.Add(this.grpStatementCompletion);
-            this.tabQueryEditor.Controls.Add(this.grpSchemaInformation);
             this.tabQueryEditor.Controls.Add(this.grpEditorColors);
             this.tabQueryEditor.Controls.Add(this.grpPreferences);
             this.tabQueryEditor.Controls.Add(this.grpQueryEditorPreview);
@@ -7461,7 +7448,7 @@ namespace JasonQuery.UI.Forms
             this.grpStatementCompletion.Controls.Add(this.btnHelp_SavePoint);
             this.grpStatementCompletion.Controls.Add(this.chkSavePoint);
             this.grpStatementCompletion.Controls.Add(this.chkAutoListMembers);
-            this.grpStatementCompletion.Location = new System.Drawing.Point(12, 114);
+            this.grpStatementCompletion.Location = new System.Drawing.Point(12, 9);
             this.grpStatementCompletion.Name = "grpStatementCompletion";
             this.grpStatementCompletion.Size = new System.Drawing.Size(317, 81);
             this.grpStatementCompletion.TabIndex = 26;
@@ -7513,110 +7500,6 @@ namespace JasonQuery.UI.Forms
             this.chkAutoListMembers.Text = "Auto List Members";
             this.c1ThemeController1.SetTheme(this.chkAutoListMembers, "(default)");
             this.chkAutoListMembers.UseVisualStyleBackColor = true;
-            // 
-            // grpSchemaInformation
-            // 
-            this.grpSchemaInformation.BackColor = System.Drawing.Color.Transparent;
-            this.grpSchemaInformation.Controls.Add(this.chkDefaultTabSchemaInformation);
-            this.grpSchemaInformation.Controls.Add(this.lblStarShowColumnInfo);
-            this.grpSchemaInformation.Controls.Add(this.lblStarSortByColumnName);
-            this.grpSchemaInformation.Controls.Add(this.btnHelp_ShowColumnInfo);
-            this.grpSchemaInformation.Controls.Add(this.chkShowColumnInfo);
-            this.grpSchemaInformation.Controls.Add(this.chkSortByColumnName);
-            this.grpSchemaInformation.Location = new System.Drawing.Point(12, 9);
-            this.grpSchemaInformation.Name = "grpSchemaInformation";
-            this.grpSchemaInformation.Size = new System.Drawing.Size(317, 100);
-            this.grpSchemaInformation.TabIndex = 25;
-            this.grpSchemaInformation.TabStop = false;
-            this.grpSchemaInformation.Text = "Schema Browser";
-            // 
-            // chkDefaultTabSchemaInformation
-            // 
-            this.chkDefaultTabSchemaInformation.AutoSize = true;
-            this.chkDefaultTabSchemaInformation.BackColor = System.Drawing.Color.Transparent;
-            this.chkDefaultTabSchemaInformation.BorderColor = System.Drawing.Color.Transparent;
-            this.chkDefaultTabSchemaInformation.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.chkDefaultTabSchemaInformation.ForeColor = System.Drawing.Color.Black;
-            this.chkDefaultTabSchemaInformation.Location = new System.Drawing.Point(20, 22);
-            this.chkDefaultTabSchemaInformation.Name = "chkDefaultTabSchemaInformation";
-            this.chkDefaultTabSchemaInformation.Padding = new System.Windows.Forms.Padding(1);
-            this.chkDefaultTabSchemaInformation.Size = new System.Drawing.Size(241, 22);
-            this.chkDefaultTabSchemaInformation.TabIndex = 108;
-            this.chkDefaultTabSchemaInformation.Text = "Make Schema Browser the default tab";
-            this.c1ThemeController1.SetTheme(this.chkDefaultTabSchemaInformation, "(default)");
-            this.chkDefaultTabSchemaInformation.UseVisualStyleBackColor = true;
-            this.chkDefaultTabSchemaInformation.Value = null;
-            this.chkDefaultTabSchemaInformation.VisualStyleBaseStyle = C1.Win.C1Input.VisualStyle.Office2010Blue;
-            // 
-            // lblStarShowColumnInfo
-            // 
-            this.lblStarShowColumnInfo.AutoSize = true;
-            this.lblStarShowColumnInfo.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblStarShowColumnInfo.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.lblStarShowColumnInfo.Location = new System.Drawing.Point(229, 76);
-            this.lblStarShowColumnInfo.Name = "lblStarShowColumnInfo";
-            this.lblStarShowColumnInfo.Size = new System.Drawing.Size(14, 15);
-            this.lblStarShowColumnInfo.TabIndex = 83;
-            this.lblStarShowColumnInfo.Text = "*";
-            // 
-            // lblStarSortByColumnName
-            // 
-            this.lblStarSortByColumnName.AutoSize = true;
-            this.lblStarSortByColumnName.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblStarSortByColumnName.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.lblStarSortByColumnName.Location = new System.Drawing.Point(171, 51);
-            this.lblStarSortByColumnName.Name = "lblStarSortByColumnName";
-            this.lblStarSortByColumnName.Size = new System.Drawing.Size(14, 15);
-            this.lblStarSortByColumnName.TabIndex = 82;
-            this.lblStarSortByColumnName.Text = "*";
-            // 
-            // btnHelp_ShowColumnInfo
-            // 
-            this.btnHelp_ShowColumnInfo.Image = ((System.Drawing.Image)(resources.GetObject("btnHelp_ShowColumnInfo.Image")));
-            this.btnHelp_ShowColumnInfo.Location = new System.Drawing.Point(200, 72);
-            this.btnHelp_ShowColumnInfo.Name = "btnHelp_ShowColumnInfo";
-            this.btnHelp_ShowColumnInfo.Size = new System.Drawing.Size(21, 21);
-            this.btnHelp_ShowColumnInfo.TabIndex = 81;
-            this.c1ThemeController1.SetTheme(this.btnHelp_ShowColumnInfo, "(default)");
-            this.btnHelp_ShowColumnInfo.UseVisualStyleBackColor = true;
-            this.btnHelp_ShowColumnInfo.VisualStyleBaseStyle = C1.Win.C1Input.VisualStyle.Office2010Blue;
-            this.btnHelp_ShowColumnInfo.Click += new System.EventHandler(this.btnHelp_ShowColumnInfo_Click);
-            // 
-            // chkShowColumnInfo
-            // 
-            this.chkShowColumnInfo.AutoSize = true;
-            this.chkShowColumnInfo.BackColor = System.Drawing.Color.Transparent;
-            this.chkShowColumnInfo.BorderColor = System.Drawing.Color.Transparent;
-            this.chkShowColumnInfo.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.chkShowColumnInfo.ForeColor = System.Drawing.Color.Black;
-            this.chkShowColumnInfo.Location = new System.Drawing.Point(20, 72);
-            this.chkShowColumnInfo.Name = "chkShowColumnInfo";
-            this.chkShowColumnInfo.Padding = new System.Windows.Forms.Padding(1);
-            this.chkShowColumnInfo.Size = new System.Drawing.Size(175, 22);
-            this.chkShowColumnInfo.TabIndex = 68;
-            this.chkShowColumnInfo.Text = "Show Column Information";
-            this.c1ThemeController1.SetTheme(this.chkShowColumnInfo, "(default)");
-            this.chkShowColumnInfo.UseVisualStyleBackColor = true;
-            this.chkShowColumnInfo.Value = null;
-            this.chkShowColumnInfo.VisualStyleBaseStyle = C1.Win.C1Input.VisualStyle.Office2010Blue;
-            // 
-            // chkSortByColumnName
-            // 
-            this.chkSortByColumnName.AutoSize = true;
-            this.chkSortByColumnName.BackColor = System.Drawing.Color.Transparent;
-            this.chkSortByColumnName.BorderColor = System.Drawing.Color.Transparent;
-            this.chkSortByColumnName.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.chkSortByColumnName.ForeColor = System.Drawing.Color.Black;
-            this.chkSortByColumnName.Location = new System.Drawing.Point(20, 47);
-            this.chkSortByColumnName.Name = "chkSortByColumnName";
-            this.chkSortByColumnName.Padding = new System.Windows.Forms.Padding(1);
-            this.chkSortByColumnName.Size = new System.Drawing.Size(153, 22);
-            this.chkSortByColumnName.TabIndex = 67;
-            this.chkSortByColumnName.Text = "Sort by Column Name";
-            this.c1ThemeController1.SetTheme(this.chkSortByColumnName, "(default)");
-            this.chkSortByColumnName.UseVisualStyleBackColor = true;
-            this.chkSortByColumnName.Value = null;
-            this.chkSortByColumnName.VisualStyleBaseStyle = C1.Win.C1Input.VisualStyle.Office2010Blue;
             // 
             // tabAutoComplete
             // 
@@ -8638,12 +8521,6 @@ namespace JasonQuery.UI.Forms
             this.grpStatementCompletion.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.btnHelp_AutoListMembers)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.btnHelp_SavePoint)).EndInit();
-            this.grpSchemaInformation.ResumeLayout(false);
-            this.grpSchemaInformation.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.chkDefaultTabSchemaInformation)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.btnHelp_ShowColumnInfo)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.chkShowColumnInfo)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.chkSortByColumnName)).EndInit();
             this.tabAutoComplete.ResumeLayout(false);
             this.tabAutoComplete.PerformLayout();
             this.tabAutoReplace.ResumeLayout(false);
@@ -9119,13 +8996,6 @@ namespace JasonQuery.UI.Forms
         private System.Windows.Forms.Label lblStyle2;
         private System.Windows.Forms.Label lblStyle1;
         private System.Windows.Forms.Label lblStarMainFormTab;
-        private System.Windows.Forms.GroupBox grpSchemaInformation;
-        private C1.Win.C1Input.C1CheckBox chkShowColumnInfo;
-        private C1.Win.C1Input.C1CheckBox chkSortByColumnName;
-        private C1.Win.C1Input.C1Button btnHelp_ShowColumnInfo;
-        private System.Windows.Forms.Label lblStarShowColumnInfo;
-        private System.Windows.Forms.Label lblStarSortByColumnName;
-        private C1.Win.C1Input.C1CheckBox chkDefaultTabSchemaInformation;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.GroupBox grpStatementCompletion;
         private C1.Win.C1Input.C1Button btnHelp_SavePoint;
