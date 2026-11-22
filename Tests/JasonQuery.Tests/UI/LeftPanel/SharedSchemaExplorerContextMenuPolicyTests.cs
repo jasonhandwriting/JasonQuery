@@ -44,10 +44,7 @@ namespace JasonQuery.Tests.UI.LeftPanel
                 SharedSchemaExplorerMenuCommand.AddColumn,
                 SharedSchemaExplorerMenuCommand.CopyToClipboard,
                 SharedSchemaExplorerMenuCommand.PasteSelectAll,
-                SharedSchemaExplorerMenuCommand.PasteName,
-                SharedSchemaExplorerMenuCommand.PasteComma,
-                SharedSchemaExplorerMenuCommand.PasteCommaNewLine,
-                SharedSchemaExplorerMenuCommand.PasteNewLine
+                SharedSchemaExplorerMenuCommand.PasteName
             }, Menu(LeftPanelTargetKind.QueryForm, Selection()));
         }
 
@@ -121,16 +118,6 @@ namespace JasonQuery.Tests.UI.LeftPanel
 
             CollectionAssert.DoesNotContain(menu, SharedSchemaExplorerMenuCommand.ShowDdl);
             CollectionAssert.DoesNotContain(menu, SharedSchemaExplorerMenuCommand.GenerateSqlStatement);
-        }
-
-        [TestMethod]
-        public void LegacySuffixCommands_StayUntilL2C35()
-        {
-            var menu = Menu(LeftPanelTargetKind.QueryForm, Selection("Views", true));
-
-            CollectionAssert.Contains(menu, SharedSchemaExplorerMenuCommand.PasteComma);
-            CollectionAssert.Contains(menu, SharedSchemaExplorerMenuCommand.PasteCommaNewLine);
-            CollectionAssert.Contains(menu, SharedSchemaExplorerMenuCommand.PasteNewLine);
         }
 
         [TestMethod]
@@ -244,6 +231,29 @@ namespace JasonQuery.Tests.UI.LeftPanel
             group.IsGroupRow = true;
 
             CollectionAssert.DoesNotContain(Menu(LeftPanelTargetKind.QueryForm, group), SharedSchemaExplorerMenuCommand.AddColumn);
+        }
+
+        [TestMethod, TestCategory("F7U4BD")]
+        public void LegacySuffixCommands_AreNotOfferedByAnyProviderOrHost()
+        {
+            foreach (var sourceType in new[] { DataSourceType.Oracle, DataSourceType.PostgreSql, DataSourceType.SqlServer, DataSourceType.MySql })
+            {
+                foreach (var target in new[] { LeftPanelTargetKind.QueryForm, LeftPanelTargetKind.SchemaBrowserForm })
+                {
+                    foreach (var schemaType in new[] { "Tables", "Views" })
+                    {
+                        foreach (var column in new[] { false, true })
+                        {
+                            var menu = Menu(target, Selection(schemaType, column, sourceType));
+                            var context = $"{sourceType}/{target}/{schemaType}/Column={column}";
+
+                            CollectionAssert.DoesNotContain(menu, SharedSchemaExplorerMenuCommand.PasteComma, context);
+                            CollectionAssert.DoesNotContain(menu, SharedSchemaExplorerMenuCommand.PasteCommaNewLine, context);
+                            CollectionAssert.DoesNotContain(menu, SharedSchemaExplorerMenuCommand.PasteNewLine, context);
+                        }
+                    }
+                }
+            }
         }
 
         [TestMethod]
