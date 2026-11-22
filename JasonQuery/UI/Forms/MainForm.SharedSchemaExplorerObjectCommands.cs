@@ -28,13 +28,28 @@ namespace JasonQuery.UI.Forms
             var activeTab = tabControl1.SelectedTab;
             var activeForm = activeTab?.Control;
 
+            //F7-U4B-C1: read-only form entry uses the existing qualified menu policy.
+            var isReadOnlyAction = context != null
+                                   && selection != null
+                                   && SharedSchemaExplorerObjectCommandPolicy.CanOfferReadOnlyAction
+                                   (
+                                       context.ActiveTarget,
+                                       selection,
+                                       command,
+                                       CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid)
+                                   );
+
             if (selection == null || state == null || context == null || !context.IsConnected || !context.SchemaReady
                 || state.ConnectionRevision != _sharedSchemaMenuConnectionRevision
                 || !ReferenceEquals(activeForm, _sharedSchemaMenuActiveForm)
                 || context.ActiveTarget != _sharedSchemaMenuTarget
                 || selection.SourceType != _currentSourceType
                 || DatabaseSqlExecutor.CurrentDataSource != _currentSourceType
-                || (!SharedSchemaDdlInteractionPolicy.CanOpenGenerator(context.ActiveTarget, selection, command, CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid)) && !CanHandleSharedSchemaExplorerSessionAction())
+                || (
+                       !isReadOnlyAction
+                       && !SharedSchemaDdlInteractionPolicy.CanOpenGenerator(context.ActiveTarget, selection, command, CanHandleSharedSchemaExplorerInput(_sharedSchemaExplorerGrid))
+                       && !CanHandleSharedSchemaExplorerSessionAction()
+                   )
                 || !SharedSchemaExplorerObjectCommandPolicy.CanExecute(context.ActiveTarget, selection, command))
             {
                 return;
@@ -53,6 +68,33 @@ namespace JasonQuery.UI.Forms
 
             try
             {
+                if (isReadOnlyAction)
+                {
+                    //The selected row must still identify the same object.
+                    var current = ResolveSharedSchemaExplorerInput
+                    (
+                        _sharedSchemaExplorerGrid,
+                        selection.DisplayRowIndex
+                    );
+
+                    if (current == null
+                        || current.DisplayRowIndex != selection.DisplayRowIndex
+                        || current.Kind != selection.Kind
+                        || current.SourceType != selection.SourceType
+                        || !string.Equals(current.SchemaType, selection.SchemaType, StringComparison.Ordinal)
+                        || !string.Equals(current.SchemaName, selection.SchemaName, StringComparison.Ordinal)
+                        || !string.Equals(current.SchemaNode, selection.SchemaNode, StringComparison.Ordinal)
+                        || !string.Equals(current.SchemaDbo, selection.SchemaDbo, StringComparison.Ordinal)
+                        || !string.Equals(current.ObjectId, selection.ObjectId, StringComparison.Ordinal)
+                        || !string.Equals(current.OracleSelectedOwner, selection.OracleSelectedOwner, StringComparison.Ordinal)
+                        || current.HasQualifiedOracleSelectedOwner != selection.HasQualifiedOracleSelectedOwner
+                        || !string.Equals(current.PackageSpecBody, selection.PackageSpecBody, StringComparison.Ordinal)
+                        || !SharedSchemaExplorerObjectCommandPolicy.CanOfferReadOnlyAction(context.ActiveTarget, current, command, true))
+                    {
+                        return;
+                    }
+                }
+
                 switch (command)
                 {
                     case SharedSchemaExplorerMenuCommand.ShowDdl:
