@@ -21,18 +21,6 @@ namespace JasonQuery.UI.LeftPanel
                     {
                         return true;
                     }
-                case SharedSchemaExplorerMenuCommand.PasteComma:
-                    {
-                        return true;
-                    }
-                case SharedSchemaExplorerMenuCommand.PasteCommaNewLine:
-                    {
-                        return true;
-                    }
-                case SharedSchemaExplorerMenuCommand.PasteNewLine:
-                    {
-                        return true;
-                    }
                 default:
                     {
                         return false;
@@ -74,21 +62,6 @@ namespace JasonQuery.UI.LeftPanel
                 case SharedSchemaExplorerMenuCommand.PasteName:
                     {
                         pasteText = name;
-                        break;
-                    }
-                case SharedSchemaExplorerMenuCommand.PasteComma:
-                    {
-                        pasteText = name + ", ";
-                        break;
-                    }
-                case SharedSchemaExplorerMenuCommand.PasteCommaNewLine:
-                    {
-                        pasteText = name + ", \r\n";
-                        break;
-                    }
-                case SharedSchemaExplorerMenuCommand.PasteNewLine:
-                    {
-                        pasteText = name + "\r\n";
                         break;
                     }
                 default:

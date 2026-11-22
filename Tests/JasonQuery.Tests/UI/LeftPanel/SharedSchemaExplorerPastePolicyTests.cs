@@ -31,17 +31,29 @@ namespace JasonQuery.Tests.UI.LeftPanel
         }
 
         [TestMethod]
-        public void PasteCommandAllowlist_HasOnlyFivePasteCommands()
+        public void PasteCommandAllowlist_HasOnlyTwoPasteCommands()
         {
             foreach (SharedSchemaExplorerMenuCommand command in System.Enum.GetValues(typeof(SharedSchemaExplorerMenuCommand)))
             {
-                var allowed = command == SharedSchemaExplorerMenuCommand.PasteSelectAll
-                    || command == SharedSchemaExplorerMenuCommand.PasteName
-                    || command == SharedSchemaExplorerMenuCommand.PasteComma
-                    || command == SharedSchemaExplorerMenuCommand.PasteCommaNewLine
-                    || command == SharedSchemaExplorerMenuCommand.PasteNewLine;
+                var allowed = command == SharedSchemaExplorerMenuCommand.PasteSelectAll || command == SharedSchemaExplorerMenuCommand.PasteName;
 
                 Assert.AreEqual(allowed, SharedSchemaExplorerPastePolicy.IsPasteCommand(command), command.ToString());
+            }
+        }
+
+        [TestMethod, TestCategory("F7U4BD")]
+        public void LegacySuffixPasteCommands_AreDenied()
+        {
+            foreach (var command in new[]
+            {
+                SharedSchemaExplorerMenuCommand.PasteComma,
+                SharedSchemaExplorerMenuCommand.PasteCommaNewLine,
+                SharedSchemaExplorerMenuCommand.PasteNewLine
+            })
+            {
+                Assert.IsFalse(SharedSchemaExplorerPastePolicy.IsPasteCommand(command));
+                Assert.IsFalse(SharedSchemaExplorerPastePolicy.TryBuildText(LeftPanelTargetKind.QueryForm, Selection(), command, out var pasteText));
+                Assert.AreEqual(string.Empty, pasteText);
             }
         }
 
@@ -49,24 +61,6 @@ namespace JasonQuery.Tests.UI.LeftPanel
         public void ColumnNamePaste_RemovesDatatypeSuffix()
         {
             Assert.AreEqual("ID", Build(LeftPanelTargetKind.QueryForm, Selection(column: true), SharedSchemaExplorerMenuCommand.PasteName));
-        }
-
-        [TestMethod]
-        public void ColumnCommaPaste_AppendsCommaSpace()
-        {
-            Assert.AreEqual("ID, ", Build(LeftPanelTargetKind.QueryForm, Selection(column: true), SharedSchemaExplorerMenuCommand.PasteComma));
-        }
-
-        [TestMethod]
-        public void ColumnCommaNewlinePaste_UsesCrLf()
-        {
-            Assert.AreEqual("ID, \r\n", Build(LeftPanelTargetKind.QueryForm, Selection(column: true), SharedSchemaExplorerMenuCommand.PasteCommaNewLine));
-        }
-
-        [TestMethod]
-        public void ColumnNewlinePaste_UsesCrLf()
-        {
-            Assert.AreEqual("ID\r\n", Build(LeftPanelTargetKind.QueryForm, Selection(column: true), SharedSchemaExplorerMenuCommand.PasteNewLine));
         }
 
         [TestMethod]
@@ -125,12 +119,6 @@ namespace JasonQuery.Tests.UI.LeftPanel
         public void TableColumn_SelectAllIsDenied()
         {
             Assert.IsFalse(SharedSchemaExplorerPastePolicy.TryBuildText(LeftPanelTargetKind.QueryForm, Selection(column: true), SharedSchemaExplorerMenuCommand.PasteSelectAll, out _));
-        }
-
-        [TestMethod]
-        public void SchemaBrowserColumnPaste_KeepsSuffixFormat()
-        {
-            Assert.AreEqual("ID, \r\n", Build(LeftPanelTargetKind.SchemaBrowserForm, Selection(column: true), SharedSchemaExplorerMenuCommand.PasteCommaNewLine));
         }
 
         [TestMethod]

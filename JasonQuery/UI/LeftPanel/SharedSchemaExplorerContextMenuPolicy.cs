@@ -112,14 +112,6 @@ namespace JasonQuery.UI.LeftPanel
                 commands.Add(SharedSchemaExplorerMenuCommand.PasteName);
             }
 
-            //The suffix-paste commands are deliberately retained until the approved L2-C3.5 simplification.
-            if (target != LeftPanelTargetKind.OtherForm && (isColumn || isTable || isView))
-            {
-                commands.Add(SharedSchemaExplorerMenuCommand.PasteComma);
-                commands.Add(SharedSchemaExplorerMenuCommand.PasteCommaNewLine);
-                commands.Add(SharedSchemaExplorerMenuCommand.PasteNewLine);
-            }
-
             return commands;
         }
 
