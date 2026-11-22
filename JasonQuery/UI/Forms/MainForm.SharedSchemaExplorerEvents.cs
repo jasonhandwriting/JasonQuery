@@ -310,13 +310,27 @@ namespace JasonQuery.UI.Forms
                 var isPaste = SharedSchemaExplorerPastePolicy.IsPasteCommand(command) && SharedSchemaExplorerPastePolicy.TryBuildText(context.ActiveTarget, selection, command, out _);
                 var pasteReceiverReady = context.ActiveTarget == LeftPanelTargetKind.SchemaBrowserForm || (activeForm is QueryForm query && query.CanAcceptSharedSchemaExplorerPaste);
 
-                //SQL generation is a cached-data action; live Oracle authorization belongs to the form's Execute gate.
-                var isDdlGenerator = SharedSchemaDdlInteractionPolicy.CanOpenGenerator
+                //F7-U4B-C1: read-only form entry is separate from structural DDL.
+                var cachedSnapshotReadable = CanHandleSharedSchemaExplorerInput(grid);
+
+                var isReadOnlyAction = SharedSchemaExplorerObjectCommandPolicy.CanOfferReadOnlyAction
                 (
-                    context.ActiveTarget, selection, command, CanHandleSharedSchemaExplorerInput(grid)
+                    context.ActiveTarget,
+                    selection,
+                    command,
+                    cachedSnapshotReadable
                 );
 
-                var isObjectAction = (isDdlGenerator || CanHandleSharedSchemaExplorerSessionAction()) && SharedSchemaExplorerObjectCommandPolicy.CanExecute(context.ActiveTarget, selection, command);
+                var isDdlGenerator = SharedSchemaDdlInteractionPolicy.CanOpenGenerator
+                (
+                    context.ActiveTarget,
+                    selection,
+                    command,
+                    cachedSnapshotReadable
+                );
+
+                var isObjectAction = (isReadOnlyAction || isDdlGenerator || CanHandleSharedSchemaExplorerSessionAction())
+                                     && SharedSchemaExplorerObjectCommandPolicy.CanExecute(context.ActiveTarget, selection, command);
 
                 item.Enabled = isCopy || (isPaste && pasteReceiverReady) || isObjectAction;
 

@@ -8,10 +8,62 @@ namespace JasonQuery.UI.LeftPanel
     //L2-C3-C2: non-destructive object command qualification. UI and DB work belong to MainForm.
     public static class SharedSchemaExplorerObjectCommandPolicy
     {
+        //F7-U4B-C1: viewing an existing form is not DDL execution authorization.
+        public static bool CanOfferReadOnlyAction(LeftPanelTargetKind target, SchemaExplorerSelectionInfo selection, SharedSchemaExplorerMenuCommand command, bool cachedSnapshotReadable)
+        {
+            if (!cachedSnapshotReadable)
+            {
+                return false;
+            }
+
+            switch (command)
+            {
+                case SharedSchemaExplorerMenuCommand.ShowDdl:
+                case SharedSchemaExplorerMenuCommand.OpenSchemaBrowser:
+                case SharedSchemaExplorerMenuCommand.GenerateSqlStatement:
+                    {
+                        return CanExecute(target, selection, command);
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
+        }
+
         public static bool CanExecute(LeftPanelTargetKind target, SchemaExplorerSelectionInfo selection, SharedSchemaExplorerMenuCommand command)
         {
-            //Only structural Table commands may consider a C1 object group. All other group actions keep their previous safety boundary; Table classification is checked by the bridge policy.
-            if (selection == null || (selection.IsGroupRow && !IsOracleTableDdlCommand(command)) || (selection.IsColumnInfoRow && !IsColumnDdlCommand(command)) || (selection.Kind != SchemaExplorerSelectionKind.SchemaObject && selection.Kind != SchemaExplorerSelectionKind.ExternalObject && !(selection.Kind == SchemaExplorerSelectionKind.ColumnInfo && IsColumnDdlCommand(command))) || string.IsNullOrWhiteSpace(selection.SchemaType) || string.IsNullOrWhiteSpace(selection.SchemaName))
+            if (selection == null)
+            {
+                return false;
+            }
+
+            //F7-U4B-C1: allow only a qualified object-level C1 group
+            //to open existing read-only forms. Never widen DDL authorization.
+            var isQualifiedReadOnlyObjectGroup = selection.IsGroupRow
+                && selection.Kind == SchemaExplorerSelectionKind.SchemaObject
+                && !selection.IsColumnInfoRow
+                && selection.GroupLevel == SchemaExplorerGroupLevelPolicy.GetMinimumObjectGroupLevel(selection.SourceType)
+                && (
+                       command == SharedSchemaExplorerMenuCommand.ShowDdl
+                       || command == SharedSchemaExplorerMenuCommand.OpenSchemaBrowser
+                       || command == SharedSchemaExplorerMenuCommand.GenerateSqlStatement
+                   )
+                && (
+                       selection.SourceType != DataSourceType.Oracle
+                       || !SchemaObjectTypeHelper.IsAny(selection.SchemaType, SchemaObjectNames.Tables, SchemaObjectNames.Views)
+                       || (selection.HasQualifiedOracleSelectedOwner && !string.IsNullOrWhiteSpace(selection.OracleSelectedOwner))
+                   );
+
+            if ((selection.IsGroupRow && !IsOracleTableDdlCommand(command) && !isQualifiedReadOnlyObjectGroup)
+                || (selection.IsColumnInfoRow && !IsColumnDdlCommand(command))
+                || (
+                       selection.Kind != SchemaExplorerSelectionKind.SchemaObject
+                       && selection.Kind != SchemaExplorerSelectionKind.ExternalObject
+                       && !(selection.Kind == SchemaExplorerSelectionKind.ColumnInfo && IsColumnDdlCommand(command))
+                   )
+                || string.IsNullOrWhiteSpace(selection.SchemaType)
+                || string.IsNullOrWhiteSpace(selection.SchemaName))
             {
                 return false;
             }

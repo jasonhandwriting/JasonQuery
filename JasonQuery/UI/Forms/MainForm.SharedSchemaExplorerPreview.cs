@@ -329,6 +329,9 @@ namespace JasonQuery.UI.Forms
             var workspace = splitContainerMainWorkspace;
             var showWorkspace = SharedSchemaExplorerPreviewPolicy.ShouldShowWorkspace(state, workspace.Visible);
 
+            //The filter is useful only after the current metadata snapshot is bound.
+            txtSchemaFilter.Visible = showGrid && !workspace.Panel1Collapsed;
+
             //L2-B: right-hand Tab selection and F7 Preview availability never own the left SplitContainer panel.
             //The L1 paint transaction below is reserved for actual connected-workspace transitions only.
             if (workspace.Panel1Collapsed == !showWorkspace)
@@ -394,6 +397,9 @@ namespace JasonQuery.UI.Forms
                     _sharedSchemaPreviewChangingLayout = false;
                 }
             }
+
+            //Restore the filter only after the grid and left panel are ready.
+            txtSchemaFilter.Visible = showGrid && !workspace.Panel1Collapsed;
 
             //WinForms/C1 child windows may paint asynchronously after the splitter moves.
             //Schedule one descendant redraw after the entire layout transaction completes.
