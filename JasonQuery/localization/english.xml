@@ -1586,10 +1586,6 @@
   <language category="form" class="OptionsForm" type="object" id="lblWhiteSpace" attribute="Text" name="WhiteSpace:" />
   <language category="form" class="OptionsForm" type="object" id="lblUserTables" attribute="Text" name="User-defined Tables and Views:" />
   <language category="form" class="OptionsForm" type="object" id="lblUserFunctions" attribute="Text" name="User-defined Functions and Triggers:" />
-  <language category="form" class="OptionsForm" type="object" id="grpSchemaInformation" attribute="Text" name="Schema Information" />
-  <language category="form" class="OptionsForm" type="object" id="chkDefaultTabSchemaInformation" attribute="Text" name="Make &quot;Schema Information&quot; the default tab" />
-  <language category="form" class="OptionsForm" type="object" id="chkSortByColumnName" attribute="Text" name="Sort by Column Name" />
-  <language category="form" class="OptionsForm" type="object" id="chkShowColumnInfo" attribute="Text" name="Show Column Information" />
   <language category="form" class="OptionsForm" type="object" id="grpStatementCompletion" attribute="Text" name="Statement Completion" />
   <language category="form" class="OptionsForm" type="object" id="chkAutoListMembers" attribute="Text" name="Auto List Members" />
   <language category="form" class="OptionsForm" type="object" id="chkUseSavePoint" attribute="Text" name="Use Savepoint (PostgreSQL only)" />

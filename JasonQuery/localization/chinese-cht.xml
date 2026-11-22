@@ -1586,10 +1586,6 @@
   <language category="form" class="OptionsForm" type="object" id="lblWhiteSpace" attribute="Text" name="空白字元:" />
   <language category="form" class="OptionsForm" type="object" id="lblUserTables" attribute="Text" name="使用者自訂資料表和檢視表:" />
   <language category="form" class="OptionsForm" type="object" id="lblUserFunctions" attribute="Text" name="使用者自訂函數和觸發器:" />
-  <language category="form" class="OptionsForm" type="object" id="grpSchemaInformation" attribute="Text" name="Schema 資訊" />
-  <language category="form" class="OptionsForm" type="object" id="chkDefaultTabSchemaInformation" attribute="Text" name="將「Schema 資訊」設為預設頁籤" />
-  <language category="form" class="OptionsForm" type="object" id="chkSortByColumnName" attribute="Text" name="以欄位名稱排序" />
-  <language category="form" class="OptionsForm" type="object" id="chkShowColumnInfo" attribute="Text" name="顯示欄位資訊" />
   <language category="form" class="OptionsForm" type="object" id="grpStatementCompletion" attribute="Text" name="語句完成" />
   <language category="form" class="OptionsForm" type="object" id="chkAutoListMembers" attribute="Text" name="自動列出成員" />
   <language category="form" class="OptionsForm" type="object" id="chkUseSavePoint" attribute="Text" name="使用保存點 (僅適用於 PostgreSQL)" />

@@ -1220,23 +1220,6 @@ Select ee.ID As "EmployeeID",
         YNGELHVDtZQAAAAASUVORK5CYII=
 </value>
   </data>
-  <data name="btnHelp_ShowColumnInfo.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAYAAAA71pVKAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        vAAADrwBlbxySQAAAoZJREFUOE9FUl1IFFEUviRoPvXSQ635lPgaBEHQi+C+BAU9CPUWBUuBiBpmhoXR
-        D5Xbm0FFYg+Rzq5LrPmzpCK52URqrrHSYrPjzq6sluno7N+dmd29p3tm3O3Cxznn+zl3hhlSOl6Aisl4
-        1nFvkbruL1HhYUiXHoWo9oBXnJFHHX37Eft4Eqy6Z4k6n/6gPk/UUEN/8+ZWrshyeQCsy3xGHvW732mj
-        yP1WEDd1iWmnezk7E9wwqKoXwSwwMIsMjCKAsd8jjzr6bn9LN1pPMBjJOu6Imm8qQalKCyxjMojIcdbS
-        dgNqjtVCS1s7rMYSkOb8LtfRh34/z5Frk1uuvlBKVVJ52Obbw3LCCiEG3nnKPfI7XFdSBegLaSrmyOWJ
-        DWFUzpjJbBGSmSIs/orDq7cesOZ9jr+dzWUKFvdBTptXJpICufQ+Jn3doCyqFUDazdt1z7TqXESBsxea
-        4GhNrdVLe7YuJnPsIs+R80Or2sIfA8JqHsI7/zEdjsERHjpx6rTVl/gVDvSfG5I00vAmLI3JaTa/ZYKN
-        vIXH/UPW45bmkr7Agf6GgbBETj5fFNziphncNOFTUmf8c1h1llcEzjZsfXbTALf428QcOd4752oSfqrD
-        UgY+rhtldL8YtG62Z73Mo69JiKiYIzcn445692dfa2CNDkezbETRwb9GWSmM/UhMhxGFB7neGlBovfuL
-        r4fniNcLFYe6p5x1T4Iz10ejtH8lBV6ZciOHrPPeBvKo1/UGZ9CPOb6ckHZPorqqI+A83DPtO/NyQW0e
-        j5nP5rfZ65U0YG0eV0zkUa/qCjjbxYT9b5cObrrqjzgOdIy6KjvGhIOd41L1rYCGtbJzTEAe9fKNhJB/
-        YNGELHVDtZQAAAAASUVORK5CYII=
-</value>
-  </data>
   <data name="btnHelp_AppendQueryResult.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAYAAAA71pVKAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
