@@ -1,8 +1,11 @@
 ﻿using C1.Win.C1TrueDBGrid;
+using JasonLibrary.Core;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Localization;
+using JasonQuery.UI.Helpers;
 using JasonQuery.UI.LeftPanel;
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace JasonQuery.UI.Forms
@@ -38,6 +41,38 @@ namespace JasonQuery.UI.Forms
         {
             c1GridSharedTabList.MouseDoubleClick -= SharedTabListMouseDoubleClick;
             c1GridSharedTabList.SizeChanged -= SharedTabListSizeChanged;
+        }
+
+        private void ApplySharedTabListVisualParity()
+        {
+            var grid = c1GridSharedTabList;
+
+            if (grid == null || grid.IsDisposed)
+            {
+                return;
+            }
+
+            //Match the legacy QueryForm F8 theme and visual style.
+            c1ThemeController1.SetTheme
+            (
+                grid,
+                MyLibrary.IsDarkMode ? "VS2013Dark" : "(default)"
+            );
+
+            grid.BackColor = ColorTranslator.FromHtml
+            (
+                MyLibrary.IsDarkMode ? "#2D2D30" : "#F0F0F0"
+            );
+
+            GridHelper.SetGridVisualStyle(grid);
+
+            //Apply the user's configured grid font and odd/even row colors.
+            //Preserve the selection behavior established by the visual style.
+            var originalMarqueeStyle = grid.MarqueeStyle;
+
+            GridHelper.SetGridVisualStyle(grid, 10);
+
+            grid.MarqueeStyle = originalMarqueeStyle;
         }
 
         private void RefreshSharedTabList()

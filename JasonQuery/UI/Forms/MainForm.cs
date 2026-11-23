@@ -352,6 +352,7 @@ namespace JasonQuery.UI.Forms
 
             ApplySharedSchemaExplorerLocalization();
             ApplySharedTabListLocalization();
+            ApplySharedTabListVisualParity();
             ApplySharedLeftPanelTabAppearance();
 
             var myItems = GetItems(mnuMainForm);
@@ -2126,6 +2127,8 @@ namespace JasonQuery.UI.Forms
             //載入最近使用清單與我的最愛
             LoadRecentList();
             LoadMyFavoriteFiles();
+
+            ApplySharedTabListVisualParity();
 
             Cursor = Cursors.Default;
 
