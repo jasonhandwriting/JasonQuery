@@ -137,8 +137,6 @@ namespace JasonQuery.UI.Helpers
                 c1Grid.HeadingStyle.Borders.Color = Color.White;
                 c1Grid.HeadingStyle.ForeColor = ColorTranslator.FromHtml(MyLibrary.GridHeadingForeColor);
                 c1Grid.RowDivider.Color = Color.White;
-                c1Grid.Font = new Font(MyLibrary.GridFontName, MyLibrary.GridFontSize, FontStyle.Regular, GraphicsUnit.Point);
-                c1Grid.HeadingStyle.Font = new Font(MyLibrary.GridFontName, MyLibrary.GridFontSize, FontStyle.Regular, GraphicsUnit.Point);
                 c1Grid.MarqueeStyle = MarqueeEnum.HighlightCell;
             }
 
