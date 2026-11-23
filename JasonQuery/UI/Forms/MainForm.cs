@@ -82,6 +82,8 @@ namespace JasonQuery.UI.Forms
         {
             InitializeComponent();
             InitializeSharedLeftPanelHost();
+            InitializeSharedTabList();
+            InitializeSharedWorkspaceShortcuts();
         }
 
         private void InitializePendingTransactionStatus()
@@ -349,6 +351,7 @@ namespace JasonQuery.UI.Forms
             MessageBoxManager.Register();
 
             ApplySharedSchemaExplorerLocalization();
+            ApplySharedTabListLocalization();
             ApplySharedLeftPanelTabAppearance();
 
             var myItems = GetItems(mnuMainForm);
@@ -2537,6 +2540,7 @@ namespace JasonQuery.UI.Forms
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            DisposeSharedTabList();
             DisposeSharedLeftPanelHost();
             SystemEvents.SessionEnding -= SystemEvents_SessionEnding;
             MessageBoxManager.Unregister();
@@ -4763,9 +4767,17 @@ namespace JasonQuery.UI.Forms
                 tabControl1.TabPages[tabIndex].Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "SQL Editor Blue 16x16.ico");
             }
 
-            tabControl1.TabPages[tabIndex].Tag = value;
-            tabControl1.TabPages[tabIndex].Title = tabTitle;
+            var currentTab = tabControl1.TabPages[tabIndex];
+            var titleChanged = !string.Equals(currentTab.Title, tabTitle, StringComparison.Ordinal);
+
+            currentTab.Tag = value;
+            currentTab.Title = tabTitle;
             _toolTip1.SetToolTip(tabControl1, value);
+
+            if (titleChanged)
+            {
+                UpdateTabList();
+            }
         }
 
         private void tabControl1_MouseMove(object sender, MouseEventArgs e)
@@ -6428,6 +6440,9 @@ namespace JasonQuery.UI.Forms
             }
 
             MyGlobal.GlobalTemp6 = sb.ToString();
+
+            //F8-B: Refresh MainForm's independent read-only Tab List snapshot.
+            RefreshSharedTabList();
         }
 
         private static class MapColumn

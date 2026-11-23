@@ -156,6 +156,7 @@
             this.tabLeftSqlNavigator = new C1.Win.C1Command.C1DockingTabPage();
             this.tabControl1 = new Crownwood.Magic.Controls.TabControl();
             this.tmrPendingTransactionIdleCheck = new System.Windows.Forms.Timer(this.components);
+            this.c1GridSharedTabList = new C1.Win.C1TrueDBGrid.C1TrueDBGrid();
             this.mnuMainForm.SuspendLayout();
             this.tsMainMenuToolBar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.c1ThemeController1)).BeginInit();
@@ -175,6 +176,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.c1GridSharedSchemaExplorer)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtSchemaFilter)).BeginInit();
             this.tsSchemaBrowser.SuspendLayout();
+            this.tabLeftTabList.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.c1GridSharedTabList)).BeginInit();
             this.SuspendLayout();
             // 
             // mnuMainForm
@@ -1288,6 +1291,7 @@
             // 
             // tabLeftTabList
             // 
+            this.tabLeftTabList.Controls.Add(this.c1GridSharedTabList);
             this.tabLeftTabList.Image = ((System.Drawing.Image)(resources.GetObject("tabLeftTabList.Image")));
             this.tabLeftTabList.Location = new System.Drawing.Point(26, 1);
             this.tabLeftTabList.Name = "tabLeftTabList";
@@ -1333,6 +1337,33 @@
             // 
             this.tmrPendingTransactionIdleCheck.Tick += new System.EventHandler(this.tmrPendingTransactionIdleCheck_Tick);
             // 
+            // c1GridSharedTabList
+            //
+            this.c1GridSharedTabList.AllowUpdate = false;
+            this.c1GridSharedTabList.AllowUpdateOnBlur = false;
+            this.c1GridSharedTabList.AlternatingRows = true;
+            this.c1GridSharedTabList.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
+            this.c1GridSharedTabList.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.c1GridSharedTabList.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.c1GridSharedTabList.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.c1GridSharedTabList.GroupByCaption = "將欄位標題拖拽到這裡以便按照該欄位進行分組";
+            this.c1GridSharedTabList.Images.Add(((System.Drawing.Image)(resources.GetObject("c1GridSharedTabList.Images"))));
+            this.c1GridSharedTabList.Location = new System.Drawing.Point(0, 0);
+            this.c1GridSharedTabList.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.c1GridSharedTabList.Name = "c1GridSharedTabList";
+            this.c1GridSharedTabList.PreviewInfo.Caption = "PrintPreview窗口";
+            this.c1GridSharedTabList.PreviewInfo.Location = new System.Drawing.Point(0, 0);
+            this.c1GridSharedTabList.PreviewInfo.Size = new System.Drawing.Size(0, 0);
+            this.c1GridSharedTabList.PreviewInfo.ZoomFactor = 75D;
+            this.c1GridSharedTabList.PrintInfo.MeasurementDevice = C1.Win.C1TrueDBGrid.PrintInfo.MeasurementDeviceEnum.Screen;
+            this.c1GridSharedTabList.PrintInfo.MeasurementPrinterName = null;
+            this.c1GridSharedTabList.RowHeight = 19;
+            this.c1GridSharedTabList.Size = new System.Drawing.Size(223, 675);
+            this.c1GridSharedTabList.TabIndex = 67;
+            this.c1ThemeController1.SetTheme(this.c1GridSharedTabList, "(default)");
+            this.c1GridSharedTabList.UseCompatibleTextRendering = false;
+            this.c1GridSharedTabList.PropBag = resources.GetString("c1GridSharedTabList.PropBag");
+            //
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -1385,6 +1416,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.txtSchemaFilter)).EndInit();
             this.tsSchemaBrowser.ResumeLayout(false);
             this.tsSchemaBrowser.PerformLayout();
+            this.tabLeftTabList.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.c1GridSharedTabList)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1517,5 +1550,6 @@
         private C1.Win.C1Command.C1DockingTabPage tabLeftTabList;
         private C1.Win.C1Command.C1DockingTabPage tabLeftSqlNavigator;
         private C1.Win.C1TrueDBGrid.C1TrueDBGrid c1GridSharedSchemaExplorer;
+        private C1.Win.C1TrueDBGrid.C1TrueDBGrid c1GridSharedTabList;
     }
 }
