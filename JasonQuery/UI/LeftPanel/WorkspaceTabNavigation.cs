@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 
 namespace JasonQuery.UI.LeftPanel
 {
@@ -29,6 +30,37 @@ namespace JasonQuery.UI.LeftPanel
             }
 
             return -1;
+        }
+    }
+
+    public static class SharedTabListSnapshotPolicy
+    {
+        public static DataTable Create(DataTable source)
+        {
+            var snapshot = new DataTable();
+
+            snapshot.Columns.Add("Tab", typeof(string));
+            snapshot.Columns.Add("AccessibleDescription", typeof(string));
+
+            if (source == null || !source.Columns.Contains("Tab") || !source.Columns.Contains("AccessibleDescription"))
+            {
+                return snapshot;
+            }
+
+            foreach (DataRow row in source.Rows)
+            {
+                if (row.RowState == DataRowState.Deleted || row.RowState == DataRowState.Detached)
+                {
+                    continue;
+                }
+
+                var title = row.IsNull("Tab") ? string.Empty : row["Tab"].ToString();
+                var identity = row.IsNull("AccessibleDescription") ? string.Empty : row["AccessibleDescription"].ToString();
+
+                snapshot.Rows.Add(title, identity);
+            }
+
+            return snapshot;
         }
     }
 }
