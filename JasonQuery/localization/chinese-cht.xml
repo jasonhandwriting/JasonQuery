@@ -2047,6 +2047,8 @@
   <language category="form" class="MainForm" type="object" id="lblAutoCommit" attribute="Text" name="自動 Commit 已關閉" />
   <language category="form" class="MainForm" type="object" id="btnAutoRollbackOnError" attribute="Text" name="錯誤時自動 Rollback" />
   <language category="form" class="MainForm" type="object" id="lblPrompt4NewConnection" attribute="Text" name="您可以從 [檔案] &gt; [新的連線] 建立或選擇資料庫連線訊息！" />
+  <language category="form" class="MainForm" type="gridheader" id="Type" attribute="Text" name="類型" />
+  <language category="form" class="MainForm" type="gridheader" id="SQLStatement" attribute="Text" name="SQL 語句" />
   <language category="form" class="MainForm" type="msg" id="EmptyRecentFiles" attribute="Text" name="確定要清空「最近使用的檔案」？" />
   <language category="form" class="MainForm" type="msg" id="EmptyMyFavorite" attribute="Text" name="確定要清空「我的最愛」？" />
   <language category="form" class="MainForm" type="msg" id="AliasName" attribute="Text" name="別名：(選擇性)" />

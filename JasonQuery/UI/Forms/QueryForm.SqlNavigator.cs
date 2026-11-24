@@ -6,6 +6,7 @@ using JasonQuery.Core.Database.Execution;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Text;
 using JasonQuery.UI.Helpers;
+using JasonQuery.UI.LeftPanel;
 using System;
 using System.Data;
 using System.Text;
@@ -18,6 +19,9 @@ namespace JasonQuery.UI.Forms
         private const string LeftPanelTabSchemaInformation = "tabSchemaInformation";
         private const string LeftPanelTabTabList = "tabTabList";
         private const string LeftPanelTabSqlNavigator = "tabSqlNavigator";
+        private string _sqlNavigatorSourceEditorText;
+
+        internal event Action<QueryForm> SqlNavigatorRefreshed;
 
         private void RefreshSqlNavigatorPanel()
         {
@@ -25,11 +29,60 @@ namespace JasonQuery.UI.Forms
 
             c1GridSqlNavigator.Filter -= C1GridSqlNavigator_Filter;
 
-            _dtSqlNavigatorTable = BuildSqlNavigatorTable();
+            var editorText = editor.Text;
+
+            _dtSqlNavigatorTable = BuildSqlNavigatorTable(editorText);
+            _sqlNavigatorSourceEditorText = editorText;
 
             ApplySqlNavigatorTableToGrid();
             RestoreLeftPanelSelectedTab(selectedTabName);
             ApplySqlNavigatorGridRowStyle();
+
+            SqlNavigatorRefreshed?.Invoke(this);
+        }
+
+        internal SharedSqlNavigatorSnapshot CaptureSharedSqlNavigatorSnapshot()
+        {
+            return SharedSqlNavigatorSnapshotPolicy.Create
+            (
+                AccessibleDescription,
+                _dtSqlNavigatorTable,
+                _sqlNavigatorSourceEditorText
+            );
+        }
+
+        internal bool IsSharedSqlNavigatorSnapshotCurrent(SharedSqlNavigatorSnapshot snapshot, LeftPanelContext context, string activeIdentity)
+        {
+            return snapshot != null
+                   && !IsDisposed
+                   && !Disposing
+                   && string.Equals(AccessibleDescription, activeIdentity, StringComparison.Ordinal)
+                   && snapshot.IsCurrent(context, activeIdentity, _dtSqlNavigatorTable, editor.Text);
+        }
+
+        internal bool TryNavigateSharedSqlNavigatorPosition(SharedSqlNavigatorSnapshot snapshot, LeftPanelContext context, string activeIdentity, int oneBasedPosition)
+        {
+            if (snapshot == null || IsDisposed || Disposing || InvokeRequired || !_isFormLoadFinished || _isBusy
+                || editor == null || editor.IsDisposed || !editor.CanFocus
+                || !string.Equals(AccessibleDescription, activeIdentity, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            //Revalidate against this QueryForm's live publication and text immediately before moving the caret.
+            if (!snapshot.TryResolvePosition(context, activeIdentity, _dtSqlNavigatorTable, editor.Text, oneBasedPosition, out var zeroBasedPosition)
+                || zeroBasedPosition >= editor.TextLength)
+            {
+                return false;
+            }
+
+            //Collapse any previous selection, then reuse the existing statement-aware selection path.
+            editor.SetSelection(zeroBasedPosition, zeroBasedPosition);
+            SelectCurrentBlock();
+            editor.Focus();
+            editor.ScrollCaret();
+
+            return true;
         }
 
         private string GetSelectedLeftPanelTabName()
@@ -37,10 +90,10 @@ namespace JasonQuery.UI.Forms
             return c1DockingTab2.SelectedTab?.Name ?? string.Empty;
         }
 
-        private DataTable BuildSqlNavigatorTable()
+        private DataTable BuildSqlNavigatorTable(string editorText)
         {
             var table = CreateSqlNavigatorTable();
-            var lines = editor.Text.Split(new[] { "\r\n" }, StringSplitOptions.None);
+            var lines = editorText.Split(new[] { "\r\n" }, StringSplitOptions.None);
 
             var sqlBuilder = new StringBuilder();
             var isSqlBlockStarted = false;
@@ -58,7 +111,7 @@ namespace JasonQuery.UI.Forms
                     sqlBuilder.Clear();
                     isSqlBlockStarted = false;
                     sqlBlockStartPosition = -1;
-                    position += 2;
+                    position += line.Length + 2;
 
                     continue;
                 }
@@ -229,19 +282,17 @@ namespace JasonQuery.UI.Forms
 
         private void ApplySqlNavigatorGridRowStyle()
         {
-            c1GridSqlNavigator.AllowRowSizing = RowSizingEnum.IndividualRows;
-            c1GridSqlNavigator.RowHeight = _sqlNavigatorRowHeight * 2 - 3;
+            //Temporary legacy protection until QueryForm's F9 grid is retired.
+            //Never let a long single-line SQL trigger content-driven row sizing before publication.
+            var grid = c1GridSqlNavigator;
+            var singleRowHeight = Math.Max(_sqlNavigatorRowHeight, grid.Font.Height + 3);
+            var previewHeight = singleRowHeight * 2 - 3;
 
-            var rowCount = c1GridSqlNavigator.Splits[0].Rows.Count;
+            grid.AllowRowSizing = RowSizingEnum.None;
 
-            for (var rowIndex = 0; rowIndex < rowCount; rowIndex++)
+            if (grid.RowHeight != previewHeight)
             {
-                var cellValue = TextHelper.GetSafeString(c1GridSqlNavigator.Columns[1].CellValue(rowIndex));
-
-                if (!cellValue.Contains("\r\n"))
-                {
-                    c1GridSqlNavigator.Splits[0].Rows[rowIndex].AutoSize();
-                }
+                grid.RowHeight = previewHeight;
             }
         }
     }

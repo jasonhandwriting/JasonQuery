@@ -98,6 +98,7 @@ namespace JasonQuery.UI.Forms
 
             InvalidateSharedSchemaExplorerMetadataIfStale();
             SyncSharedSchemaExplorerPreviewUI();
+            RefreshSharedSqlNavigator();
         }
 
         //Later F7/F6/F8/F9 hosts can read a fresh state without a cached child reference.

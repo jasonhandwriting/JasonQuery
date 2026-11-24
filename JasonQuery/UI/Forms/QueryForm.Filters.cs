@@ -626,7 +626,7 @@ namespace JasonQuery.UI.Forms
                 ClearGridHighlightsBeforeFilter();
             }
 
-            dataView.RowFilter = BuildWildcardFilterCondition(grid, condition, useColumnTag);
+            dataView.RowFilter = BuildWildcardFilterCondition(grid, condition, useColumnTag, _splitsIndex);
         }
 
         private void ClearGridHighlightsBeforeFilter()
@@ -641,7 +641,7 @@ namespace JasonQuery.UI.Forms
             btnClearHighlightsGrid.PerformClick();
         }
 
-        private string BuildWildcardFilterCondition(C1TrueDBGrid grid, string condition, bool useColumnTag)
+        internal static string BuildWildcardFilterCondition(C1TrueDBGrid grid, string condition, bool useColumnTag, int splitIndex)
         {
             if (string.IsNullOrEmpty(condition))
             {
@@ -649,7 +649,7 @@ namespace JasonQuery.UI.Forms
             }
 
             var normalizedCondition = condition;
-            var count = grid.Splits[_splitsIndex].DisplayColumns.Count;
+            var count = grid.Splits[splitIndex].DisplayColumns.Count;
 
             for (var columnIndex = 0; columnIndex < count; columnIndex++)
             {

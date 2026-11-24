@@ -81,6 +81,7 @@ namespace JasonQuery.UI.Forms
         public MainForm()
         {
             InitializeComponent();
+            InitializeSharedSqlNavigator();
             InitializeSharedLeftPanelHost();
             InitializeSharedTabList();
             InitializeSharedWorkspaceShortcuts();
@@ -353,6 +354,8 @@ namespace JasonQuery.UI.Forms
             ApplySharedSchemaExplorerLocalization();
             ApplySharedTabListLocalization();
             ApplySharedTabListVisualParity();
+            ApplySharedSqlNavigatorLocalization();
+            ApplySharedSqlNavigatorVisualParity();
             ApplySharedLeftPanelTabAppearance();
 
             var myItems = GetItems(mnuMainForm);
@@ -2129,6 +2132,7 @@ namespace JasonQuery.UI.Forms
             LoadMyFavoriteFiles();
 
             ApplySharedTabListVisualParity();
+            ApplySharedSqlNavigatorVisualParity();
 
             Cursor = Cursors.Default;
 
@@ -2543,6 +2547,7 @@ namespace JasonQuery.UI.Forms
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            DisposeSharedSqlNavigator();
             DisposeSharedTabList();
             DisposeSharedLeftPanelHost();
             SystemEvents.SessionEnding -= SystemEvents_SessionEnding;
@@ -3003,6 +3008,8 @@ namespace JasonQuery.UI.Forms
                             }
 
                             _queryForm.ValueUpdated += ValueUpdated;
+                            _queryForm.SqlNavigatorRefreshed += NotifySharedSqlNavigatorRefreshed;
+
                             controlToAdd = _queryForm;
                             break;
                         }
@@ -3120,7 +3127,10 @@ namespace JasonQuery.UI.Forms
 
                 tabControl1.TabPages.Add(tabPage);
 
+                RefreshSharedSqlNavigator();
+
                 tsMainMenuToolBar.Visible = false;
+
                 EnableCloseTabMenu(true);
 
                 if (_isFormLoadFinished)
