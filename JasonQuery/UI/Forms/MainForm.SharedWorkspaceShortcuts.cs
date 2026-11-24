@@ -5,7 +5,7 @@ using System.Windows.Forms;
 namespace JasonQuery.UI.Forms
 {
     //MainForm owns shortcuts for the shared left workspace.
-    //F8 is the first activated route; F6, F7 and F9 remain on their existing paths until each page's behavior and shortcut conflicts are qualified.
+    //F8 and F9 are active shared routes; F6 and F7 remain on their existing paths until their shortcut ownership is migrated.
     public partial class MainForm
     {
         private SharedWorkspaceShortcutMessageFilter _sharedWorkspaceShortcutMessageFilter;
@@ -57,6 +57,41 @@ namespace JasonQuery.UI.Forms
             return true;
         }
 
+        private bool TrySelectSharedSqlNavigatorFromShortcut()
+        {
+            if (IsDisposed || Disposing || !tabControl1.Visible
+                || splitContainerMainWorkspace.IsDisposed || !splitContainerMainWorkspace.Visible
+                || c1DockingTabLeftPanel.IsDisposed || c1GridSharedSqlNavigator.IsDisposed
+                || !_sharedSqlNavigatorInitialized || _sharedSqlNavigatorRefreshing
+                || _sharedSqlNavigatorApplyingLayout
+                || !LeftPanelAvailabilityPolicy.Resolve(CaptureLeftPanelContext()).IsEnabled(LeftPanelPage.SqlList))
+            {
+                return false;
+            }
+
+            RefreshSharedSqlNavigator();
+
+            var selectedTab = tabControl1.SelectedTab;
+            var query = selectedTab?.Control as QueryForm;
+            var snapshot = _sharedSqlNavigatorSnapshot;
+
+            if (query == null || snapshot == null || !tabLeftSqlNavigator.TabVisible
+                || !ReferenceEquals(c1GridSharedSqlNavigator.DataSource, snapshot.Table)
+                || !query.IsSharedSqlNavigatorSnapshotCurrent(snapshot, CaptureLeftPanelContext(), selectedTab.AccessibleDescription))
+            {
+                return false;
+            }
+
+            if (splitContainerMainWorkspace.Panel1Collapsed)
+            {
+                splitContainerMainWorkspace.Panel1Collapsed = false;
+            }
+
+            c1DockingTabLeftPanel.SelectedTab = tabLeftSqlNavigator;
+
+            return true;
+        }
+
         private sealed class SharedWorkspaceShortcutMessageFilter : IMessageFilter
         {
             private const int WmKeyDown = 0x0100;
@@ -69,22 +104,42 @@ namespace JasonQuery.UI.Forms
 
             public bool PreFilterMessage(ref Message message)
             {
-                //Accept the unmodified F8 key only. A message filter receives key events before QueryForm or ComponentOne key processing.
-                if (message.Msg != WmKeyDown || message.WParam.ToInt32() != (int)Keys.F8 || Control.ModifierKeys != Keys.None)
+                //Accept only unmodified workspace function keys.
+                if (message.Msg != WmKeyDown || Control.ModifierKeys != Keys.None)
                 {
                     return false;
                 }
 
-                //The application-wide filter must NOT intercept keyboard input from other windows, modal dialogs, or disposed MainForms.
+                var keyData = (Keys)message.WParam.ToInt32();
+
+                if (keyData != Keys.F8 && keyData != Keys.F9)
+                {
+                    return false;
+                }
+
+                //Do not intercept input from other windows, modal dialogs or disposed MainForms.
                 if (_owner.IsDisposed || _owner.Disposing || !_owner.ContainsFocus)
                 {
                     return false;
                 }
 
-                //F8 belongs to MainForm, regardless of which embedded child control (QueryForm, SchemaBrowserForm, F7 grid, etc.) has focus.
-                //When no workspace is available, consume F8 without falling through to the retired QueryForm-local F8 shortcut.
-                _owner.TrySelectSharedTabListFromShortcut();
-                return true;
+                switch (keyData)
+                {
+                    case Keys.F8:
+                        {
+                            _owner.TrySelectSharedTabListFromShortcut();
+                            return true;
+                        }
+                    case Keys.F9:
+                        {
+                            _owner.TrySelectSharedSqlNavigatorFromShortcut();
+                            return true;
+                        }
+                    default:
+                        {
+                            return false;
+                        }
+                }
             }
         }
     }

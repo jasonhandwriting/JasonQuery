@@ -2047,6 +2047,8 @@
   <language category="form" class="MainForm" type="object" id="lblAutoCommit" attribute="Text" name="Auto Commit is off" />
   <language category="form" class="MainForm" type="object" id="btnAutoRollbackOnError" attribute="Text" name="Auto Rollback on error" />
   <language category="form" class="MainForm" type="object" id="lblPrompt4NewConnection" attribute="Text" name="You can create or select database connection from [File] &gt; [New Connection]!" />
+  <language category="form" class="MainForm" type="gridheader" id="Type" attribute="Text" name="Type" />
+  <language category="form" class="MainForm" type="gridheader" id="SQLStatement" attribute="Text" name="SQL Statement" />
   <language category="form" class="MainForm" type="msg" id="EmptyRecentFiles" attribute="Text" name="Are you sure you want to empty &quot;Recent Files&quot; ?" />
   <language category="form" class="MainForm" type="msg" id="EmptyMyFavorite" attribute="Text" name="Are you sure you want to empty &quot;My Favorite&quot; ?" />
   <language category="form" class="MainForm" type="msg" id="AliasName" attribute="Text" name="Alias Name: (Optional)" />

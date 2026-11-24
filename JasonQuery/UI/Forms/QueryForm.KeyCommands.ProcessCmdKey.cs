@@ -99,16 +99,6 @@ namespace JasonQuery.UI.Forms
                         c1DockingTab2.SelectedTab = tabSchemaInformation;
                         return true;
                     }
-                case Keys.F9:
-                    {
-                        if (tabSqlNavigator.TabVisible)
-                        {
-                            c1DockingTab2.SelectedTab = tabSqlNavigator;
-                            return true;
-                        }
-
-                        return false;
-                    }
                 default:
                     {
                         return false;
