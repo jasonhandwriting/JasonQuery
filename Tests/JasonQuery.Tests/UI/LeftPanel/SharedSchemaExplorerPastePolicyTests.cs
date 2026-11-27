@@ -124,7 +124,14 @@ namespace JasonQuery.Tests.UI.LeftPanel
         [TestMethod]
         public void SchemaBrowserTable_SelectAllIsAvailable()
         {
-            Assert.AreEqual("SELECT * FROM ORDERS", Build(LeftPanelTargetKind.SchemaBrowserForm, Selection(), SharedSchemaExplorerMenuCommand.PasteSelectAll));
+            var target = LeftPanelTargetKind.SchemaBrowserForm;
+            var command = SharedSchemaExplorerMenuCommand.PasteSelectAll;
+
+            Assert.AreEqual("SELECT * FROM ORDERS;", Build(target, Selection(), command));
+            Assert.AreEqual("select * from public.ORDERS;", Build(target, Selection(DataSourceType.PostgreSql), command));
+            Assert.AreEqual("select * from dbo.ORDERS;", Build(target, Selection(DataSourceType.SqlServer), command));
+            Assert.AreEqual("select * from ORDERS;", Build(target, Selection(DataSourceType.MySql), command));
+            Assert.AreEqual("ORDERS", Build(target, Selection(), SharedSchemaExplorerMenuCommand.PasteName));
         }
 
         [TestMethod]

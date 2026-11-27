@@ -3,7 +3,9 @@ using JasonLibrary.UI.Controls.Stylers;
 using JasonQuery.Core.Config;
 using JasonQuery.Core.Database.Connection;
 using JasonQuery.UI.Helpers;
+using System;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace JasonQuery.UI.Forms
 {
@@ -196,33 +198,66 @@ namespace JasonQuery.UI.Forms
 
         private void ArrangeDataFindControls()
         {
-            const int spacingAfterFindLabel = 2;
-            const int spacingAfterLastFindButton = 15;
-            const int fallbackSpacingAfterCombo = 134;
-
             lblFind2.Text = lblFindData.Text;
 
             tsData.PerformLayout();
-
-            if (lblFindData.Bounds.Width > 0)
-            {
-                cboFind.Left = lblFindData.Bounds.Right + spacingAfterFindLabel;
-            }
-            else
-            {
-                cboFind.Left = lblFind2.Right + spacingAfterFindLabel;
-            }
-
-            if (btnClearHighlightData.Bounds.Width > 0)
-            {
-                chkShowFilterRowData.Left = btnClearHighlightData.Bounds.Right + spacingAfterLastFindButton;
-            }
-            else
-            {
-                chkShowFilterRowData.Left = cboFind.Right + fallbackSpacingAfterCombo;
-            }
+            UpdateDataFindControlLayout();
 
             chkShowFilterRowData.Checked = MyLibrary.GridShowFilterRow;
+        }
+
+        private static bool IsToolStripItemOnMain(ToolStripItem item)
+        {
+            return item.Available
+                   && item.Placement == ToolStripItemPlacement.Main
+                   && !item.IsOnOverflow
+                   && item.Bounds.Width > 0;
+        }
+
+        private void UpdateDataFindControlLayout()
+        {
+            const int spacingAfterFindLabel = 2;
+            const int spacingAfterLastFindButton = 15;
+
+            var availableRight = tsData.DisplayRectangle.Right;
+
+            if (tsData.OverflowButton.Visible)
+            {
+                availableRight = Math.Min(availableRight, tsData.OverflowButton.Bounds.Left);
+            }
+
+            var findLeft = lblFindData.Bounds.Right + spacingAfterFindLabel;
+
+            var canShowFind = IsToolStripItemOnMain(lblFindData)
+                              && IsToolStripItemOnMain(lblFind3)
+                              && findLeft >= lblFind3.Bounds.Left
+                              && findLeft + cboFind.Width <= lblFind3.Bounds.Right
+                              && findLeft + cboFind.Width <= availableRight;
+
+            if (canShowFind)
+            {
+                cboFind.Left = tsData.Left + findLeft;
+            }
+
+            cboFind.Visible = canShowFind;
+
+            var filterLeft = btnClearHighlightData.Bounds.Right + spacingAfterLastFindButton;
+
+            if (IsToolStripItemOnMain(toolStripSeparator18))
+            {
+                filterLeft = Math.Max(filterLeft, toolStripSeparator18.Bounds.Right + 2);
+            }
+
+            var canShowFilter = canShowFind
+                                && IsToolStripItemOnMain(btnClearHighlightData)
+                                && filterLeft + chkShowFilterRowData.Width <= availableRight;
+
+            if (canShowFilter)
+            {
+                chkShowFilterRowData.Left = tsData.Left + filterLeft;
+            }
+
+            chkShowFilterRowData.Visible = canShowFilter;
         }
 
         private void ApplyGridInteractionDirection()

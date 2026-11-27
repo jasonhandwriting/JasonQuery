@@ -10,35 +10,29 @@ namespace JasonQuery.UI.Forms
 {
     public partial class QueryForm
     {
-        private bool LoadFile(string fileName, out bool isLargeFile)
+        private bool LoadFile(string fileName, out bool isLargeFile, out bool wasCancelled)
         {
             isLargeFile = false;
-
-            var encodingName = string.Empty;
-            var endOfLineStyle = string.Empty;
+            wasCancelled = false;
 
             try
             {
                 if (!File.Exists(fileName))
                 {
                     ShowOpenFileNotFoundMessage(fileName);
+
                     return false;
                 }
 
                 if (!TryConfirmOpenLargeFile(fileName, out isLargeFile))
                 {
+                    wasCancelled = true;
                     return false;
                 }
 
                 Application.UseWaitCursor = true;
-                editor.Text = string.Empty;
 
                 var loadResult = TextFileLoadHelper.Load(fileName, IsBackupFile(fileName));
-
-                encodingName = loadResult.EncodingName;
-                endOfLineStyle = loadResult.EndOfLineStyle;
-
-                ApplyFileLoadEncodingStatus(encodingName, endOfLineStyle);
 
                 if (!loadResult.IsSuccess)
                 {
@@ -51,21 +45,26 @@ namespace JasonQuery.UI.Forms
                 }
 
                 ApplyLoadedFileText(loadResult.Text);
+                ApplyFileLoadEncodingStatus(loadResult.EncodingName, loadResult.EndOfLineStyle);
+                ResetFileLoadExecutionStatus();
 
                 return true;
             }
             catch (Exception ex)
             {
                 ShowExceptionMessage(ex);
+
                 return false;
             }
             finally
             {
-                ApplyFileLoadEncodingStatus(encodingName, endOfLineStyle);
-                ResetFileLoadExecutionStatus();
-
                 Application.UseWaitCursor = false;
             }
+        }
+
+        private bool LoadFile(string fileName, out bool isLargeFile)
+        {
+            return LoadFile(fileName, out isLargeFile, out _);
         }
 
         private bool TryConfirmOpenLargeFile(string fileName, out bool isLargeFile)

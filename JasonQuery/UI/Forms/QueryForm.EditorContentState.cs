@@ -1,7 +1,6 @@
 ﻿using JasonQuery.Core.Config;
-using JasonQuery.Core.Text;
+using JasonQuery.UI.QueryEditor;
 using System;
-using System.IO;
 
 namespace JasonQuery.UI.Forms
 {
@@ -9,6 +8,57 @@ namespace JasonQuery.UI.Forms
     {
         private bool? _lastEditorHasContent;
         private bool? _lastEditorHasSelection;
+        private QueryEditorTabState _editorTabState = QueryEditorTabState.CreateNew("SQL Editor");
+        private bool _restoreBackupWasDirty;
+        private bool _requiresSaveWithoutUndo;
+
+        internal event Action<QueryForm, string, string, bool> EditorTabStateChanged;
+
+        internal string EditorTabDisplayName => _editorTabState.DisplayName;
+        internal string SavedFilePath => _editorTabState.SavedFilePath;
+        internal bool HasSavedFile => _editorTabState.HasSavedFile;
+        internal bool IsEditorDirty => editor.CanUndo || _requiresSaveWithoutUndo;
+        internal bool CanRenameEditorTab => _isFormLoadFinished && !_isBusy && !IsDisposed && !Disposing;
+
+        internal void InitializeEditorTabState(string tabTitle, bool isRestoringBackup)
+        {
+            _restoreBackupWasDirty = false;
+            _requiresSaveWithoutUndo = false;
+            _editorTabState = isRestoringBackup ? QueryEditorTabState.Restore(tabTitle, string.Empty, out _restoreBackupWasDirty) : QueryEditorTabState.CreateNew(tabTitle.TrimStart('*'));
+        }
+
+        internal bool MatchesSavedFilePath(string filePath)
+        {
+            return _editorTabState.MatchesSavedFilePath(filePath);
+        }
+
+        internal bool TryRenameEditorTab(string displayName)
+        {
+            if (!CanRenameEditorTab || !_editorTabState.TryRename(displayName))
+            {
+                return false;
+            }
+
+            var isDirty = IsEditorDirty;
+
+            PublishEditorTabState(isDirty);
+
+            try
+            {
+                UpdateExistingBackupTabTitle(BuildEditorTabTitle(isDirty));
+            }
+            catch (Exception ex)
+            {
+                ShowExceptionMessage(ex);
+            }
+
+            return true;
+        }
+
+        private void PublishEditorTabState(bool isDirty)
+        {
+            EditorTabStateChanged?.Invoke(this, BuildEditorTabTitle(isDirty), _editorTabState.BuildTooltip(isDirty), isDirty);
+        }
 
         private void CheckEditorContent()
         {
@@ -55,24 +105,22 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
-            var canUndo = editor.CanUndo;
+            var isDirty = IsEditorDirty;
 
-            ApplyEditorSaveButtonsState(canUndo);
-
-            var tabTitle = BuildEditorTabTitle(canUndo);
+            ApplyEditorSaveButtonsState(isDirty);
 
             //Never perform backup metadata database I/O on TextChanged/KeyUp.
             //Debounce actual backup file + metadata persistence until typing is idle.
             tmrBackup.Stop();
 
-            if (AppConfigHelper.IsBackupFile && canUndo)
+            if (AppConfigHelper.IsBackupFile && isDirty)
             {
                 tmrBackup.Interval = 2000;
                 tmrBackup.Start();
             }
 
             //更新主畫面頁籤文字
-            TransferValueToMainForm($"UpdateCanUndo`{AccessibleDescription}`{tabTitle}");
+            PublishEditorTabState(isDirty);
         }
 
         private void ApplyEditorCommandButtonsState(bool isEditorHasContent, bool hasEditorSelection)
@@ -94,39 +142,25 @@ namespace JasonQuery.UI.Forms
             btnSql2Code.Enabled = hasEditorSelection;
         }
 
-        private void ApplyEditorSaveButtonsState(bool canUndo)
+        private void ApplyEditorSaveButtonsState(bool isDirty)
         {
-            btnSave.Visible = !canUndo;
-            btnSaveRed.Visible = canUndo;
+            btnSave.Visible = !isDirty;
+            btnSaveRed.Visible = isDirty;
         }
 
-        private string BuildEditorTabTitle(bool canUndo)
+        private string BuildEditorTabTitle(bool isDirty)
         {
-            var tabTitle = (btnSave.Tag ?? Tag)?.ToString() ?? string.Empty;
-
-            if (!canUndo)
-            {
-                return tabTitle;
-            }
-
-            return tabTitle.StartsWith("*", StringComparison.Ordinal) ? tabTitle : $"*{tabTitle}";
+            return _editorTabState.BuildTitle(isDirty);
         }
 
-        private void UpdateEditorBackupInfoIfNeeded(bool canUndo)
+        private void UpdateEditorBackupInfoIfNeeded(bool isDirty)
         {
-            if (!canUndo)
+            if (!isDirty)
             {
                 return;
             }
 
-            var tabTitle = Path.GetFileName(TextHelper.GetSafeString(Tag));
-
-            if (!tabTitle.StartsWith("*", StringComparison.Ordinal))
-            {
-                tabTitle = $"*{tabTitle}";
-            }
-
-            UpdateBackupFileInfo(_backupFileName, editor.CurrentPosition, tabTitle, TextHelper.GetSafeString(btnSave.Tag));
+            UpdateBackupFileInfo(_backupFileName, editor.CurrentPosition, BuildEditorTabTitle(isDirty), SavedFilePath);
         }
     }
 }

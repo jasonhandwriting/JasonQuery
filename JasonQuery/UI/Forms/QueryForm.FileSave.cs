@@ -38,11 +38,7 @@ namespace JasonQuery.UI.Forms
         {
             try
             {
-                if (Save())
-                {
-                    btnSave.Visible = true;
-                    btnSaveRed.Visible = false;
-                }
+                Save();
             }
             catch (Exception ex)
             {
@@ -52,22 +48,18 @@ namespace JasonQuery.UI.Forms
 
         private bool Save()
         {
-            var fileName = TextHelper.GetSafeString(btnSave.Tag);
-
-            if (string.IsNullOrEmpty(fileName)) //尚未存檔過！
+            if (!HasSavedFile)
             {
-                if (!SaveAs())
-                {
-                    return false;
-                }
-
-                MyGlobal.DeleteBackupFileInfo(AccessibleName); //20240303 存檔完畢，將備份記錄刪除 (使用者再次異動檔案內容，會再重新記錄)
-                return true;
+                return SaveAs();
             }
 
-            WriteFile(fileName);
+            if (!WriteFile(SavedFilePath))
+            {
+                return false;
+            }
 
-            MyGlobal.DeleteBackupFileInfo(AccessibleName); //20240303 存檔完畢，將備份記錄刪除 (使用者再次異動檔案內容，會再重新記錄)
+            MyGlobal.DeleteBackupFileInfo(AccessibleName);
+
             return true;
         }
 
@@ -92,28 +84,26 @@ namespace JasonQuery.UI.Forms
 
                 if (IsFileAlreadyOpenedForSaveAs(fileName))
                 {
-                    MessageBox.Show($"SaveAs()\r\n\r\n{fileName}", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    var message = LocalizationHelper.GetLanguageString("The file is already opened in the JasonQuery.", "form", GetType().Name, "msg", "OpenInJasonQuery", "Text");
+
+                    MessageBox.Show(this, $"{message}\r\n\r\n{fileName}", AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+
                     return false;
                 }
 
-                if (!WriteFile(fileName))
+                if (!WriteFile(fileName, true))
                 {
                     return false;
                 }
 
-                //20240301 記住完整檔名
-                Tag = fileName;
-
-                TransferValueToMainForm($"UpdateTabInfo`{fileName}");
-
-                btnSave.Tag = fileName;
-                btnSaveRed.Tag = File.GetLastWriteTime(fileName).ToString(DateTimeFormat);
+                MyGlobal.DeleteBackupFileInfo(AccessibleName);
 
                 return true;
             }
             catch (Exception ex)
             {
                 ShowExceptionMessage(ex);
+
                 return false;
             }
         }
@@ -123,10 +113,23 @@ namespace JasonQuery.UI.Forms
             return new SaveFileDialog
             {
                 Title = LocalizationHelper.GetLanguageString("Save As", "Global", "Global", "msg", "SaveAs", "Text"),
-                FileName = Path.GetFileName((btnSave.Tag ?? Tag)?.ToString() ?? string.Empty).Replace("*", string.Empty),
+                FileName = GetSuggestedSaveAsFileName(),
                 RestoreDirectory = true,
                 Filter = BuildSaveFileDialogFilter()
             };
+        }
+
+        private string GetSuggestedSaveAsFileName()
+        {
+            if (HasSavedFile)
+            {
+                return Path.GetFileName(SavedFilePath);
+            }
+
+            //An alias is display text, not a path supplied to the save dialog.
+            var fileName = string.Join("_", EditorTabDisplayName.Split(Path.GetInvalidFileNameChars())).TrimEnd('.', ' ');
+
+            return string.IsNullOrWhiteSpace(fileName) ? "SQL Editor" : fileName;
         }
 
         private string BuildSaveFileDialogFilter()
@@ -160,8 +163,15 @@ namespace JasonQuery.UI.Forms
             return isFileAlreadyOpened;
         }
 
-        private bool WriteFile(string fileName)
+        private bool WriteFile(string fileName, bool rebindFileIdentity = false)
         {
+            if (!rebindFileIdentity && !MatchesSavedFilePath(fileName))
+            {
+                ShowExceptionMessage(new InvalidOperationException("Save cancelled: the target path does not match the current saved file identity."));
+
+                return false;
+            }
+
             try
             {
                 File.WriteAllText(fileName, editor.Text, Encoding.UTF8);
@@ -169,23 +179,25 @@ namespace JasonQuery.UI.Forms
             catch (Exception ex)
             {
                 ShowExceptionMessage(ex);
+
                 return false;
             }
 
-            ApplySavedFileState(fileName);
+            ApplySavedFileState(fileName, rebindFileIdentity);
+
             return true;
         }
 
-        private void ApplySavedFileState(string fileName)
+        private void ApplySavedFileState(string fileName, bool rebindFileIdentity)
         {
-            Tag = fileName;
+            if (rebindFileIdentity)
+            {
+                _editorTabState.ApplySuccessfulSaveAs(fileName);
+            }
 
-            //傳資訊到母表單，更新 Tab 資訊
-            TransferValueToMainForm($"UpdateTabInfo`{fileName}");
-
-            btnSave.Tag = fileName;
             btnSaveRed.Tag = File.GetLastWriteTime(fileName).ToString(DateTimeFormat);
 
+            _requiresSaveWithoutUndo = false;
             editor.EmptyUndoBuffer();
             RefreshEditorDirtyState();
             RefreshEditorCommandButtonsState();
@@ -203,6 +215,7 @@ namespace JasonQuery.UI.Forms
             catch (Exception ex)
             {
                 ShowExceptionMessage(ex);
+
                 return false;
             }
         }
@@ -216,6 +229,7 @@ namespace JasonQuery.UI.Forms
             catch (Exception ex)
             {
                 ShowExceptionMessage(ex);
+
                 return false;
             }
         }
