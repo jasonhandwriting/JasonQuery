@@ -1,6 +1,4 @@
-﻿using JasonQuery.Core.Config;
-using JasonQuery.Core.Localization;
-using JasonQuery.Core.Text;
+﻿using JasonQuery.Core.Localization;
 using System;
 using System.Windows.Forms;
 
@@ -8,21 +6,24 @@ namespace JasonQuery.UI.Forms
 {
     public partial class RenameTabDialog : Form
     {
-        public string AccessibleDescriptionString { get; set; }
         public string TabTitle { get; set; }
-        public bool IsStar { get; set; }
+        internal string RenamedTabTitle { get; private set; }
+        internal Func<string, bool> IsNameAllowed { get; set; }
 
         public RenameTabDialog()
         {
             InitializeComponent();
+
+            btnOK.DialogResult = DialogResult.None;
+            AcceptButton = btnOK;
         }
 
         private void Form_Load(object sender, EventArgs e)
         {
-            txtTabName.Tag = TabTitle;
             txtTabName.Text = TabTitle;
 
             LocalizationHelper.ApplyLanguageInfo(this, false);
+            btnOK.Enabled = IsValidProposedName(txtTabName.Text.Trim());
         }
 
         private void txtTabName_KeyPress(object sender, KeyPressEventArgs e)
@@ -36,12 +37,15 @@ namespace JasonQuery.UI.Forms
 
         private void txtTabName_TextChanged(object sender, EventArgs e)
         {
-            btnOK.Enabled = false;
+            btnOK.Enabled = IsValidProposedName(txtTabName.Text.Trim());
+        }
 
-            if (!string.IsNullOrWhiteSpace(txtTabName.Text) && txtTabName.Text.Trim() != TextHelper.GetSafeString(txtTabName.Tag))
-            {
-                btnOK.Enabled = true;
-            }
+        private bool IsValidProposedName(string proposedName)
+        {
+            return !string.IsNullOrWhiteSpace(proposedName)
+                   && proposedName.IndexOf('*') < 0
+                   && !string.Equals(proposedName, TabTitle, StringComparison.Ordinal)
+                   && (IsNameAllowed == null || IsNameAllowed(proposedName));
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
@@ -51,9 +55,15 @@ namespace JasonQuery.UI.Forms
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-            var sTemp = IsStar ? "*" : string.Empty;
+            var proposedName = txtTabName.Text.Trim();
 
-            MyGlobal.GlobalTemp = $"RenameTabMain`{AccessibleDescriptionString}{MyGlobal.Separator}{sTemp}{txtTabName.Text.Trim()}";
+            if (!btnOK.Enabled || !IsValidProposedName(proposedName))
+            {
+                return;
+            }
+
+            RenamedTabTitle = proposedName;
+            DialogResult = DialogResult.OK;
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)

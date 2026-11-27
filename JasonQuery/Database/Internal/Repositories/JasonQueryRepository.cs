@@ -174,6 +174,27 @@ namespace JasonQuery.Database.Internal.Repositories
             }
         }
 
+        internal static DataTable ReadBackupMetadataOrThrow(string sql)
+        {
+            return GetRuntime().ExecuteQuery
+            (
+                DbConnectionString,
+                DbConnectionPassword,
+                sql
+            );
+        }
+
+        internal static void WriteBackupMetadataOrThrow(string sql)
+        {
+            GetRuntime().ExecuteNonQuery
+            (
+                DbConnectionString,
+                DbConnectionPassword,
+                sql,
+                null
+            );
+        }
+
         public static DataTable ExecQuery(string sql)
         {
             try

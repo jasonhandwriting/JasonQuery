@@ -2129,14 +2129,21 @@ namespace JasonQuery.UI.Forms
 
         private void btnClose_Click(object sender, EventArgs e)
         {
+            TryCloseFromTabHost();
+        }
+
+        internal bool TryCloseFromTabHost()
+        {
+            if (!_isFormLoadFinished || IsDisposed || Disposing || InvokeRequired)
+            {
+                return false;
+            }
+
             CancelApplyAndCloseOptionsForm();
 
-            //20191013 關閉 - 要透過 MainForm 才行, 否則 SubForm 關了, TabControl 沒關！
-            //Dispose vs Close 的比較 → https://www.alwaysgetbetter.com/blog/2008/04/04/c-formclose-vs-formdispose/
-            //this.Dispose();
-            //this.Close();
-
+            //The MainForm must remove the page belonging to this OptionsForm.
             TransferValueToMainForm("CloseOptionsTab`");
+            return true;
         }
 
         private void CancelApplyAndCloseOptionsForm()

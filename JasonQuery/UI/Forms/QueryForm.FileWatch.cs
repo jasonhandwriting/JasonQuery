@@ -1,5 +1,4 @@
-﻿using JasonLibrary.Core.Text;
-using JasonQuery.Core.Config;
+﻿using JasonQuery.Core.Config;
 using JasonQuery.Core.Localization;
 using JasonQuery.Core.Text;
 using System;
@@ -10,8 +9,16 @@ namespace JasonQuery.UI.Forms
 {
     public partial class QueryForm
     {
-        private void CheckFileDateTimeAndExist()
+        internal bool CanCheckWatchedFile => _isFormLoadFinished && !_isBusy && !IsDisposed && !Disposing
+                                             && HasSavedFile && editor != null && !editor.IsDisposed && !editor.Disposing;
+
+        internal void CheckFileDateTimeAndExist()
         {
+            if (!CanCheckWatchedFile)
+            {
+                return;
+            }
+
             try
             {
                 if (!TryGetSavedFileName(out var fileName))
@@ -35,7 +42,7 @@ namespace JasonQuery.UI.Forms
 
         private bool TryGetSavedFileName(out string fileName)
         {
-            fileName = TextHelper.GetSafeString(btnSave.Tag);
+            fileName = SavedFilePath;
 
             return !string.IsNullOrEmpty(fileName);
         }
@@ -49,12 +56,21 @@ namespace JasonQuery.UI.Forms
 
             if (result == DialogResult.Yes)
             {
-                WriteFile(fileName);
+                if (!WriteFile(fileName))
+                {
+                    return;
+                }
+
                 editor.Focus();
             }
             else
             {
+                //The host may dispose this editor synchronously. Finish recovery cleanup first.
+                ClearFileWatchBackupState();
+
                 TransferValueToMainForm($"CloseQueryForm`{AccessibleDescription}");
+
+                return;
             }
 
             ClearFileWatchBackupState();
@@ -78,22 +94,31 @@ namespace JasonQuery.UI.Forms
 
             if (ConfirmReloadExternallyModifiedFile(fileName))
             {
-                ReloadWatchedFile(fileName);
+                if (!ReloadWatchedFile(fileName, out var wasCancelled))
+                {
+                    if (!wasCancelled)
+                    {
+                        return;
+                    }
+
+                    //Declining the large-file warning also means retaining the editor.
+                    MarkWatchedFileAsExternallyModified(fileName);
+                }
             }
             else
             {
                 MarkWatchedFileAsExternallyModified(fileName);
             }
 
-            //無論使用者選「要或不要更新」，一律更新時間戳記。否則外部檔案沒有再次更新時，下次檢查仍會重複詢問
-            btnSaveRed.Tag = GetFileLastWriteTimeText(fileName);
+            //Acknowledge only the timestamp observed before confirmation.
+            btnSaveRed.Tag = currentLastWriteTime;
 
             editor.Focus();
         }
 
         private bool ConfirmReloadExternallyModifiedFile(string fileName)
         {
-            var reloadMessage = editor.CanUndo
+            var reloadMessage = IsEditorDirty
                                 ? LocalizationHelper.GetLanguageString("Do you want to reload it and lose the changes made in JasonQuery?", "form", GetType().Name, "msg", "Reload1", "Text")
                                 : LocalizationHelper.GetLanguageString("Do you want to reload it?", "form", GetType().Name, "msg", "Reload2", "Text");
 
@@ -102,30 +127,31 @@ namespace JasonQuery.UI.Forms
             return MessageBox.Show($"{fileName}\r\n\r\n{modifiedByAnotherProgram}\r\n{reloadMessage}", _languageText, MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.OK;
         }
 
-        private void ReloadWatchedFile(string fileName)
+        private bool ReloadWatchedFile(string fileName, out bool wasCancelled)
         {
-            if (!LoadFile(fileName, out _))
+            if (!LoadFile(fileName, out _, out wasCancelled))
             {
-                return;
+                return false;
             }
 
             ClearFileWatchBackupState();
 
-            TransferValueToMainForm($"UpdateTabInfo`{fileName}");
+            //Only a successful reload resolves retained external changes.
+            _requiresSaveWithoutUndo = false;
 
-            //儲存「存檔點」
             editor.EmptyUndoBuffer();
 
-            btnSaveRed.Visible = false;
-            btnSave.Visible = true;
+            RefreshEditorDirtyState();
+            RefreshEditorCommandButtonsState();
+
+            return true;
         }
 
         private void MarkWatchedFileAsExternallyModified(string fileName)
         {
-            TransferValueToMainForm($"UpdateTabInfo`*{fileName}");
+            _requiresSaveWithoutUndo = true;
 
-            btnSaveRed.Visible = true;
-            btnSave.Visible = false;
+            RefreshEditorDirtyState();
         }
 
         private void ClearFileWatchBackupState()

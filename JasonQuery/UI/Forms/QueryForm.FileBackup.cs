@@ -2,6 +2,7 @@
 using JasonQuery.Core.Logging;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
+using JasonQuery.UI.QueryEditor;
 using System;
 using System.IO;
 using System.Text;
@@ -12,51 +13,34 @@ namespace JasonQuery.UI.Forms
     {
         private void tmrBackup_Tick(object sender, EventArgs e)
         {
+            TryPersistEditorBackup();
+        }
+
+        internal bool TryPersistEditorBackup()
+        {
             try
             {
-                //存檔後就取消 Timer；下次使用者異動內容，會再由 CheckEditorContent() 啟用備份
+                //Stop the pending timer; the same method is used during normal application exit.
                 tmrBackup.Enabled = false;
 
-                if (!TryEnsureBackupDirectory())
+                if (!AppConfigHelper.IsBackupFile || !IsEditorDirty)
                 {
-                    return;
+                    return true;
                 }
 
-                //The recovery metadata must describe a successfully written backup file.
-                //Timer.Tick is the persistence boundary, not the editor input events.
-                if (!AppConfigHelper.IsBackupFile || !editor.CanUndo)
-                {
-                    return;
-                }
+                //CreateDirectory is also safe when the directory already exists.
+                Directory.CreateDirectory(AppConfigHelper.BackupPath);
 
+                //Only publish recovery metadata after the backup content has been written.
                 File.WriteAllText(GetBackupFileFullName(), editor.Text, Encoding.UTF8);
-                UpdateEditorBackupInfoIfNeeded(editor.CanUndo);
+                UpdateEditorBackupInfoIfNeeded(IsEditorDirty);
 
-                //此處不可調整檔案異動的時間判定，否則，針對已存檔的情況，會一直出現誤判 (如果是已存檔的情況，直接以使用者儲存後的檔案時間為依據，檢查是否有被外部程式變更過即可)
-                //btnSaveRed.Tag = File.GetLastWriteTime(MyGlobal.sBackupPath + _backupFileName).ToString("yyyy/MM/dd HH:mm:ss");
+                //Do not change the external-file timestamp or clear the editor's dirty state.
+                return true;
             }
             catch (Exception ex)
             {
                 ShowExceptionMessage(ex);
-            }
-        }
-
-        private bool TryEnsureBackupDirectory()
-        {
-            if (Directory.Exists(AppConfigHelper.BackupPath))
-            {
-                return true;
-            }
-
-            try
-            {
-                //使用者可能中途變更備份路徑
-                Directory.CreateDirectory(AppConfigHelper.BackupPath);
-                return true;
-            }
-            catch (Exception)
-            {
-                AppConfigHelper.IsBackupFile = false;
                 return false;
             }
         }
@@ -69,8 +53,6 @@ namespace JasonQuery.UI.Forms
         private void RestoreBackupFileIfNeeded()
         {
             EnableEditorAfterFormLoad();
-
-            ApplyOpenFileTagFromDefaultAction();
 
             if (string.IsNullOrEmpty(BackupRealFullFileName))
             {
@@ -96,58 +78,36 @@ namespace JasonQuery.UI.Forms
             editor.Focus();
         }
 
-        private void ApplyOpenFileTagFromDefaultAction()
-        {
-            if (string.IsNullOrEmpty(AccessibleDefaultActionDescription))
-            {
-                return;
-            }
-
-            if (AccessibleDefaultActionDescription.StartsWith("OPEN", StringComparison.Ordinal))
-            {
-                Tag = AccessibleDefaultActionDescription.Substring(6);
-            }
-        }
-
         private void ApplyRestoredBackupFileState(string backupFileName)
         {
-            if (string.Equals(BackupRealFullFileName, "FileNotSavedYet", StringComparison.Ordinal))
-            {
-                TransferValueToMainForm($"UpdateTabInfo`{TextHelper.GetSafeString(Tag)}");
+            var savedFilePath = string.Equals(BackupRealFullFileName, "FileNotSavedYet", StringComparison.Ordinal) ? string.Empty : BackupRealFullFileName;
 
-                btnSave.Tag = null;
-                btnSaveRed.Tag = File.GetLastWriteTime(backupFileName).ToString(DateTimeFormat);
-                return;
-            }
+            _editorTabState = QueryEditorTabState.Restore(BuildEditorTabTitle(_restoreBackupWasDirty), savedFilePath, out _restoreBackupWasDirty);
+            btnSaveRed.Tag = File.GetLastWriteTime(HasSavedFile ? SavedFilePath : backupFileName).ToString(DateTimeFormat);
 
-            var tabTitlePrefix = TextHelper.GetSafeString(Tag).StartsWith("*", StringComparison.Ordinal)
-                                 ? "*"
-                                 : string.Empty;
-
-            TransferValueToMainForm($"UpdateTabInfo`{tabTitlePrefix}{BackupRealFullFileName}");
-
-            btnSave.Tag = BackupRealFullFileName;
-            btnSaveRed.Tag = File.GetLastWriteTime(BackupRealFullFileName).ToString(DateTimeFormat);
+            PublishEditorTabState(_restoreBackupWasDirty);
         }
 
         private void RestoreBackupEditorPosition()
         {
             editor.EmptyUndoBuffer();
+
             SetEditorPositionSafely(BackupCurrentPosition);
         }
 
         private void MarkRestoredBackupAsModifiedIfNeeded()
         {
-            if (!TextHelper.GetSafeString(Tag).StartsWith("*", StringComparison.Ordinal))
+            var wasDirty = _restoreBackupWasDirty;
+
+            _restoreBackupWasDirty = false;
+
+            if (!wasDirty)
             {
                 return;
             }
 
-            //讓 editor 重新進入可復原狀態，保留「這份內容是異動狀態」的語意
-            editor.AppendText(MyGlobal.Separator00A1);
-            editor.Text = editor.Text.Substring(0, editor.Text.Length - 1);
-
-            SetEditorPositionSafely(BackupCurrentPosition);
+            //Recovered content requires saving even with an empty undo buffer.
+            _requiresSaveWithoutUndo = true;
 
             using (TraceLogger.Time("Check Editor Content"))
             {
@@ -183,24 +143,33 @@ namespace JasonQuery.UI.Forms
 
             if (BackupFileInfoExists(escapedDomainUser, escapedBackupFileName))
             {
-                UpdateExistingBackupFileInfo(
-                    escapedDomainUser,
-                    escapedBackupFileName,
-                    currentPosition,
-                    escapedTabTitle,
-                    escapedSavedFullFileName,
-                    now);
+                UpdateExistingBackupFileInfo(escapedDomainUser, escapedBackupFileName, currentPosition, escapedTabTitle, escapedSavedFullFileName, now);
 
                 return;
             }
 
-            InsertBackupFileInfo(
-                escapedDomainUser,
-                escapedBackupFileName,
-                currentPosition,
-                escapedTabTitle,
-                escapedSavedFullFileName,
-                now);
+            InsertBackupFileInfo(escapedDomainUser, escapedBackupFileName, currentPosition, escapedTabTitle, escapedSavedFullFileName, now);
+        }
+
+        private void UpdateExistingBackupTabTitle(string tabTitle)
+        {
+            if (!AppConfigHelper.IsBackupFile || !IsEditorDirty || string.IsNullOrEmpty(_backupFileName) || !File.Exists(GetBackupFileFullName()))
+            {
+                return;
+            }
+
+            //Rename changes only the title of an existing recovery record.
+            //Do not insert a record or advance the saved caret/path without a backup write.
+            var sbSql = new StringBuilder();
+
+            sbSql.AppendLine("UPDATE SystemConfig");
+            sbSql.AppendLine($"   SET AttributeText = '{EscapeSqlText(tabTitle)}'");
+            sbSql.AppendLine($" WHERE DomainUser = '{EscapeSqlText(MyGlobal.DomainUser)}'");
+            sbSql.AppendLine($"   AND MPID = {JasonQueryRepository.DbMotherPid}");
+            sbSql.AppendLine("   AND AttributeKey = 'BackupFilename'");
+            sbSql.Append($"   AND AttributeValue = '{EscapeSqlText(_backupFileName)}'");
+
+            JasonQueryRepository.ExecNonQuery(sbSql.ToString(), false);
         }
 
         private bool BackupFileInfoExists(string escapedDomainUser, string escapedBackupFileName)
@@ -213,18 +182,12 @@ namespace JasonQuery.UI.Forms
             sbSql.AppendLine("   AND AttributeKey = 'BackupFilename'");
             sbSql.Append($"   AND AttributeValue = '{escapedBackupFileName}'");
 
-            var dtBackupFile = JasonQueryRepository.ExecQuery(sbSql.ToString());
+            var dtBackupFile = JasonQueryRepository.ReadBackupMetadataOrThrow(sbSql.ToString());
 
             return dtBackupFile?.Rows.Count > 0;
         }
 
-        private void UpdateExistingBackupFileInfo(
-            string escapedDomainUser,
-            string escapedBackupFileName,
-            int currentPosition,
-            string escapedTabTitle,
-            string escapedSavedFullFileName,
-            string now)
+        private void UpdateExistingBackupFileInfo(string escapedDomainUser, string escapedBackupFileName, int currentPosition, string escapedTabTitle, string escapedSavedFullFileName, string now)
         {
             var sbSql = new StringBuilder();
 
@@ -238,16 +201,10 @@ namespace JasonQuery.UI.Forms
             sbSql.AppendLine("   AND AttributeKey = 'BackupFilename'");
             sbSql.Append($"   AND AttributeValue = '{escapedBackupFileName}'");
 
-            JasonQueryRepository.ExecNonQuery(sbSql.ToString(), false);
+            JasonQueryRepository.WriteBackupMetadataOrThrow(sbSql.ToString());
         }
 
-        private void InsertBackupFileInfo(
-            string escapedDomainUser,
-            string escapedBackupFileName,
-            int currentPosition,
-            string escapedTabTitle,
-            string escapedSavedFullFileName,
-            string now)
+        private void InsertBackupFileInfo(string escapedDomainUser, string escapedBackupFileName, int currentPosition, string escapedTabTitle, string escapedSavedFullFileName, string now)
         {
             var sbSql = new StringBuilder();
 
@@ -263,7 +220,7 @@ namespace JasonQuery.UI.Forms
             sbSql.Append($"'{escapedSavedFullFileName}', ");
             sbSql.Append($"'{now}')");
 
-            JasonQueryRepository.ExecNonQuery(sbSql.ToString(), false);
+            JasonQueryRepository.WriteBackupMetadataOrThrow(sbSql.ToString());
         }
 
         private static string EscapeSqlText(string value)

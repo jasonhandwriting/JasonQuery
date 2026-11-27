@@ -156,6 +156,19 @@ namespace JasonQuery.UI.Forms
         {
             InitializeComponent();
 
+            tsData.LayoutCompleted += delegate
+            {
+                UpdateDataFindControlLayout();
+            };
+
+            tsData.VisibleChanged += delegate
+            {
+                if (tsData.Visible)
+                {
+                    UpdateDataFindControlLayout();
+                }
+            };
+
             _currentSourceType = DatabaseSqlExecutor.CurrentDataSource;
 
             _gridMap = new Dictionary<string, C1TrueDBGrid>
@@ -310,6 +323,38 @@ namespace JasonQuery.UI.Forms
             {
                 ShowExceptionMessage(ex);
             }
+        }
+
+        internal bool TryConfirmTabClose()
+        {
+            if (!_isFormLoadFinished || IsDisposed || Disposing || InvokeRequired)
+            {
+                return false;
+            }
+
+            if (_modifiedCells.Count == 0 && _deletedRows.Count == 0 && _newRows.Count == 0)
+            {
+                return true;
+            }
+
+            var result = MessageBox.Show(this, _confirmExitTableEditMessage, tabData.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return false;
+            }
+
+            if (IsDisposed || Disposing)
+            {
+                return false;
+            }
+
+            _modifiedCells.Clear();
+            _deletedRows.Clear();
+            _newRows.Clear();
+            _searchResultCells.Clear();
+
+            return true;
         }
 
         private void Form_FormClosing(object sender, FormClosingEventArgs e)

@@ -16,6 +16,7 @@ using JasonQuery.Core.SystemInfo;
 using JasonQuery.Core.Text;
 using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.UI.Helpers;
+using JasonQuery.UI.Services;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -39,12 +40,18 @@ namespace JasonQuery.UI.Forms
     public partial class MainForm : Form
     {
         private QueryForm _queryForm;
+        private QueryForm _schemaBrowserSqlEditor;
         private SchemaBrowserForm _schemaBrowserForm;
         private SqlHistoryForm _sqlHistoryForm;
         private OptionsForm _optionsForm;
         private ContextMenuStrip _cMenu = new ContextMenuStrip();
         private readonly ToolTip _toolTip1 = new ToolTip();
         private string _tabToolTip = string.Empty;
+        private QueryForm _pendingFileWatchQuery;
+        private bool _wasMainFormFocused = true;
+        private bool _isFileWatchCheckInProgress;
+        private bool _isClosingTabPages;
+        private bool _isClosingApplication;
         private HashSet<string> _MenuItems;
         private string _languageText = string.Empty;
         private bool _isMenuEnable = true;
@@ -58,7 +65,7 @@ namespace JasonQuery.UI.Forms
         private DateTime? _pendingTransactionWarningStartTime;
         private DateTime? _pendingTransactionWarningNextTime; //按下 OK 後，間隔 5 分鐘後再跳一次提示訊息，避免使用者忘記 Commit 或 Rollback
         private string _pendingTransactionMessage = string.Empty;
-        private static HashSet<string> SpecialTabName;
+        private static HashSet<string> SpecialTabName; //Rename validation only; not form identity.
         private const string SqlHistoryAutoDeleteSettingName = "AutoDeleteSqlHistory";
         private const string SqlHistoryRetentionDaysSettingName = "SqlHistoryRetentionDays";
         private const int DefaultSqlHistoryRetentionDays = 30;
@@ -573,23 +580,7 @@ namespace JasonQuery.UI.Forms
 
             _cMenu.Items[MapColumn.CloseAll].Click += delegate
             {
-                var tabPagesCount0 = tabControl1.TabPages.Count - 1;
-
-                for (var i = tabPagesCount0; i >= 0; i--)
-                {
-                    CloseTabIndex(i);
-                }
-
-                var tabPagesCount = tabControl1.TabPages.Cast<TabPage>().Count(theTab => SpecialTabName.Contains(theTab.Title));
-
-                if (tabPagesCount0 > 0 && tabPagesCount0 != tabPagesCount)
-                {
-                    UpdateTabList();
-                    return;
-                }
-
-                //自動再開啟一個空白的 Tab
-                CreateNewTab("Query", CheckTabNameExist());
+                CloseTabPages(tabControl1.TabPages.Cast<TabPage>().ToArray());
             };
 
             _cMenu.Items[MapColumn.CloseAll].Image = IconManager.GetImage(MyGlobal.IconLibrary, "Close All 16x16.ico");
@@ -598,159 +589,45 @@ namespace JasonQuery.UI.Forms
 
             _cMenu.Items[MapColumn.CloseAllButThis].Click += delegate
             {
-                var tabPagesCount0 = tabControl1.TabPages.Count;
-                var tabPagesCount1 = tabControl1.TabPages.Count - 1;
-                var title = tabControl1.SelectedTab.Title;
-
-                for (var i = tabPagesCount1; i >= 0; i--)
-                {
-                    var text = tabControl1.TabPages[i].Title;
-
-                    if (!string.Equals(title, text, StringComparison.Ordinal))
-                    {
-                        CloseTabIndex(i);
-                    }
-                }
-
-                var tabPagesCount = tabControl1.TabPages.Cast<TabPage>().Count(theTab => SpecialTabName.Contains(theTab.Title));
-
-                if (tabPagesCount0 > 0 && tabPagesCount0 != tabPagesCount)
-                {
-                    UpdateTabList();
-                    return;
-                }
-
-                //自動再開啟一個空白的 Tab
-                CreateNewTab("Query", CheckTabNameExist());
+                CloseRelativeTabs(true, true);
             };
 
             _cMenu.Items.Add(_lstGridHeader[MapColumn.CloseAllLeft]);
 
             _cMenu.Items[MapColumn.CloseAllLeft].Click += delegate
             {
-                var isSpecifiedTab = false;
-                var tabPagesCount0 = tabControl1.TabPages.Count;
-                var tabPagesCount1 = tabControl1.TabPages.Count - 1;
-                var title = tabControl1.SelectedTab.Title;
-
-                for (var i = tabPagesCount1; i >= 0; i--)
-                {
-                    var text = tabControl1.TabPages[i].Title;
-
-                    if (string.Equals(title, text, StringComparison.Ordinal))
-                    {
-                        isSpecifiedTab = true;
-                        continue;
-                    }
-
-                    if (isSpecifiedTab)
-                    {
-                        CloseTabIndex(i);
-                    }
-                }
-
-                var tabPagesCount = tabControl1.TabPages.Cast<TabPage>().Count(theTab => SpecialTabName.Contains(theTab.Title));
-
-                if (tabPagesCount0 > 0 && tabPagesCount0 != tabPagesCount)
-                {
-                    UpdateTabList();
-                    return;
-                }
-
-                //自動再開啟一個空白的 Tab
-                CreateNewTab("Query", CheckTabNameExist());
+                CloseRelativeTabs(true, false);
             };
 
             _cMenu.Items.Add(_lstGridHeader[MapColumn.CloseAllRight]);
 
             _cMenu.Items[MapColumn.CloseAllRight].Click += delegate
             {
-                var tabPagesCount0 = tabControl1.TabPages.Count;
-                var tabPagesCount1 = tabControl1.TabPages.Count - 1;
-                var title = tabControl1.SelectedTab.Title;
-
-                for (var i = tabPagesCount1; i >= 0; i--)
-                {
-                    var text = tabControl1.TabPages[i].Title;
-
-                    if (string.Equals(title, text, StringComparison.Ordinal))
-                    {
-                        break;
-                    }
-
-                    CloseTabIndex(i);
-                }
-
-                var tabPagesCount = tabControl1.TabPages.Cast<TabPage>().Count(theTab => SpecialTabName.Contains(theTab.Title));
-
-                if (tabPagesCount0 > 0 && tabPagesCount0 != tabPagesCount)
-                {
-                    UpdateTabList();
-                    return;
-                }
-
-                //自動再開啟一個空白的 Tab
-                CreateNewTab("Query", CheckTabNameExist());
+                CloseRelativeTabs(false, true);
             };
 
             _cMenu.Items.Add(_lstGridHeader[MapColumn.CloseAllSavedFiles]);
 
             _cMenu.Items[MapColumn.CloseAllSavedFiles].Click += delegate
             {
-                var tabPagesCount0 = tabControl1.TabPages.Count;
-                var tabPagesCount1 = tabControl1.TabPages.Count - 1;
-
-                for (var i = tabPagesCount1; i >= 0; i--)
-                {
-                    var title = tabControl1.TabPages[i].Title;
-                    var isSaved = !(title.StartsWith("*", StringComparison.Ordinal) || SpecialTabName.Contains(title));
-
-                    if (isSaved)
-                    {
-                        CloseTabIndex(i);
-                    }
-                }
-
-                var tabPagesCount = tabControl1.TabPages.Cast<TabPage>().Count(theTab => SpecialTabName.Contains(theTab.Title));
-
-                if (tabPagesCount0 > 0 && tabPagesCount0 != tabPagesCount)
-                {
-                    UpdateTabList();
-                    return;
-                }
-
-                //自動再開啟一個空白的 Tab
-                CreateNewTab("Query", CheckTabNameExist());
+                CloseTabPages
+                (
+                    tabControl1.TabPages.Cast<TabPage>()
+                                        .Where(tabPage => tabPage.Control is QueryForm query && !query.IsEditorDirty)
+                                        .ToArray()
+                );
             };
 
             _cMenu.Items.Add(_lstGridHeader[MapColumn.CloseAllUnsavedFiles]);
 
             _cMenu.Items[MapColumn.CloseAllUnsavedFiles].Click += delegate
             {
-                var tabPagesCount0 = tabControl1.TabPages.Count;
-                var tabPagesCount1 = tabControl1.TabPages.Count - 1;
-
-                for (var i = tabPagesCount1; i >= 0; i--)
-                {
-                    var title = tabControl1.TabPages[i].Title;
-                    var isUnsaved = !(!title.StartsWith("*", StringComparison.Ordinal) || SpecialTabName.Contains(title));
-
-                    if (isUnsaved)
-                    {
-                        CloseTabIndex(i);
-                    }
-                }
-
-                var tabPagesCount = tabControl1.TabPages.Cast<TabPage>().Count(theTab => SpecialTabName.Contains(theTab.Title));
-
-                if (tabPagesCount0 > 0 && tabPagesCount0 != tabPagesCount)
-                {
-                    UpdateTabList();
-                    return;
-                }
-
-                //自動再開啟一個空白的 Tab
-                CreateNewTab("Query", CheckTabNameExist());
+                CloseTabPages
+                (
+                    tabControl1.TabPages.Cast<TabPage>()
+                                        .Where(tabPage => tabPage.Control is QueryForm query && query.IsEditorDirty)
+                                        .ToArray()
+                );
             };
 
             _cMenu.Items.Add("-");
@@ -759,19 +636,30 @@ namespace JasonQuery.UI.Forms
 
             _cMenu.Items[MapColumn.RenameTab].Click += delegate
             {
-                var tabTitle = tabControl1.SelectedTab.Title.Replace("*", string.Empty);
-                var accessibleDescription = tabControl1.SelectedTab.AccessibleDescription;
+                var tabPage = tabControl1.SelectedTab;
+
+                if (!(tabPage?.Control is QueryForm query) || !query.CanRenameEditorTab)
+                {
+                    return;
+                }
+
+                var tabIdentity = tabPage.AccessibleDescription;
 
                 using (var form = new RenameTabDialog())
                 {
-                    var x = Cursor.Position.X - 30;
-                    var y = Cursor.Position.Y - 72;
+                    form.Location = new Point(Cursor.Position.X - 30, Cursor.Position.Y - 72);
+                    form.TabTitle = query.EditorTabDisplayName;
+                    form.IsNameAllowed = name => SpecialTabName == null || !SpecialTabName.Contains(name);
 
-                    form.Location = new Point(x, y);
-                    form.AccessibleDescriptionString = accessibleDescription;
-                    form.TabTitle = tabTitle;
-                    form.IsStar = tabControl1.SelectedTab.Title.StartsWith("*", StringComparison.Ordinal);
-                    form.ShowDialog();
+                    if (form.ShowDialog(this) != DialogResult.OK
+                        || !ReferenceEquals(tabControl1.SelectedTab, tabPage)
+                        || !ReferenceEquals(tabPage.Control, query)
+                        || !string.Equals(tabIdentity, query.AccessibleDescription, StringComparison.Ordinal))
+                    {
+                        return;
+                    }
+
+                    query.TryRenameEditorTab(form.RenamedTabTitle);
                 }
             };
 
@@ -1628,7 +1516,7 @@ namespace JasonQuery.UI.Forms
                     CreateNewTab("Query", temp, MyGlobal.SpecifiedSqlFile1);
                 }
 
-                if (!string.IsNullOrEmpty(MyGlobal.SpecifiedSqlFile2) && !CheckTabNameExist(MyGlobal.SpecifiedSqlFile2) && File.Exists(MyGlobal.SpecifiedSqlFile2)) //20240301 檢查指定檔案是否存在
+                if (!string.IsNullOrEmpty(MyGlobal.SpecifiedSqlFile2) && !CheckOpenedFilePath(MyGlobal.SpecifiedSqlFile2) && File.Exists(MyGlobal.SpecifiedSqlFile2)) //20240301 檢查指定檔案是否存在
                 {
                     isSpecifiedSqlFile = true;
                     temp = CheckTabNameExist(); //取得下一個空白編號
@@ -2605,337 +2493,290 @@ namespace JasonQuery.UI.Forms
 
         private void CloseTab()
         {
-            try
+            var selectedPage = tabControl1.SelectedTab;
+
+            if (selectedPage != null)
             {
-                var isCancelClose = false;
-                var isCloseOptionsForm = false; //要關閉的是否為 Options Form？
-                var isCloseSchemaBrowserForm = false; //要關閉的是否為 SchemaBrowser Form？
-                var tabPagesCount = tabControl1.TabPages.Count;
-
-                if (tabPagesCount > 0)
-                {
-                    var title = tabControl1.SelectedTab.Title;
-                    var tabAccessibleDescription = tabControl1.SelectedTab.AccessibleDescription;
-                    var tabAccessibleName = tabControl1.SelectedTab.AccessibleName;
-
-                    if (title.StartsWith("*", StringComparison.Ordinal))
-                    {
-                        //關閉 Query Form !
-                        MyGlobal.GlobalTemp = $"CloseQueryForm`{tabAccessibleDescription};";
-
-                        while (!string.IsNullOrEmpty(MyGlobal.GlobalTemp))
-                        {
-                            if (MyGlobal.GlobalTemp.Contains($"{tabAccessibleDescription}|CANCEL;"))
-                            {
-                                isCancelClose = true;
-                                break;
-                            }
-
-                            Application.DoEvents();
-                        }
-
-                        if (!isCancelClose)
-                        {
-                            //20240301 關閉頁籤：同時刪除備份的對應記錄，下次重啟 JasonQuery 時，不用再開啟此檔案
-                            MyGlobal.DeleteBackupFileInfo(tabAccessibleName);
-
-                            tabControl1.SelectedTab.Dispose();
-                            tabControl1.TabPages.Remove(tabControl1.SelectedTab);
-
-                            MyGlobal.ClearMemory();
-                            UpdateMainMenuTitle();
-                        }
-                    }
-                    else
-                    {
-                        if (title == MyGlobal.SchemaBrowserTabName)
-                        {
-                            //此處可能需要關閉連線
-                            MyGlobal.GlobalTemp = "NoSplit"; //不要觸發 Split event
-                            MyGlobal.FormSchemaBrowserKey = string.Empty;
-                            mnuSchemaBrowser.Enabled = true;
-                            isCloseSchemaBrowserForm = true;
-
-                            var iSchemaBrowserTabCount = tabControl1.TabPages.Cast<TabPage>().Count(theTab => theTab.Title == MyGlobal.SchemaBrowserTabName);
-
-                            if (iSchemaBrowserTabCount == 1)
-                            {
-                                //20231011 關閉最後一個 SchemaBrowser 才要取消勾選！
-                                mnuSchemaBrowser.Checked = false;
-                                AppConfigHelper.HasMultiOpenSchemaBrowser = false;
-                            }
-
-                            //20240801 關閉 SchemaBrowser Form !
-                            MyGlobal.GlobalTemp = $"CloseSchemaBrowserForm`{tabAccessibleDescription};";
-
-                            while (!string.IsNullOrEmpty(MyGlobal.GlobalTemp) && MyGlobal.GlobalTemp.Contains($"`{tabAccessibleDescription}"))
-                            {
-                                if (MyGlobal.GlobalTemp.Contains($"{tabAccessibleDescription}|CANCEL;"))
-                                {
-                                    MyGlobal.GlobalTemp = MyGlobal.GlobalTemp.Replace($"{tabAccessibleDescription}|CANCEL;", string.Empty);
-                                    isCancelClose = true;
-                                    break;
-                                }
-
-                                Application.DoEvents();
-                            }
-
-                            if (!isCancelClose)
-                            {
-                                MyGlobal.GlobalTemp = MyGlobal.GlobalTemp.Replace($"{tabAccessibleDescription};", string.Empty);
-                                tabControl1.SelectedTab.Dispose();
-                                tabControl1.TabPages.Remove(tabControl1.SelectedTab);
-
-                                MyGlobal.ClearMemory();
-                                UpdateMainMenuTitle();
-                            }
-
-                            if (MyGlobal.GlobalTemp == "CloseSchemaBrowserForm`")
-                            {
-                                MyGlobal.GlobalTemp = string.Empty;
-                            }
-                        }
-                        else if (tabControl1.SelectedTab.Title == MyGlobal.OptionsTabName)
-                        {
-                            mnuOptions.Enabled = true;
-                            mnuOptions.Checked = false;
-                            isCloseOptionsForm = true;
-
-                            //Options Form 要用特殊方法關閉
-                            MyGlobal.GlobalTemp = "CloseOptionsTab`"; //通知 Options Form 取消套用，再由 Options Form 回傳關閉 Tab 的指令
-                        }
-                        else if (tabControl1.SelectedTab.Title == MyGlobal.SqlHistoryTabName)
-                        {
-                            mnuSqlHistory.Enabled = true;
-                            mnuSqlHistory.Checked = false;
-                        }
-                        else if (tabControl1.SelectedTab.Title == MyGlobal.CreateTableTabName)
-                        {
-                            mnuCreateTable.Enabled = true;
-                            mnuCreateTable.Checked = false;
-                        }
-                        else
-                        {
-                            //此 Query Form 不需要存檔，直接關閉即可!
-                            MyGlobal.GlobalTemp = $"CloseQueryForm`{tabAccessibleDescription};";
-
-                            while (!string.IsNullOrEmpty(MyGlobal.GlobalTemp))
-                            {
-                                Application.DoEvents();
-                            }
-                        }
-
-                        if (!isCloseOptionsForm && !isCloseSchemaBrowserForm)
-                        {
-                            //20240301 關閉頁籤：同時刪除備份的對應記錄，下次重啟 JasonQuery 時，不用再開啟此檔案
-                            MyGlobal.DeleteBackupFileInfo(tabControl1.SelectedTab.AccessibleName);
-
-                            tabControl1.SelectedTab.Dispose();
-                            tabControl1.TabPages.Remove(tabControl1.SelectedTab);
-
-                            MyGlobal.ClearMemory();
-                            UpdateMainMenuTitle();
-                        }
-
-                        if (MyGlobal.GlobalTemp == "NoSplit")
-                        {
-                            MyGlobal.GlobalTemp = string.Empty;
-                        }
-                    }
-                }
-
-                var tabPagesCount2 = tabControl1.TabPages.Cast<TabPage>().Count(theTab => SpecialTabName.Contains(theTab.Title));
-
-                tabPagesCount = tabControl1.TabPages.Count; //重新抓取一次
-
-                if (tabPagesCount != 0 && tabPagesCount != tabPagesCount2)
-                {
-                    UpdateTabList();
-                    return;
-                }
-
-                //20190928 改為：如果把最後一個 Tab 關閉，自動再開啟一個空白的 Tab
-                var result = CheckTabNameExist();
-
-                if (!CheckTabNameExist(result))
-                {
-                    CreateNewTab("Query", result);
-                }
-
-                UpdateTabList();
-            }
-            catch (Exception ex)
-            {
-                var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
-
-                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                CloseTabIndex(tabControl1.TabPages.IndexOf(selectedPage));
             }
         }
 
         private void CloseTabIndex(int tabIndex)
         {
-            var isCancelClose = false;
-            var isCloseOptionsForm = false; //要關閉的是否為 Options Form？
-            var isCloseSchemaBrowserForm = false; //要關閉的是否為 SchemaBrowser Form？
-            var tabAccessibleDescription = tabControl1.TabPages[tabIndex].AccessibleDescription;
-            var tabPagesCount = tabControl1.TabPages.Count;
+            if (tabIndex < 0 || tabIndex >= tabControl1.TabPages.Count)
+            {
+                return;
+            }
+
+            var tabPage = tabControl1.TabPages[tabIndex];
+
+            CloseTabPages(new[] { tabPage });
+        }
+
+        private void CloseRelativeTabs(bool closeLeft, bool closeRight)
+        {
+            var selectedPage = tabControl1.SelectedTab;
+            var originalPages = tabControl1.TabPages.Cast<TabPage>().ToArray();
+            var selectedIndex = Array.FindIndex(originalPages, tabPage => ReferenceEquals(tabPage, selectedPage));
+
+            if (selectedIndex < 0)
+            {
+                return;
+            }
+
+            var targets = originalPages.Where((tabPage, index) => (closeLeft && index < selectedIndex) || (closeRight && index > selectedIndex)).ToArray();
+
+            CloseTabPages(targets);
+        }
+
+        private bool ContainsTabPage(TabPage targetPage)
+        {
+            return tabControl1.TabPages.Cast<TabPage>().Any(tabPage => ReferenceEquals(tabPage, targetPage));
+        }
+
+        private bool CloseTabPages(TabPage[] targets, bool restoreEmptyEditor = true)
+        {
+            if (_isClosingTabPages || _isFileWatchCheckInProgress || IsDisposed || Disposing
+                || (_isClosingApplication && restoreEmptyEditor))
+            {
+                return false;
+            }
+
+            _isClosingTabPages = true;
+
+            var completed = false;
 
             try
             {
-                if (tabPagesCount > 0)
+                //The target list is captured before opening any confirmation dialog.
+                //Keep the existing right-to-left close order.
+                foreach (var targetPage in targets.Reverse())
                 {
-                    var title = tabControl1.TabPages[tabIndex].Title;
-
-                    if (title.StartsWith("*", StringComparison.Ordinal))
+                    if (!ContainsTabPage(targetPage))
                     {
-                        //關閉 Query Form !
-                        MyGlobal.GlobalTemp = $"CloseQueryForm`{tabAccessibleDescription};";
-
-                        while (!string.IsNullOrEmpty(MyGlobal.GlobalTemp))
-                        {
-                            if (MyGlobal.GlobalTemp.Contains($"{tabAccessibleDescription}|CANCEL;"))
-                            {
-                                isCancelClose = true;
-                                break;
-                            }
-
-                            Application.DoEvents();
-                        }
-
-                        if (isCancelClose)
-                        {
-                            return;
-                        }
-
-                        //關閉頁籤：同時刪除備份的對應記錄，下次重啟 JasonQuery 時，不用再開啟此檔案
-                        MyGlobal.DeleteBackupFileInfo(tabControl1.TabPages[tabIndex].AccessibleName);
-
-                        tabControl1.TabPages[tabIndex].Dispose();
-                        tabControl1.TabPages.Remove(tabControl1.TabPages[tabIndex]);
-
-                        MyGlobal.ClearMemory();
-                        UpdateMainMenuTitle();
+                        continue;
                     }
-                    else
+
+                    if (!TryCloseTabPage(targetPage))
                     {
-                        if (title == MyGlobal.SchemaBrowserTabName)
-                        {
-                            //此處可能需要關閉連線
-                            MyGlobal.GlobalTemp = "NoSplit"; //不要觸發 Split event
-                            MyGlobal.FormSchemaBrowserKey = string.Empty;
-                            mnuSchemaBrowser.Enabled = true;
-                            isCloseSchemaBrowserForm = true;
-
-                            var iSchemaBrowserTabCount = tabControl1.TabPages.Cast<TabPage>().Count(theTab => theTab.Title == MyGlobal.SchemaBrowserTabName);
-
-                            if (iSchemaBrowserTabCount == 1)
-                            {
-                                //20231011 關閉最後一個 SchemaBrowser 才要取消勾選！
-                                mnuSchemaBrowser.Checked = false;
-                                AppConfigHelper.HasMultiOpenSchemaBrowser = false;
-                            }
-
-                            //20240801 關閉 SchemaBrowser Form !
-                            MyGlobal.GlobalTemp = $"CloseSchemaBrowserForm`{tabAccessibleDescription};";
-
-                            while (!string.IsNullOrEmpty(MyGlobal.GlobalTemp) && MyGlobal.GlobalTemp.Contains($"`{tabAccessibleDescription}"))
-                            {
-                                if (MyGlobal.GlobalTemp.Contains($"{tabAccessibleDescription}|CANCEL;"))
-                                {
-                                    MyGlobal.GlobalTemp = MyGlobal.GlobalTemp.Replace($"{tabAccessibleDescription}|CANCEL;", string.Empty);
-                                    isCancelClose = true;
-                                    break;
-                                }
-
-                                Application.DoEvents();
-                            }
-
-                            if (!isCancelClose)
-                            {
-                                MyGlobal.GlobalTemp = MyGlobal.GlobalTemp.Replace($"{tabAccessibleDescription};", string.Empty);
-                                tabControl1.TabPages[tabIndex].Dispose();
-                                tabControl1.TabPages.Remove(tabControl1.TabPages[tabIndex]);
-
-                                MyGlobal.ClearMemory();
-                                UpdateMainMenuTitle();
-                            }
-
-                            if (MyGlobal.GlobalTemp == "CloseSchemaBrowserForm`")
-                            {
-                                MyGlobal.GlobalTemp = string.Empty;
-                            }
-                        }
-                        else if (title == MyGlobal.OptionsTabName)
-                        {
-                            mnuOptions.Enabled = true;
-                            mnuOptions.Checked = false;
-                            isCloseOptionsForm = true;
-
-                            //Options Form 要用特殊方法關閉
-                            MyGlobal.GlobalTemp = $"CloseOptionsTab`{tabIndex}"; //通知 Options Form 取消套用，再由 Options Form 回傳關閉 Tab 的指令
-                        }
-                        else if (title == MyGlobal.SqlHistoryTabName)
-                        {
-                            mnuSqlHistory.Enabled = true;
-                            mnuSqlHistory.Checked = false;
-                        }
-                        else if (title == MyGlobal.CreateTableTabName)
-                        {
-                            mnuCreateTable.Enabled = true;
-                            mnuCreateTable.Checked = false;
-                        }
-                        else
-                        {
-                            //此 Query Form 不需要存檔，直接關閉即可!
-                            MyGlobal.GlobalTemp = $"CloseQueryForm`{tabAccessibleDescription};";
-
-                            while (!string.IsNullOrEmpty(MyGlobal.GlobalTemp))
-                            {
-                                Application.DoEvents();
-                            }
-                        }
-
-                        if (!isCloseOptionsForm && !isCloseSchemaBrowserForm)
-                        {
-                            //20240301 關閉頁籤：同時刪除備份的對應記錄，下次重啟 JasonQuery 時，不用再開啟此檔案
-                            MyGlobal.DeleteBackupFileInfo(tabControl1.TabPages[tabIndex].AccessibleName);
-
-                            tabControl1.TabPages[tabIndex].Dispose();
-                            tabControl1.TabPages.Remove(tabControl1.TabPages[tabIndex]);
-
-                            MyGlobal.ClearMemory();
-                            UpdateMainMenuTitle();
-                        }
-
-                        if (MyGlobal.GlobalTemp == "NoSplit")
-                        {
-                            MyGlobal.GlobalTemp = string.Empty;
-                        }
+                        return false;
                     }
                 }
+
+                completed = true;
+                return true;
             }
             catch (Exception ex)
             {
-                var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
+                ExceptionDialogService.Show(this, ex);
 
-                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return false;
             }
             finally
             {
-                tabPagesCount = tabControl1.TabPages.Count;
+                _isClosingTabPages = false;
 
-                if (tabPagesCount == 0) //20250903 如果把最後一個 Tab 關閉，自動再開啟一個空白的 Tab
+                if (!IsDisposed && !Disposing)
                 {
-                    var result = CheckTabNameExist();
-
-                    if (!CheckTabNameExist(result))
+                    //Do not open an editor during application shutdown or after cancellation.
+                    if (completed && restoreEmptyEditor && !tabControl1.TabPages.Cast<TabPage>().Any(tabPage => tabPage.Control is QueryForm))
                     {
-                        CreateNewTab("Query", result);
+                        CreateNewTab("Query", CheckTabNameExist());
+                    }
+
+                    UpdateTabList();
+                    RequestSelectedFileWatchCheck();
+                }
+            }
+        }
+
+        private bool TryCloseTabPage(TabPage tabPage)
+        {
+            if (tabPage == null || !ContainsTabPage(tabPage))
+            {
+                return false;
+            }
+
+            var targetControl = tabPage.Control;
+            var tabIdentity = tabPage.AccessibleDescription;
+            var backupIdentity = tabPage.AccessibleName;
+
+            if (targetControl == null || targetControl.IsDisposed || targetControl.Disposing
+                || string.IsNullOrEmpty(tabIdentity)
+                || !string.Equals(tabIdentity, targetControl.AccessibleDescription, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (targetControl is QueryForm query)
+            {
+                if (!query.CanProcessEditorTabClose || !TryDispatchQueryTabClose(query, tabIdentity))
+                {
+                    return false;
+                }
+
+                //Only the matching close acknowledgement authorizes removing the page.
+                //Never use a mutable index or the currently selected page after dispatch.
+                if (ContainsTabPage(tabPage))
+                {
+                    if (!ReferenceEquals(tabPage.Control, query) || !string.Equals(tabPage.AccessibleDescription, tabIdentity, StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+
+                    RemoveClosedTabPage(tabPage);
+                }
+
+                MyGlobal.DeleteBackupFileInfo(backupIdentity);
+
+                return true;
+            }
+
+            if (targetControl is OptionsForm optionsForm)
+            {
+                //Reuse the existing cancel-settings cleanup and sender-based callback.
+                //This is synchronous; no mutable index or timer acknowledgement is needed.
+                return optionsForm.TryCloseFromTabHost() && !ContainsTabPage(tabPage);
+            }
+
+            if (targetControl is SchemaBrowserForm schemaBrowser)
+            {
+                //Do not infer consent from an empty shared command string.
+                if (!schemaBrowser.TryConfirmTabClose())
+                {
+                    return false;
+                }
+
+                if (!ContainsTabPage(tabPage) || !ReferenceEquals(tabPage.Control, schemaBrowser)
+                    || !string.Equals(tabPage.AccessibleDescription, tabIdentity, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+
+                MyGlobal.FormSchemaBrowserKey = string.Empty;
+                mnuSchemaBrowser.Enabled = true;
+
+                var suppressSplit = string.IsNullOrEmpty(MyGlobal.GlobalTemp);
+
+                if (suppressSplit)
+                {
+                    MyGlobal.GlobalTemp = "NoSplit";
+                }
+
+                try
+                {
+                    RemoveClosedTabPage(tabPage);
+                }
+                finally
+                {
+                    if (suppressSplit && MyGlobal.GlobalTemp == "NoSplit")
+                    {
+                        MyGlobal.GlobalTemp = string.Empty;
                     }
                 }
 
-                UpdateTabList();
+                if (!tabControl1.TabPages.Cast<TabPage>().Any(page => page.Control is SchemaBrowserForm))
+                {
+                    mnuSchemaBrowser.Checked = false;
+                    AppConfigHelper.HasMultiOpenSchemaBrowser = false;
+                }
+
+                return true;
             }
+
+            if (targetControl is SqlHistoryForm)
+            {
+                mnuSqlHistory.Enabled = true;
+                mnuSqlHistory.Checked = false;
+            }
+            else if (targetControl is OracleCreateTableWizardForm)
+            {
+                mnuCreateTable.Enabled = true;
+                mnuCreateTable.Checked = false;
+            }
+            else
+            {
+                //Unknown forms are not authorized by a display title.
+                return false;
+            }
+
+            RemoveClosedTabPage(tabPage);
+
+            return true;
+        }
+
+        private bool TryDispatchQueryTabClose(QueryForm query, string tabIdentity)
+        {
+            var request = $"CloseQueryForm`{tabIdentity};";
+            var processing = $"CloseQueryForm`+{tabIdentity}+;";
+            var cancelled = $"CloseQueryForm`{tabIdentity}|CANCEL;";
+            var closed = $"CloseQueryForm`{tabIdentity}|CLOSED;";
+
+            MyGlobal.GlobalTemp = request;
+
+            var dispatchWait = Stopwatch.StartNew();
+
+            while (string.Equals(MyGlobal.GlobalTemp, request, StringComparison.Ordinal)
+                   || string.Equals(MyGlobal.GlobalTemp, processing, StringComparison.Ordinal))
+            {
+                //The deadline is only for a request that has not been consumed.
+                //There is no deadline for the user's Save confirmation dialog.
+                if (string.Equals(MyGlobal.GlobalTemp, request, StringComparison.Ordinal)
+                    && (!query.CanProcessEditorTabClose || dispatchWait.Elapsed >= TimeSpan.FromSeconds(5)))
+                {
+                    MyGlobal.GlobalTemp = string.Empty;
+                    ExceptionDialogService.Show(this, new InvalidOperationException("Tab close cancelled: the editor did not accept the close request."));
+                    return false;
+                }
+
+                Application.DoEvents();
+            }
+
+            var succeeded = string.Equals(MyGlobal.GlobalTemp, closed, StringComparison.Ordinal);
+
+            if (succeeded || string.Equals(MyGlobal.GlobalTemp, cancelled, StringComparison.Ordinal))
+            {
+                MyGlobal.GlobalTemp = string.Empty;
+            }
+
+            return succeeded;
+        }
+
+        private void RemoveClosedTabPage(TabPage tabPage)
+        {
+            if (!ContainsTabPage(tabPage))
+            {
+                return;
+            }
+
+            if (ReferenceEquals(tabPage.Control, _schemaBrowserSqlEditor))
+            {
+                _schemaBrowserSqlEditor = null;
+            }
+
+            tabPage.Dispose();
+            tabControl1.TabPages.Remove(tabPage);
+            MyGlobal.ClearMemory();
+        }
+
+        private void RemoveDiscardedQueryTab(QueryForm query)
+        {
+            var tabPage = tabControl1.TabPages.Cast<TabPage>().FirstOrDefault(page => ReferenceEquals(page.Control, query) && string.Equals(page.AccessibleDescription, query.AccessibleDescription, StringComparison.Ordinal));
+
+            if (tabPage == null)
+            {
+                return;
+            }
+
+            RemoveClosedTabPage(tabPage);
+
+            if (!_isClosingApplication && !_isClosingTabPages && !tabControl1.TabPages.Cast<TabPage>().Any(page => page.Control is QueryForm))
+            {
+                CreateNewTab("Query", CheckTabNameExist());
+            }
+
+            UpdateTabList();
+            RequestSelectedFileWatchCheck();
         }
 
         private void CreateNewTab(string functionName, string tabTitle, string optional = "", string optional2 = "", string optional3 = "")
@@ -2959,13 +2800,13 @@ namespace JasonQuery.UI.Forms
                             _queryForm = new QueryForm
                             {
                                 MdiParent = this,
-                                Tag = tabTitle,
                                 AccessibleDefaultActionDescription = string.Empty
                             };
 
                             if (functionName == "SQLEditor")
                             {
                                 _queryForm.AccessibleDefaultActionDescription = $"SQL:{optional}";
+                                _schemaBrowserSqlEditor = _queryForm;
                             }
                             else if (new HashSet<string> { "Query", "Query1", "Query2" }.Contains($"{functionName}"))
                             {
@@ -2999,16 +2840,22 @@ namespace JasonQuery.UI.Forms
                             {
                                 var originalAccessibleName = Path.GetFileName(optional);
 
+                                accessibleName = originalAccessibleName;
                                 accessibleDescription = originalAccessibleName.Split(new[] { MyGlobal.Separator00A1 }, StringSplitOptions.None)[2];
+
                                 _queryForm.AccessibleDescription = accessibleDescription; //延用原本的時間戳記
-                                _queryForm.AccessibleName = originalAccessibleName; //延用原本的 AccessibleName
+                                _queryForm.AccessibleName = accessibleName; //延用原本的 AccessibleName
                                 _queryForm.BackupRealFullFileName = !string.IsNullOrEmpty(optional2) ? optional2 : "FileNotSavedYet"; //使用者實際存檔的完整路徑+檔案名稱(此變數若為空值，表示使用者當初並未儲檔)【sFileNameSaved】
+
                                 int.TryParse(optional3, out var backupCurrentPosition);
+
                                 _queryForm.BackupCurrentPosition = backupCurrentPosition;
                             }
 
+                            _queryForm.InitializeEditorTabState(tabTitle, functionName == "Query3");
                             _queryForm.ValueUpdated += ValueUpdated;
                             _queryForm.SqlNavigatorRefreshed += NotifySharedSqlNavigatorRefreshed;
+                            _queryForm.EditorTabStateChanged += ApplyEditorTabState;
 
                             controlToAdd = _queryForm;
                             break;
@@ -3098,7 +2945,6 @@ namespace JasonQuery.UI.Forms
                 var tabPage = new TabPage(tabTitle, controlToAdd, null, 0)
                 {
                     Selected = true,
-                    Tag = tabTitle,
                     AccessibleDescription = accessibleDescription,
                     AccessibleName = accessibleName
                 };
@@ -3174,21 +3020,19 @@ namespace JasonQuery.UI.Forms
             return $"SQL Editor {iNextNumber}";
         }
 
-        private bool CheckTabNameExist(string sTabName)
+        private bool CheckTabNameExist(string tabName)
         {
             try
             {
-                foreach (TabPage theTab in tabControl1.TabPages)
+                foreach (TabPage tabPage in tabControl1.TabPages)
                 {
-                    var sValue = TextHelper.GetSafeString(theTab.Tag).Replace(@"*", string.Empty);
-
-                    //20190930 改用 full path + filename 判斷是否已存在，因為有可能是同檔名但不同路徑
-                    if (sValue != sTabName)
+                    if (!(tabPage.Control is QueryForm query) || query.HasSavedFile
+                        || !string.Equals(query.EditorTabDisplayName, tabName, StringComparison.Ordinal))
                     {
                         continue;
                     }
 
-                    theTab.Selected = true;
+                    tabPage.Selected = true;
                     return true;
                 }
             }
@@ -3197,6 +3041,38 @@ namespace JasonQuery.UI.Forms
                 var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+
+            return false;
+        }
+
+        private bool TrySelectSpecialTab<TForm>() where TForm : Form
+        {
+            foreach (TabPage tabPage in tabControl1.TabPages)
+            {
+                if (!(tabPage.Control is TForm form) || form.IsDisposed || form.Disposing)
+                {
+                    continue;
+                }
+
+                tabPage.Selected = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool CheckOpenedFilePath(string filePath)
+        {
+            foreach (TabPage tabPage in tabControl1.TabPages)
+            {
+                if (!(tabPage.Control is QueryForm query) || !query.MatchesSavedFilePath(filePath))
+                {
+                    continue;
+                }
+
+                tabPage.Selected = true;
+                return true;
             }
 
             return false;
@@ -3224,38 +3100,90 @@ namespace JasonQuery.UI.Forms
             }
             else
             {
-                UpdateMainMenuTitle();
+                RequestSelectedFileWatchCheck();
             }
         }
 
-        private void UpdateMainMenuTitle()
+        private void RequestSelectedFileWatchCheck()
         {
-            foreach (TabPage theTab in tabControl1.TabPages)
+            if (!_isFormLoadFinished || IsDisposed || Disposing || _isFileWatchCheckInProgress)
             {
-                var sTitle = theTab.Title;
-                var accessibleDescription = theTab.AccessibleDescription;
+                return;
+            }
 
-                if (!theTab.Selected)
-                {
-                    continue;
-                }
+            var tabPage = tabControl1.SelectedTab;
+            var query = tabPage?.Control as QueryForm;
 
-                //20190909 點選到的 Tab，檢查檔案是否有被外部程式異動內容，或是被刪除了
-                if (SpecialTabName.Contains(sTitle))
-                {
-                    MyGlobal.CheckFileFromMDIForm = $"`{accessibleDescription}`";
-                }
+            _pendingFileWatchQuery = query != null && !query.IsDisposed && !query.Disposing
+                                     && query.HasSavedFile && !string.IsNullOrEmpty(query.AccessibleDescription)
+                                     && string.Equals(tabPage.AccessibleDescription, query.AccessibleDescription, StringComparison.Ordinal) ? query : null;
+        }
+
+        private void ProcessSelectedFileWatchCheck()
+        {
+            //A MessageBox runs a nested UI message loop. Do not sample focus or dispatch another file check while the current check (including its dialogs) is active.
+            if (!_isFormLoadFinished || IsDisposed || Disposing || _isFileWatchCheckInProgress || _isClosingTabPages || _isClosingApplication)
+            {
+                return;
+            }
+
+            var hasFocus = ContainsFocus;
+            var regainedFocus = hasFocus && !_wasMainFormFocused;
+
+            _wasMainFormFocused = hasFocus;
+
+            if (!hasFocus)
+            {
+                _pendingFileWatchQuery = null;
+                return;
+            }
+
+            if (regainedFocus)
+            {
+                RequestSelectedFileWatchCheck();
+            }
+
+            var query = _pendingFileWatchQuery;
+            var tabPage = tabControl1.SelectedTab;
+
+            if (query == null)
+            {
+                return;
+            }
+
+            if (query.IsDisposed || query.Disposing || !query.HasSavedFile || tabPage == null
+                || !ReferenceEquals(tabPage.Control, query)
+                || !string.Equals(tabPage.AccessibleDescription, query.AccessibleDescription, StringComparison.Ordinal))
+            {
+                _pendingFileWatchQuery = null;
+                return;
+            }
+
+            //Defer until the selected QueryForm can safely handle the check.
+            if (!query.CanCheckWatchedFile)
+            {
+                return;
+            }
+
+            _pendingFileWatchQuery = null;
+            _isFileWatchCheckInProgress = true;
+
+            try
+            {
+                query.CheckFileDateTimeAndExist();
+            }
+            finally
+            {
+                //Consume the internal dialog's focus transition before allowing another check.
+                _wasMainFormFocused = !IsDisposed && !Disposing && ContainsFocus;
+                _isFileWatchCheckInProgress = false;
             }
         }
 
         private void EnableCloseTabMenu(bool bEnable, bool bCheckFavorite = false)
         {
-            var bSaved = false;
-            var sFullFileName = string.Empty;
-
             _cMenu.Items[MapColumn.Close].Enabled = bEnable;
             tabControl1.ShowClose = bEnable;
-
             _cMenu.Items[MapColumn.NewSqlEditor].Enabled = true;
 
             if (!bCheckFavorite)
@@ -3263,62 +3191,24 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
-            foreach (TabPage theTab in tabControl1.TabPages)
-            {
-                if (!theTab.Selected)
-                {
-                    continue;
-                }
+            var query = tabControl1.SelectedTab?.Control as QueryForm;
+            var hasSavedFile = query != null && query.HasSavedFile;
+            var savedFilePath = hasSavedFile ? query.SavedFilePath : string.Empty;
+            var isFavorite = hasSavedFile && CheckExist4MyFavoriteFiles(savedFilePath);
 
-                var sTitle = theTab.Title;
-                var sValue1 = theTab.Title.Replace("*", string.Empty);
-                var sValue2 = TextHelper.GetSafeString(theTab.Tag).Replace("*", string.Empty);
-
-                //兩者不相等，表示有存檔過了
-                if (sValue1 == sValue2)
-                {
-                    continue;
-                }
-
-                //略過以下幾個
-                if (SpecialTabName.Contains(sTitle))
-                {
-                    continue;
-                }
-
-                bSaved = true;
-                sFullFileName = TextHelper.GetSafeString(theTab.Tag);
-            }
-
-            var bValue = false;
-
-            if (bSaved)
-            {
-                var bExist = CheckExist4MyFavoriteFiles(sFullFileName);
-
-                _cMenu.Items[MapColumn.AddToMyFavorite].Enabled = !bExist;
-                _cMenu.Items[MapColumn.RemoveFromMyFavorite].Enabled = bExist;
-                bValue = true;
-            }
-            else
-            {
-                _cMenu.Items[MapColumn.AddToMyFavorite].Enabled = false;
-                _cMenu.Items[MapColumn.RemoveFromMyFavorite].Enabled = false;
-            }
-
-            _cMenu.Items[MapColumn.AddToMyFavorite].Tag = sFullFileName;
-            _cMenu.Items[MapColumn.RemoveFromMyFavorite].Tag = sFullFileName;
-            _cMenu.Items[MapColumn.OpenFolder].Enabled = bValue;
-            _cMenu.Items[MapColumn.OpenFolder].Tag = sFullFileName;
-            _cMenu.Items[MapColumn.CopyFullFilePath].Enabled = bValue;
-            _cMenu.Items[MapColumn.CopyFullFilePath].Tag = sFullFileName;
-            _cMenu.Items[MapColumn.CopyFileName].Enabled = bValue;
-            _cMenu.Items[MapColumn.CopyFileName].Tag = sFullFileName;
-            _cMenu.Items[MapColumn.CopyCurrentPath].Enabled = bValue;
-            _cMenu.Items[MapColumn.CopyCurrentPath].Tag = sFullFileName;
-
-            //20241217 判斷 Rename Tab 選單的 Enabled 狀態
-            //_cMenu.Items[MyColumnMap.RenameTab].Enabled = string.IsNullOrEmpty(sFullFileName);
+            _cMenu.Items[MapColumn.RenameTab].Enabled = query != null && query.CanRenameEditorTab;
+            _cMenu.Items[MapColumn.AddToMyFavorite].Enabled = hasSavedFile && !isFavorite;
+            _cMenu.Items[MapColumn.RemoveFromMyFavorite].Enabled = hasSavedFile && isFavorite;
+            _cMenu.Items[MapColumn.AddToMyFavorite].Tag = savedFilePath;
+            _cMenu.Items[MapColumn.RemoveFromMyFavorite].Tag = savedFilePath;
+            _cMenu.Items[MapColumn.OpenFolder].Enabled = hasSavedFile;
+            _cMenu.Items[MapColumn.OpenFolder].Tag = savedFilePath;
+            _cMenu.Items[MapColumn.CopyFullFilePath].Enabled = hasSavedFile;
+            _cMenu.Items[MapColumn.CopyFullFilePath].Tag = savedFilePath;
+            _cMenu.Items[MapColumn.CopyFileName].Enabled = hasSavedFile;
+            _cMenu.Items[MapColumn.CopyFileName].Tag = savedFilePath;
+            _cMenu.Items[MapColumn.CopyCurrentPath].Enabled = hasSavedFile;
+            _cMenu.Items[MapColumn.CopyCurrentPath].Tag = savedFilePath;
         }
 
         private static bool CheckExist4MyFavoriteFiles(string fullFileName)
@@ -3673,7 +3563,7 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
-            if (CheckTabNameExist(sFullFileName))
+            if (CheckOpenedFilePath(sFullFileName))
             {
                 return;
             }
@@ -3681,7 +3571,6 @@ namespace JasonQuery.UI.Forms
             var sTabName = CheckTabNameExist();
 
             CreateNewTab("Query2", sTabName, sFullFileName); //開啟我的最愛裡面的文件
-            MyGlobal.CancelOpenAndCloseTab = sTabName;
         }
 
         private void RemoveMyFavoriteFiles(string sPath)
@@ -3764,18 +3653,16 @@ namespace JasonQuery.UI.Forms
 
                 for (var i = 0; i < tabControl1.TabPages.Count; i++)
                 {
-                    var sTitle = tabControl1.TabPages[i].Title;
-                    var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
+                    var tabPage = tabControl1.TabPages[i];
+                    var tabAccessibleDescription = tabPage.AccessibleDescription;
 
-                    //略過 'Options' & 'Schema Browser' & 'SQL History'
-                    //20241017 略過 'CreateTable'
-                    if (!SpecialTabName.Contains(sTitle))
+                    if (tabPage.Control is QueryForm)
                     {
                         sb.Append(tabAccessibleDescription).Append(";");
                     }
 
                     //20231004 Schema Brower 允許多開/編輯，如果是 'Schema Browser' 也要處理
-                    if (sTitle == MyGlobal.SchemaBrowserTabName)
+                    if (tabPage.Control is SchemaBrowserForm)
                     {
                         sb.Append(tabAccessibleDescription).Append(";");
                     }
@@ -3793,18 +3680,16 @@ namespace JasonQuery.UI.Forms
 
                 for (var i = 0; i < tabControl1.TabPages.Count; i++)
                 {
-                    var sTitle = tabControl1.TabPages[i].Title;
-                    var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
+                    var tabPage = tabControl1.TabPages[i];
+                    var tabAccessibleDescription = tabPage.AccessibleDescription;
 
-                    //略過 'Options' & 'Schema Browser' & 'SQL History'
-                    //20241017 略過 'CreateTable'
-                    if (!SpecialTabName.Contains(sTitle))
+                    if (tabPage.Control is QueryForm)
                     {
                         sb.Append(tabAccessibleDescription).Append(";");
                     }
 
                     //20231004 如果是 'Schema Browser' 也要處理
-                    if (sTitle == MyGlobal.SchemaBrowserTabName)
+                    if (tabPage.Control is SchemaBrowserForm)
                     {
                         sb.Append(tabAccessibleDescription).Append(";");
                     }
@@ -3824,17 +3709,15 @@ namespace JasonQuery.UI.Forms
 
                 for (var i = 0; i < tabControl1.TabPages.Count; i++)
                 {
-                    var sTitle = tabControl1.TabPages[i].Title;
-                    var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
+                    var tabPage = tabControl1.TabPages[i];
+                    var tabAccessibleDescription = tabPage.AccessibleDescription;
 
-                    //略過 'Options' & 'Schema Browser' & 'SQL History'
-                    //20241017 略過 'CreateTable'
-                    if (!SpecialTabName.Contains(sTitle))
+                    if (tabPage.Control is QueryForm)
                     {
                         sb2.Append(tabAccessibleDescription).Append(";");
                     }
 
-                    if (sTitle == MyGlobal.SchemaBrowserTabName)
+                    if (tabPage.Control is SchemaBrowserForm)
                     {
                         sb3.Append(tabAccessibleDescription).Append(";");
                     }
@@ -3861,17 +3744,18 @@ namespace JasonQuery.UI.Forms
             {
                 MyGlobal.GlobalTemp = string.Empty;
 
+                var generatedEditorTab = FindSchemaBrowserSqlEditorTab();
+
                 foreach (TabPage theTab in tabControl1.TabPages)
                 {
-                    var sTitle = theTab.Title;
                     var tabAccessibleDescription = theTab.AccessibleDescription;
 
-                    if (tabAccessibleDescription == MyGlobal.FormSchemaBrowserKey)
+                    if (theTab.Control is SchemaBrowserForm && tabAccessibleDescription == MyGlobal.FormSchemaBrowserKey)
                     {
                         theTab.Title = MyGlobal.SchemaBrowserTabName;
                     }
 
-                    if (sTitle == "*SQL Editor")
+                    if (ReferenceEquals(theTab, generatedEditorTab))
                     {
                         theTab.Selected = true;
                     }
@@ -3879,95 +3763,35 @@ namespace JasonQuery.UI.Forms
 
                 return;
             }
-            else if (MyGlobal.GlobalTemp.StartsWith("RenameTabMain`", StringComparison.Ordinal)) //20241217 變更頁籤名稱
-            {
-                var temp = MyGlobal.GlobalTemp.Replace("RenameTabMain`", string.Empty);
 
-                MyGlobal.GlobalTemp = string.Empty;
-
-                var parts = temp.Split(new[] { MyGlobal.Separator }, StringSplitOptions.None);
-                var accessibleDescription = parts[0];
-                var tabTitle = parts[1];
-
-                foreach (TabPage theTab in tabControl1.TabPages)
-                {
-                    var tabAccessibleDescription = theTab.AccessibleDescription;
-
-                    if (tabAccessibleDescription == accessibleDescription)
-                    {
-                        theTab.Title = tabTitle;
-
-                        MyGlobal.GlobalTemp = $"RenameTab`{accessibleDescription}{MyGlobal.Separator}{tabTitle}"; //變更 Query Form 的頁籤名稱
-                        break;
-                    }
-                }
-
-                return;
-            }
-            else if (MyGlobal.GlobalTemp == "RenameTabUpdateTabList") //20241217 更新 Tab List
-            {
-                MyGlobal.GlobalTemp = string.Empty;
-                UpdateTabList();
-
-                return;
-            }
-
-            //以下程式碼，可以判斷本程式是否在作用中，並只「呼叫」一次！
-            if (!MyGlobal.IsContainsFocusFormOptionsKey && ContainsFocus)
-            {
-                var sb = new StringBuilder();
-
-                foreach (TabPage theTab in tabControl1.TabPages)
-                {
-                    var sTitle = theTab.Title;
-                    var tabAccessibleDescription = theTab.AccessibleDescription;
-
-                    if (SpecialTabName.Contains(sTitle))
-                    {
-                        continue;
-                    }
-
-                    //20190909 此處改成「從其他程式切換至 JasonQuery 時，只針對 Focused Tab 處理」，因為同時處理多個，可能會有 BUG
-                    if (!theTab.Selected)
-                    {
-                        continue;
-                    }
-
-                    sb.Append(tabAccessibleDescription).Append(";");
-                    break;
-                }
-
-                MyGlobal.CheckFileFromMDIForm = $"`{sb}";
-            }
-
-            MyGlobal.IsContainsFocusFormOptionsKey = ContainsFocus;
+            ProcessSelectedFileWatchCheck();
         }
 
-        private void PasteFromSchemaBrowser(string sInfo)
+        private void PasteFromSchemaBrowser(string sql)
         {
-            var bExistSqlEditor = false;
+            var tabPage = FindSchemaBrowserSqlEditorTab();
 
-            for (var i = 0; i < tabControl1.TabPages.Count; i++)
+            if (tabPage != null)
             {
-                //檢查是否有 'SQL Editor'？若存在，則傳遞 SQL Statement；若不存在，則建立 Tab 後再傳遞 SQL Statement
-                if (tabControl1.TabPages[i].Title != "*SQL Editor")
-                {
-                    continue;
-                }
-
-                bExistSqlEditor = true;
-
-                var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
-
-                //已存在，要透過全域變數傳值
-                MyGlobal.InfoFromMDIForm = $"TransferSelectSQL`{tabAccessibleDescription};{sInfo}";
-                break;
+                MyGlobal.InfoFromMDIForm = $"TransferSelectSQL`{tabPage.AccessibleDescription};{sql}";
+                return;
             }
 
-            if (!bExistSqlEditor)
+            CreateNewTab("SQLEditor", "*SQL Editor", sql);
+        }
+
+        private TabPage FindSchemaBrowserSqlEditorTab()
+        {
+            var query = _schemaBrowserSqlEditor;
+
+            if (query == null || query.IsDisposed || query.Disposing || query.HasSavedFile
+                || !query.IsEditorDirty || !string.Equals(query.EditorTabDisplayName, "SQL Editor", StringComparison.Ordinal))
             {
-                CreateNewTab("SQLEditor", "*SQL Editor", sInfo); //開啟 SQL Editor (從 Schema Browser 傳過來的 SQL 語句)
+                return null;
             }
+
+            return tabControl1.TabPages.Cast<TabPage>().FirstOrDefault(page => ReferenceEquals(page.Control, query)
+                   && string.Equals(page.AccessibleDescription, query.AccessibleDescription, StringComparison.Ordinal));
         }
 
         internal void ReceiveValueFromChildForm(string value)
@@ -4088,7 +3912,7 @@ namespace JasonQuery.UI.Forms
                 var temp = tabControl1.TabPages.Cast<TabPage>()
                                                .Where
                                                 (
-                                                    tab => !SpecialTabName.Contains(tab.Title) && tab.AccessibleDescription != info
+                                                    tab => tab.Control is QueryForm && tab.AccessibleDescription != info
                                                 )
                                                .Aggregate
                                                 (
@@ -4112,7 +3936,7 @@ namespace JasonQuery.UI.Forms
                 var temp = tabControl1.TabPages.Cast<TabPage>()
                                                .Where
                                                 (
-                                                    tab => !SpecialTabName.Contains(tab.Title) && tab.AccessibleDescription != info
+                                                    tab => tab.Control is QueryForm && tab.AccessibleDescription != info
                                                 )
                                                .Aggregate
                                                 (
@@ -4133,94 +3957,57 @@ namespace JasonQuery.UI.Forms
             }
             else if (newValue.StartsWith("CloseQueryForm`", StringComparison.Ordinal))
             {
-                var info = newValue.Substring("CloseQueryForm`".Length);
-
-                foreach (TabPage theTab in tabControl1.TabPages)
+                if (sender is QueryForm query && string.Equals(newValue.Substring("CloseQueryForm`".Length), query.AccessibleDescription, StringComparison.Ordinal))
                 {
-                    var tabAccessibleDescription = theTab.AccessibleDescription;
-
-                    if (tabAccessibleDescription != info)
-                    {
-                        continue;
-                    }
-
-                    tabControl1.TabPages.Remove(theTab);
-                    UpdateMainMenuTitle();
-                    break;
+                    RemoveDiscardedQueryTab(query);
                 }
             }
             else if (newValue.StartsWith("CloseOptionsTab`", StringComparison.Ordinal))
             {
-                var bValue = true;
-                var tabIndex = newValue.Replace("CloseOptionsTab`", string.Empty);
-                var tabTitle = tabControl1.SelectedTab.Title;
-
-                if (string.IsNullOrEmpty(tabIndex) && tabTitle != MyGlobal.OptionsTabName)
-                {
-                    //選定的頁籤不是「選項」，也沒有帶入 Tab Index：不處理
-                    bValue = false;
-                }
-
-                if (!bValue)
+                if (!(sender is OptionsForm optionsForm))
                 {
                     return;
                 }
 
-                int.TryParse(tabIndex, out var tabIndexValue);
+                var tabPage = tabControl1.TabPages.Cast<TabPage>().FirstOrDefault(page => ReferenceEquals(page.Control, optionsForm)
+                              && string.Equals(page.AccessibleDescription, optionsForm.AccessibleDescription, StringComparison.Ordinal));
+
+                if (tabPage == null)
+                {
+                    return;
+                }
 
                 try
                 {
-                    if (tabTitle == MyGlobal.OptionsTabName)
-                    {
-                        tabControl1.SelectedTab.Dispose();
-                        tabControl1.TabPages.Remove(tabControl1.SelectedTab);
-                    }
-                    else
-                    {
-                        tabControl1.TabPages[tabIndexValue].Dispose();
-                        tabControl1.TabPages.Remove(tabControl1.TabPages[tabIndexValue]);
-                    }
+                    RemoveClosedTabPage(tabPage);
 
                     mnuOptions.Enabled = true;
                     mnuOptions.Checked = false;
 
-                    MyGlobal.ClearMemory();
-                    UpdateMainMenuTitle();
+                    if (!_isClosingTabPages)
+                    {
+                        if (tabControl1.TabPages.Count == 0)
+                        {
+                            CreateNewTab("Query", CheckTabNameExist());
+                        }
 
-                    if (tabControl1.TabPages.Count == 0)
-                    {
-                        //20191013 如果把最後一個 Tab 關閉，自動再開啟一個空白的 SQL Editor
-                        CreateNewTab("Query", CheckTabNameExist()); //關閉選項頁籤後，已沒有任何一個頁籤了，再開啟一個空白的 SQL Editor
-                    }
-                    else
-                    {
                         UpdateTabList();
+                        RequestSelectedFileWatchCheck();
                     }
 
                     TryAutoDeleteSqlHistoryForCurrentConnection();
                 }
                 catch (Exception ex)
                 {
-                    var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
-
-                    MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    ExceptionDialogService.Show(this, ex);
                 }
             }
             else if (newValue.StartsWith("CloseEmptyTab`", StringComparison.Ordinal))
             {
-                //20191014 如果開啟檔案失敗，或是使用者取消開啟檔案，把空白的 Tab 關閉
-                if (tabControl1.SelectedTab.Title != MyGlobal.CancelOpenAndCloseTab)
+                //Only a clean, unsaved editor that requested cancellation may be removed.
+                if (sender is QueryForm query && !query.HasSavedFile && !query.IsEditorDirty)
                 {
-                    return;
-                }
-
-                MyGlobal.CancelOpenAndCloseTab = string.Empty;
-                tabControl1.SelectedTab.Dispose();
-                tabControl1.TabPages.Remove(tabControl1.SelectedTab);
-
-                if (tabControl1.TabPages.Count == 0)
-                {
-                    CreateNewTab("Query", CheckTabNameExist()); //已沒有任何一個頁籤了，再開啟一個空白的 SQL Editor
+                    RemoveDiscardedQueryTab(query);
                 }
             }
             else if (newValue.StartsWith("RemoveFromMyFavoriteLists`", StringComparison.Ordinal))
@@ -4260,11 +4047,7 @@ namespace JasonQuery.UI.Forms
             else if (newValue.StartsWith("CheckExistTab`", StringComparison.Ordinal))
             {
                 //20190930 改用 full path + filename 判斷是否已存在，因為有可能是同檔名但不同路徑
-                MyGlobal.CheckExistTabResult = !CheckTabNameExist(newValue.Substring(14)) ? "FALSE" : "TRUE";
-            }
-            else if (newValue.StartsWith("UpdateTabInfo`", StringComparison.Ordinal)) //更新 Tab 資訊
-            {
-                UpdateTabInfo(newValue.Substring(14));
+                MyGlobal.CheckExistTabResult = !CheckOpenedFilePath(newValue.Substring(14)) ? "FALSE" : "TRUE";
             }
             else if (newValue.StartsWith("UpdateDatabaseInfo`", StringComparison.Ordinal)) //更新 Database 資訊
             {
@@ -4283,10 +4066,6 @@ namespace JasonQuery.UI.Forms
                 //A direct USE reports the target before its metadata load completes.
                 BeginSharedSchemaDatabaseSwitch(_currentSourceType);
             }
-            else if (newValue.StartsWith("UpdateCanUndo`", StringComparison.Ordinal))
-            {
-                UpdateTabInfo(newValue.Substring(14));
-            }
             else if (newValue.StartsWith("UpdateRecentFiles`", StringComparison.Ordinal)) //更新 Recent Files 清單
             {
                 SaveRecentList(newValue.Substring(18));
@@ -4297,11 +4076,12 @@ namespace JasonQuery.UI.Forms
 
                 for (var i = 0; i < tabControl1.TabPages.Count; i++)
                 {
-                    var title = tabControl1.TabPages[i].Title;
-                    var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
+                    var tabPage = tabControl1.TabPages[i];
+                    var tabAccessibleDescription = tabPage.AccessibleDescription;
 
-                    //不用略過 'Schema Browser' & 'SQL History'，因為這兩個也要套用！
-                    if (title != MyGlobal.OptionsTabName)
+                    //Schema Browser and SQL History also receive editor settings.
+                    if (tabPage.Control is QueryForm || tabPage.Control is SchemaBrowserForm
+                        || tabPage.Control is SqlHistoryForm || tabPage.Control is OracleCreateTableWizardForm)
                     {
                         sbInfo.Append($"{tabAccessibleDescription};");
                     }
@@ -4350,11 +4130,10 @@ namespace JasonQuery.UI.Forms
 
                 for (var i = 0; i < tabControl1.TabPages.Count; i++)
                 {
-                    var title = tabControl1.TabPages[i].Title;
-                    var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
+                    var tabPage = tabControl1.TabPages[i];
+                    var tabAccessibleDescription = tabPage.AccessibleDescription;
 
-                    //略過 'Options' & 'Schema Browser' & 'SQL History'
-                    if (!SpecialTabName.Contains(title))
+                    if (tabPage.Control is QueryForm)
                     {
                         sbInfo.Append($"{tabAccessibleDescription};");
                     }
@@ -4427,42 +4206,27 @@ namespace JasonQuery.UI.Forms
                     {
                         for (var i = 0; i < tabControl1.TabPages.Count; i++)
                         {
-                            var title = tabControl1.TabPages[i].Title;
-                            var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
+                            var tabPage = tabControl1.TabPages[i];
+                            var localizationTarget = tabPage.Control;
+                            var tabAccessibleDescription = tabPage.AccessibleDescription;
 
-                            if (title == MyGlobal.OptionsTabName_Before)
+                            if (localizationTarget is OptionsForm)
                             {
-                                tabControl1.TabPages[i].Title = MyGlobal.OptionsTabName;
-                                tabControl1.TabPages[i].Tag = MyGlobal.OptionsTabName;
-                                MyGlobal.OptionsTabName_Before = MyGlobal.OptionsTabName;
+                                tabPage.Title = MyGlobal.OptionsTabName;
                             }
-                            else if (title == MyGlobal.SchemaBrowserTabName_Before)
+                            else if (localizationTarget is SchemaBrowserForm)
                             {
-                                tabControl1.TabPages[i].Title = MyGlobal.SchemaBrowserTabName;
-                                tabControl1.TabPages[i].Tag = MyGlobal.SchemaBrowserTabName;
-
-                                var schemaBrowserTabCount = tabControl1.TabPages.Cast<TabPage>().Count(theTab => theTab.Title == MyGlobal.SchemaBrowserTabName_Before);
-
-                                if (schemaBrowserTabCount == 0)
-                                {
-                                    //20231011 最後一個 SchemaBrowser 才要變更此變數的值！
-                                    MyGlobal.SchemaBrowserTabName_Before = MyGlobal.SchemaBrowserTabName;
-                                }
+                                tabPage.Title = MyGlobal.SchemaBrowserTabName;
                             }
-                            else if (title == MyGlobal.SqlHistoryTabName_Before)
+                            else if (localizationTarget is SqlHistoryForm)
                             {
-                                tabControl1.TabPages[i].Title = MyGlobal.SqlHistoryTabName;
-                                tabControl1.TabPages[i].Tag = MyGlobal.SqlHistoryTabName;
-                                MyGlobal.SqlHistoryTabName_Before = MyGlobal.SqlHistoryTabName;
+                                tabPage.Title = MyGlobal.SqlHistoryTabName;
                             }
-                            else if (title == MyGlobal.CreateTableTabName_Before)
+                            else if (localizationTarget is OracleCreateTableWizardForm)
                             {
-                                tabControl1.TabPages[i].Title = MyGlobal.CreateTableTabName;
-                                tabControl1.TabPages[i].Tag = MyGlobal.CreateTableTabName;
-                                MyGlobal.CreateTableTabName_Before = MyGlobal.CreateTableTabName;
+                                tabPage.Title = MyGlobal.CreateTableTabName;
                             }
 
-                            var localizationTarget = tabControl1.TabPages[i].Control;
                             var supportsLocalizationReload = localizationTarget is QueryForm || localizationTarget is OptionsForm || localizationTarget is SchemaBrowserForm || localizationTarget is SqlHistoryForm || localizationTarget is OracleCreateTableWizardForm;
 
                             if (supportsLocalizationReload && !string.IsNullOrWhiteSpace(tabAccessibleDescription))
@@ -4520,6 +4284,9 @@ namespace JasonQuery.UI.Forms
                             }
                     }
 
+                    UpdateTabList();
+                    UpdateTabTooltip(ResolveTabTooltip(tabControl1.SelectedTab));
+
                     //這裡要再針對頁籤色彩調整一次
                     tabControl1.BackColor = ColorTranslator.FromHtml(MyGlobal.TabBackColor);
                     tabControl1.ForeColor = ColorTranslator.FromHtml(MyGlobal.TabActiveForeColor);
@@ -4547,11 +4314,10 @@ namespace JasonQuery.UI.Forms
 
                 for (var i = 0; i < tabControl1.TabPages.Count; i++)
                 {
-                    var title = tabControl1.TabPages[i].Title;
-                    var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
+                    var tabPage = tabControl1.TabPages[i];
+                    var tabAccessibleDescription = tabPage.AccessibleDescription;
 
-                    //略過 'Options' & 'Schema Browser' & 'SQL History'
-                    if (!SpecialTabName.Contains(title) && temp != tabAccessibleDescription)
+                    if (tabPage.Control is QueryForm && temp != tabAccessibleDescription)
                     {
                         sbInfo.Append($"{tabAccessibleDescription};");
                     }
@@ -4579,11 +4345,10 @@ namespace JasonQuery.UI.Forms
 
                 for (var i = 0; i < tabControl1.TabPages.Count; i++)
                 {
-                    var title = tabControl1.TabPages[i].Title;
-                    var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
+                    var tabPage = tabControl1.TabPages[i];
+                    var tabAccessibleDescription = tabPage.AccessibleDescription;
 
-                    //略過 'Options' & 'Schema Browser' & 'SQL History'
-                    if (!SpecialTabName.Contains(title) && temp != tabAccessibleDescription)
+                    if (tabPage.Control is QueryForm && temp != tabAccessibleDescription)
                     {
                         sbInfo.Append($"{tabAccessibleDescription};");
                     }
@@ -4611,11 +4376,11 @@ namespace JasonQuery.UI.Forms
 
                 for (var i = 0; i < tabControl1.TabPages.Count; i++)
                 {
-                    var title = tabControl1.TabPages[i].Title;
-                    var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
+                    var tabPage = tabControl1.TabPages[i];
+                    var tabAccessibleDescription = tabPage.AccessibleDescription;
 
                     //忽略呼叫方
-                    if (title == MyGlobal.SchemaBrowserTabName && temp != tabAccessibleDescription)
+                    if (tabPage.Control is SchemaBrowserForm && temp != tabAccessibleDescription)
                     {
                         sbInfo.Append($"{tabAccessibleDescription};");
                     }
@@ -4641,11 +4406,11 @@ namespace JasonQuery.UI.Forms
 
                 for (var i = 0; i < tabControl1.TabPages.Count; i++)
                 {
-                    var title = tabControl1.TabPages[i].Title;
-                    var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
+                    var tabPage = tabControl1.TabPages[i];
+                    var tabAccessibleDescription = tabPage.AccessibleDescription;
 
                     //忽略呼叫方
-                    if (title == MyGlobal.SchemaBrowserTabName && temp != tabAccessibleDescription)
+                    if (tabPage.Control is SchemaBrowserForm && temp != tabAccessibleDescription)
                     {
                         sbInfo.Append($"{tabAccessibleDescription};");
                     }
@@ -4703,94 +4468,81 @@ namespace JasonQuery.UI.Forms
 
         private bool ShouldBroadcastCommitRollbackButtonState(TabPage tab)
         {
-            if (tab == null)
-            {
-                return false;
-            }
-
-            if (!SpecialTabName.Contains(tab.Title))
-            {
-                return true; //一般 QueryForm
-            }
-
-            return string.Equals(tab.Title, MyGlobal.SchemaBrowserTabName, StringComparison.Ordinal);
+            return tab?.Control is QueryForm || tab?.Control is SchemaBrowserForm;
         }
 
         private List<string> GetNormalQueryFormAccessibleDescriptions()
         {
             return tabControl1.TabPages.Cast<TabPage>()
-                                       .Where(tab => !SpecialTabName.Contains(tab.Title))
+                                       .Where(tab => tab.Control is QueryForm)
                                        .Select(tab => tab.AccessibleDescription)
                                        .Where(description => !string.IsNullOrWhiteSpace(description))
                                        .Distinct()
                                        .ToList();
         }
 
-        private void UpdateTabInfo(string value)
+        private void ApplyEditorTabState(QueryForm source, string displayTitle, string tooltip, bool isDirty)
         {
-            var tabIndex = 0;
-            var neeUpdate = true;
-            var tabTitle = string.Empty;
-            var temp = string.Empty;
-
-            for (var i = 0; i < tabControl1.TabPages.Count; i++)
-            {
-                if (!tabControl1.TabPages[i].Selected)
-                {
-                    continue;
-                }
-
-                var idx = value.IndexOf('`');
-                var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
-
-                if (idx > 0 && idx == value.LastIndexOf('`'))
-                {
-                    temp = value.Substring(0, idx); //傳過來的 AccessibleDescription
-                    value = value.Substring(idx + 1);
-                }
-
-                //如果有指定 Tab 代號，比對是否吻合，避免改錯
-                if (!string.IsNullOrEmpty(temp) && temp != tabAccessibleDescription)
-                {
-                    neeUpdate = false;
-                }
-
-                tabTitle = Path.GetFileName(value);
-
-                if (value.StartsWith("*", StringComparison.Ordinal) && !tabTitle.StartsWith("*", StringComparison.Ordinal))
-                {
-                    tabTitle = $"*{tabTitle}";
-                }
-
-                tabIndex = i;
-                break;
-            }
-
-            if (!neeUpdate)
+            if (IsDisposed || Disposing || source == null || source.IsDisposed || source.Disposing
+                || string.IsNullOrWhiteSpace(source.AccessibleDescription))
             {
                 return;
             }
 
-            if (value.StartsWith("*", StringComparison.Ordinal) && tabTitle.StartsWith("*", StringComparison.Ordinal))
+            foreach (TabPage tabPage in tabControl1.TabPages)
             {
-                tabControl1.TabPages[tabIndex].Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "SQL Editor Red 16x16.ico");
+                if (!ReferenceEquals(tabPage.Control, source)
+                    || !string.Equals(tabPage.AccessibleDescription, source.AccessibleDescription, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var titleChanged = !string.Equals(tabPage.Title, displayTitle, StringComparison.Ordinal);
+
+                tabPage.Title = displayTitle;
+                tabPage.Icon = IconManager.GetIcon(MyGlobal.IconLibrary, isDirty ? "SQL Editor Red 16x16.ico" : "SQL Editor Blue 16x16.ico");
+
+                if (ReferenceEquals(tabControl1.SelectedTab, tabPage))
+                {
+                    UpdateTabTooltip(tooltip);
+                }
+
+                if (titleChanged)
+                {
+                    UpdateTabList();
+                }
+
+                return;
             }
-            else
+        }
+
+        private static string ResolveTabTooltip(TabPage tabPage)
+        {
+            if (tabPage == null)
             {
-                tabControl1.TabPages[tabIndex].Icon = IconManager.GetIcon(MyGlobal.IconLibrary, "SQL Editor Blue 16x16.ico");
+                return string.Empty;
             }
 
-            var currentTab = tabControl1.TabPages[tabIndex];
-            var titleChanged = !string.Equals(currentTab.Title, tabTitle, StringComparison.Ordinal);
-
-            currentTab.Tag = value;
-            currentTab.Title = tabTitle;
-            _toolTip1.SetToolTip(tabControl1, value);
-
-            if (titleChanged)
+            if (tabPage.Control is QueryForm query && query.HasSavedFile)
             {
-                UpdateTabList();
+                //Title is the current published UI projection, not file identity or save authority.
+                var dirtyPrefix = tabPage.Title.StartsWith("*", StringComparison.Ordinal) ? "*" : string.Empty;
+
+                return $"{dirtyPrefix}{query.SavedFilePath}";
             }
+
+            return tabPage.Title;
+        }
+
+        private void UpdateTabTooltip(string tooltip)
+        {
+            if (string.Equals(_tabToolTip, tooltip, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _toolTip1.SetToolTip(tabControl1, tooltip);
+            _tabToolTip = tooltip;
         }
 
         private void tabControl1_MouseMove(object sender, MouseEventArgs e)
@@ -4807,37 +4559,15 @@ namespace JasonQuery.UI.Forms
                     continue;
                 }
 
-                var tag = TextHelper.GetSafeString(tabControl1.TabPages[i].Tag);
-
-                //Tab 名稱有異動，才要再次顯示 ToolTip (否則會有閃爍的問題)
-                if (!string.IsNullOrEmpty(_tabToolTip) && _tabToolTip == tag)
-                {
-                    continue;
-                }
-
-                _tabToolTip = tag;
-                _toolTip1.SetToolTip(tabControl1, tag);
+                UpdateTabTooltip(ResolveTabTooltip(tabControl1.TabPages[i]));
                 break;
             }
         }
 
         private void tabControl1_SelectionChanged(object sender, EventArgs e)
         {
-            var info = string.Empty;
-            var tabPagesCount = tabControl1.TabPages.Count;
-
-            for (var i = 0; i < tabPagesCount; i++)
-            {
-                if (!tabControl1.TabPages[i].Selected)
-                {
-                    continue;
-                }
-
-                info = TextHelper.GetSafeString(tabControl1.TabPages[i].Tag);
-                break;
-            }
-
-            _toolTip1.SetToolTip(tabControl1, info);
+            UpdateTabTooltip(ResolveTabTooltip(tabControl1.SelectedTab));
+            RequestSelectedFileWatchCheck();
         }
 
         private void btnNewSqlEditor_Click(object sender, EventArgs e)
@@ -4986,7 +4716,7 @@ namespace JasonQuery.UI.Forms
                     return;
                 }
 
-                if (CheckTabNameExist(path))
+                if (CheckOpenedFilePath(path))
                 {
                     return;
                 }
@@ -4994,7 +4724,6 @@ namespace JasonQuery.UI.Forms
                 var tabName = CheckTabNameExist();
 
                 CreateNewTab("Query1", tabName, path);
-                MyGlobal.CancelOpenAndCloseTab = tabName;
             }
             catch (Exception ex)
             {
@@ -5072,7 +4801,7 @@ namespace JasonQuery.UI.Forms
             title += MyGlobal.OptionsTabName;
             MyGlobal.GlobalTemp = title;
 
-            if (!CheckTabNameExist(MyGlobal.OptionsTabName))
+            if (!TrySelectSpecialTab<OptionsForm>())
             {
                 CreateNewTab(MyGlobal.OptionsTabName, MyGlobal.OptionsTabName); //從主選單開啟選項頁籤
             }
@@ -5083,7 +4812,7 @@ namespace JasonQuery.UI.Forms
 
         private void mnuSqlHistory_Click(object sender, EventArgs e)
         {
-            if (!CheckTabNameExist(MyGlobal.SqlHistoryTabName))
+            if (!TrySelectSpecialTab<SqlHistoryForm>())
             {
                 CreateNewTab(MyGlobal.SqlHistoryTabName, MyGlobal.SqlHistoryTabName); //從主選單開啟SQL歷史記錄頁籤
             }
@@ -5107,7 +4836,7 @@ namespace JasonQuery.UI.Forms
             _toolTip1.AutoPopDelay = 0;
 
             //20231011 允許重複開啟多個 SchemaBrowser
-            AppConfigHelper.HasMultiOpenSchemaBrowser = CheckTabNameExist(MyGlobal.SchemaBrowserTabName);
+            AppConfigHelper.HasMultiOpenSchemaBrowser = TrySelectSpecialTab<SchemaBrowserForm>();
 
             CreateNewTab(MyGlobal.SchemaBrowserTabName, MyGlobal.SchemaBrowserTabName); //從主選單開啟架構瀏覽器頁籤
 
@@ -5141,7 +4870,7 @@ namespace JasonQuery.UI.Forms
                 case DataSourceType.Oracle:
                 case DataSourceType.PostgreSql:
                     {
-                        if (!CheckTabNameExist(MyGlobal.CreateTableTabName))
+                        if (!TrySelectSpecialTab<OracleCreateTableWizardForm>())
                         {
                             CreateNewTab(MyGlobal.CreateTableTabName, MyGlobal.CreateTableTabName);
                         }
@@ -5208,159 +4937,141 @@ namespace JasonQuery.UI.Forms
 
         private bool BeforeCloseApplication()
         {
-            var sb = new StringBuilder();
-
-            sb.Append("CloseQueryFormAndCheckCommit`");
-
-            //判斷是否需要 Commit，由使用者決定
-            foreach (TabPage theTab in tabControl1.TabPages)
-            {
-                var title = theTab.Title;
-                var accessibleDescription = theTab.AccessibleDescription;
-
-                if (!SpecialTabName.Contains(title))
-                {
-                    sb.Append(accessibleDescription).Append(';');
-                }
-            }
-
-            MyGlobal.GlobalTemp = sb.ToString();
-
-            if (string.IsNullOrEmpty(MyGlobal.GlobalTemp) || MyGlobal.GlobalTemp == "CloseQueryFormAndCheckCommit`") //沒有開啟 Editor，所以不需要 Commit
-            {
-                MyGlobal.CommitRollbackCheck = 0;
-                MyGlobal.GlobalTemp = string.Empty; //沒有開啟 Editor
-            }
-
-            while (MyGlobal.CommitRollbackCheck == -1 && !string.IsNullOrEmpty(MyGlobal.GlobalTemp))
-            {
-                Application.DoEvents();
-            }
-
-            if (MyGlobal.CommitRollbackCheck == 2)
-            {
-                MyGlobal.CommitRollbackCheck = -1; //恢復成初始值
-
-                //使用者取消，不用關閉了
-                return false; //這裡要用 return，否則程式還是會被整個關閉
-            }
-
-            //20240823 此處設定由 -1 改為 0，方便關閉 Schema Brower 時，判斷是否由 Main Form 關閉的
-            MyGlobal.CommitRollbackCheck = 0; //恢復成初始值，因為後續使用者可能「取消存檔」而「不關閉程式」
-
-            //20240802 判斷是否有異動 SchemaBrowser 內容，並詢問是否要繼續「關閉」JasonQuery
-            #region 關閉 SchemaBrowser Form !
-            sb.Clear();
-            sb.Append("CloseSchemaBrowserForm`");
-
-            foreach (TabPage theTab in tabControl1.TabPages)
-            {
-                var title = theTab.Title;
-                var tabAccessibleDescription = theTab.AccessibleDescription;
-
-                if (title == MyGlobal.SchemaBrowserTabName)
-                {
-                    sb.Append(tabAccessibleDescription).Append(";");
-                }
-            }
-
-            MyGlobal.GlobalTemp = sb.ToString();
-
-            if (MyGlobal.GlobalTemp == "CloseSchemaBrowserForm`")
-            {
-                MyGlobal.GlobalTemp = string.Empty; //沒有開啟 SchemaBrowser
-            }
-
-            var isCancelClose = false;
-
-            while (!string.IsNullOrEmpty(MyGlobal.GlobalTemp))
-            {
-                if (MyGlobal.GlobalTemp.Contains("|CANCEL;"))
-                {
-                    MyGlobal.GlobalTemp = string.Empty;
-                    isCancelClose = true;
-                    break;
-                }
-
-                if (MyGlobal.GlobalTemp == "CloseSchemaBrowserForm`")
-                {
-                    MyGlobal.GlobalTemp = string.Empty;
-                    break;
-                }
-
-                Application.DoEvents();
-            }
-
-            if (isCancelClose)
+            if (_isClosingApplication || _isClosingTabPages || _isFileWatchCheckInProgress || IsDisposed || Disposing)
             {
                 return false;
             }
-            #endregion
 
-            //20240302 有啟用備份，不需要再詢問是否要儲存檔案
-            if (AppConfigHelper.IsBackupFile)
+            _isClosingApplication = true;
+
+            try
             {
-                return true;
+                //Each accepted application-close request needs its own transaction decision.
+                MyGlobal.CommitRollbackCheck = -1;
+
+                var sb = new StringBuilder();
+
+                sb.Append("CloseQueryFormAndCheckCommit`");
+
+                //判斷是否需要 Commit，由使用者決定
+                foreach (TabPage theTab in tabControl1.TabPages)
+                {
+                    var accessibleDescription = theTab.AccessibleDescription;
+
+                    if (theTab.Control is QueryForm)
+                    {
+                        sb.Append(accessibleDescription).Append(';');
+                    }
+                }
+
+                MyGlobal.GlobalTemp = sb.ToString();
+
+                if (string.IsNullOrEmpty(MyGlobal.GlobalTemp) || MyGlobal.GlobalTemp == "CloseQueryFormAndCheckCommit`") //沒有開啟 Editor，所以不需要 Commit
+                {
+                    MyGlobal.CommitRollbackCheck = 0;
+                    MyGlobal.GlobalTemp = string.Empty; //沒有開啟 Editor
+                }
+
+                while (MyGlobal.CommitRollbackCheck == -1 && !string.IsNullOrEmpty(MyGlobal.GlobalTemp))
+                {
+                    Application.DoEvents();
+                }
+
+                if (MyGlobal.CommitRollbackCheck == 2)
+                {
+                    //使用者取消，不用關閉了
+                    return false; //這裡要用 return，否則程式還是會被整個關閉
+                }
+
+                //20240823 此處設定由 -1 改為 0，方便關閉 Schema Brower 時，判斷是否由 Main Form 關閉的
+                MyGlobal.CommitRollbackCheck = 0; //Mark the application-close phase for SchemaBrowser.
+
+                //20240802 判斷是否有異動 SchemaBrowser 內容，並詢問是否要繼續「關閉」JasonQuery
+                #region 關閉 SchemaBrowser Form !
+                sb.Clear();
+                sb.Append("CloseSchemaBrowserForm`");
+
+                foreach (TabPage theTab in tabControl1.TabPages)
+                {
+                    var tabAccessibleDescription = theTab.AccessibleDescription;
+
+                    if (theTab.Control is SchemaBrowserForm)
+                    {
+                        sb.Append(tabAccessibleDescription).Append(";");
+                    }
+                }
+
+                MyGlobal.GlobalTemp = sb.ToString();
+
+                if (MyGlobal.GlobalTemp == "CloseSchemaBrowserForm`")
+                {
+                    MyGlobal.GlobalTemp = string.Empty; //沒有開啟 SchemaBrowser
+                }
+
+                var isCancelClose = false;
+
+                while (!string.IsNullOrEmpty(MyGlobal.GlobalTemp))
+                {
+                    if (MyGlobal.GlobalTemp.Contains("|CANCEL;"))
+                    {
+                        MyGlobal.GlobalTemp = string.Empty;
+                        isCancelClose = true;
+
+                        break;
+                    }
+
+                    if (MyGlobal.GlobalTemp == "CloseSchemaBrowserForm`")
+                    {
+                        MyGlobal.GlobalTemp = string.Empty;
+                        break;
+                    }
+
+                    Application.DoEvents();
+                }
+
+                if (isCancelClose)
+                {
+                    return false;
+                }
+                #endregion
+
+                //Backup-enabled exit requires successful persistence of every dirty editor.
+                if (AppConfigHelper.IsBackupFile)
+                {
+                    return TryPersistDirtyEditorBackupsBeforeClose();
+                }
+
+                //20250903 使用者沒有啟用備份，此處用函數判斷是否需要存檔並繼續「關閉」JasonQuery
+                return CloseTabBeforeCloseApplication();
+            }
+            finally
+            {
+                //A cancelled Save As, declined SchemaBrowser close or exception must not leak the previous decision.
+                MyGlobal.CommitRollbackCheck = -1;
+                _isClosingApplication = false;
+            }
+        }
+
+        private bool TryPersistDirtyEditorBackupsBeforeClose()
+        {
+            foreach (TabPage tabPage in tabControl1.TabPages)
+            {
+                if (tabPage.Control is QueryForm query && query.IsEditorDirty && !query.TryPersistEditorBackup())
+                {
+                    return false;
+                }
             }
 
-            //20250903 使用者沒有啟用備份，此處用函數判斷是否需要存檔並繼續「關閉」JasonQuery
-            return CloseTabBeforeCloseApplication();
+            return true;
         }
 
         private bool CloseTabBeforeCloseApplication()
         {
-            var result = true;
-            var tabPagesCount = tabControl1.TabPages.Count - 1;
+            var targets = tabControl1.TabPages.Cast<TabPage>()
+                                     .Where(tabPage => tabPage.Control is QueryForm query && query.IsEditorDirty)
+                                     .ToArray();
 
-            try
-            {
-                if (tabPagesCount > 0)
-                {
-                    for (var i = tabPagesCount; i >= 0; i--)
-                    {
-                        var isCancelClose = false;
-                        var title = tabControl1.TabPages[i].Title;
-                        var tabAccessibleDescription = tabControl1.TabPages[i].AccessibleDescription;
-
-                        if (title.StartsWith("*", StringComparison.Ordinal))
-                        {
-                            //關閉 Query Form !
-                            MyGlobal.GlobalTemp = $"CloseQueryForm`{tabAccessibleDescription};";
-
-                            while (!string.IsNullOrEmpty(MyGlobal.GlobalTemp))
-                            {
-                                if (MyGlobal.GlobalTemp.Contains($"{tabAccessibleDescription}|CANCEL;"))
-                                {
-                                    isCancelClose = true;
-                                    break;
-                                }
-
-                                Application.DoEvents();
-                            }
-
-                            if (isCancelClose)
-                            {
-                                result = false;
-                                break;
-                            }
-
-                            //關閉頁籤：同時刪除備份的對應記錄，下次重啟 JasonQuery 時，不用再開啟此檔案
-                            MyGlobal.DeleteBackupFileInfo(tabControl1.TabPages[i].AccessibleName);
-
-                            tabControl1.TabPages[i].Dispose();
-                            tabControl1.TabPages.Remove(tabControl1.TabPages[i]);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                var message = TraceLogger.GetStackTraceMessageAndContent(ex.StackTrace, ex.Message);
-
-                MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            }
-
-            return result;
+            return CloseTabPages(targets, false);
         }
 
         private void mnuNewConnection_Click(object sender, EventArgs e)
@@ -5471,12 +5182,11 @@ namespace JasonQuery.UI.Forms
             {
                 foreach (var fileName in of.FileNames)
                 {
-                    if (!CheckTabNameExist(fileName))
+                    if (!CheckOpenedFilePath(fileName))
                     {
                         var tabName = CheckTabNameExist();
 
                         CreateNewTab("Query", tabName, fileName); //開啟指定檔案
-                        MyGlobal.CancelOpenAndCloseTab = tabName;
                     }
 
                     var startTime = DateTime.Now;
@@ -5714,7 +5424,7 @@ namespace JasonQuery.UI.Forms
 
         private void mnuCloseConnection_Click(object sender, EventArgs e)
         {
-            var descriptions = tabControl1.TabPages.Cast<TabPage>().Where(tab => !SpecialTabName.Contains(tab.Title)).Select(tab => tab.AccessibleDescription);
+            var descriptions = tabControl1.TabPages.Cast<TabPage>().Where(tab => tab.Control is QueryForm).Select(tab => tab.AccessibleDescription);
             var temp = $"AutoDisconnect`{string.Join(";", descriptions)};";
 
             MyGlobal.GlobalTemp = temp;
@@ -5885,16 +5595,20 @@ namespace JasonQuery.UI.Forms
 
         private void HideAutoCompleteList() //視窗最小化、滑鼠移到功能表區域
         {
+            if (_isClosingTabPages || _isClosingApplication)
+            {
+                return;
+            }
+
             var sb = new StringBuilder();
 
             sb.Append("HideAutoCompleteList`");
 
             foreach (TabPage theTab in tabControl1.TabPages)
             {
-                var tabTitle = theTab.Title;
                 var tabAccessibleDescription = theTab.AccessibleDescription;
 
-                if (!SpecialTabName.Contains(tabTitle))
+                if (theTab.Control is QueryForm)
                 {
                     //隱藏 AutoComplete 下拉清單
                     sb.Append(tabAccessibleDescription).Append(";");
@@ -5960,10 +5674,9 @@ namespace JasonQuery.UI.Forms
                 //判斷是否需要 Commit，由使用者決定
                 foreach (TabPage theTab in tabControl1.TabPages)
                 {
-                    var tabTitle = theTab.Title;
                     var tabAccessibleDescription = theTab.AccessibleDescription;
 
-                    if (SpecialTabName.Contains(tabTitle))
+                    if (!(theTab.Control is QueryForm))
                     {
                         continue;
                     }
@@ -6110,43 +5823,39 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
-            Application.UseWaitCursor = true;
+            var targetPage = tabControl1.SelectedTab;
 
-            var tabTitle0 = tabControl1.SelectedTab.Title;
-            var accessibleDescription = string.Empty;
+            if (!(targetPage?.Control is QueryForm))
+            {
+                targetPage = tabControl1.TabPages.Cast<TabPage>().FirstOrDefault(tabPage => tabPage.Control is QueryForm);
+            }
+
+            if (!(targetPage?.Control is QueryForm query) || query.IsDisposed || query.Disposing
+                || string.IsNullOrWhiteSpace(query.AccessibleDescription)
+                || !string.Equals(targetPage.AccessibleDescription, query.AccessibleDescription, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            Application.UseWaitCursor = true;
 
             try
             {
-                if (tabControl1.TabPages.Count > 0)
+                targetPage.Selected = true;
+
+                if (!ContainsTabPage(targetPage) || !ReferenceEquals(targetPage.Control, query)
+                    || query.IsDisposed || query.Disposing
+                    || !string.Equals(targetPage.AccessibleDescription, query.AccessibleDescription, StringComparison.Ordinal))
                 {
-                    if (SpecialTabName.Contains(tabTitle0)) //所在頁籤不是 SQL Editor
-                    {
-                        //找出其中一個 SQL Editor，送出 Use database 指令
-                        foreach (TabPage theTab in tabControl1.TabPages)
-                        {
-                            var tabTitle = theTab.Title;
-                            var tabAccessibleDescription = theTab.AccessibleDescription;
-
-                            if (SpecialTabName.Contains(tabTitle))
-                            {
-                                continue;
-                            }
-
-                            accessibleDescription = tabAccessibleDescription;
-                            theTab.Selected = true;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        accessibleDescription = tabControl1.SelectedTab.AccessibleDescription;
-                    }
+                    return;
                 }
+
+                var accessibleDescription = query.AccessibleDescription;
 
                 var temp = string.Join("`", tabControl1.TabPages.Cast<TabPage>()
                                                                 .Where
                                                                 (
-                                                                    tab => !SpecialTabName.Contains(tab.Title) && tab.AccessibleDescription != accessibleDescription
+                                                                    tab => tab.Control is QueryForm && tab.AccessibleDescription != accessibleDescription
                                                                 )
                                                                 .Select
                                                                 (
@@ -6167,8 +5876,10 @@ namespace JasonQuery.UI.Forms
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
-
-            Application.UseWaitCursor = false;
+            finally
+            {
+                Application.UseWaitCursor = false;
+            }
         }
 
         private void LoadMySqlDatabase(string database = "")
@@ -6219,43 +5930,39 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
-            Application.UseWaitCursor = true;
+            var targetPage = tabControl1.SelectedTab;
 
-            var tabTitle0 = tabControl1.SelectedTab.Title;
-            var accessibleDescription = string.Empty;
+            if (!(targetPage?.Control is QueryForm))
+            {
+                targetPage = tabControl1.TabPages.Cast<TabPage>().FirstOrDefault(tabPage => tabPage.Control is QueryForm);
+            }
+
+            if (!(targetPage?.Control is QueryForm query) || query.IsDisposed || query.Disposing
+                || string.IsNullOrWhiteSpace(query.AccessibleDescription)
+                || !string.Equals(targetPage.AccessibleDescription, query.AccessibleDescription, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            Application.UseWaitCursor = true;
 
             try
             {
-                if (tabControl1.TabPages.Count > 0)
+                targetPage.Selected = true;
+
+                if (!ContainsTabPage(targetPage) || !ReferenceEquals(targetPage.Control, query)
+                    || query.IsDisposed || query.Disposing
+                    || !string.Equals(targetPage.AccessibleDescription, query.AccessibleDescription, StringComparison.Ordinal))
                 {
-                    if (SpecialTabName.Contains(tabTitle0)) //所在頁籤不是 SQL Editor
-                    {
-                        //找出其中一個 SQL Editor，送出 Use database 指令
-                        foreach (TabPage theTab in tabControl1.TabPages)
-                        {
-                            var tabTitle = theTab.Title;
-                            var tabAccessibleDescription = theTab.AccessibleDescription;
-
-                            if (SpecialTabName.Contains(tabTitle))
-                            {
-                                continue;
-                            }
-
-                            accessibleDescription = tabAccessibleDescription;
-                            theTab.Selected = true;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        accessibleDescription = tabControl1.SelectedTab.AccessibleDescription;
-                    }
+                    return;
                 }
+
+                var accessibleDescription = query.AccessibleDescription;
 
                 var temp = string.Join("`", tabControl1.TabPages.Cast<TabPage>()
                                                                 .Where
                                                                 (
-                                                                    tab => !SpecialTabName.Contains(tab.Title) && tab.AccessibleDescription != accessibleDescription
+                                                                    tab => tab.Control is QueryForm && tab.AccessibleDescription != accessibleDescription
                                                                 )
                                                                 .Select
                                                                 (
@@ -6276,8 +5983,10 @@ namespace JasonQuery.UI.Forms
 
                 MessageBox.Show(message, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
-
-            Application.UseWaitCursor = false;
+            finally
+            {
+                Application.UseWaitCursor = false;
+            }
         }
 
         private void mnuBlobViewer_Click(object sender, EventArgs e)
@@ -6421,12 +6130,6 @@ namespace JasonQuery.UI.Forms
         //20241207 更新 Tab List
         private void UpdateTabList()
         {
-            //20250626 預防 SpecialTabName 為 null (在某些操作手順，它會是 null)
-            if (SpecialTabName == null)
-            {
-                SetSpecialTabName();
-            }
-
             var sb = new StringBuilder();
 
             sb.Append("TabList`");
@@ -6440,7 +6143,7 @@ namespace JasonQuery.UI.Forms
                 var tabTitle = theTab.Title;
                 var tabAccessibleDescription = theTab.AccessibleDescription;
 
-                if (!SpecialTabName.Contains(tabTitle))
+                if (theTab.Control is QueryForm)
                 {
                     sb.Append(tabAccessibleDescription).Append("`");
                 }

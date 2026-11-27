@@ -28,6 +28,7 @@ using JasonQuery.Database.Internal.Repositories;
 using JasonQuery.Display.Columns;
 using JasonQuery.Editor.FindAndReplace;
 using JasonQuery.UI.Helpers;
+using JasonQuery.UI.QueryEditor;
 using JasonQuery.UI.QueryEditor.AutoComplete.Popup;
 using JasonQuery.UI.Services;
 using System;
@@ -38,7 +39,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using Math = System.Math;
@@ -1762,34 +1762,14 @@ namespace JasonQuery.UI.Forms
             ExecuteQuery(command, false, false);
         }
 
+        internal bool CanProcessEditorTabClose => _isFormLoadFinished && !_isBusy && !IsDisposed && !Disposing && !InvokeRequired && tmrMother2Child.Enabled;
+
         private void tmrMother2Child_Tick(object sender, EventArgs e)
         {
             var fileName = string.Empty;
             var temp = string.Empty;
             var temp2 = string.Empty;
             var temp3 = string.Empty;
-
-            if (!string.IsNullOrEmpty(AccessibleDescription) && MyGlobal.CheckFileFromMDIForm.Contains($"`{AccessibleDescription}`"))
-            {
-                //<--Begin:CheckFileDataTimeAndExist() 之前，要先執行 MyGlobal.sCheckFileFromMDIForm 變數取代
-                //判斷是否有相同的 MessageBox 正在顯示中...避免重複顯示
-                temp = TextHelper.GetSafeString(btnSave.Tag);
-                MyGlobal.CheckFileFromMDIForm = MyGlobal.CheckFileFromMDIForm.Replace($"`{AccessibleDescription}", string.Empty);
-
-                if (MyGlobal.CheckFileFromMDIForm == "`")
-                {
-                    MyGlobal.CheckFileFromMDIForm = string.Empty;
-                }
-
-                if (!string.IsNullOrEmpty(temp)) //有存檔過
-                {
-                    CheckFileDateTimeAndExist();
-                }
-                //-->End:CheckFileDataTimeAndExist 之前，要先執行 MyGlobal.sCheckFileFromMDIForm 變數取代
-
-                //這裡要透過全域變數控制「本程式正在作用中」，否則按下「確定」後，從 MessageBox 切換到 Main Form，又會被 Main Form 誤判為 ContainsFocus = true
-                MyGlobal.IsContainsFocusFormOptionsKey = true;
-            }
 
             //判斷是否為指定的子表單
             if (!string.IsNullOrEmpty(MyGlobal.OpenFileFromMDIForm) && !string.IsNullOrEmpty(AccessibleDescription) && MyGlobal.OpenFileFromMDIForm.Substring(0, 17) == AccessibleDescription)
@@ -2528,79 +2508,103 @@ namespace JasonQuery.UI.Forms
             }
             else if (MyGlobal.GlobalTemp.StartsWith("CloseQueryForm`", StringComparison.Ordinal)) //由 TabControl 關閉 Query Form (關閉單一 Form)
             {
+                var request = $"CloseQueryForm`{AccessibleDescription};";
+                var processing = $"CloseQueryForm`+{AccessibleDescription}+;";
+                var cancelled = $"CloseQueryForm`{AccessibleDescription}|CANCEL;";
+
+                if (!string.Equals(MyGlobal.GlobalTemp, request, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                if (!CanProcessEditorTabClose)
+                {
+                    MyGlobal.GlobalTemp = cancelled;
+                    return;
+                }
+
+                MyGlobal.GlobalTemp = processing;
+
                 try
                 {
-                    temp = MyGlobal.GlobalTemp.Replace("CloseQueryForm`", string.Empty);
-                    temp = temp.Split(';')[0];
-
-                    if (temp != AccessibleDescription)
+                    if (IsEditorDirty)
                     {
-                        return;
-                    }
+                        var displayName = HasSavedFile ? SavedFilePath : EditorTabDisplayName;
+                        var saveCaption = LocalizationHelper.GetLanguageString("Save", "form", GetType().Name, "msg", "Save", "Text");
+                        var savePrompt = LocalizationHelper.GetLanguageString("Save file?", "form", GetType().Name, "msg", "SaveFile", "Text");
+                        var saveConfirmationResult = MessageBox.Show(this, $"{savePrompt}\r\n\r\n\"{displayName}\"", saveCaption, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
 
-                    //處理過程中：先把關鍵字串重新命名，以免重複觸發！
-                    MyGlobal.GlobalTemp = MyGlobal.GlobalTemp.Replace($"{AccessibleDescription};", $"+{AccessibleDescription}+;");
+                        if (!string.Equals(MyGlobal.GlobalTemp, processing, StringComparison.Ordinal))
+                        {
+                            return;
+                        }
 
-                    var isCloseForm = true;
-
-                    //檢查檔案是否需要存檔？
-                    if (btnSaveRed.Visible || editor.CanUndo)
-                    {
-                        temp = (btnSave.Tag ?? Tag)?.ToString() ?? string.Empty;
-                        _languageText = LocalizationHelper.GetLanguageString("Save", "form", GetType().Name, "msg", "Save", "Text");
-                        temp2 = LocalizationHelper.GetLanguageString("Save file?", "form", GetType().Name, "msg", "SaveFile", "Text");
-
-                        var result0 = MessageBox.Show($"{temp2}\r\n\r\n\"{temp}\"", _languageText, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-
-                        switch (result0)
+                        switch (saveConfirmationResult)
                         {
                             case DialogResult.Yes:
                                 {
-                                    if (!Save()) //在 MainForm 關閉 Tab，詢問是否存檔，使用者選擇「是」要存檔！
+                                    if (!Save())
                                     {
-                                        //存檔出現狀況
+                                        //Save already reports a write failure. Cancellation must also terminate the close request.
+                                        if (string.Equals(MyGlobal.GlobalTemp, processing, StringComparison.Ordinal))
+                                        {
+                                            MyGlobal.GlobalTemp = $"CloseQueryForm`{AccessibleDescription}|CANCEL;";
+                                        }
+
                                         return;
                                     }
 
-                                    isCloseForm = true;
                                     break;
                                 }
-                            case DialogResult.No: //使用者選擇「不要存檔」！
+                            case DialogResult.No:
                                 {
-                                    isCloseForm = true;
                                     break;
                                 }
                             default:
                                 {
-                                    MyGlobal.GlobalTemp = MyGlobal.GlobalTemp.Replace($"+{AccessibleDescription}+;", $"{AccessibleDescription}|CANCEL;");
-                                    return; //使用者按下取消，告訴 MainForm，此 Tab 不要關閉了！
+                                    MyGlobal.GlobalTemp = cancelled;
+                                    return;
                                 }
                         }
-
-                        //20240306 存檔或不存檔，都要把暫存檔記錄刪除 (下次開啟 JaosnQuery 才不會再次開啟已關閉的檔案)
-                        tmrBackup.Enabled = false;
-                        MyGlobal.DeleteBackupFileInfo(AccessibleName);
                     }
 
-                    //沒異常或檔案不需要存檔，將關鍵字移除
-                    MyGlobal.GlobalTemp = MyGlobal.GlobalTemp.Replace($"+{AccessibleDescription}+;", string.Empty);
-
-                    //20231012 不需要中斷連線，否則 Query Editor 有未 Commit/Rollback 會失效！
-                    //DisconnectDatabase(); //關閉單一 Query Form
-
-                    if (MyGlobal.GlobalTemp == "CloseQueryForm`")
+                    if (!string.Equals(MyGlobal.GlobalTemp, processing, StringComparison.Ordinal))
                     {
-                        MyGlobal.GlobalTemp = string.Empty;
+                        return;
                     }
 
-                    if (isCloseForm)
+                    //No connection close or transaction action is performed here.
+                    var closed = $"CloseQueryForm`{AccessibleDescription}|CLOSED;";
+                    var didClose = false;
+
+                    FormClosedEventHandler onClosed = (closeSender, closeArgs) => didClose = true;
+                    FormClosed += onClosed;
+
+                    try
                     {
-                        Close(); //20240302 透過 MainForm 關閉 QueryForm，此處必須再執行 Close() 關閉表单，否則 Timer 會一直在啟用狀態 (表單資源未釋放！)
+                        Close();
+                    }
+                    finally
+                    {
+                        FormClosed -= onClosed;
+                    }
+
+                    if ((didClose || IsDisposed) && string.Equals(MyGlobal.GlobalTemp, processing, StringComparison.Ordinal))
+                    {
+                        MyGlobal.GlobalTemp = closed;
                     }
                 }
                 catch (Exception ex)
                 {
                     ShowExceptionMessage(ex);
+                }
+                finally
+                {
+                    //A failure or early exit must not leave MainForm waiting on this request.
+                    if (string.Equals(MyGlobal.GlobalTemp, processing, StringComparison.Ordinal))
+                    {
+                        MyGlobal.GlobalTemp = cancelled;
+                    }
                 }
 
                 return;
@@ -2609,11 +2613,13 @@ namespace JasonQuery.UI.Forms
             {
                 try
                 {
-                    temp = MyGlobal.InfoFromMDIForm.Replace("TransferSelectSQL`", string.Empty);
+                    temp = MyGlobal.InfoFromMDIForm.Substring("TransferSelectSQL`".Length);
 
-                    if (temp.Split(';')[0] == AccessibleDescription) //確認是否為指定的 Tab
+                    var transferParts = temp.Split(new[] { ';' }, 2);
+
+                    if (transferParts.Length == 2 && string.Equals(transferParts[0], AccessibleDescription, StringComparison.Ordinal))
                     {
-                        temp = temp.Split(';')[1];
+                        temp = transferParts[1];
 
                         var i = editor.Text.Length + (string.IsNullOrEmpty(editor.Text) ? 0 : 2);
 
@@ -2629,21 +2635,6 @@ namespace JasonQuery.UI.Forms
                 catch (Exception ex)
                 {
                     ShowExceptionMessage(ex);
-                }
-            }
-            else if (MyGlobal.GlobalTemp.StartsWith("RenameTab`", StringComparison.Ordinal)) //20241217 變更頁籤名稱
-            {
-                temp = MyGlobal.GlobalTemp.Replace("RenameTab`", string.Empty);
-
-                if (temp.Split(new[] { MyGlobal.Separator }, StringSplitOptions.None)[0] == AccessibleDescription) //確認是否為指定的 Tab
-                {
-                    MyGlobal.GlobalTemp = string.Empty;
-
-                    var tabTitle = temp.Split(new[] { MyGlobal.Separator }, StringSplitOptions.None)[1]; //要變更的頁籤名稱
-
-                    UpdateBackupFileInfo(_backupFileName, editor.CurrentPosition, tabTitle, TextHelper.GetSafeString(btnSave.Tag));
-
-                    MyGlobal.GlobalTemp = "RenameTabUpdateTabList";
                 }
             }
 
@@ -2663,10 +2654,6 @@ namespace JasonQuery.UI.Forms
                         editor.SelectionEnd = temp.Length + 2;
 
                         #region 20240713 修正 Tab 頁籤及按鈕狀態
-                        //傳資訊到母表單，更新 Tab 資訊
-                        TransferValueToMainForm($"UpdateTabInfo`{Tag}");
-
-                        btnSave.Tag = null;
                         btnSaveRed.Tag = MyGlobal.DateTimeNow();
 
                         //更新按鈕狀態
@@ -2718,7 +2705,11 @@ namespace JasonQuery.UI.Forms
                                 if (MessageBox.Show(messageText, messageCaption, MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.OK)
                                 {
                                     editor.Text = string.Empty;
-                                    WriteFile(fileName); //以指定路徑 + 檔名存檔，內容是空白的
+
+                                    if (!WriteFile(fileName, true))
+                                    {
+                                        return;
+                                    }
                                 }
                                 else
                                 {
@@ -2736,7 +2727,12 @@ namespace JasonQuery.UI.Forms
                                     case DialogResult.Yes:
                                         {
                                             editor.Text = string.Empty;
-                                            WriteFile(fileName); //以指定路徑+檔名存檔，內容是空白的
+
+                                            if (!WriteFile(fileName, true))
+                                            {
+                                                return;
+                                            }
+
                                             break;
                                         }
                                     case DialogResult.No:
@@ -2784,12 +2780,8 @@ namespace JasonQuery.UI.Forms
 
                             if (!LoadFile(fileName, out var isLargeFile))
                             {
-                                if (!string.IsNullOrEmpty(MyGlobal.CancelOpenAndCloseTab))
-                                {
-                                    //20191013 關閉 - 要透過 MainForm 才行
-                                    TransferValueToMainForm("CloseEmptyTab`");
-                                }
-
+                                //The host validates this editor's reference and empty state.
+                                TransferValueToMainForm("CloseEmptyTab`");
                                 return;
                             }
                             else
@@ -2798,15 +2790,13 @@ namespace JasonQuery.UI.Forms
                                 MyGlobal.DeleteBackupFileInfo(AccessibleName);
                             }
 
-                            //傳資訊到母表單，更新 Tab 資訊
-                            TransferValueToMainForm($"UpdateTabInfo`{fileName}");
+                            _editorTabState = QueryEditorTabState.CreateOpenedFile(fileName);
+                            _requiresSaveWithoutUndo = false;
 
                             //傳資訊到母表單，更新 Recent Files 資訊
                             TransferValueToMainForm($"UpdateRecentFiles`{fileName}");
 
-                            btnSave.Tag = fileName;
                             btnSaveRed.Tag = File.GetLastWriteTime(fileName).ToString(DateTimeFormat);
-                            //btnSave.Enabled = true;
                             btnSaveAs.Enabled = true;
 
                             editor.EmptyUndoBuffer();

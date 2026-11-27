@@ -743,7 +743,7 @@ namespace JasonQuery.UI.Helpers
             {
                 if (isFromSchemaBrowser)
                 {
-                    MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`SELECT * FROM {schemaName}";
+                    MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`SELECT * FROM {schemaName};";
                 }
                 else
                 {
@@ -1112,7 +1112,7 @@ namespace JasonQuery.UI.Helpers
             {
                 if (isFromSchemaBrowser)
                 {
-                    MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`select * from {schemaNode}.{schemaName}";
+                    MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`select * from {schemaNode}.{schemaName};";
                 }
                 else
                 {
@@ -1481,7 +1481,7 @@ namespace JasonQuery.UI.Helpers
             {
                 if (isFromSchemaBrowser)
                 {
-                    MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`select * from {schemaDbo}.{schemaName}";
+                    MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`select * from {schemaDbo}.{schemaName};";
                 }
                 else
                 {
@@ -1842,7 +1842,7 @@ namespace JasonQuery.UI.Helpers
             {
                 if (isFromSchemaBrowser)
                 {
-                    MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`select * from {schemaName}";
+                    MyGlobal.GlobalTemp = $"PasteFromSchemaBrowser`select * from {schemaName};";
                 }
                 else
                 {

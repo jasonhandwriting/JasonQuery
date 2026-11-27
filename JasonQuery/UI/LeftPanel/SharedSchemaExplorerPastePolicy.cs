@@ -57,7 +57,17 @@ namespace JasonQuery.UI.LeftPanel
             {
                 case SharedSchemaExplorerMenuCommand.PasteSelectAll:
                     {
-                        return TryBuildSelectAll(selection, name, out pasteText);
+                        if (!TryBuildSelectAll(selection, name, out pasteText))
+                        {
+                            return false;
+                        }
+
+                        if (target == LeftPanelTargetKind.SchemaBrowserForm)
+                        {
+                            pasteText += ";";
+                        }
+
+                        return true;
                     }
                 case SharedSchemaExplorerMenuCommand.PasteName:
                     {
