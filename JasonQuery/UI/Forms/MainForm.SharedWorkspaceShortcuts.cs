@@ -4,8 +4,7 @@ using System.Windows.Forms;
 
 namespace JasonQuery.UI.Forms
 {
-    //MainForm owns shortcuts for the shared left workspace.
-    //F6, F8 and F9 are active shared routes; F7 retains its existing shortcut path until ownership is migrated.
+    //MainForm owns F6/F7/F8/F9 shortcuts for the shared left workspace.
     public partial class MainForm
     {
         private SharedWorkspaceShortcutMessageFilter _sharedWorkspaceShortcutMessageFilter;
@@ -64,6 +63,30 @@ namespace JasonQuery.UI.Forms
             }
 
             c1DockingTabLeftPanel.SelectedTab = tabLeftAutoReplace;
+
+            return true;
+        }
+
+        private bool TrySelectSharedSchemaExplorerFromShortcut()
+        {
+            if (IsDisposed || Disposing || !tabControl1.Visible
+                || splitContainerMainWorkspace.IsDisposed
+                || !splitContainerMainWorkspace.Visible
+                || c1DockingTabLeftPanel.IsDisposed
+                || tabLeftSchemaExplorer.IsDisposed
+                || c1GridSharedSchemaExplorer.IsDisposed
+                || !tabLeftSchemaExplorer.TabVisible
+                || !LeftPanelAvailabilityPolicy.Resolve(CaptureLeftPanelContext()).IsEnabled(LeftPanelPage.SchemaInformation))
+            {
+                return false;
+            }
+
+            if (splitContainerMainWorkspace.Panel1Collapsed)
+            {
+                splitContainerMainWorkspace.Panel1Collapsed = false;
+            }
+
+            c1DockingTabLeftPanel.SelectedTab = tabLeftSchemaExplorer;
 
             return true;
         }
@@ -142,7 +165,7 @@ namespace JasonQuery.UI.Forms
 
                 var keyData = (Keys)message.WParam.ToInt32();
 
-                if (keyData != Keys.F6 && keyData != Keys.F8 && keyData != Keys.F9)
+                if (keyData != Keys.F6 && keyData != Keys.F7 && keyData != Keys.F8 && keyData != Keys.F9)
                 {
                     return false;
                 }
@@ -158,6 +181,11 @@ namespace JasonQuery.UI.Forms
                     case Keys.F6:
                         {
                             _owner.TrySelectSharedAutoReplaceFromShortcut();
+                            return true;
+                        }
+                    case Keys.F7:
+                        {
+                            _owner.TrySelectSharedSchemaExplorerFromShortcut();
                             return true;
                         }
                     case Keys.F8:

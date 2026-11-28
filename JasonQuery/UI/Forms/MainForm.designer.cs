@@ -44,21 +44,6 @@
             this.mnuFile_SaveAs = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem9 = new System.Windows.Forms.ToolStripSeparator();
             this.mnuExit = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuQuery = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuNewSqlEditor2 = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem10 = new System.Windows.Forms.ToolStripSeparator();
-            this.mnuQuery_Execute = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuQuery_ExecuteCurrentBlock = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem11 = new System.Windows.Forms.ToolStripSeparator();
-            this.mnuQuery_Explain = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuQuery_ExplainAnalyze = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuQuery_ExplainOptions = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem12 = new System.Windows.Forms.ToolStripSeparator();
-            this.mnuAutoRollback = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuAutoCommit = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem13 = new System.Windows.Forms.ToolStripSeparator();
-            this.mnuQuery_Commit = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuQuery_Rollback = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuRecentFiles = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMyFavorite = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuSwitchDatabase = new System.Windows.Forms.ToolStripMenuItem();
@@ -190,7 +175,6 @@
             this.mnuMainForm.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.mnuMainForm.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mnuFile,
-            this.mnuQuery,
             this.mnuRecentFiles,
             this.mnuMyFavorite,
             this.mnuSwitchDatabase,
@@ -324,122 +308,6 @@
             this.mnuExit.Size = new System.Drawing.Size(272, 22);
             this.mnuExit.Text = "E&xit";
             this.mnuExit.Click += new System.EventHandler(this.mnuExit_Click);
-            // 
-            // mnuQuery
-            // 
-            this.mnuQuery.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuNewSqlEditor2,
-            this.toolStripMenuItem10,
-            this.mnuQuery_Execute,
-            this.mnuQuery_ExecuteCurrentBlock,
-            this.toolStripMenuItem11,
-            this.mnuQuery_Explain,
-            this.mnuQuery_ExplainAnalyze,
-            this.mnuQuery_ExplainOptions,
-            this.toolStripMenuItem12,
-            this.mnuAutoRollback,
-            this.mnuAutoCommit,
-            this.toolStripMenuItem13,
-            this.mnuQuery_Commit,
-            this.mnuQuery_Rollback});
-            this.mnuQuery.Name = "mnuQuery";
-            this.mnuQuery.ShortcutKeys = System.Windows.Forms.Keys.F7;
-            this.mnuQuery.Size = new System.Drawing.Size(53, 20);
-            this.mnuQuery.Text = "&Query";
-            this.mnuQuery.Visible = false;
-            // 
-            // mnuNewSqlEditor2
-            // 
-            this.mnuNewSqlEditor2.Image = ((System.Drawing.Image)(resources.GetObject("mnuNewSqlEditor2.Image")));
-            this.mnuNewSqlEditor2.Name = "mnuNewSqlEditor2";
-            this.mnuNewSqlEditor2.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.mnuNewSqlEditor2.Size = new System.Drawing.Size(216, 22);
-            this.mnuNewSqlEditor2.Text = "&New SQL Editor";
-            this.mnuNewSqlEditor2.Click += new System.EventHandler(this.mnuNewSqlEditor_Click);
-            // 
-            // toolStripMenuItem10
-            // 
-            this.toolStripMenuItem10.Name = "toolStripMenuItem10";
-            this.toolStripMenuItem10.Size = new System.Drawing.Size(213, 6);
-            // 
-            // mnuQuery_Execute
-            // 
-            this.mnuQuery_Execute.Image = ((System.Drawing.Image)(resources.GetObject("mnuQuery_Execute.Image")));
-            this.mnuQuery_Execute.Name = "mnuQuery_Execute";
-            this.mnuQuery_Execute.ShortcutKeys = System.Windows.Forms.Keys.F5;
-            this.mnuQuery_Execute.Size = new System.Drawing.Size(216, 22);
-            this.mnuQuery_Execute.Text = "Execute";
-            // 
-            // mnuQuery_ExecuteCurrentBlock
-            // 
-            this.mnuQuery_ExecuteCurrentBlock.Image = ((System.Drawing.Image)(resources.GetObject("mnuQuery_ExecuteCurrentBlock.Image")));
-            this.mnuQuery_ExecuteCurrentBlock.Name = "mnuQuery_ExecuteCurrentBlock";
-            this.mnuQuery_ExecuteCurrentBlock.Size = new System.Drawing.Size(216, 22);
-            this.mnuQuery_ExecuteCurrentBlock.Text = "Execute Current Block";
-            // 
-            // toolStripMenuItem11
-            // 
-            this.toolStripMenuItem11.Name = "toolStripMenuItem11";
-            this.toolStripMenuItem11.Size = new System.Drawing.Size(213, 6);
-            // 
-            // mnuQuery_Explain
-            // 
-            this.mnuQuery_Explain.Name = "mnuQuery_Explain";
-            this.mnuQuery_Explain.ShortcutKeys = System.Windows.Forms.Keys.F7;
-            this.mnuQuery_Explain.Size = new System.Drawing.Size(216, 22);
-            this.mnuQuery_Explain.Text = "Explain";
-            this.mnuQuery_Explain.Visible = false;
-            // 
-            // mnuQuery_ExplainAnalyze
-            // 
-            this.mnuQuery_ExplainAnalyze.Name = "mnuQuery_ExplainAnalyze";
-            this.mnuQuery_ExplainAnalyze.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F7)));
-            this.mnuQuery_ExplainAnalyze.Size = new System.Drawing.Size(216, 22);
-            this.mnuQuery_ExplainAnalyze.Text = "Explain Analyze";
-            this.mnuQuery_ExplainAnalyze.Visible = false;
-            // 
-            // mnuQuery_ExplainOptions
-            // 
-            this.mnuQuery_ExplainOptions.Name = "mnuQuery_ExplainOptions";
-            this.mnuQuery_ExplainOptions.Size = new System.Drawing.Size(216, 22);
-            this.mnuQuery_ExplainOptions.Text = "Explain Options";
-            this.mnuQuery_ExplainOptions.Visible = false;
-            // 
-            // toolStripMenuItem12
-            // 
-            this.toolStripMenuItem12.Name = "toolStripMenuItem12";
-            this.toolStripMenuItem12.Size = new System.Drawing.Size(213, 6);
-            this.toolStripMenuItem12.Visible = false;
-            // 
-            // mnuAutoRollback
-            // 
-            this.mnuAutoRollback.Name = "mnuAutoRollback";
-            this.mnuAutoRollback.Size = new System.Drawing.Size(216, 22);
-            this.mnuAutoRollback.Text = "Auto-Rollback";
-            // 
-            // mnuAutoCommit
-            // 
-            this.mnuAutoCommit.Enabled = false;
-            this.mnuAutoCommit.Name = "mnuAutoCommit";
-            this.mnuAutoCommit.Size = new System.Drawing.Size(216, 22);
-            this.mnuAutoCommit.Text = "Auto-Commit";
-            // 
-            // toolStripMenuItem13
-            // 
-            this.toolStripMenuItem13.Name = "toolStripMenuItem13";
-            this.toolStripMenuItem13.Size = new System.Drawing.Size(213, 6);
-            // 
-            // mnuQuery_Commit
-            // 
-            this.mnuQuery_Commit.Name = "mnuQuery_Commit";
-            this.mnuQuery_Commit.Size = new System.Drawing.Size(216, 22);
-            this.mnuQuery_Commit.Text = "Commit";
-            // 
-            // mnuQuery_Rollback
-            // 
-            this.mnuQuery_Rollback.Name = "mnuQuery_Rollback";
-            this.mnuQuery_Rollback.Size = new System.Drawing.Size(216, 22);
-            this.mnuQuery_Rollback.Text = "Rollback";
             // 
             // mnuRecentFiles
             // 
@@ -1513,8 +1381,6 @@
         private System.Windows.Forms.ToolStripMenuItem mnuAbout;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem mnuExit;
-        private System.Windows.Forms.ToolStripMenuItem mnuQuery;
-        private System.Windows.Forms.ToolStripMenuItem mnuNewSqlEditor2;
         private System.Windows.Forms.ToolStripMenuItem mnuRecentFiles;
         private System.Windows.Forms.ToolStripMenuItem mnuMyFavorite;
         private System.Windows.Forms.ToolStripMenuItem mnuCompactMDB;
@@ -1526,19 +1392,6 @@
         private System.Windows.Forms.ToolStripMenuItem mnuFile_SaveAs;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem9;
         private System.Windows.Forms.ToolStripMenuItem mnuCloseConnection;
-        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem10;
-        private System.Windows.Forms.ToolStripMenuItem mnuQuery_Execute;
-        private System.Windows.Forms.ToolStripMenuItem mnuQuery_ExecuteCurrentBlock;
-        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem11;
-        private System.Windows.Forms.ToolStripMenuItem mnuQuery_Explain;
-        private System.Windows.Forms.ToolStripMenuItem mnuQuery_ExplainAnalyze;
-        private System.Windows.Forms.ToolStripMenuItem mnuQuery_ExplainOptions;
-        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem12;
-        private System.Windows.Forms.ToolStripMenuItem mnuAutoRollback;
-        private System.Windows.Forms.ToolStripMenuItem mnuAutoCommit;
-        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem13;
-        private System.Windows.Forms.ToolStripMenuItem mnuQuery_Commit;
-        private System.Windows.Forms.ToolStripMenuItem mnuQuery_Rollback;
         private C1.Win.C1Themes.C1ThemeController c1ThemeController1;
         private System.Windows.Forms.Timer tmrPendingTransactionIdleCheck;
         private System.Windows.Forms.ToolStripMenuItem mnuOpenConnection;
