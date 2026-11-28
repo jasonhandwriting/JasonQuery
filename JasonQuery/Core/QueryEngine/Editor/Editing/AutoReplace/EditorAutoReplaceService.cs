@@ -63,12 +63,14 @@ namespace JasonQuery.Core.QueryEngine.Editor.Editing.AutoReplace
             editor.SelectionStart = posStart;
             editor.SelectionEnd = posEnd + 1; //多選取最後的空白
 
-            var temp = TextHelper.GetValueFromDictionary(context.AutoReplaceMap, editor.SelectedText.Trim());
+            var keyword = editor.SelectedText.Trim();
+            var temp = keyword.Length >= 2 ? TextHelper.GetValueFromDictionary(context.AutoReplaceMap, keyword) : string.Empty;
 
             if (string.IsNullOrEmpty(temp))
             {
                 editor.SelectionStart = editor.CurrentPosition;
                 editor.SelectionEnd = editor.CurrentPosition;
+
                 return false;
             }
 

@@ -350,6 +350,9 @@
     <Compile Include="Core\Database\Execution\SchemaDirtyPolicy.cs" />
     <Compile Include="Core\Database\Execution\EditorTransactionCommandPolicy.cs" />
     <Compile Include="Core\Database\Execution\SchemaChangeDdlClassifier.cs" />
+    <Compile Include="UI\Forms\MainForm.SharedAutoReplace.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\Forms\MainForm.SharedSchemaExplorerFilter.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -1009,6 +1012,7 @@
     <Compile Include="UI\Helpers\SingleRecordCellViewerContextBuilder.cs" />
     <Compile Include="UI\LeftPanel\NonOracleSharedAddColumnPreviewPolicy.cs" />
     <Compile Include="UI\LeftPanel\NonOracleSharedColumnDdlBridgePolicy.cs" />
+    <Compile Include="UI\LeftPanel\SharedAutoReplaceState.cs" />
     <Compile Include="UI\LeftPanel\SharedSchemaExplorerFilterPolicy.cs" />
     <Compile Include="UI\LeftPanel\SharedSqlNavigatorSnapshot.cs" />
     <Compile Include="UI\Models\CellViewerCellContext.cs" />

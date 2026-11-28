@@ -88,6 +88,7 @@ namespace JasonQuery.UI.Forms
         public MainForm()
         {
             InitializeComponent();
+            InitializeSharedAutoReplace();
             InitializeSharedSqlNavigator();
             InitializeSharedLeftPanelHost();
             InitializeSharedTabList();
@@ -359,6 +360,8 @@ namespace JasonQuery.UI.Forms
             MessageBoxManager.Register();
 
             ApplySharedSchemaExplorerLocalization();
+            ApplySharedAutoReplaceLocalization();
+            ApplySharedAutoReplaceVisualParity();
             ApplySharedTabListLocalization();
             ApplySharedTabListVisualParity();
             ApplySharedSqlNavigatorLocalization();
@@ -2019,6 +2022,7 @@ namespace JasonQuery.UI.Forms
             LoadRecentList();
             LoadMyFavoriteFiles();
 
+            RefreshSharedAutoReplace(dtData);
             ApplySharedTabListVisualParity();
             ApplySharedSqlNavigatorVisualParity();
 
@@ -2435,9 +2439,11 @@ namespace JasonQuery.UI.Forms
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            DisposeSharedAutoReplace();
             DisposeSharedSqlNavigator();
             DisposeSharedTabList();
             DisposeSharedLeftPanelHost();
+
             SystemEvents.SessionEnding -= SystemEvents_SessionEnding;
             MessageBoxManager.Unregister();
         }
@@ -2726,6 +2732,7 @@ namespace JasonQuery.UI.Forms
                 {
                     MyGlobal.GlobalTemp = string.Empty;
                     ExceptionDialogService.Show(this, new InvalidOperationException("Tab close cancelled: the editor did not accept the close request."));
+
                     return false;
                 }
 
@@ -2784,6 +2791,7 @@ namespace JasonQuery.UI.Forms
             try
             {
                 Control controlToAdd = null;
+
                 var accessibleDescription = $"{DateTime.Now:yyyyMMddHHmmssfff}";
 
                 //20240301 記錄備份的訊息
@@ -2800,6 +2808,7 @@ namespace JasonQuery.UI.Forms
                             _queryForm = new QueryForm
                             {
                                 MdiParent = this,
+                                SharedAutoReplaceMapProvider = GetSharedAutoReplaceMap,
                                 AccessibleDefaultActionDescription = string.Empty
                             };
 
@@ -4560,6 +4569,7 @@ namespace JasonQuery.UI.Forms
                 }
 
                 UpdateTabTooltip(ResolveTabTooltip(tabControl1.TabPages[i]));
+
                 break;
             }
         }

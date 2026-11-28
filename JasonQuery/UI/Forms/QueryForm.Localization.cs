@@ -71,8 +71,6 @@ namespace JasonQuery.UI.Forms
 
             if (!isFormLoad)
             {
-                ApplyAutoReplaceLocalizedCaptions();
-
                 if (string.IsNullOrEmpty(DatabaseSqlExecutor.DatabaseName) && (IsSqlServer || IsMySql))
                 {
                     _languageText = LocalizationHelper.GetLanguageString("Please use the USE statement to select a particular database first.。", "form", GetType().Name, "msg", "SelectDatabaseFirst", "Text");
@@ -140,8 +138,6 @@ namespace JasonQuery.UI.Forms
 
                 lblInfoEditor.BackColor = ColorTranslator.FromHtml("#DFE9F5");
 
-                ApplyAutoReplaceTheme();
-
                 c1ThemeController1.SetTheme(c1GridTabList, "VS2013Dark");
                 c1GridTabList.BackColor = ColorTranslator.FromHtml("#2D2D30");
 
@@ -174,8 +170,6 @@ namespace JasonQuery.UI.Forms
                 _toolstripUnfocused = SystemColors.Control;
 
                 lblInfoEditor.BackColor = ColorTranslator.FromHtml(MyLibrary.ColorEditorBackground);
-
-                ApplyAutoReplaceTheme();
 
                 c1ThemeController1.SetTheme(c1GridTabList, "(default)");
                 c1GridTabList.BackColor = ColorTranslator.FromHtml("#F0F0F0");
@@ -242,8 +236,6 @@ namespace JasonQuery.UI.Forms
 
             lblQueryTimeoutPosition.Text = lblQueryTimeout.Text;
             nudQueryTimeout.Location = new Point(lblQueryTimeoutPosition.Left + lblQueryTimeoutPosition.Width, nudQueryTimeout.Top);
-
-            ApplyAutoReplaceLayoutAdjustments();
 
             btnHelp_QueryTimeout.Location = new Point(nudQueryTimeout.Left + nudQueryTimeout.Width + 3, btnHelp_QueryTimeout.Top);
         }

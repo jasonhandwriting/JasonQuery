@@ -110,16 +110,14 @@ namespace JasonQuery.UI.LeftPanel
 
             var isQuery = context.ActiveTarget == LeftPanelTargetKind.QueryForm;
 
-            return new LeftPanelAvailability(isQuery && context.AutoReplaceEnabled, context.SchemaReady, context.HasOpenTabs, isQuery && context.HasSqlStatements);
+            return new LeftPanelAvailability(context.AutoReplaceEnabled, context.SchemaReady, context.HasOpenTabs, isQuery && context.HasSqlStatements);
         }
     }
 
-    //Implemented per QueryForm in a later phase. The returned working tables must belong to that QueryForm; the MainForm grid never owns the AutoReplace dictionary.
+    //Legacy query-scoped SQL navigation contract. Auto Replace is owned by MainForm.
     public interface IQueryLeftPanelDataSource
     {
-        DataTable AutoReplaceWorkingTable { get; }
         DataTable SqlNavigatorWorkingTable { get; }
-        bool TryCommitAutoReplaceEdits();
         bool TryNavigateToSql(int oneBasedPosition);
     }
 

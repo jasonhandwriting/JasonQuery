@@ -133,6 +133,7 @@
             this.splitContainerMainWorkspace = new System.Windows.Forms.SplitContainer();
             this.c1DockingTabLeftPanel = new C1.Win.C1Command.C1DockingTab();
             this.tabLeftAutoReplace = new C1.Win.C1Command.C1DockingTabPage();
+            this.c1GridSharedAutoReplace = new C1.Win.C1TrueDBGrid.C1TrueDBGrid();
             this.lblAutoReplacePosition = new System.Windows.Forms.Label();
             this.btnHelp_AutoReplace = new C1.Win.C1Input.C1Button();
             this.tsAutoReplace = new System.Windows.Forms.ToolStrip();
@@ -155,9 +156,9 @@
             this.tabLeftTabList = new C1.Win.C1Command.C1DockingTabPage();
             this.c1GridSharedTabList = new C1.Win.C1TrueDBGrid.C1TrueDBGrid();
             this.tabLeftSqlNavigator = new C1.Win.C1Command.C1DockingTabPage();
+            this.c1GridSharedSqlNavigator = new C1.Win.C1TrueDBGrid.C1TrueDBGrid();
             this.tabControl1 = new Crownwood.Magic.Controls.TabControl();
             this.tmrPendingTransactionIdleCheck = new System.Windows.Forms.Timer(this.components);
-            this.c1GridSharedSqlNavigator = new C1.Win.C1TrueDBGrid.C1TrueDBGrid();
             this.mnuMainForm.SuspendLayout();
             this.tsMainMenuToolBar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.c1ThemeController1)).BeginInit();
@@ -171,6 +172,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.c1DockingTabLeftPanel)).BeginInit();
             this.c1DockingTabLeftPanel.SuspendLayout();
             this.tabLeftAutoReplace.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.c1GridSharedAutoReplace)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.btnHelp_AutoReplace)).BeginInit();
             this.tsAutoReplace.SuspendLayout();
             this.tabLeftSchemaExplorer.SuspendLayout();
@@ -1073,6 +1075,7 @@
             // 
             // tabLeftAutoReplace
             // 
+            this.tabLeftAutoReplace.Controls.Add(this.c1GridSharedAutoReplace);
             this.tabLeftAutoReplace.Controls.Add(this.lblAutoReplacePosition);
             this.tabLeftAutoReplace.Controls.Add(this.btnHelp_AutoReplace);
             this.tabLeftAutoReplace.Controls.Add(this.tsAutoReplace);
@@ -1082,6 +1085,32 @@
             this.tabLeftAutoReplace.Size = new System.Drawing.Size(223, 675);
             this.tabLeftAutoReplace.TabIndex = 0;
             this.tabLeftAutoReplace.Text = "Auto Replace";
+            // 
+            // c1GridSharedAutoReplace
+            // 
+            this.c1GridSharedAutoReplace.AllowUpdateOnBlur = false;
+            this.c1GridSharedAutoReplace.AlternatingRows = true;
+            this.c1GridSharedAutoReplace.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
+            this.c1GridSharedAutoReplace.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.c1GridSharedAutoReplace.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.c1GridSharedAutoReplace.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.c1GridSharedAutoReplace.GroupByCaption = "將欄位標題拖拽到這裡以便按照該欄位進行分組";
+            this.c1GridSharedAutoReplace.Images.Add(((System.Drawing.Image)(resources.GetObject("c1GridSharedAutoReplace.Images"))));
+            this.c1GridSharedAutoReplace.Location = new System.Drawing.Point(0, 25);
+            this.c1GridSharedAutoReplace.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.c1GridSharedAutoReplace.Name = "c1GridSharedAutoReplace";
+            this.c1GridSharedAutoReplace.PreviewInfo.Caption = "PrintPreview窗口";
+            this.c1GridSharedAutoReplace.PreviewInfo.Location = new System.Drawing.Point(0, 0);
+            this.c1GridSharedAutoReplace.PreviewInfo.Size = new System.Drawing.Size(0, 0);
+            this.c1GridSharedAutoReplace.PreviewInfo.ZoomFactor = 75D;
+            this.c1GridSharedAutoReplace.PrintInfo.MeasurementDevice = C1.Win.C1TrueDBGrid.PrintInfo.MeasurementDeviceEnum.Screen;
+            this.c1GridSharedAutoReplace.PrintInfo.MeasurementPrinterName = null;
+            this.c1GridSharedAutoReplace.RowHeight = 19;
+            this.c1GridSharedAutoReplace.Size = new System.Drawing.Size(223, 650);
+            this.c1GridSharedAutoReplace.TabIndex = 99;
+            this.c1ThemeController1.SetTheme(this.c1GridSharedAutoReplace, "(default)");
+            this.c1GridSharedAutoReplace.UseCompatibleTextRendering = false;
+            this.c1GridSharedAutoReplace.PropBag = resources.GetString("c1GridSharedAutoReplace.PropBag");
             // 
             // lblAutoReplacePosition
             // 
@@ -1303,7 +1332,7 @@
             this.tabLeftTabList.Text = "Tab List";
             // 
             // c1GridSharedTabList
-            //
+            // 
             this.c1GridSharedTabList.AllowUpdate = false;
             this.c1GridSharedTabList.AllowUpdateOnBlur = false;
             this.c1GridSharedTabList.AlternatingRows = true;
@@ -1328,7 +1357,7 @@
             this.c1ThemeController1.SetTheme(this.c1GridSharedTabList, "(default)");
             this.c1GridSharedTabList.UseCompatibleTextRendering = false;
             this.c1GridSharedTabList.PropBag = resources.GetString("c1GridSharedTabList.PropBag");
-            //
+            // 
             // tabLeftSqlNavigator
             // 
             this.tabLeftSqlNavigator.Controls.Add(this.c1GridSharedSqlNavigator);
@@ -1338,6 +1367,36 @@
             this.tabLeftSqlNavigator.Size = new System.Drawing.Size(223, 675);
             this.tabLeftSqlNavigator.TabIndex = 3;
             this.tabLeftSqlNavigator.Text = "SQL Navigator";
+            // 
+            // c1GridSharedSqlNavigator
+            // 
+            this.c1GridSharedSqlNavigator.AllowFilter = false;
+            this.c1GridSharedSqlNavigator.AllowSort = false;
+            this.c1GridSharedSqlNavigator.AllowUpdate = false;
+            this.c1GridSharedSqlNavigator.AllowUpdateOnBlur = false;
+            this.c1GridSharedSqlNavigator.AlternatingRows = true;
+            this.c1GridSharedSqlNavigator.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
+            this.c1GridSharedSqlNavigator.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.c1GridSharedSqlNavigator.FilterBar = true;
+            this.c1GridSharedSqlNavigator.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.c1GridSharedSqlNavigator.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.c1GridSharedSqlNavigator.GroupByCaption = "將欄位標題拖拽到這裡以便按照該欄位進行分組";
+            this.c1GridSharedSqlNavigator.Images.Add(((System.Drawing.Image)(resources.GetObject("c1GridSharedSqlNavigator.Images"))));
+            this.c1GridSharedSqlNavigator.Location = new System.Drawing.Point(0, 0);
+            this.c1GridSharedSqlNavigator.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.c1GridSharedSqlNavigator.Name = "c1GridSharedSqlNavigator";
+            this.c1GridSharedSqlNavigator.PreviewInfo.Caption = "PrintPreview窗口";
+            this.c1GridSharedSqlNavigator.PreviewInfo.Location = new System.Drawing.Point(0, 0);
+            this.c1GridSharedSqlNavigator.PreviewInfo.Size = new System.Drawing.Size(0, 0);
+            this.c1GridSharedSqlNavigator.PreviewInfo.ZoomFactor = 75D;
+            this.c1GridSharedSqlNavigator.PrintInfo.MeasurementDevice = C1.Win.C1TrueDBGrid.PrintInfo.MeasurementDeviceEnum.Screen;
+            this.c1GridSharedSqlNavigator.PrintInfo.MeasurementPrinterName = null;
+            this.c1GridSharedSqlNavigator.RowHeight = 19;
+            this.c1GridSharedSqlNavigator.Size = new System.Drawing.Size(223, 675);
+            this.c1GridSharedSqlNavigator.TabIndex = 68;
+            this.c1ThemeController1.SetTheme(this.c1GridSharedSqlNavigator, "(default)");
+            this.c1GridSharedSqlNavigator.UseCompatibleTextRendering = false;
+            this.c1GridSharedSqlNavigator.PropBag = resources.GetString("c1GridSharedSqlNavigator.PropBag");
             // 
             // tabControl1
             // 
@@ -1368,36 +1427,6 @@
             // 
             this.tmrPendingTransactionIdleCheck.Tick += new System.EventHandler(this.tmrPendingTransactionIdleCheck_Tick);
             // 
-            // c1GridSharedSqlNavigator
-            //
-            this.c1GridSharedSqlNavigator.AllowFilter = false;
-            this.c1GridSharedSqlNavigator.AllowSort = false;
-            this.c1GridSharedSqlNavigator.AllowUpdate = false;
-            this.c1GridSharedSqlNavigator.AllowUpdateOnBlur = false;
-            this.c1GridSharedSqlNavigator.AlternatingRows = true;
-            this.c1GridSharedSqlNavigator.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
-            this.c1GridSharedSqlNavigator.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.c1GridSharedSqlNavigator.FilterBar = true;
-            this.c1GridSharedSqlNavigator.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.c1GridSharedSqlNavigator.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.c1GridSharedSqlNavigator.GroupByCaption = "將欄位標題拖拽到這裡以便按照該欄位進行分組";
-            this.c1GridSharedSqlNavigator.Images.Add(((System.Drawing.Image)(resources.GetObject("c1GridSharedSqlNavigator.Images"))));
-            this.c1GridSharedSqlNavigator.Location = new System.Drawing.Point(0, 0);
-            this.c1GridSharedSqlNavigator.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.c1GridSharedSqlNavigator.Name = "c1GridSharedSqlNavigator";
-            this.c1GridSharedSqlNavigator.PreviewInfo.Caption = "PrintPreview窗口";
-            this.c1GridSharedSqlNavigator.PreviewInfo.Location = new System.Drawing.Point(0, 0);
-            this.c1GridSharedSqlNavigator.PreviewInfo.Size = new System.Drawing.Size(0, 0);
-            this.c1GridSharedSqlNavigator.PreviewInfo.ZoomFactor = 75D;
-            this.c1GridSharedSqlNavigator.PrintInfo.MeasurementDevice = C1.Win.C1TrueDBGrid.PrintInfo.MeasurementDeviceEnum.Screen;
-            this.c1GridSharedSqlNavigator.PrintInfo.MeasurementPrinterName = null;
-            this.c1GridSharedSqlNavigator.RowHeight = 19;
-            this.c1GridSharedSqlNavigator.Size = new System.Drawing.Size(223, 675);
-            this.c1GridSharedSqlNavigator.TabIndex = 68;
-            this.c1ThemeController1.SetTheme(this.c1GridSharedSqlNavigator, "(default)");
-            this.c1GridSharedSqlNavigator.UseCompatibleTextRendering = false;
-            this.c1GridSharedSqlNavigator.PropBag = resources.GetString("c1GridSharedSqlNavigator.PropBag");
-            //
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -1441,6 +1470,7 @@
             this.c1DockingTabLeftPanel.ResumeLayout(false);
             this.tabLeftAutoReplace.ResumeLayout(false);
             this.tabLeftAutoReplace.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.c1GridSharedAutoReplace)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.btnHelp_AutoReplace)).EndInit();
             this.tsAutoReplace.ResumeLayout(false);
             this.tsAutoReplace.PerformLayout();
@@ -1588,5 +1618,6 @@
         private C1.Win.C1TrueDBGrid.C1TrueDBGrid c1GridSharedSchemaExplorer;
         private C1.Win.C1TrueDBGrid.C1TrueDBGrid c1GridSharedTabList;
         private C1.Win.C1TrueDBGrid.C1TrueDBGrid c1GridSharedSqlNavigator;
+        private C1.Win.C1TrueDBGrid.C1TrueDBGrid c1GridSharedAutoReplace;
     }
 }

@@ -2143,6 +2143,7 @@ namespace JasonQuery.UI.Forms
 
             //The MainForm must remove the page belonging to this OptionsForm.
             TransferValueToMainForm("CloseOptionsTab`");
+
             return true;
         }
 
@@ -2682,7 +2683,6 @@ namespace JasonQuery.UI.Forms
             //儲存設定：Auto Replace
             #region 儲存設定：Auto Replace
             settingBatch.UpdateSetting("AutoReplaceConfig", "EnableAutoReplace", chkEnableAutoReplace.Checked ? "1" : "0");
-            MyLibrary.EnableAutoReplace = chkEnableAutoReplace.Checked;
 
             var sbSql = new StringBuilder();
 
@@ -2986,6 +2986,7 @@ namespace JasonQuery.UI.Forms
                 return;
             }
 
+            MyLibrary.EnableAutoReplace = chkEnableAutoReplace.Checked;
             TransferValueToMainForm("ReloadQueryEditorSetting`");
 
             //判斷語系檔案是否存在
@@ -3484,6 +3485,16 @@ namespace JasonQuery.UI.Forms
                 _languageText = LocalizationHelper.GetLanguageString("Please input \"Keyword\"!", "form", GetType().Name, "msg", "InputKeyword", "Text");
                 MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 txtKeyword.Focus();
+
+                return;
+            }
+
+            if (txtKeyword.Text.Trim().Length < 2)
+            {
+                _languageText = LocalizationHelper.GetLanguageString("The Keyword must contain at least 2 characters.", "form", GetType().Name, "msg", "AutoReplaceKeywordMinLength", "Text");
+                MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                txtKeyword.Focus();
+
                 return;
             }
 
@@ -3492,6 +3503,7 @@ namespace JasonQuery.UI.Forms
                 _languageText = LocalizationHelper.GetLanguageString("Please input \"Replacement\"!", "form", GetType().Name, "msg", "InputReplacement", "Text");
                 MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 editorAutoReplace.Focus();
+
                 return;
             }
 
@@ -3513,6 +3525,7 @@ namespace JasonQuery.UI.Forms
                 {
                     _languageText = LocalizationHelper.GetLanguageString("The Keyword already exists!", "form", GetType().Name, "msg", "ReplacementKeywordExist", "Text");
                     MessageBox.Show(_languageText, AppConfigHelper.MessageBoxCaption, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
                     return;
                 }
             }
