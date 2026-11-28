@@ -2,7 +2,6 @@
 using JasonQuery.UI.LeftPanel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Data;
 
 namespace JasonQuery.Tests.UI.LeftPanel
 {
@@ -57,22 +56,23 @@ namespace JasonQuery.Tests.UI.LeftPanel
         }
 
         [TestMethod]
-        public void SchemaBrowserForm_OnlySchemaAndTabListAreAvailable()
+        public void SchemaBrowserForm_SharedAutoReplaceIsAvailableButSqlListIsNot()
         {
             var result = Resolve(LeftPanelTargetKind.SchemaBrowserForm);
 
-            Assert.IsFalse(result.AutoReplace);
+            Assert.IsTrue(result.AutoReplace);
             Assert.IsTrue(result.SchemaInformation);
             Assert.IsTrue(result.TabList);
             Assert.IsFalse(result.SqlList);
         }
 
         [TestMethod]
-        public void OtherForm_CannotAccessQueryScopedPages()
+        public void OtherForm_SharedAutoReplaceIsAvailableButSqlListIsNot()
         {
             var result = Resolve(LeftPanelTargetKind.OtherForm);
 
-            Assert.IsFalse(result.AutoReplace);
+            Assert.IsTrue(result.AutoReplace);
+            Assert.IsFalse(Resolve(LeftPanelTargetKind.OtherForm, autoReplace: false).AutoReplace);
             Assert.IsFalse(result.SqlList);
             Assert.IsTrue(result.TabList);
         }
@@ -178,22 +178,14 @@ namespace JasonQuery.Tests.UI.LeftPanel
         }
 
         [TestMethod]
-        public void QueryScopedAutoReplaceWorkingTables_RemainIsolated_6_5_7()
+        public void SharedAutoReplaceRules_AreIndependentOfActiveTarget()
         {
-            //Representative working-table ownership contract; UI editing requires GUI regression later.
-            var q1 = new FakeQueryDataSource(5);
-            var q2 = new FakeQueryDataSource(5);
-            var q3 = new FakeQueryDataSource(5);
-
-            q1.AutoReplaceWorkingTable.Rows.Add("extra-q1");
-            q3.AutoReplaceWorkingTable.Rows.Add("extra-q3-a");
-            q3.AutoReplaceWorkingTable.Rows.Add("extra-q3-b");
-
-            Assert.AreEqual(6, q1.AutoReplaceWorkingTable.Rows.Count);
-            Assert.AreEqual(5, q2.AutoReplaceWorkingTable.Rows.Count);
-            Assert.AreEqual(7, q3.AutoReplaceWorkingTable.Rows.Count);
-            Assert.AreNotSame(q1.AutoReplaceWorkingTable, q2.AutoReplaceWorkingTable);
-            Assert.AreNotSame(q2.AutoReplaceWorkingTable, q3.AutoReplaceWorkingTable);
+            foreach (var target in new[] { LeftPanelTargetKind.QueryForm, LeftPanelTargetKind.SchemaBrowserForm, LeftPanelTargetKind.OtherForm, LeftPanelTargetKind.None })
+            {
+                Assert.IsTrue(Resolve(target).AutoReplace);
+                Assert.IsFalse(Resolve(target, autoReplace: false).AutoReplace);
+                Assert.IsFalse(Resolve(target, connected: false).AutoReplace);
+            }
         }
 
         private sealed class FakeReceiver : ISchemaExplorerActionReceiver
@@ -204,35 +196,15 @@ namespace JasonQuery.Tests.UI.LeftPanel
             public bool Result { get; set; } = true;
             public int CallCount { get; private set; }
             public SchemaExplorerSelectionInfo LastSelection { get; private set; }
+
             public bool TryHandleSchemaExplorerAction(SchemaExplorerSelectionInfo selection, SchemaExplorerActionKind action)
             {
                 CallCount++;
                 LastSelection = selection;
+
                 return Result;
             }
         }
 
-        private sealed class FakeQueryDataSource : IQueryLeftPanelDataSource
-        {
-            public FakeQueryDataSource(int count)
-            {
-                var table = new DataTable();
-
-                table.Columns.Add("Keyword");
-
-                for (var i = 0; i < count; i++)
-                {
-                    table.Rows.Add("keyword-" + i);
-                }
-
-                AutoReplaceWorkingTable = table;
-                SqlNavigatorWorkingTable = new DataTable();
-            }
-
-            public DataTable AutoReplaceWorkingTable { get; }
-            public DataTable SqlNavigatorWorkingTable { get; }
-            public bool TryCommitAutoReplaceEdits() { return true; }
-            public bool TryNavigateToSql(int oneBasedPosition) { return oneBasedPosition > 0; }
-        }
     }
 }

@@ -1901,8 +1901,9 @@
   <language category="form" class="OptionsForm" type="msg" id="ChangeColorThemeN2D" attribute="Text" name="将色彩布景主题从一般变更深色为需要重新启动 JasonQuery，以获得最佳的显示效果。" />
   <language category="form" class="OptionsForm" type="msg" id="InputSnippet" attribute="Text" name="请输入 'Snippet'！" />
   <language category="form" class="OptionsForm" type="msg" id="SnippetExist" attribute="Text" name="'Snippet' 已存在！" />
-  <language category="form" class="OptionsForm" type="msg" id="InputKeyword" attribute="Text" name="请输入 “关键词” ！ " />
-  <language category="form" class="OptionsForm" type="msg" id="InputReplacement" attribute="Text" name="请输入 “替换值” ！ " />
+  <language category="form" class="OptionsForm" type="msg" id="InputKeyword" attribute="Text" name="请输入 “关键词” ！" />
+  <language category="form" class="OptionsForm" type="msg" id="AutoReplaceKeywordMinLength" attribute="Text" name="“关键词” 至少需要 2 个字符！" />
+  <language category="form" class="OptionsForm" type="msg" id="InputReplacement" attribute="Text" name="请输入 “替换值” ！" />
   <language category="form" class="OptionsForm" type="msg" id="ReplacementKeywordExist" attribute="Text" name="关键词已存在！" />
   <language category="form" class="OptionsForm" type="msg" id="C#Style1" attribute="Text" name="Using + operator" />
   <language category="form" class="OptionsForm" type="msg" id="C#Style2" attribute="Text" name="New line character &#x000A;" />
@@ -2049,6 +2050,8 @@
   <language category="form" class="MainForm" type="object" id="lblPrompt4NewConnection" attribute="Text" name="您可以從 [文件] &gt; [新的连线] 建立或选择数据库连线信息！" />
   <language category="form" class="MainForm" type="gridheader" id="Type" attribute="Text" name="类型" />
   <language category="form" class="MainForm" type="gridheader" id="SQLStatement" attribute="Text" name="SQL 语句" />
+  <language category="form" class="MainForm" type="gridheader" id="Keyword" attribute="Text" name="关键词" />
+  <language category="form" class="MainForm" type="gridheader" id="Replacement" attribute="Text" name="替换值" />
   <language category="form" class="MainForm" type="msg" id="EmptyRecentFiles" attribute="Text" name="确定要清空 “最近的文件” ？ " />
   <language category="form" class="MainForm" type="msg" id="EmptyMyFavorite" attribute="Text" name="确定要清空 “收藏夹” ？ " />
   <language category="form" class="MainForm" type="msg" id="AliasName" attribute="Text" name="别名：(选择性)" />

@@ -245,11 +245,6 @@ namespace JasonQuery.UI.Forms
                 c1DockingTab2.SelectedTab = tabSchemaInformation;
                 c1GridSchemaBrowser.Focus();
             }
-            else if (MyLibrary.EnableAutoReplace)
-            {
-                c1DockingTab2.SelectedTab = tabAutoReplace;
-                c1GridAutoReplaceInfo.Focus();
-            }
 
             editor.Enabled = false;
             c1DockingTab2.Enabled = false;

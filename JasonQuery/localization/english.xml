@@ -1902,6 +1902,7 @@
   <language category="form" class="OptionsForm" type="msg" id="InputSnippet" attribute="Text" name="Please input 'Snippet'!" />
   <language category="form" class="OptionsForm" type="msg" id="SnippetExist" attribute="Text" name="The 'Snippet' already exists!" />
   <language category="form" class="OptionsForm" type="msg" id="InputKeyword" attribute="Text" name="Please input &quot;Keyword&quot;!" />
+  <language category="form" class="OptionsForm" type="msg" id="AutoReplaceKeywordMinLength" attribute="Text" name="The Keyword must contain at least 2 characters." />
   <language category="form" class="OptionsForm" type="msg" id="InputReplacement" attribute="Text" name="Please input &quot;Replacement&quot;!" />
   <language category="form" class="OptionsForm" type="msg" id="ReplacementKeywordExist" attribute="Text" name="The 'Keyword' already exists!" />
   <language category="form" class="OptionsForm" type="msg" id="C#Style1" attribute="Text" name="Using + operator" />
@@ -2049,6 +2050,8 @@
   <language category="form" class="MainForm" type="object" id="lblPrompt4NewConnection" attribute="Text" name="You can create or select database connection from [File] &gt; [New Connection]!" />
   <language category="form" class="MainForm" type="gridheader" id="Type" attribute="Text" name="Type" />
   <language category="form" class="MainForm" type="gridheader" id="SQLStatement" attribute="Text" name="SQL Statement" />
+  <language category="form" class="MainForm" type="gridheader" id="Keyword" attribute="Text" name="Keyword" />
+  <language category="form" class="MainForm" type="gridheader" id="Replacement" attribute="Text" name="Replacement" />
   <language category="form" class="MainForm" type="msg" id="EmptyRecentFiles" attribute="Text" name="Are you sure you want to empty &quot;Recent Files&quot; ?" />
   <language category="form" class="MainForm" type="msg" id="EmptyMyFavorite" attribute="Text" name="Are you sure you want to empty &quot;My Favorite&quot; ?" />
   <language category="form" class="MainForm" type="msg" id="AliasName" attribute="Text" name="Alias Name: (Optional)" />

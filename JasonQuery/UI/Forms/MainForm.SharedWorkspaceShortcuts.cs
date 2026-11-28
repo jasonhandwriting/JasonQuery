@@ -5,7 +5,7 @@ using System.Windows.Forms;
 namespace JasonQuery.UI.Forms
 {
     //MainForm owns shortcuts for the shared left workspace.
-    //F8 and F9 are active shared routes; F6 and F7 remain on their existing paths until their shortcut ownership is migrated.
+    //F6, F8 and F9 are active shared routes; F7 retains its existing shortcut path until ownership is migrated.
     public partial class MainForm
     {
         private SharedWorkspaceShortcutMessageFilter _sharedWorkspaceShortcutMessageFilter;
@@ -36,6 +36,36 @@ namespace JasonQuery.UI.Forms
             {
                 Application.RemoveMessageFilter(filter);
             }
+        }
+
+        private bool TrySelectSharedAutoReplaceFromShortcut()
+        {
+            if (IsDisposed || Disposing || !tabControl1.Visible
+                || splitContainerMainWorkspace.IsDisposed
+                || !splitContainerMainWorkspace.Visible
+                || c1DockingTabLeftPanel.IsDisposed
+                || c1GridSharedAutoReplace.IsDisposed
+                || !LeftPanelAvailabilityPolicy.Resolve(CaptureLeftPanelContext()).IsEnabled(LeftPanelPage.AutoReplace))
+            {
+                return false;
+            }
+
+            var table = _sharedAutoReplaceState.WorkingTable;
+
+            if (table == null || !tabLeftAutoReplace.TabVisible
+                || !ReferenceEquals(c1GridSharedAutoReplace.DataSource, table))
+            {
+                return false;
+            }
+
+            if (splitContainerMainWorkspace.Panel1Collapsed)
+            {
+                splitContainerMainWorkspace.Panel1Collapsed = false;
+            }
+
+            c1DockingTabLeftPanel.SelectedTab = tabLeftAutoReplace;
+
+            return true;
         }
 
         private bool TrySelectSharedTabListFromShortcut()
@@ -112,7 +142,7 @@ namespace JasonQuery.UI.Forms
 
                 var keyData = (Keys)message.WParam.ToInt32();
 
-                if (keyData != Keys.F8 && keyData != Keys.F9)
+                if (keyData != Keys.F6 && keyData != Keys.F8 && keyData != Keys.F9)
                 {
                     return false;
                 }
@@ -125,6 +155,11 @@ namespace JasonQuery.UI.Forms
 
                 switch (keyData)
                 {
+                    case Keys.F6:
+                        {
+                            _owner.TrySelectSharedAutoReplaceFromShortcut();
+                            return true;
+                        }
                     case Keys.F8:
                         {
                             _owner.TrySelectSharedTabListFromShortcut();

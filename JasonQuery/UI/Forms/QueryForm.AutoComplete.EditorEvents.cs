@@ -1,7 +1,6 @@
 ﻿using JasonQuery.Core.Config;
 using JasonQuery.Core.QueryEngine.Editor.AutoComplete.Models;
 using JasonQuery.Core.QueryEngine.Editor.AutoComplete.Support;
-using JasonQuery.Core.QueryEngine.Editor.Editing.AutoReplace;
 using JasonQuery.UI.QueryEditor.AutoComplete.Contexts;
 using JasonQuery.UI.QueryEditor.AutoComplete.Handlers;
 using JasonQuery.UI.QueryEditor.AutoComplete.Popup;
@@ -212,16 +211,6 @@ namespace JasonQuery.UI.Forms
                    || (e.KeyCode == Keys.Insert && e.Modifiers == Keys.Control);
         }
 
-        #region 20260405 for AutoReplace
-        private EditorAutoReplaceContext CreateEditorAutoReplaceContext()
-        {
-            return new EditorAutoReplaceContext
-            {
-                Editor = editor,
-                AutoReplaceMap = _autoReplacements
-            };
-        }
-        #endregion
 
         #region editor_KeyUp 20260404 重構
         private bool TryConsumeCompoundCtrlShiftKeyUp() //忽略 Ctrl+Shift 組合鍵收尾
@@ -271,13 +260,6 @@ namespace JasonQuery.UI.Forms
             return e.KeyData == Keys.Up || e.KeyData == Keys.Down || e.KeyData == Keys.Left || e.KeyData == Keys.Right || e.KeyData == Keys.Escape
                    || e.KeyCode == Keys.Home || e.KeyCode == Keys.End || e.KeyCode == Keys.PageUp || e.KeyCode == Keys.PageDown
                    || e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.ShiftKey || e.KeyCode == Keys.ProcessKey || e.KeyCode == Keys.Apps;
-        }
-
-        private void HandleAutoReplaceOnSpaceKeyUp(KeyEventArgs e)
-        {
-            var context = CreateEditorAutoReplaceContext();
-
-            _editorAutoReplaceService.TryHandleSpaceKeyUp(context, e);
         }
 
         private QueryEditorAutoCompleteEditorKeyUpContext CreateEditorKeyUpContext()

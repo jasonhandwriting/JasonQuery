@@ -1902,6 +1902,7 @@
   <language category="form" class="OptionsForm" type="msg" id="InputSnippet" attribute="Text" name="請輸入 'Snippet'！" />
   <language category="form" class="OptionsForm" type="msg" id="SnippetExist" attribute="Text" name="'Snippet' 已存在！" />
   <language category="form" class="OptionsForm" type="msg" id="InputKeyword" attribute="Text" name="請輸入「關鍵字」！" />
+  <language category="form" class="OptionsForm" type="msg" id="AutoReplaceKeywordMinLength" attribute="Text" name="「關鍵字」至少需要 2 個字元！" />
   <language category="form" class="OptionsForm" type="msg" id="InputReplacement" attribute="Text" name="請輸入「取代值」！" />
   <language category="form" class="OptionsForm" type="msg" id="ReplacementKeywordExist" attribute="Text" name="關鍵字已存在！" />
   <language category="form" class="OptionsForm" type="msg" id="C#Style1" attribute="Text" name="Using + operator" />
@@ -2049,6 +2050,8 @@
   <language category="form" class="MainForm" type="object" id="lblPrompt4NewConnection" attribute="Text" name="您可以從 [檔案] &gt; [新的連線] 建立或選擇資料庫連線訊息！" />
   <language category="form" class="MainForm" type="gridheader" id="Type" attribute="Text" name="類型" />
   <language category="form" class="MainForm" type="gridheader" id="SQLStatement" attribute="Text" name="SQL 語句" />
+  <language category="form" class="MainForm" type="gridheader" id="Keyword" attribute="Text" name="關鍵字" />
+  <language category="form" class="MainForm" type="gridheader" id="Replacement" attribute="Text" name="取代值" />
   <language category="form" class="MainForm" type="msg" id="EmptyRecentFiles" attribute="Text" name="確定要清空「最近使用的檔案」？" />
   <language category="form" class="MainForm" type="msg" id="EmptyMyFavorite" attribute="Text" name="確定要清空「我的最愛」？" />
   <language category="form" class="MainForm" type="msg" id="AliasName" attribute="Text" name="別名：(選擇性)" />

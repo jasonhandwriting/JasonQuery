@@ -132,16 +132,11 @@ namespace JasonQuery.UI.Forms
         private bool _isSplitterSaveRequired; //判斷是否需要 SaveSplitter 寬／高度值
 
         private List<Point> _searchList = new List<Point>();
-        private List<string> _gridHeaderAutoReplacements = new List<string>();
 
         private DataTable _dtPeriodAutoCompleteTable = new DataTable();
         private DataTable _dtSpaceAutoCompleteTable = new DataTable();
-        private DataTable _dtAutoReplaceInfoTable = new DataTable();
         private int _compoundKeyCtrlShift; //for Ctrl + Shift + ?
 
-        private string _columnKeywordName = "Keyword";
-        private string _columnReplacementName = "Replacement";
-        private Dictionary<string, string> _autoReplacements = new Dictionary<string, string>();
         private string _operationObject = string.Empty;
 
         [DllImport("user32")]
@@ -165,8 +160,6 @@ namespace JasonQuery.UI.Forms
         private int _rowHeight; //original row height
         private int _recSelWidth; //original record selector width
         private float _fontSize; //original font size
-
-        private DataRow _rowAutoReplaceInfo;
 
         private string _editorLength = string.Empty;
         private string _editorLines = string.Empty;
@@ -228,10 +221,6 @@ namespace JasonQuery.UI.Forms
                 if (MyGlobal.IsDefaultTabSchemaBrowser)
                 {
                     c1DockingTab2.SelectedTab = tabSchemaInformation;
-                }
-                else if (MyLibrary.EnableAutoReplace)
-                {
-                    c1DockingTab2.SelectedTab = tabAutoReplace;
                 }
                 else
                 {
@@ -2782,6 +2771,7 @@ namespace JasonQuery.UI.Forms
                             {
                                 //The host validates this editor's reference and empty state.
                                 TransferValueToMainForm("CloseEmptyTab`");
+
                                 return;
                             }
                             else
@@ -4250,7 +4240,6 @@ namespace JasonQuery.UI.Forms
 
         private void ApplyFixedGridVisualStyles()
         {
-            ApplyGridVisualStyle(c1GridAutoReplaceInfo);
             ApplyGridVisualStyle(c1GridSchemaBrowser);
             ApplyGridVisualStyle(c1GridTabList);
             ApplyGridVisualStyle(c1GridSqlNavigator);
@@ -7010,8 +6999,6 @@ namespace JasonQuery.UI.Forms
             }
 
             c1GridSchemaBrowser.Refresh();
-
-            ResizeAutoReplaceReplacementColumn();
         }
 
         private void HideAutoCompleteGrid(bool value = true)
@@ -7031,23 +7018,11 @@ namespace JasonQuery.UI.Forms
             try
             {
                 ApplyEditorSetting();
-
-                if (MyLibrary.EnableAutoReplace)
-                {
-                    CreateAndGetAutoReplaceInfoTable(_dtAutoReplaceInfoTable);
-                }
             }
             catch (Exception ex)
             {
                 ShowExceptionMessage(ex);
             }
-        }
-
-        private static class AutoReplaceColumn
-        {
-            public const int Pid = 0;
-            public const int Keyword = 1;
-            public const int Replacement = 2;
         }
 
         private static class QueryEditorColumn
