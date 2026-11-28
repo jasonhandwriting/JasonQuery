@@ -1963,17 +1963,6 @@
   <language category="form" class="MainForm" type="menu" id="mnuEdit_UpperCase" attribute="Text" name="UPPER Case" />
   <language category="form" class="MainForm" type="menu" id="mnuEdit_LowerCase" attribute="Text" name="lower Case" />
   <language category="form" class="MainForm" type="menu" id="mnuEdit_SqlFormatter" attribute="Text" name="SQL Formatter" />
-  <language category="form" class="MainForm" type="menu" id="mnuQuery" attribute="Text" name="&amp;Query" />
-  <language category="form" class="MainForm" type="menu" id="mnuNewSqlEditor2" attribute="Text" name="&amp;New SQL Editor" />
-  <language category="form" class="MainForm" type="menu" id="mnuQuery_Execute" attribute="Text" name="Execute" />
-  <language category="form" class="MainForm" type="menu" id="mnuQuery_ExecuteCurrentBlock" attribute="Text" name="Execute Current Block" />
-  <language category="form" class="MainForm" type="menu" id="mnuQuery_Explain" attribute="Text" name="Explain" />
-  <language category="form" class="MainForm" type="menu" id="mnuQuery_ExplainAnalyze" attribute="Text" name="Explain Analyze" />
-  <language category="form" class="MainForm" type="menu" id="mnuQuery_Options" attribute="Text" name="Explain Options" />
-  <language category="form" class="MainForm" type="menu" id="mnuAutoRollback" attribute="Text" name="Auto-Rollback" />
-  <language category="form" class="MainForm" type="menu" id="mnuAutoCommit" attribute="Text" name="Auto-Commit" />
-  <language category="form" class="MainForm" type="menu" id="mnuRollback" attribute="Text" name="Rollback" />
-  <language category="form" class="MainForm" type="menu" id="mnuCommit" attribute="Text" name="Commit" />
   <language category="form" class="MainForm" type="menu" id="mnuRecentFiles" attribute="Text" name="&amp;Recent Files" />
   <language category="form" class="MainForm" type="menu" id="EmptyRecentFiles" attribute="Text" name="Empty Recent Files" />
   <language category="form" class="MainForm" type="menu" id="mnuMyFavorite" attribute="Text" name="&amp;My Favorite" />

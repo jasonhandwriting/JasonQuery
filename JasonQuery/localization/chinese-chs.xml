@@ -1963,17 +1963,6 @@
   <language category="form" class="MainForm" type="menu" id="mnuEdit_UpperCase" attribute="Text" name="转换为大写" />
   <language category="form" class="MainForm" type="menu" id="mnuEdit_LowerCase" attribute="Text" name="转换为小写" />
   <language category="form" class="MainForm" type="menu" id="mnuEdit_SqlFormatter" attribute="Text" name="SQL 格式化" />
-  <language category="form" class="MainForm" type="menu" id="mnuQuery" attribute="Text" name="查询(&amp;Q)" />
-  <language category="form" class="MainForm" type="menu" id="mnuNewSqlEditor2" attribute="Text" name="打开(&amp;N)" />
-  <language category="form" class="MainForm" type="menu" id="mnuQuery_Execute" attribute="Text" name="执行" />
-  <language category="form" class="MainForm" type="menu" id="mnuQuery_ExecuteCurrentBlock" attribute="Text" name="执行当前区块" />
-  <language category="form" class="MainForm" type="menu" id="mnuQuery_Explain" attribute="Text" name="Explain" />
-  <language category="form" class="MainForm" type="menu" id="mnuQuery_ExplainAnalyze" attribute="Text" name="Explain Analyze" />
-  <language category="form" class="MainForm" type="menu" id="mnuQuery_Options" attribute="Text" name="Explain Options" />
-  <language category="form" class="MainForm" type="menu" id="mnuAutoRollback" attribute="Text" name="Auto-Rollback" />
-  <language category="form" class="MainForm" type="menu" id="mnuAutoCommit" attribute="Text" name="Auto-Commit" />
-  <language category="form" class="MainForm" type="menu" id="mnuRollback" attribute="Text" name="Rollback" />
-  <language category="form" class="MainForm" type="menu" id="mnuCommit" attribute="Text" name="Commit" />
   <language category="form" class="MainForm" type="menu" id="mnuRecentFiles" attribute="Text" name="最近的文件(&amp;R)" />
   <language category="form" class="MainForm" type="menu" id="EmptyRecentFiles" attribute="Text" name="清空最近的文件" />
   <language category="form" class="MainForm" type="menu" id="mnuMyFavorite" attribute="Text" name="收藏夹(&amp;M)" />

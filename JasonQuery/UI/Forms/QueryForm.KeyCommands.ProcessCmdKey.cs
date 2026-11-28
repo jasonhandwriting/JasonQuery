@@ -89,11 +89,6 @@ namespace JasonQuery.UI.Forms
                         btnQuery.PerformClick();
                         return true;
                     }
-                case Keys.F7:
-                    {
-                        c1DockingTab2.SelectedTab = tabSchemaInformation;
-                        return true;
-                    }
                 default:
                     {
                         return false;
